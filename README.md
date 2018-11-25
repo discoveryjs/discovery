@@ -11,7 +11,7 @@ Hackable graph discovery tool
 ## Install
 
 ```
-> npm install @avito/discovery
+> npm install @discoveryjs/discovery
 ```
 
 ## How to run
@@ -159,7 +159,7 @@ Also specail built-in `sidebar` view is available you can override this view wit
 
 ### Queries
 
-As a query you can specify string which will be processed by jora so your data will be a result of following flow:
+As a query you can specify string which will be processed by [Jora](https://github.com/lahmatiy/jora) so your data will be a result of following flow:
 
 ```
 jora(value) -> function(data, context) -> data
