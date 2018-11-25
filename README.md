@@ -1,6 +1,12 @@
+<img align="right" width="128" height="128"
+     alt="Discovery logo"
+     src="https://user-images.githubusercontent.com/270491/48985803-1563ae80-f11d-11e8-92c0-e07fbf0bcd94.png"/>
+
 # Discovery
 
-Hackable graph discovery tool
+[![NPM version](https://img.shields.io/npm/v/@discoveryjs/discovery.svg)](https://www.npmjs.com/package/@discoveryjs/discovery)
+
+Hackable JSON discovery tool
 
 > Documentation in progress...
 
@@ -187,3 +193,7 @@ jora(value) -> function(data, context) -> data
 ```
 
 Or you can use `function(data, context)` as query as well. Aslo you can use any data as query right away.
+
+## License
+
+MIT
