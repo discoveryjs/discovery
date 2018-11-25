@@ -14,33 +14,53 @@ Hackable graph discovery tool
 > npm install @discoveryjs/discovery
 ```
 
-## How to run
+## How to launch server
+
+Run the command in folder with `discovery` installed:
 
 ```
-> node node_modules/.bin/discovery
+> npx discovery
 ```
 
-Or add to your `package.json`:
-
-```json
-"scripts": {
-    "discovery": "discovery"
-}
-```
-
-After that `discovery` command will be available inside a project folder:
+By default server server starts on port `8123`. You can change it by `-p` (or `--port`) option:
 
 ```
-> discovery
+> npx discovery -p 7777
+```
+
+See more options with `-h` (or `--help`) argument:
+
+```
+> npx discovery -h
+```
+
+## How to build model
+
+Run the command in folder with `discovery` installed:
+
+```
+> npx discovery-build
+```
+
+The result will be placed to `build` folder by default. You can change it with `-o` (or `--output`) option:
+
+```
+> npx discovery-build --output some/path
+```
+
+See more options with `-h` (or `--help`) argument:
+
+```
+> npx discovery-build -h
 ```
 
 ## Modes
 
 Discovery can work in three modes:
 
-* Model-free
-* Multiple models
+* Model-free (when no any model specified)
 * Single model
+* Multiple models
 
 ### Model-free
 
@@ -54,12 +74,13 @@ In this mode discovery will start with model selection page. Every model will ha
 
 If you want only one model, you should start discovery with `--model %modelName%`. In this mode index page will represent your model default page.
 
-## Define models
+## Define a model
 
 To configure discovery you should specify one of config files:
 
 * `.discoveryrc.js`
 * `.discoveryrc.json`
+* `.discoveryrc` (the same as `.discoveryrc.json`)
 
 Or you can use `discovery` key in your `package.json` file.
 
@@ -71,12 +92,13 @@ Config should provide JSON or export js-object with following properties:
 * `models` - object with model configuration, where key used as model slug and value - model config
 
 Example:
+
 ```js
 module.exports = {
     name: 'discovery',
     models: {
-        one: { ...modelConfig... },
-        two: { ...modelConfig... }
+        one: <modelConfig>,
+        two: <modelConfig>
     }
 };
 ```
@@ -138,7 +160,6 @@ you can override this pages with `definePage`
 
 To define new view just call `discovery.view.define(viewId, render, options)` where:
 * `viewId` - unique view identifier
-
 * `render` - function(el, config, data, context) or view definition object
 * `options` - object with following fields:
     `tag` - container element. if `false|null` view will return `documentFragment`
