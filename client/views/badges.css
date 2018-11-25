@@ -1,0 +1,49 @@
+.view-badge,
+.view-pill-badge {
+    padding: 1px 6px 3px;
+    margin-right: 1ex;
+    text-shadow: 1px 1px rgba(255, 255, 255, .35);
+    background: #e4e4e4;
+    border-radius: 3px;
+    font-size: 85%;
+    color: black;
+    text-decoration: none;
+}
+.view-pill-badge {
+    border-radius: 9px;
+}
+
+.view-badge:hover,
+.view-pill-badge:hover {
+    color: black;
+}
+
+.view-badge[href]:hover,
+.view-pill-badge[href]:hover {
+    background-image: linear-gradient(to top, rgba(0, 0, 0, .1), rgba(0, 0, 0, .1));
+}
+
+.view-badge > .prefix {
+    padding: 1px 6px 3px;
+    margin: -1px 6px -3px -6px;
+    border-radius: 3px 0 0 3px;
+    background-image: linear-gradient(to top, rgba(0, 0, 0, .12), rgba(0, 0, 0, .12));
+}
+.view-badge > .postfix {
+    padding: 1px 6px 3px;
+    margin: -1px -6px -3px 6px;
+    border-radius: 0 3px 3px 0;
+    background-image: linear-gradient(to top, rgba(0, 0, 0, .12), rgba(0, 0, 0, .12));
+}
+.view-pill-badge > .prefix {
+    padding: 1px 6px 3px;
+    margin: -1px 6px -3px -6px;
+    border-radius: 8px 0 0 8px;
+    background-image: linear-gradient(to top, rgba(0, 0, 0, .12), rgba(0, 0, 0, .12));
+}
+.view-pill-badge > .prefix {
+    padding: 1px 6px 3px;
+    margin: -1px -6px -3px 6px;
+    border-radius: 0 8px 8px 0;
+    background-image: linear-gradient(to top, rgba(0, 0, 0, .12), rgba(0, 0, 0, .12));
+}

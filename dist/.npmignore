@@ -1,0 +1,7 @@
+*
+!lib.js
+!lib.min.js
+!lib.*.js
+!lib.*.min.js
+!lib.css
+!lib.min.css

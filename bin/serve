@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+const clap = require('clap');
+const createServer = require('../tools/server');
+const DEFAULT_PORT = 8123;
+
+// define command
+const command = clap.create('serve', '[config]')
+    .option('-c, --config <filename>', 'Path to config (JavaScript or JSON file)')
+    .option('-m, --model <name>', 'Specify a model (multi-model mode only)')
+    .option('--dev', 'Enable developer mode')
+    .option('--no-warmup', 'Disable warm up model data cache on server start')
+    .option('-p, --port <n>', 'Listening port (default: ' + DEFAULT_PORT + ')', function(value) {
+        return isNaN(value) ? 0 : Number(value);
+    })
+    .version(require('../package.json').version)
+    .action(function(args) {
+        const configFile = this.values.config || args[0];
+        const port = [
+            this.values.port,
+            process.env.PORT,
+            DEFAULT_PORT
+        ].filter(value => !isNaN(value))[0];
+        const options = Object.assign({}, this.values, {
+            configFile,
+            port
+        });
+
+        createServer(options);
+    });
+
+// run command
+try {
+    command.run();
+} catch (e) {
+    // output user frendly message if cli error
+    if (e instanceof clap.Error) {
+        console.error(e.message || e);
+        process.exit(2);
+    }
+
+    // otherwise re-throw exception
+    throw e;
+}

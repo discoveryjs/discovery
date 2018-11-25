@@ -1,0 +1,19 @@
+.view-h1 {
+    margin: 0 0 20px;
+    font-size: 220%;
+    font-weight: normal;
+}
+
+.view-h2,
+.view-header {
+    font-size: 120%;
+    font-weight: normal;
+}
+
+.view-h3 {
+    font-size: 110%;
+}
+
+.view-h4 {
+    font-size: 100%;
+}

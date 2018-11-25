@@ -1,0 +1,15 @@
+.view-content-filter > .view-input {
+    position: relative;
+    z-index: 9;
+    line-height: 1;
+    margin-bottom: 1em;
+}
+
+.view-content-filter > .content {
+    overflow: auto;
+    flex: 1;
+}
+.view-content-filter > .content .view-list::before {
+    padding: 5px 10px;
+    display: block;
+}

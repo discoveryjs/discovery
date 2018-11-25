@@ -1,0 +1,22 @@
+.page {
+    padding-top: 15px;
+}
+
+h1.modelfree::before {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: -5px;
+    margin-right: 10px;
+    width: 42px;
+    height: 42px;
+    content: '';
+    background: url('../logo.svg') no-repeat center;
+    background-size: 42px;
+}
+h1.modelfree .view-badge {
+    font-size: 50%;
+    vertical-align: middle;
+    border: 2px solid transparent;
+    background-color: #e7f1c2;
+}

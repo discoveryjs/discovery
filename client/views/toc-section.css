@@ -1,0 +1,25 @@
+.view-toc-section > .header {
+    top: 0px;
+    position: sticky;
+    padding: 9px 12px;
+    line-height: 1;
+    font-size: 14px;
+    border: 1px solid #DDD;
+    border-width: 1px 0;
+    background: #F8F8F8;
+    opacity: .95;
+    text-transform: capitalize;
+    margin: 0;
+    margin-bottom: -1px;
+}
+.view-toc-section > .header .view-badge,
+.view-toc-section > .header .view-pill-badge {
+    text-transform: none;
+    font-weight: normal;
+    margin-left: 4px;
+    margin-right: 0;
+}
+.view-toc-section > .content {
+    padding: 8px 0 8px 12px;
+    white-space: nowrap;
+}

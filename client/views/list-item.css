@@ -1,0 +1,14 @@
+.view-inline-list > .view-list-item,
+.view-comma-list > .view-list-item {
+    display: inline-block;
+    list-style: none;
+}
+
+.view-comma-list > .view-list-item::after {
+    content: ', ';
+    white-space: pre;
+}
+
+.view-comma-list > .view-list-item:last-child::after {
+    content: '';
+}

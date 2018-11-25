@@ -1,0 +1,14 @@
+.view-columns {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.view-columns:empty::before {
+    content: attr(emptyText);
+    color: #888;
+}
+
+.view-columns .view-column {
+    padding-right: 40px;
+    min-width: 150px;
+}

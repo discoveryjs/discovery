@@ -1,0 +1,15 @@
+.view-toc-item .target {
+    background: #ddd;
+}
+.view-toc-item .item-error-label {
+    display: inline-block;
+    min-width: 1.5ex;
+    padding: 1px 6px 1px;
+    margin-left: 1ex;
+    border-radius: 8px;
+    font-size: 10px;
+    text-align: center;
+    background: #ff4444;
+    color: white;
+    text-shadow: none;
+}

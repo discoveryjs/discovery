@@ -1,0 +1,18 @@
+.view-table {
+    font-size: 12px;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.view-table > thead > th {
+    padding: 2px 8px;
+    font-weight: normal;
+    text-align: left;
+    background: #eee;
+    /*text-transform: capitalize;*/
+    border: 1px solid white;
+    border-width: 1px 1px 1px 0;
+}
+.view-table > thead > th:last-child {
+    border-right-color: #eee;
+}

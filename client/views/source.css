@@ -1,0 +1,87 @@
+@import url('/node_modules/prismjs/themes/prism.css');
+
+.view-source {
+    padding: 8px;
+    overflow: auto;
+    white-space: pre;
+    background: #f0f0f0;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: #666;
+}
+.view-source .lines {
+    float: left;
+    text-align: right;
+    min-width: 3ex;
+    padding-right: 1ex;
+    margin-right: 1.5ex;
+    border-right: 1px solid #ddd;
+    color: #bbb;
+}
+.view-source .lines > span {
+    display: block;
+}
+.view-source .spotlight {
+    background: #fdf8cc;
+    padding: 2px 0;
+}
+.view-source .spotlight-error {
+    background: #ffc9c9
+}
+.view-source a.spotlight {
+    position: relative;
+    color: #444;
+    text-decoration: none;
+}
+.view-source a.spotlight:hover {
+    background-color: #f3eec4;
+    color: #aa6622 !important;
+    text-decoration: none
+}
+.view-source a.spotlight::before {
+    bottom: 100%;
+    position: absolute;
+    margin-bottom: -8px;
+    padding: 2px 8px;
+    opacity: 0;
+    border-radius: 3px;
+    background: black;
+    color: white;
+    pointer-events: none;
+    font-size: 11px;
+    content: 'Resolved to ' attr(href);
+}
+.view-source a.spotlight:hover::before {
+    margin-bottom: 2px;
+    opacity: .75;
+    transition: all .1s ease-in-out;
+}
+.view-source .spotlight-ignore {
+    background: #ddd;
+    background-image: repeating-linear-gradient(-45deg,
+        transparent,
+        transparent 6px,
+        rgba(225, 125, 0, .1) 6px,
+        rgba(225, 125, 0, .1) 12px,
+        transparent 12px
+    );
+}
+.view-source .token {
+    background: none;
+}
+
+.view-source.error {
+    margin: 0;
+    padding: 12px;
+    background: #f9dbdb;
+    color: black;
+}
+
+.view-source.disabled {
+    margin: 0;
+    padding: 12px;
+    background: #fff0bf;
+    color: black;
+}

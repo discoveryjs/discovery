@@ -1,0 +1,70 @@
+.view-struct {
+    overflow: auto;
+    margin: 1px 0;
+    padding: 8px;    
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+    line-height: 18px;
+    background: #fafafa;
+    color: #666;
+    white-space: nowrap;
+}
+.view-struct .struct-expand-value {
+    display: inline-block;
+    vertical-align: top;
+    overflow: hidden;
+    white-space: nowrap !important;
+    text-overflow: ellipsis;
+    border-radius: 4px;
+}
+.view-struct .struct-collapse-value {
+    margin-left: 2px;
+    padding: 1px 4px;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    font-size: 8px;
+    color: #ddd;
+    background: #fcfcfc;
+}
+.view-struct .struct-collapse-value::before {
+    content: "–";
+}
+.view-struct.struct-expand-value:hover,
+.view-struct .struct-expand-value:hover,
+.view-struct .struct-collapse-value:hover {
+    color: #333;
+    background: #eee;
+    border-color: #d0d0d0;
+    cursor: pointer;
+}
+.view-struct .entry-line {
+    white-space: nowrap;
+    padding-left: 4ch;
+}
+.view-struct .label {
+    float: left;
+    margin-left: -4ch;
+}
+.view-struct .property {
+    color: #bd6476;
+}
+.view-struct .value {
+    white-space: normal;
+    vertical-align: top;
+}
+.view-struct .keyword,
+.view-struct .number {
+    color: #07a;
+}
+.view-struct .string {
+    color: #690;
+    white-space: nowrap;
+}
+.view-struct .more {
+    color: #999;
+    white-space: nowrap;
+}
+.view-struct .more-buttons {
+    padding-left: 4ch;
+    display: block;
+}

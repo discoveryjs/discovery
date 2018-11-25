@@ -1,0 +1,9 @@
+.view-hstack {
+    overflow: hidden;
+    /*margin-bottom: 30px;*/
+}
+.view-hstack > * {
+    float: left;
+    margin-right: 40px;
+    min-width: 240px;
+}

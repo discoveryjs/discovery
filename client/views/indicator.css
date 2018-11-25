@@ -1,0 +1,39 @@
+.view-indicator {
+    display: inline-flex;
+    margin: 0 1px 1px 0;
+    width: 150px;
+    height: 100px;
+    background: #f4f4f4;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+}
+.view-indicator[href]:hover {
+    background: #e4e4e4;
+}
+
+.view-indicator > .value {
+    color: #666;
+    font-size: 40px;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, .5);
+    line-height: 1.2;
+}
+.view-indicator[href] > .value {
+    color: #1f7ec5;
+}
+.view-indicator > .label {
+    font-size: 14px;
+    color: #888;
+    box-sizing: border-box;
+    padding: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.view-indicator > .value > *,
+.view-indicator > .label > * {
+    color: black;
+    text-shadow: none;
+    white-space: normal;
+}

@@ -1,0 +1,47 @@
+.view-list > .view-list-item > .view-expand {
+    margin-bottom: 1px;
+}
+.view-list > .view-list-item:not(:last-child) > .view-expand.expanded {
+    margin-bottom: 4px;
+}
+.view-expand > .header {
+    display: flex;
+    padding: 2px;
+    background: #f4f4f4;
+    font-size: 12px;
+    cursor: pointer;
+}
+.view-expand > .header:hover {
+    background: #e4e4e4;
+}
+.view-expand > .header > :not(.trigger) {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+.view-expand > .header > .trigger {
+    order: -1;
+    width: 20px;
+    margin: -2px;
+    margin-right: 6px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, .05);
+}
+.view-expand.expanded > .header > .trigger {
+}
+.view-expand > .header > .trigger::before {
+    background: url(expand.svg) no-repeat center;
+    background-size: 12px;
+    transition: transform .15s ease-in;
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: .5;
+    transform: rotate(-90deg);
+    content: '';
+}
+.view-expand.expanded > .header > .trigger::before {
+    transform: rotate(0deg);
+}

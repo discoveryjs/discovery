@@ -1,0 +1,7 @@
+.view-tabs-buttons {
+    border-bottom: 1px solid #ddd;
+    padding: 2px 5px 0 5px;
+}
+.view-tabs-content {
+    overflow: auto;
+}

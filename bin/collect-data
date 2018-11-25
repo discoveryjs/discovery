@@ -1,0 +1,73 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs');
+const clap = require('clap');
+const loadConfig = require('../src').config.load;
+const collectData = require('../src').collectData;
+
+// define command
+const command = clap.create('collect-data', '[config] [model]')
+    .option('-c, --config <filename>', 'Specify path to config (JavaScript or JSON file)')
+    .option('-m, --model <name>', 'Specify the model id (slug)')
+    .option('-o, --output <filename>', 'Output file')
+    .version(require('../package.json').version)
+    .action(function(args) {
+        const configFile = this.values.config || args[0];
+        const modelName = this.values.model || args[1];
+        const outputFile = this.values.output || null;
+
+        if (!modelName) {
+            console.error('Model name is not specified. Use `--model` option to specify a model');
+            process.exit(2);
+        }
+
+        const config = loadConfig(configFile);
+        const modelConfig = Array.isArray(config.models) ? config.models.find(model => model.slug === modelName) : null;
+
+        if (!modelConfig) {
+            console.error(
+                'Model `' + modelName + '` is not found in config. ' +
+                'Available models: ' +
+                    (config.models.length ? config.models.map(model => model.slug).join(', ') : '<no model is available>')
+            );
+            process.exit(2);
+        }
+
+        collectData(modelConfig).then(model => {
+            if (outputFile) {
+                fs.writeFileSync(
+                    path.resolve(process.cwd(), outputFile),
+                    JSON.stringify(model),
+                    'utf8'
+                );
+                return;
+            }
+
+            // send data to parent process if run as a child process
+            if (typeof process.send === 'function') {
+                process.send(model);
+                return;
+            }
+
+            // otherwise write to stdout
+            console.log(JSON.stringify(model));
+        }, e => {
+            console.error(e);
+            process.exit(2);
+        });
+    });
+
+// run command
+try {
+    command.run();
+} catch (e) {
+    // output user frendly message if cli error
+    if (e instanceof clap.Error) {
+        console.error(e.message || e);
+        process.exit(2);
+    }
+
+    // otherwise re-throw exception
+    throw e;
+}

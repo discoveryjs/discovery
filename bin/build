@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+
+const clap = require('clap');
+const path = require('path');
+const build = require('../tools/build');
+
+function resolveCwd(value) {
+    return path.resolve(process.env.PWD || process.cwd(), value);
+}
+
+// define command
+const command = clap.create('build', '[config]')
+    .option('-c, --config <filename>', 'Path to config (JavaScript or JSON file)')
+    .option('-m, --model <name>', 'Specify a model (multi-model mode only)')
+    .option('-o, --output <path>', 'Path for a build result', resolveCwd, 'build')
+    .option('--cleanup', 'Delete all files of output path before saving a result to it')
+    .version(require('../package.json').version)
+    .action(function(args) {
+        const configFile = this.values.config || args[0];
+        const options = Object.assign({}, this.values, {
+            configFile
+        });
+
+        console.log(options);
+
+        build(options);
+    });
+
+// run command
+try {
+    command.run();
+} catch (e) {
+    // output user frendly message if cli error
+    if (e instanceof clap.Error) {
+        console.error(e.message || e);
+        process.exit(2);
+    }
+
+    // otherwise re-throw exception
+    throw e;
+}

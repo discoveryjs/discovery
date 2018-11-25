@@ -1,0 +1,255 @@
+@import url('/node_modules/codemirror/lib/codemirror.css');
+@import url('/node_modules/codemirror/theme/neo.css');
+
+.discovery[data-dzen] .page-report > :not(.data-view),
+.discovery[data-dzen] .page-report .view-switcher {
+    display: none;
+}
+.page-report {
+    padding-top: 0;
+}
+.page-report h3 {
+    font-weight: normal;
+    color: #888;
+}
+.page-report .editor-toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.page-report .editor-toolbar label {
+    padding: 4px;
+    margin: 0 1ex;
+    white-space: nowrap;
+}
+.page-report .editor-toolbar .syntax-hint {
+    padding-left: 10px;
+    flex: 1;
+    color: #aaa;
+    font-size: 12px;
+}
+.page-report .editor-toolbar button {
+    padding: 4px 24px;
+    margin-left: 1ex;
+    border-radius: 4px;
+    border: none;
+    background: #0af;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+}
+.page-report .editor-toolbar button:hover {
+    background: #26b7ff;
+    border-color: #0095e0;
+}
+.page-report .editor-toolbar button:focus {
+    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2),  inset 0 1px 1px rgba(142, 142, 142, .2);
+    outline: 0;
+}
+.page-report .editor-toolbar button:active {
+    box-shadow: inset 0 2px 1px #009cea;
+    padding-top: 5px;
+    padding-bottom: 3px;
+}
+.page-report textarea {
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 9em;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    line-height: 18px; 
+    border-color: #aaa;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 1px rgba(142,142,142,.2);
+    resize: vertical;
+}
+.page-report textarea:focus {
+    border-color: #0af;
+    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
+    outline: 0;
+}
+.page-report .CodeMirror {
+    height: auto;
+    padding: 4px 8px;
+    margin-bottom: 5px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 1px rgba(142,142,142,.2);
+}
+.page-report .CodeMirror-scroll {
+    min-height: 6.5em;
+    cursor: text;
+}
+.page-report .CodeMirror-focused {
+    border-color: #0af;
+    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
+}
+.page-report .CodeMirror-cursor {
+    border-left: 1px solid black;
+    background: none;
+    width: 0;
+}
+.page-report .data-query-result {
+    margin: 1em 0 1em -40px;
+}
+.page-report .view-switcher {
+    margin: 0 -40px 12px;
+}
+.page-report .view-switcher .tabs {
+    overflow: hidden;
+}
+.page-report .data-query-result::before,
+.page-report .view-switcher .tabs::before {
+    float: left;
+    padding: 3px 4px;
+    width: 40px;
+    text-align: right;
+    box-sizing: border-box;
+    font-size: 11px;
+    color: #aaa;
+}
+.page-report .data-query-result::before {
+    content: 'Data:';
+}
+.page-report .view-switcher .tabs::before {
+    content: 'View:';
+}
+.page-report .data-query-result > * {
+    overflow: hidden;
+}
+.page-report .data-query-result .error,
+.page-report .data-view .content .error {
+    display: block;
+    overflow: hidden;
+    border-left: 3px solid #f33;
+    background: #f9dbdb;
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: pre-wrap;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+}
+.page-report .data-query-result .error::before,
+.page-report .data-view .content .error::before {
+    display: block;
+    margin-bottom: .5em;
+    content: 'Query error';
+    font-size: 16px;
+}
+.page-report .data-view .content .error::before {
+    content: 'View build error';
+}
+.page-report .view-switcher .tab {
+    float: left;
+    margin: 0 1px 1px 0;
+    padding: 2px 12px;
+    background: #f4f4f4;
+    font-size: 12px;
+    cursor: pointer;
+}
+.page-report .view-switcher .tab:first-child {
+    border-top-left-radius: 4px;
+}
+.page-report .view-switcher .tab.active:first-child {
+    border-bottom-left-radius: 4px;
+    padding-bottom: 2px;
+    margin-bottom: 1px;
+}
+.page-report .view-switcher .tab:last-child {
+    border-top-right-radius: 4px;
+}
+.page-report .view-switcher .tab:last-child:not(.active) {
+    border-bottom-right-radius: 4px;
+}
+.page-report .view-switcher .tab.active {
+    padding-bottom: 3px;
+    margin-bottom: 0;
+    background: #e8f5fd;
+    cursor: default;
+}
+.page-report .view-switcher .tab:not(.active):hover {
+    background: #e4e4e4;
+}
+.page-report .query-view-setup {
+    padding: 8px 40px;
+    margin-bottom: 1px;
+    background: #e8f5fd;
+    border-radius: 0 4px 4px 4px;
+}
+.page-report .data-query-header {
+    display: flex;
+    flex-direction: row;
+    margin: 22px 0 25px;
+    line-height: 1.2;
+}
+.discovery[data-dzen] .page-report .data-query-header {
+    display: flex;
+    margin-right: 10px;
+}
+.page-report .data-query-title {
+    flex: 1;
+    position: relative;
+    font-size: 220%;
+}
+.page-report .data-query-title::before {
+    content: attr(data-title);
+}
+.page-report .data-query-title input {
+    font: inherit;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: -2px;
+    padding: 0;
+    visibility: hidden;
+}
+.page-report .data-query-title .timestamp {
+    display: block;
+    font-size: 10px;
+    color: #ccc;
+    margin-top: 4px;
+}
+.page-report .data-query-view-options {
+    margin-left: 10px;
+    margin-top: -3px;
+}
+.page-report .data-query-view-options .toggle-fullscreen {
+    width: 42px;
+    height: 42px;
+    background: url(./report-fullscreen.svg) center no-repeat;
+    background-size: 25px;
+    border-radius: 5px;
+    border: none;
+    text-indent: -500px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: .5;
+    outline: none;
+}
+.page-report .data-query-view-options .toggle-fullscreen:hover,
+.page-report .data-query-view-options .toggle-fullscreen:focus {
+    background-color: #f8f8f8;
+    opacity: 1;
+}
+.discovery[data-dzen] .page-report .data-query-view-options .toggle-fullscreen {
+    margin-right: -10px;
+    background-image: url(./report-cancel-fullscreen.svg);
+}
+.discovery:not([data-dzen]) .page-report .data-query-title input:focus,
+.discovery:not([data-dzen]) .page-report .data-query-title:hover input {
+    visibility: visible;
+}
+.page-report .editor-toolbar-view-dict {
+    padding-left: 10px;
+    padding-right: 25px;
+    font-size: 12px;
+    color: #aaa;
+}
+.page-report .editor-toolbar-view-dict .editor-toolbar-view-list .view {
+    color: #7badbd;
+    white-space: nowrap;
+}

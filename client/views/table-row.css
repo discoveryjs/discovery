@@ -1,0 +1,3 @@
+.view-table-row:not(:last-child) {
+    border-bottom: 1px solid #eee;
+}

@@ -1,0 +1,15 @@
+@import url('./common.css');
+@import url('./lib.css');
+
+h1::before {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: -5px;
+    margin-right: 10px;
+    width: 42px;
+    height: 42px;
+    content: '';
+    background: url('./logo.svg') no-repeat center;
+    background-size: 42px;
+}

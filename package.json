@@ -1,0 +1,84 @@
+{
+  "name": "@discoveryjs/discovery",
+  "version": "1.0.0-beta.1",
+  "description": "Hackable JSON discovery tool",
+  "keywords": [],
+  "author": "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)",
+  "license": "MIT",
+  "main": "./src/index.js",
+  "browser": {
+    "/gen/jora.js": "./tmp/gen/jora.js",
+    "/gen/hitext": "./tmp/gen/hitext.js",
+    "/gen/hitext-prismjs": "./tmp/gen/hitext-prismjs.js",
+    "/gen/prismjs": "./tmp/gen/prismjs.js",
+    "/gen/highcharts": "./tmp/gen/highcharts.js",
+    "/gen/codemirror": "./tmp/gen/codemirror.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/discoveryjs/discovery.git"
+  },
+  "bin": {
+    "discovery": "./bin/serve",
+    "discovery-build": "./bin/build"
+  },
+  "scripts": {
+    "lint": "eslint src tools client",
+    "build": "npm run build:es6 && npm run build:css",
+    "build:es6": "npm run build:umd && node scripts/lib-es5-to-es6",
+    "build:umd": "node scripts/build-client-libs && browserify client/lib.js -o dist/lib.umd.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ]",
+    "build:css": "node scripts/build-css",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "dependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "babelify": "^10.0.0",
+    "browserify": "^16.2.3",
+    "clap": "^1.2.3",
+    "codemirror": "^5.40.0",
+    "css-tree": "^1.0.0-alpha.29",
+    "express": "^4.16.3",
+    "highcharts": "^6.1.2",
+    "hitext": "^1.0.0-alpha.2",
+    "hitext-prismjs": "^1.0.2",
+    "jora": "1.0.0-alpha.4",
+    "prismjs": "^1.14.0",
+    "resolve": "^1.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "mime": "^2.3.1"
+  },
+  "files": [
+    "bin",
+    "client",
+    "dist",
+    "src",
+    "tools",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "mocha": true,
+      "es6": true
+    },
+    "rules": {
+      "no-duplicate-case": 2,
+      "no-undef": 2,
+      "no-unused-vars": [
+        2,
+        {
+          "vars": "all",
+          "args": "after-used"
+        }
+      ]
+    }
+  }
+}
