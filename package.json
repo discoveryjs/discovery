@@ -14,10 +14,7 @@
     "/gen/highcharts": "./tmp/gen/highcharts.js",
     "/gen/codemirror": "./tmp/gen/codemirror.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/discoveryjs/discovery.git"
-  },
+  "repository": "discoveryjs/discovery",
   "bin": {
     "discovery": "./bin/serve",
     "discovery-build": "./bin/build"
@@ -46,12 +43,12 @@
     "hitext": "^1.0.0-alpha.2",
     "hitext-prismjs": "^1.0.2",
     "jora": "1.0.0-alpha.4",
+    "mime": "^2.3.1",
     "prismjs": "^1.14.0",
     "resolve": "^1.8.1"
   },
   "devDependencies": {
-    "eslint": "^5.8.0",
-    "mime": "^2.3.1"
+    "eslint": "^5.8.0"
   },
   "files": [
     "bin",
