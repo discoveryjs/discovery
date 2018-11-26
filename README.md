@@ -10,6 +10,10 @@ Hackable JSON discovery tool
 
 > Documentation in progress...
 
+## Related projects
+
+- [JsonDiscovery](https://github.com/discoveryjs/browser-extension-json-discovery) – Chrome extension built on Discovery which allows you to discover a JSON documents and make beautiful reports on the fly
+
 ## Examples
 
 - [CSS syntax reference](https://csstree.github.io/docs/new-syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
