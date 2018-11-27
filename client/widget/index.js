@@ -57,10 +57,7 @@ export default class Widget {
 
         this.dom = {};
         this.queryExtensions = {
-            query: this.query,
-            pick: function(current, key) {
-                return current ? current[key || 0] : undefined;
-            }
+            query: (...args) => this.query(...args)
         };
 
         this.apply(views);
