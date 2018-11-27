@@ -2,34 +2,36 @@ const path = require('path');
 const fs = require('fs');
 const { fork } = require('child_process');
 const collectDataCommand = path.join(__dirname, '../../bin/collect-data');
+const assetCommand = path.join(__dirname, '../../bin/asset');
 
 function wrapCodeIntoDefaultFunction(code) {
     return `export default function(discovery) {\n${code}\n}`;
 }
 
-function generateAsset(modelConfig = {}, type) {
-    const view = modelConfig.view || {};
-    const baseURI = view.basedir || view.base || '';
-    const assets = Array.isArray(view.assets)
-        ? view.assets
-            .filter(asset => path.extname(asset) === type)
-            .map(filepath => path.resolve(baseURI, filepath))
-        : [];
+function generateAsset(modelConfig = {}, options = {}, type) {
+    const { slug } = modelConfig;
+    const args = [];
 
-    return assets.map(filepath => {
-        if (!fs.existsSync(filepath)) {
-            console.error('File `' + filepath + '` defined in `config.view` is not found');
-            return '';
-        }
+    if (!slug) {
+        return Promise.resolve('');
+    }
 
-        let content = fs.readFileSync(filepath, 'utf8');
+    if (options.configFile) {
+        args.push(options.configFile);
+    }
 
-        if (type === '.js') {
-            content = `!(function(module, exports){\n${content}\n}).call(this);`;
-        }
+    args.push('--model', slug);
+    args.push('--type', type);
 
-        return content;
-    }).join('');
+    return new Promise((resolve, reject) => {
+        fork(assetCommand, args)
+            .on('message', data => resolve(data))
+            .on('close', code => {
+                if (code) {
+                    reject(code);
+                }
+            });
+    });
 }
 
 function generatePrepare(modelConfig = {}) {
@@ -95,10 +97,10 @@ module.exports = {
             }
         });
     },
-    '/gen/model-view.js': function(modelConfig) {
-        return Promise.resolve(wrapCodeIntoDefaultFunction(generateAsset(modelConfig, '.js')));
+    '/gen/model-view.js': function(modelConfig, options) {
+        return generateAsset(modelConfig, options, 'js').then(wrapCodeIntoDefaultFunction);
     },
-    '/gen/model-view.css': function(modelConfig) {
-        return Promise.resolve(generateAsset(modelConfig, '.css'));
+    '/gen/model-view.css': function(modelConfig, options) {
+        return generateAsset(modelConfig, options, 'css');
     }
 };

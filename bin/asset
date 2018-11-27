@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs');
+const clap = require('clap');
+const loadConfig = require('../src').config.load;
+
+function generateAsset(view = {}, type) {
+    const baseURI = view.basedir || view.base || '';
+    const assets = Array.isArray(view.assets)
+        ? view.assets
+            .filter(asset => path.extname(asset) === ('.' + type))
+            .map(filepath => path.resolve(baseURI, filepath))
+        : [];
+
+    return Promise.resolve(assets.map(filepath => {
+        if (!fs.existsSync(filepath)) {
+            console.error('File `' + filepath + '` defined in `config.view` is not found');
+            return '';
+        }
+
+        let content = fs.readFileSync(filepath, 'utf8');
+
+        if (type === 'js') {
+            content = `\n!(function(module, exports){\n${content}\n}).call(this);\n`;
+        }
+
+        return content;
+    }).join(''));
+};
+
+// define command
+const command = clap.create('asset', '[config]')
+    .option('-c, --config <filename>', 'Path to config (JavaScript or JSON file)')
+    .option('-m, --model <name>', 'Specify a model (multi-model mode only)')
+    .option('-t, --type <type>', 'Specify a type of asset (js or css)')
+    .option('-o, --output <filename>', 'Output file')
+    .version(require('../package.json').version)
+    .action(function(args) {
+        const configFile = this.values.config || args[0];
+        const modelName = this.values.model || args[1];
+        const outputFile = this.values.output || null;
+        const type = this.values.type;
+
+        if (!modelName) {
+            console.error('Model name is not specified. Use `--model` option to specify a model');
+            process.exit(2);
+        }
+
+        if (!type) {
+            console.error('Asset type is not specified. Use `--type` option to specify a type');
+        }
+
+        if (type !== 'js' && type !== 'css') {
+            console.error('Wrong asset type: ' + type);
+            process.exit(2);
+        }
+
+        const config = loadConfig(configFile);
+        const modelConfig = Array.isArray(config.models) ? config.models.find(model => model.slug === modelName) : null;
+
+        if (!modelConfig) {
+            console.error(
+                'Model `' + modelName + '` is not found in config. ' +
+                'Available models: ' +
+                    (config.models.length ? config.models.map(model => model.slug).join(', ') : '<no model is available>')
+            );
+            process.exit(2);
+        }
+
+        generateAsset(modelConfig.view, type).then(asset => {
+            if (outputFile) {
+                fs.writeFileSync(
+                    path.resolve(process.cwd(), outputFile),
+                    asset,
+                    'utf8'
+                );
+                return;
+            }
+
+            // send data to parent process if run as a child process
+            if (typeof process.send === 'function') {
+                process.send(asset);
+                return;
+            }
+
+            // otherwise write to stdout
+            console.log(asset);
+        }, e => {
+            console.error(e);
+            process.exit(2);
+        });
+    });
+
+// run command
+try {
+    command.run();
+} catch (e) {
+    // output user frendly message if cli error
+    if (e instanceof clap.Error) {
+        console.error(e.message || e);
+        process.exit(2);
+    }
+
+    // otherwise re-throw exception
+    throw e;
+}
