@@ -196,7 +196,7 @@ As a query you can specify string which will be processed by [Jora](https://gith
 jora(value) -> function(data, context) -> data
 ```
 
-Or you can use `function(data, context)` as query as well. Aslo you can use any data as query right away.
+Or you can use `function(data, context)` as query as well. Also you can use any data as query right away.
 
 ## License
 
