@@ -20,7 +20,7 @@ export default function(discovery) {
             {
                 content: [
                     'h1:#.name',
-                    'struct'
+                    { view: 'struct', expanded: 1 }
                 ]
             }
         ]

@@ -178,7 +178,6 @@ export default function(discovery) {
     }
 
     let titleInputEl;
-    let timestampEl;
     let dataDateTimeEl;
     let viewDateTimeEl;
     const headerEl = createElement('div', 'data-query-header', [
@@ -204,7 +203,7 @@ export default function(discovery) {
                     }
                 }
             }),
-            timestampEl = createElement('span', 'timestamp', [
+            createElement('span', 'timestamp', [
                 dataDateTimeEl = createElement('span'),
                 viewDateTimeEl = createElement('span')
             ])
@@ -383,7 +382,8 @@ export default function(discovery) {
                 view: 'expand',
                 title: `html:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
                 expanded: showQueryRawData,
-                onToggle: state => showQueryRawData = state
+                onToggle: state => showQueryRawData = state,
+                content: { view: 'struct', expanded: 1 }
             }, results);
         }
 
