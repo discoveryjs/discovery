@@ -58,7 +58,7 @@ export default function(discovery) {
                 });
 
             Object.keys(colsMap)
-                .forEach(name => colNames.add(name));
+                .forEach(name => colsMap[name] ? colNames.add(name) : colNames.delete(name));
 
             if (scalarCol) {
                 cols.push({
