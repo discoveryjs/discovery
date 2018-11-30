@@ -14,7 +14,11 @@ function maybeFix(el, type, value) {
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content } = config;
-        const { color, text, href, prefix, postfix } = data || {};
+        let { color, text, href, prefix, postfix } = data || {};
+
+        if (typeof data === 'string') {
+            text = data;
+        }
 
         el.style.backgroundColor = color;
 
