@@ -100,10 +100,14 @@
 }
 .page-report .view-switcher .tabs {
     overflow: hidden;
+    display: inline-block;
+    vertical-align: top;
+}
+.page-report .view-switcher .tabs.presets {
+    margin-left: 3ex;
 }
 .page-report .data-query-result::before,
 .page-report .view-switcher .tabs::before {
-    float: left;
     padding: 3px 4px;
     width: 40px;
     text-align: right;
@@ -112,10 +116,15 @@
     color: #aaa;
 }
 .page-report .data-query-result::before {
+    float: left;
     content: 'Data:';
 }
-.page-report .view-switcher .tabs::before {
+.page-report .view-switcher .tabs.view-mode::before {
+    display: inline-block;
     content: 'View:';
+}
+.page-report .view-switcher .tabs.presets::before {
+    content: 'View presets:'
 }
 .page-report .data-query-result > * {
     overflow: hidden;
@@ -143,15 +152,19 @@
     content: 'View build error';
 }
 .page-report .view-switcher .tab {
-    float: left;
+    display: inline-block;
     margin: 0 1px 1px 0;
     padding: 2px 12px;
     background: #f4f4f4;
     font-size: 12px;
+    text-transform: capitalize;
     cursor: pointer;
 }
 .page-report .view-switcher .tab:first-child {
     border-top-left-radius: 4px;
+}
+.page-report .view-switcher .presets .tab:first-child {
+    border-bottom-left-radius: 4px;
 }
 .page-report .view-switcher .tab.active:first-child {
     border-bottom-left-radius: 4px;

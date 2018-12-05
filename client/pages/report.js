@@ -5,6 +5,17 @@ import { createElement, createText } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 
+const viewModeSource = {
+    default: results =>
+        Array.isArray(results)
+            ? '{\n    view: \'list\',\n    item: \'struct\'\n}'
+            : '{\n    view: \'struct\',\n    expanded: 1\n}',
+    custom: results => viewModeSource.default(results)
+};
+const viewPresets = {
+    table: () => '"table"'
+};
+
 function valueDescriptor(value) {
     if (Array.isArray(value)) {
         return `Array (${value.length ? `${value.length} ${value.length > 1 ? 'elements' : 'element'}` : 'empty'})`;
@@ -77,9 +88,8 @@ export function decodeParams(params) {
 }
 
 export default function(discovery) {
-    const defaultView = '{\n    view: \'list\',\n    item: \'struct\'\n}';
     let showQueryRawData = false;
-    let viewMode = 'none';
+    let viewMode = '';
     let processEditorChangeEvent = true;
     let lastQuery = {};
     let lastView = {};
@@ -145,7 +155,7 @@ export default function(discovery) {
 
     function updateViewModeTabs() {
         viewSetupEl.hidden = viewMode !== 'custom';
-        tabsEls.forEach(el => {
+        viewModeTabsEls.forEach(el => {
             if (el.dataset.mode === viewMode) {
                 el.classList.add('active');
             } else {
@@ -167,7 +177,7 @@ export default function(discovery) {
 
             case 'custom':
                 viewMode = mode;
-                applyQuery(undefined, defaultView);
+                applyQuery(undefined, viewModeSource[mode](lastView.data));
                 break;
 
             default:
@@ -263,21 +273,26 @@ export default function(discovery) {
     let viewSetupEl;
     let viewEditorEl;
     let availableViewListEl;
-    let tabsEls;
+    let viewModeTabsEls;
     const dataViewEl = createElement('div', 'data-view', [
         createElement('div', 'view-switcher', [
-            createElement('div', 'tabs', tabsEls = [
+            createElement('div', 'tabs view-mode', viewModeTabsEls = Object.keys(viewModeSource).map(id =>
                 createElement('div', {
                     class: 'tab',
-                    'data-mode': 'default',
-                    onclick: () => setViewMode('default')
-                }, 'Default'),
+                    'data-mode': id,
+                    onclick: () => setViewMode(id)
+                }, id)
+            )),
+            createElement('div', 'tabs presets', Object.keys(viewPresets).map(id =>
                 createElement('div', {
                     class: 'tab',
-                    'data-mode': 'custom',
-                    onclick: () => setViewMode('custom')
-                }, 'Custom')
-            ]),
+                    onclick: () =>
+                        discovery.setPageParams({
+                            ...discovery.pageParams,
+                            view: viewPresets[id](lastView.data)
+                        })
+                }, id)
+            )),
             viewSetupEl = createElement('div', {
                 class: 'query-view-setup',
                 hidden: true
@@ -388,7 +403,7 @@ export default function(discovery) {
         }
 
         if (!pageView && viewMode === 'default') {
-            pageView = Array.isArray(results) ? defaultView : '{ view: "struct", expanded: 1 }';
+            pageView = viewModeSource[viewMode](results);
         }
 
         if (lastView.data !== results || lastView.view !== pageView) {
