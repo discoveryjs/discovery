@@ -8,6 +8,7 @@
     font-size: 85%;
     color: black;
     text-decoration: none;
+    white-space: nowrap;
 }
 .view-pill-badge {
     border-radius: 9px;

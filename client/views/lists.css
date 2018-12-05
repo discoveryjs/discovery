@@ -9,6 +9,11 @@
     padding-left: 20px;
 }
 
+.view-inline-list,
+.view-comma-list {
+    display: inline-block;
+}
+
 .view-list:empty::before,
 .view-inline-list:empty::before,
 .view-ul:empty::before,
