@@ -208,6 +208,7 @@ export default class Widget {
         if (this.view.isDefined('sidebar')) {
             const t = Date.now();
 
+            this.dom.sidebar.innerHTML = '';
             this.view.render(
                 this.dom.sidebar,
                 'sidebar',
