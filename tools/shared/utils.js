@@ -4,28 +4,6 @@ const path = require('path');
 let printIdent = 0;
 let silent = false;
 
-function ensureDir(filename) {
-    var dirpath = path.dirname(path.normalize(filename));
-
-    if (!fs.existsSync(dirpath)) {
-        var parts = dirpath.split(path.sep);
-        var curpath = parts[0] + path.sep;
-        for (var i = 1; i < parts.length; i++) {
-            curpath += parts[i] + path.sep;
-
-            if (!fs.existsSync(curpath)) {
-                try {
-                    fs.mkdirSync(curpath);
-                } catch (e) {
-                    console.error('error', e);
-                }
-            }
-        }
-    }
-
-    return filename;
-}
-
 function es5toEs6(name, code, imports, cjs) {
     const importStmts = Object.entries(imports || {}).reduce(
         (res, [ref, lib]) =>
@@ -113,7 +91,6 @@ function processStep(name, fn) {
 }
 
 module.exports = {
-    ensureDir,
     es5toEs6,
     print,
     println,

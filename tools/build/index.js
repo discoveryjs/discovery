@@ -4,6 +4,7 @@ const bundleJs = require('../shared/bundle-js');
 const bundleCss = require('../shared/bundle-css');
 const bootstrap = require('../shared/bootstrap');
 const utils = require('../shared/utils');
+const ensureDir = require('../../src/ensure-dir');
 const gen = require('../shared/gen');
 const rootSrc = path.join(__dirname, '../..');
 const clientSrc = path.join(rootSrc, 'client');
@@ -51,7 +52,7 @@ function copyFile(filename, destDir, newFilename) {
     const dest = path.join(destDir, newFilename || path.basename(filename));
 
     utils.process(`Copy ${relpath(src)} → ${relpath(dest)}`, () =>
-        fs.copyFileSync(src, utils.ensureDir(dest))
+        fs.copyFileSync(src, ensureDir(dest))
     );
 }
 
@@ -73,7 +74,7 @@ function cleanDir(dir) {
 
 function writeFile(dest, content) {
     utils.process(`Write ${relpath(dest)}`, () =>
-        fs.writeFileSync(utils.ensureDir(dest), content, 'utf8')
+        fs.writeFileSync(ensureDir(dest), content, 'utf8')
     );
 }
 
