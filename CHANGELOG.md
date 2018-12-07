@@ -1,3 +1,7 @@
+## next
+
+- Changed `scrollTop` reset behaviour on page render, it now preserves by default and resets on page id or page ref changes
+
 ## 1.0.0-beta.3 (29-11-2018)
 
 - Server
@@ -18,3 +22,8 @@
 ## 1.0.0-beta.1 (25-11-2018)
 
 - First public release
+
+<-[]->
+
+foo~[key:key]~bar
+foo->[key:key]->bar

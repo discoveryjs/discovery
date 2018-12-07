@@ -428,7 +428,6 @@ export default function(discovery) {
             };
         }
     }, {
-        keepScrollOffset: true,
         reuseEl: true,
         init(el) {
             [

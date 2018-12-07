@@ -35,12 +35,15 @@ export default class PageRenderer {
             data = { name };
         }
 
-        const { reuseEl, init, keepScrollOffset } = page.options || {};
+        const { reuseEl, init, keepScrollOffset = true } = page.options || {};
         const pageChanged = this.lastPage !== name;
+        const pageRef = context && context.id;
+        const pageRefChanged = this.lastPageId !== pageRef;
         const newPageEl = reuseEl && !pageChanged ? oldPageEl : document.createElement('article');
         const parentEl = oldPageEl.parentNode;
 
         this.lastPage = name;
+        this.lastPageId = pageRef;
         newPageEl.id = oldPageEl.id;
         newPageEl.classList.add('page', 'page-' + name);
 
@@ -60,7 +63,7 @@ export default class PageRenderer {
             parentEl.replaceChild(newPageEl, oldPageEl);
         }
 
-        if (pageChanged || !keepScrollOffset) {
+        if (pageChanged || pageRefChanged || !keepScrollOffset) {
             parentEl.scrollTop = 0;
         }
 
