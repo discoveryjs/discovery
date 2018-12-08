@@ -1,11 +1,11 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
-const utils = require('../shared/utils');
-const bootstrap = require('../shared/bootstrap');
-const gen = require('../shared/gen');
-const libs = require('../shared/libs.js');
-const createDataMiddleware = require('./middleware/data-json');
-const { getCacheFilename } = require('../../src');
+const utils = require('./shared/utils');
+const bootstrap = require('./shared/bootstrap');
+const gen = require('./shared/gen');
+const libs = require('./shared/libs.js');
+const { getCacheFilename } = require('../src');
 
 const ROUTE_DATA = '/data.json';
 const ROUTE_RESET_DATA = '/drop-cache';
@@ -27,10 +27,49 @@ const stubApi = new Proxy({}, {
 });
 
 function generate(filename, ...args) {
-    return (req, res) => gen[filename](...args).then(content => {
-        res.type(path.extname(filename));
-        res.send(content);
-    });
+    return (req, res) => gen[filename](...args)
+        .then(content => {
+            res.type(path.extname(filename));
+            res.send(content);
+        });
+}
+
+function generateDataJson(modelConfig, options) {
+    return (req, res) => {
+        const { slug } = modelConfig;
+        const startTime = Date.now();
+
+        return gen['/data.json'](modelConfig, options)
+            .then(data => {
+                res.set('Content-Type', 'application/json');
+                res.send(data);
+            })
+            .catch(error => {
+                res.status(500).json({ error, data: null });
+                console.error(`/${slug}/data error: ${error}`);
+            })
+            .then(() => {
+                console.log(`/${slug}/data complete in ${Date.now() - startTime}ms`);
+            });
+    };
+}
+
+function dropDataCache(modelConfig) {
+    return (req, res) => {
+        const { slug } = modelConfig;
+        const cacheFile = getCacheFilename(modelConfig);
+
+        if (cacheFile) {
+            try {
+                fs.unlinkSync(cacheFile);
+                console.log(`/${slug}/ Drop cache`);
+            } catch (e) {
+                console.log(`/${slug}/ Drop cache ERROR: ${e}`);
+            }
+        }
+
+        res.status(200).send('OK');
+    };
 }
 
 function createModelRouter(modelConfig, options, routes = {}) {
@@ -53,16 +92,19 @@ function createModelRouter(modelConfig, options, routes = {}) {
         );
 
         // index html
-        router.get('/', (req, res) => res.sendFile(path.join(__dirname, '../../client/model.html')));
-        router.get('/model.js', (req, res) => res.sendFile(path.join(__dirname, '../../client/model.js')));
-        router.get('/model.css', (req, res) => res.sendFile(path.join(__dirname, '../../client/model.css')));
+        router.get('/', (req, res) => res.sendFile(path.join(__dirname, '../client/model.html')));
+        router.get('/model.js', (req, res) => res.sendFile(path.join(__dirname, '../client/model.js')));
+        router.get('/model.css', (req, res) => res.sendFile(path.join(__dirname, '../client/model.css')));
     });
 
-    if (options.warmup && ROUTE_DATA in routes) {
-        utils.process('Start warming up', () => routes[ROUTE_DATA](stubApi, stubApi));
+    if (options.warmup && ROUTE_DATA in routes && cacheFilename) {
+        utils.println(`Cache: ENABLED (${path.relative(process.cwd(), cacheFilename)})`);
+        utils.process('Warming up cache', () => {
+            routes[ROUTE_DATA](stubApi, stubApi);
+        });
+    } else {
+        utils.println('Cache: DISABLED');
     }
-
-    utils.println(`Cache: ${cacheFilename ? `ENABLED (${path.relative(process.cwd(), cacheFilename)})` : 'DISABLED' }`);
 
     utils.sectionEnd();
 
@@ -89,11 +131,9 @@ module.exports = bootstrap(function createServer(options, config, models, single
         const routers = utils.section(
             singleModel ? 'Init single model' : 'Init models',
             () => models.map(modelConfig => {
-                const getDataMiddleware = createDataMiddleware(modelConfig, options);
-
                 return createModelRouter(modelConfig, options, {
-                    [ROUTE_DATA]: getDataMiddleware.get,
-                    [ROUTE_RESET_DATA]: getDataMiddleware.dropCache,
+                    [ROUTE_DATA]: generateDataJson(modelConfig, options),
+                    [ROUTE_RESET_DATA]: dropDataCache(modelConfig),
                     [ROUTE_MODEL_PREPARE]: generate(ROUTE_MODEL_PREPARE, modelConfig),
                     [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS, modelConfig),
                     [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS, modelConfig)
@@ -110,9 +150,9 @@ module.exports = bootstrap(function createServer(options, config, models, single
 
     // common static files
     utils.process('Init common routes', () => {
-        app.use(express.static(path.join(__dirname, '../../client')));
-        app.use('/dist', express.static(path.join(__dirname, '../../dist')));
-        app.use('/tmp', express.static(path.join(__dirname, '../../tmp')));
+        app.use(express.static(path.join(__dirname, '../client')));
+        app.use('/dist', express.static(path.join(__dirname, '../dist')));
+        app.use('/tmp', express.static(path.join(__dirname, '../tmp')));
         app.get('/gen/setup.js', generate('/gen/setup.js', options, config, models));
 
         for (let name in libs) {

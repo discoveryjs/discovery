@@ -1,12 +1,12 @@
 const path = require('path');
 const fs = require('fs');
-const bundleJs = require('../shared/bundle-js');
-const bundleCss = require('../shared/bundle-css');
-const bootstrap = require('../shared/bootstrap');
-const utils = require('../shared/utils');
-const ensureDir = require('../../src/ensure-dir');
-const gen = require('../shared/gen');
-const rootSrc = path.join(__dirname, '../..');
+const bundleJs = require('./shared/bundle-js');
+const bundleCss = require('./shared/bundle-css');
+const bootstrap = require('./shared/bootstrap');
+const utils = require('./shared/utils');
+const gen = require('./shared/gen');
+const ensureDir = require('../src/ensure-dir');
+const rootSrc = path.join(__dirname, '..');
 const clientSrc = path.join(rootSrc, 'client');
 
 function createPathResolver(dir) {
