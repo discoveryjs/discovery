@@ -1,6 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-
 let printIdent = 0;
 let silent = false;
 

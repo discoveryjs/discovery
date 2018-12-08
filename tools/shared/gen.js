@@ -60,7 +60,7 @@ module.exports = {
             models: models.map(({ name, slug }) => ({ name, slug }))
         }));
     },
-    '/data.json': function(modelConfig, options = {}, useCacheFile) {
+    '/data.json': function(modelConfig, options = {}) {
         const { slug } = modelConfig;
         const args = [];
 
@@ -68,22 +68,25 @@ module.exports = {
             return Promise.resolve('null');
         }
 
-        if (useCacheFile && fs.existsSync(`.discovery-data.${slug}.cache`)) {
-            return Promise.resolve(fs.readFileSync(`.discovery-data.${slug}.cache`, 'utf8'));
-        }
-
         if (options.configFile) {
             args.push(options.configFile);
+        }
+
+        if (options.cache) {
+            args.push('--cache');
+            if (typeof options.cache === 'string') {
+                args.push(options.cache);
+            }
         }
 
         args.push('--model', slug);
 
         return new Promise((resolve, reject) => {
             fork(collectDataCommand, args)
-                .on('message', data => resolve(JSON.stringify(data)))
+                .on('message', resolve)
                 .on('close', code => {
                     if (code) {
-                        reject(code);
+                        reject(new Error('Process exit with code ' + code));
                     }
                 });
         });

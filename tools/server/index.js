@@ -5,6 +5,7 @@ const bootstrap = require('../shared/bootstrap');
 const gen = require('../shared/gen');
 const libs = require('../shared/libs.js');
 const createDataMiddleware = require('./middleware/data-json');
+const { getCacheFilename } = require('../../src');
 
 const ROUTE_DATA = '/data.json';
 const ROUTE_RESET_DATA = '/drop-cache';
@@ -34,6 +35,7 @@ function generate(filename, ...args) {
 
 function createModelRouter(modelConfig, options, routes = {}) {
     const { slug } = modelConfig;
+    const cacheFilename = getCacheFilename(modelConfig);
     const router = express.Router();
 
     utils.sectionStart(slug);
@@ -59,6 +61,8 @@ function createModelRouter(modelConfig, options, routes = {}) {
     if (options.warmup && ROUTE_DATA in routes) {
         utils.process('Start warming up', () => routes[ROUTE_DATA](stubApi, stubApi));
     }
+
+    utils.println(`Cache: ${cacheFilename ? `ENABLED (${path.relative(process.cwd(), cacheFilename)})` : 'DISABLED' }`);
 
     utils.sectionEnd();
 

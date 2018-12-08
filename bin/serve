@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const clap = require('clap');
+const path = require('path');
 const createServer = require('../tools/server');
 const DEFAULT_PORT = 8123;
 
@@ -8,6 +9,9 @@ const DEFAULT_PORT = 8123;
 const command = clap.create('serve', '[config]')
     .option('-c, --config <filename>', 'Path to config (JavaScript or JSON file)')
     .option('-m, --model <name>', 'Specify a model (multi-model mode only)')
+    .option('--cache [dir]', 'Enable data caching and specify path for cache files, use working directory when is not set',
+        (value = '') => path.resolve(process.cwd(), value)
+    )
     .option('--dev', 'Enable developer mode')
     .option('--no-warmup', 'Disable warm up model data cache on server start')
     .option('-p, --port <n>', 'Listening port (default: ' + DEFAULT_PORT + ')', function(value) {

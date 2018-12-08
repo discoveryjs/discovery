@@ -7,7 +7,7 @@ module.exports = fn => options => {
     const config = !configFile
         ? utils.println('No config is used') || {}
         : utils.process(`Load config from ${path.relative(process.cwd(), configFile).replace(/^(?=[^.\/])/, './')}`, () =>
-            configUtils.load(configFile)
+            configUtils.load(configFile, { cachedir: options.cache })
         );
 
     const singleModel = config.mode === 'single' ? 'default' : options.model;

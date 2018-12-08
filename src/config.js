@@ -36,47 +36,74 @@ function normalizeModelConfig(config) {
 
     return Object.assign({
         slug: config.slug,
-        name: 'Untitled model'
+        name: 'Untitled model',
+        cache: undefined
     }, config);
 }
 
-function resolveModelConfig(value, basepath) {
+function resolveModelConfig(value, basedir) {
     if (typeof value === 'string') {
-        return require(path.resolve(basepath, value));
+        return require(path.resolve(basedir, value));
     }
 
     return value;
 }
 
-function normalize(config, basepath) {
+function normalize(config, options) {
+    options = options || {};
+
+    const { basedir, cachedir } = options;
+    const cwd = process.env.PWD || process.cwd();
+    let result;
+
+    if (cachedir === true) {
+        cachedir = cwd;
+    }
+
     // if no models treat it as single model configuration
     if (!config.models) {
         return {
-            name: 'Implicit',
+            name: 'Implicit config',
+            cache: cachedir,
             mode: 'single',
             models: [
                 normalizeModelConfig(Object.assign(
                     { slug: 'default' },
-                    resolveModelConfig(config, basepath)
+                    resolveModelConfig(config, basedir)
                 ))
             ]
         };
+    } else {
+        result = Object.assign({
+            name: 'Discovery',
+            cache: cachedir
+        }, config, {
+            mode: 'multi',
+            models: Object.keys(config.models || {}).reduce(
+                (res, slug) => res.concat(
+                    normalizeModelConfig(Object.assign(
+                        { slug },
+                        resolveModelConfig(config.models[slug], basedir)
+                    ))
+                ),
+                []
+            )
+        });
     }
 
-    return Object.assign({
-        name: 'Discovery'
-    }, config, {
-        mode: 'multi',
-        models: Object.keys(config.models || {}).reduce(
-            (res, slug) => res.concat(
-                normalizeModelConfig(Object.assign(
-                    { slug },
-                    resolveModelConfig(config.models[slug], basepath)
-                ))
-            ),
-            []
-        )
+    result.models.forEach(modelConfig => {
+        switch (modelConfig.cache) {
+            case true:
+                modelConfig.cache = cachedir || cwd;
+                break;
+
+            case undefined:
+                modelConfig.cache = result.cache;
+                break;
+        }
     });
+
+    return result;
 }
 
 function loadFromPackageJson(filename) {
@@ -88,12 +115,12 @@ function loadFromPackageJson(filename) {
     );
 }
 
-function load(filename) {
+function load(filename, options) {
     const configFilename = resolveConfigFilename(filename);
     let config;
 
     if (!configFilename) {
-        return normalize({});
+        return normalize({}, options);
     }
 
     if (!fs.existsSync(configFilename)) {
@@ -116,7 +143,10 @@ function load(filename) {
             config = require(configFilename);
     }
 
-    return normalize(config, path.dirname(configFilename));
+    return normalize(
+        config,
+        Object.assign({ basedir: path.dirname(configFilename) }, options)
+    );
 }
 
 module.exports = {
