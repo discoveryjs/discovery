@@ -35,11 +35,17 @@ function generate(filename, ...args) {
 }
 
 function generateDataJson(modelConfig, options) {
+    let request = null;
+
     return (req, res) => {
         const { slug } = modelConfig;
         const startTime = Date.now();
 
-        return gen['/data.json'](modelConfig, options)
+        if (!request) {
+            request = gen['/data.json'](modelConfig, options);
+        }
+
+        return request
             .then(data => {
                 res.set('Content-Type', 'application/json');
                 res.send(data);
@@ -49,6 +55,7 @@ function generateDataJson(modelConfig, options) {
                 console.error(`/${slug}/data error: ${error}`);
             })
             .then(() => {
+                request = null;
                 console.log(`/${slug}/data complete in ${Date.now() - startTime}ms`);
             });
     };
