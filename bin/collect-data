@@ -38,20 +38,20 @@ const command = clap.create('collect-data', '[config] [model]')
             process.exit(2);
         }
 
-        getData(modelConfig).then(model => {
+        getData(modelConfig, true).then(stringifiedData => {
             if (outputFile) {
-                fs.writeFileSync(outputFile, JSON.stringify(model), 'utf8');
+                fs.writeFileSync(outputFile, stringifiedData, 'utf8');
                 return;
             }
 
             // send data to parent process if run as a child process
             if (typeof process.send === 'function') {
-                process.send(model);
+                process.send(stringifiedData);
                 return;
             }
 
             // otherwise write to stdout
-            console.log(JSON.stringify(model));
+            console.log(stringifiedData);
         }, e => {
             console.error(e);
             process.exit(2);
