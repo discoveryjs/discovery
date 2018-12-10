@@ -53,27 +53,40 @@ function generateDataJson(modelConfig, options) {
 
                     console.log(`${prefix} Start background cache update`);
                     bgUpdateRequest = gen['/data.json'](modelConfig, udpateOptions);
-                    bgUpdateRequest.then(() => {
-                        bgUpdateRequest = null;
-                        bgUpdateTimer = null;
-                        console.log(`${prefix} Background cache update done in ${Date.now() - bgUpdateStartTime}ms`);
-                        tryCacheBgUpdate();
-                    });
+                    bgUpdateRequest
+                        .catch(error => console.error(`${prefix} Cache update in background error: ${error}`))
+                        .then(() => {
+                            bgUpdateRequest = null;
+                            bgUpdateTimer = null;
+                            console.log(`${prefix} Background cache update done in ${Date.now() - bgUpdateStartTime}ms`);
+                            tryCacheBgUpdate();
+                        });
                 },
                 modelConfig.cacheBgUpdate
             );
         }
     }
 
-    return (req, res) => {
+    return function getData(req, res) {
         const startTime = Date.now();
 
         if (!request) {
-            request = bgUpdateRequest || gen['/data.json'](modelConfig, options);
-            request.then(() => {
-                request = null;
-                tryCacheBgUpdate();
-            });
+            if (bgUpdateRequest) {
+                request = bgUpdateRequest.catch(() => {
+                    bgUpdateRequest = null;
+                    request = null;
+                    getData(req, res);
+                });
+            } else {
+                request = gen['/data.json'](modelConfig, options);
+            }
+
+            request
+                .catch(error => console.error(`${prefix} Collect data error: ${error}`))
+                .then(() => {
+                    request = null;
+                    tryCacheBgUpdate();
+                });
         }
 
         return request
@@ -82,7 +95,10 @@ function generateDataJson(modelConfig, options) {
                 res.send(data);
             })
             .catch(error => {
-                res.status(500).json({ error, data: null });
+                res.status(500).json({
+                    error: error.stack || String(error),
+                    data: null
+                });
                 console.error(`${prefix} error: ${error}`);
             })
             .then(() => {

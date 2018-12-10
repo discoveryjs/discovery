@@ -37,7 +37,8 @@ function normalizeModelConfig(config) {
     return Object.assign({
         slug: config.slug,
         name: 'Untitled model',
-        cache: undefined
+        cache: undefined,
+        cacheTtl: 0 // TTL check is disabled
     }, config);
 }
 

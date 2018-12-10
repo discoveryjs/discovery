@@ -119,7 +119,7 @@ export default class App extends Widget {
             .catch(e => {
                 this.dom.loadingOverlay.classList.add('error');
                 this.dom.loadingOverlay.innerHTML =
-                    '<pre>Data loading error:<br>' + e + '</pre>' +
+                    '<pre>Data loading error:<br>' + String(e).replace(/^Error:\s*Error:/, 'Error:') + '</pre>' +
                     '<button onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>';
                 console.error(e);
             });

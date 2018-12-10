@@ -16,9 +16,16 @@ function getCacheFilename(modelConfig) {
 function getData(modelConfig, stringify, { rewriteCache } = {}) {
     const cacheFile = getCacheFilename(modelConfig);
 
-    if (cacheFile && !rewriteCache && fs.existsSync(cacheFile)) {
-        return readFilePromise(cacheFile, 'utf8')
-            .then(data => stringify ? data : JSON.parse(data));
+    if (cacheFile && !rewriteCache) {
+        try {
+            const stat = fs.statSync(cacheFile);
+            const cacheAge = Date.now() - stat.mtime;
+
+            if (!modelConfig.cacheTtl || modelConfig.cacheTtl > cacheAge) {
+                return readFilePromise(cacheFile, 'utf8')
+                    .then(data => stringify ? data : JSON.parse(data));
+            }
+        } catch (e) {}
     }
 
     return collectData(modelConfig).then(data => {
