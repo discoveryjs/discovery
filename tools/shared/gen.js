@@ -79,6 +79,10 @@ module.exports = {
             }
         }
 
+        if (options.rewriteCache) {
+            args.push('--rewrite-cache');
+        }
+
         args.push('--model', slug);
 
         return new Promise((resolve, reject) => {

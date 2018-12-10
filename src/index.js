@@ -13,10 +13,10 @@ function getCacheFilename(modelConfig) {
         : undefined;
 }
 
-function getData(modelConfig, stringify) {
+function getData(modelConfig, stringify, { rewriteCache } = {}) {
     const cacheFile = getCacheFilename(modelConfig);
 
-    if (cacheFile && fs.existsSync(cacheFile)) {
+    if (cacheFile && !rewriteCache && fs.existsSync(cacheFile)) {
         return readFilePromise(cacheFile, 'utf8')
             .then(data => stringify ? data : JSON.parse(data));
     }

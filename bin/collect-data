@@ -9,9 +9,10 @@ const getData = require('../src').getData;
 const command = clap.create('collect-data', '[config] [model]')
     .option('-c, --config <filename>', 'Specify path to config (JavaScript or JSON file)')
     .option('-m, --model <name>', 'Specify the model id (slug)')
-    .option('--cache [dir]', 'Enable data caching and specify path for cache files, use working directory when is not set',
+    .option('--cache [dir]', 'Enable data caching and specify path to store cache files (using a working directory if dir is not set)',
         (value = '') => path.resolve(process.cwd(), value)
     )
+    .option('--rewrite-cache', 'Ignore existing cache')
     .option('-o, --output <filename>', 'Output file',
         (value = '') => path.resolve(process.cwd(), value)
     )
@@ -21,6 +22,7 @@ const command = clap.create('collect-data', '[config] [model]')
         const modelName = this.values.model || args[1];
         const outputFile = this.values.output || null;
         const cachedir = this.values.cache || false;
+        const rewriteCache = this.values.rewriteCache || false;
 
         if (!modelName) {
             console.error('Model name is not specified. Use `--model` option to specify a model');
@@ -38,24 +40,26 @@ const command = clap.create('collect-data', '[config] [model]')
             process.exit(2);
         }
 
-        getData(modelConfig, true).then(stringifiedData => {
-            if (outputFile) {
-                fs.writeFileSync(outputFile, stringifiedData, 'utf8');
-                return;
-            }
+        getData(modelConfig, true, { rewriteCache })
+            .then(stringifiedData => {
+                if (outputFile) {
+                    fs.writeFileSync(outputFile, stringifiedData, 'utf8');
+                    return;
+                }
 
-            // send data to parent process if run as a child process
-            if (typeof process.send === 'function') {
-                process.send(stringifiedData);
-                return;
-            }
+                // send data to parent process if run as a child process
+                if (typeof process.send === 'function') {
+                    process.send(stringifiedData);
+                    return;
+                }
 
-            // otherwise write to stdout
-            console.log(stringifiedData);
-        }, e => {
-            console.error(e);
-            process.exit(2);
-        });
+                // otherwise write to stdout
+                console.log(stringifiedData);
+            })
+            .catch(error => {
+                console.error(error);
+                process.exit(2);
+            });
     });
 
 // run command

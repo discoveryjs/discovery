@@ -35,14 +35,45 @@ function generate(filename, ...args) {
 }
 
 function generateDataJson(modelConfig, options) {
+    const { slug } = modelConfig;
+    const prefix = `/${slug}/data.json`;
+    const cacheEnabled = Boolean(getCacheFilename(modelConfig));
     let request = null;
+    let bgUpdateTimer = null;
+    let bgUpdateRequest = null;
+
+    function tryCacheBgUpdate() {
+        if (cacheEnabled && !bgUpdateTimer && modelConfig.cacheBgUpdate) {
+            const udpateOptions = Object.assign({}, options, { rewriteCache: true });
+
+            console.log(`${prefix} Schedule update cache in background in ${modelConfig.cacheBgUpdate} ms`);
+            bgUpdateTimer = setTimeout(
+                () => {
+                    const bgUpdateStartTime = Date.now();
+
+                    console.log(`${prefix} Start background cache update`);
+                    bgUpdateRequest = gen['/data.json'](modelConfig, udpateOptions);
+                    bgUpdateRequest.then(() => {
+                        bgUpdateRequest = null;
+                        bgUpdateTimer = null;
+                        console.log(`${prefix} Background cache update done in ${Date.now() - bgUpdateStartTime}ms`);
+                        tryCacheBgUpdate();
+                    });
+                },
+                modelConfig.cacheBgUpdate
+            );
+        }
+    }
 
     return (req, res) => {
-        const { slug } = modelConfig;
         const startTime = Date.now();
 
         if (!request) {
-            request = gen['/data.json'](modelConfig, options);
+            request = bgUpdateRequest || gen['/data.json'](modelConfig, options);
+            request.then(() => {
+                request = null;
+                tryCacheBgUpdate();
+            });
         }
 
         return request
@@ -52,11 +83,10 @@ function generateDataJson(modelConfig, options) {
             })
             .catch(error => {
                 res.status(500).json({ error, data: null });
-                console.error(`/${slug}/data error: ${error}`);
+                console.error(`${prefix} error: ${error}`);
             })
             .then(() => {
-                request = null;
-                console.log(`/${slug}/data complete in ${Date.now() - startTime}ms`);
+                console.log(`${prefix} complete in ${Date.now() - startTime}ms`);
             });
     };
 }
@@ -104,11 +134,18 @@ function createModelRouter(modelConfig, options, routes = {}) {
         router.get('/model.css', (req, res) => res.sendFile(path.join(__dirname, '../client/model.css')));
     });
 
-    if (options.warmup && ROUTE_DATA in routes && cacheFilename) {
+    if (cacheFilename) {
         utils.println(`Cache: ENABLED (${path.relative(process.cwd(), cacheFilename)})`);
-        utils.process('Warming up cache', () => {
-            routes[ROUTE_DATA](stubApi, stubApi);
-        });
+
+        if (modelConfig.cacheBgUpdate) {
+            utils.println(`  Update in background every ${modelConfig.cacheBgUpdate}ms`);
+        }
+
+        if (options.warmup && ROUTE_DATA in routes) {
+            utils.process('Warming up cache', () => {
+                routes[ROUTE_DATA](stubApi, stubApi);
+            });
+        }
     } else {
         utils.println('Cache: DISABLED');
     }
