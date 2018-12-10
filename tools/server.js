@@ -42,7 +42,6 @@ function generateDataJson(modelConfig, options) {
     const cacheEnabled = Boolean(getCacheFilename(modelConfig));
     let request = null;
     let bgUpdateTimer = null;
-    let bgUpdateRequest = null;
 
     function tryCacheBgUpdate() {
         if (cacheEnabled && !bgUpdateTimer && modelConfig.cacheBgUpdate) {
@@ -54,11 +53,9 @@ function generateDataJson(modelConfig, options) {
                     const bgUpdateStartTime = Date.now();
 
                     console.log(`${prefix} Start background cache update`);
-                    bgUpdateRequest = gen['/data.json'](modelConfig, udpateOptions);
-                    bgUpdateRequest
+                    gen['/data.json'](modelConfig, udpateOptions)
                         .catch(error => console.error(`${prefix} Cache update in background error: ${error}`))
                         .then(() => {
-                            bgUpdateRequest = null;
                             bgUpdateTimer = null;
                             console.log(`${prefix} Background cache update done in ${Date.now() - bgUpdateStartTime}ms`);
                             tryCacheBgUpdate();
@@ -73,16 +70,7 @@ function generateDataJson(modelConfig, options) {
         const startTime = Date.now();
 
         if (!request) {
-            if (bgUpdateRequest) {
-                request = bgUpdateRequest.catch(() => {
-                    bgUpdateRequest = null;
-                    request = null;
-                    getData(req, res);
-                });
-            } else {
-                request = gen['/data.json'](modelConfig, options);
-            }
-
+            request = gen['/data.json'](modelConfig, options);
             request
                 .catch(error => console.error(`${prefix} Collect data error: ${error}`))
                 .then(() => {
