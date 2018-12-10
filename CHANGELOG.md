@@ -1,6 +1,19 @@
-## next
+## 1.0.0-beta.4 (10-12-2018)
 
-- Changed `scrollTop` reset behaviour on page render, it now preserves by default and resets on page id or page ref changes
+- Server
+    - Prevented multiple data collection on multiple requests
+    - Changed data caching setup
+        - No data caching by default now
+        - Enable caching by `--cache` option, that can be used to setup a directory for cache files (current working directory is using if path is not set)
+        - Added `cache` option to models config to setup a cache across all models
+        - Added `cache` option to model config to setup a cache for a model
+        - Added `cacheBgUpdate` option to model config to setup interval for cache update inbackground
+        - Added `cacheTtl` option to model config to setup max age of cache before it will be discarded
+- Client
+    - Added sidebar container content clearing before a sidebar rendering
+    - Changed `scrollTop` reset behaviour on page render, it now preserves by default and resets on page id or page ref changes
+    - Added view presets on report page (a single `Table` at the moment)
+    - Bumped `jora` to [1.0.0-alpha.6](https://github.com/lahmatiy/jora/releases/tag/v1.0.0-alpha.6)
 
 ## 1.0.0-beta.3 (29-11-2018)
 
@@ -22,8 +35,3 @@
 ## 1.0.0-beta.1 (25-11-2018)
 
 - First public release
-
-<-[]->
-
-foo~[key:key]~bar
-foo->[key:key]->bar
