@@ -9,12 +9,14 @@ const { getCacheFilename } = require('../src');
 
 const ROUTE_DATA = '/data.json';
 const ROUTE_RESET_DATA = '/drop-cache';
+const ROUTE_SETUP = '/gen/setup.js';
 const ROUTE_MODEL_PREPARE = '/gen/model-prepare.js';
 const ROUTE_MODEL_VIEW_JS = '/gen/model-view.js';
 const ROUTE_MODEL_VIEW_CSS = '/gen/model-view.css';
 const defaultRoutes = {
     [ROUTE_DATA]: (req, res) => res.send({ name: 'Model free mode' }),
     [ROUTE_RESET_DATA]: (req, res) => res.send(null),
+    [ROUTE_SETUP]: generate(ROUTE_SETUP, {}, { name: 'Discovery', mode: 'modelfree' }),
     [ROUTE_MODEL_PREPARE]: generate(ROUTE_MODEL_PREPARE),
     [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS),
     [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS)
@@ -171,14 +173,14 @@ function createModelRouter(modelConfig, options, routes = {}) {
     return router;
 }
 
-module.exports = bootstrap(function createServer(options, config, models, singleModel) {
+module.exports = bootstrap(function createServer(options, config) {
     const app = express();
 
     // check up models
-    if (!models.length) {
-        if (singleModel) {
+    if (!config.models || !config.models.length) {
+        if (options.model) {
             // looks like a user mistake
-            console.error(`  Model \`${singleModel}\` is not found`);
+            console.error(`  Model \`${options.model}\` is not found`);
             process.exit(2);
         }
 
@@ -189,11 +191,12 @@ module.exports = bootstrap(function createServer(options, config, models, single
         );
     } else {
         const routers = utils.section(
-            singleModel ? 'Init single model' : 'Init models',
-            () => models.map(modelConfig => {
+            config.mode === 'single' ? 'Init single model' : 'Init models',
+            () => config.models.map(modelConfig => {
                 return createModelRouter(modelConfig, options, {
                     [ROUTE_DATA]: generateDataJson(modelConfig, options),
                     [ROUTE_RESET_DATA]: dropDataCache(modelConfig),
+                    [ROUTE_SETUP]: generate(ROUTE_SETUP, modelConfig, config),
                     [ROUTE_MODEL_PREPARE]: generate(ROUTE_MODEL_PREPARE, modelConfig),
                     [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS, modelConfig),
                     [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS, modelConfig)
@@ -201,10 +204,10 @@ module.exports = bootstrap(function createServer(options, config, models, single
             })
         );
 
-        if (singleModel) {
+        if (config.mode === 'single') {
             app.use(routers[0]);
         } else {
-            models.forEach((model, idx) => app.use('/' + model.slug, routers[idx]));
+            config.models.forEach((model, idx) => app.use('/' + model.slug, routers[idx]));
         }
     }
 
@@ -213,7 +216,7 @@ module.exports = bootstrap(function createServer(options, config, models, single
         app.use(express.static(path.join(__dirname, '../client')));
         app.use('/dist', express.static(path.join(__dirname, '../dist')));
         app.use('/tmp', express.static(path.join(__dirname, '../tmp')));
-        app.get('/gen/setup.js', generate('/gen/setup.js', options, config, models));
+        app.get('/gen/setup.js', generate('/gen/setup.js', null, config));
 
         for (let name in libs) {
             app.get(libs[name].filename, function(req, res) {

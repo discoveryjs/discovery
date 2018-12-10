@@ -7,10 +7,10 @@ import { createElement } from '../core/utils/dom.js';
 import { reportLink } from './report-link.js';
 
 export default class App extends Widget {
-    constructor(container, options) {
+    constructor(container, options = {}) {
         super(container, options);
 
-        this.modelfree = Boolean(options.modelfree);
+        this.mode = options.mode;
 
         this.apply(complexViews);
         this.apply(router);
@@ -18,22 +18,22 @@ export default class App extends Widget {
         this.addBadge(
             'Index',
             () => this.setPage('default'),
-            (host) => host.pageId !== 'default' && !host.modelfree
+            (host) => host.pageId !== 'default' && host.mode !== 'modelfree'
         );
         this.addBadge(
             'Make report',
             () => this.setPage('report'),
-            (host) => host.pageId !== 'report' && !host.modelfree
+            (host) => host.pageId !== 'report' && host.mode !== 'modelfree'
         );
         this.addBadge(
             'Reload with no cache',
             () => fetch('drop-cache').then(() => location.reload()),
-            (host) => host.dev && !host.modelfree
+            () => options.cache
         );
         this.addBadge(
             'Switch model',
             () => location.href = '..',
-            () => /^\/[^\/]+\//.test(location.pathname)
+            (host) => host.mode === 'multi'
         );
         this.addBadge(
             (el) => {
@@ -42,10 +42,10 @@ export default class App extends Widget {
                 el.lastChild.addEventListener('change', e => this.loadDataFromEvent(e));
             },
             () => {},
-            (host) => host.modelfree
+            (host) => host.mode === 'modelfree'
         );
 
-        if (this.modelfree && this.dom.container) {
+        if (this.mode === 'modelfree' && this.dom.container) {
             // Setup the drag&drop listeners
             this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
             this.dom.container.addEventListener('dragover', e => {
@@ -56,7 +56,7 @@ export default class App extends Widget {
     }
 
     setData(data, context = {}) {
-        if (this.modelfree) {
+        if (this.mode === 'modelfree') {
             this.pageId = 'report';
         }
 
@@ -136,18 +136,18 @@ export default class App extends Widget {
     }
 
     setPage(id, ref, params) {
-        super.setPage(this.modelfree ? this.pageId : id, ref, params);
+        super.setPage(this.mode === 'modelfree' ? this.pageId : id, ref, params);
     }
 
     getPageContext() {
         return {
             ...super.getPageContext(),
-            modelfree: this.modelfree
+            modelfree: this.mode === 'modelfree'
         };
     }
 
     renderPage() {
-        if (this.modelfree && !this.data) {
+        if (this.mode === 'modelfree' && !this.data) {
             this.pageId = 'default';
         }
 

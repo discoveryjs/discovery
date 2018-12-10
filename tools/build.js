@@ -90,7 +90,7 @@ function bundleFile(filename, options) {
     }
 }
 
-function createModel(pathResolver, modelConfig, options, jsBundleOptions) {
+function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
     [
         'index.html',
         'model.js',
@@ -113,6 +113,10 @@ function createModel(pathResolver, modelConfig, options, jsBundleOptions) {
                 gen[filename](modelConfig, options)
                     .then(content => writeFile(pathResolver(filename), content))
             )
+        )
+        .then(() =>
+            gen['/gen/setup.js'](modelConfig, config)
+                .then(content => writeFile(pathResolver('gen/setup.js'), content))
         )
         .then(() => utils.process('Build bundles', () =>
             Promise.all([
@@ -138,17 +142,17 @@ function copyCommonFiles(dest) {
     return ;
 }
 
-module.exports = bootstrap(async function(options, config, models, singleModel) {
+module.exports = bootstrap(async function(options, config) {
     const outputDir = options.output;
     const tmpdir = path.join(__dirname, '../../tmp/build');
     const tmpPath = createPathResolver(tmpdir);
     const jsBundleOptions = { noParse: [tmpPath('lib.js')] };
 
     // check up models
-    if (!models.length) {
-        if (singleModel) {
+    if (!config.models || !config.models.length) {
+        if (options.model) {
             // looks like a user mistake
-            console.error(`  Model \`${singleModel}\` is not found`);
+            console.error(`  Model \`${options.model}\` is not found`);
             process.exit(2);
         }
 
@@ -161,13 +165,10 @@ module.exports = bootstrap(async function(options, config, models, singleModel) 
                 copyCommonFiles(tmpdir)
             )
             .then(() =>
-                gen['/gen/setup.js'](options, config, models)
-                    .then(content => writeFile(tmpPath('gen/setup.js'), content))
-            )
-            .then(() =>
                 createModel(
                     createPathResolver(tmpPath('modelfree')),
                     {},
+                    config,
                     options,
                     jsBundleOptions
                 )
@@ -187,7 +188,7 @@ module.exports = bootstrap(async function(options, config, models, singleModel) 
 
         cleanDir(tmpdir);
 
-        if (!singleModel) {
+        if (config.mode === 'multi') {
             [
                 'index.html',
                 'index.js',
@@ -201,17 +202,18 @@ module.exports = bootstrap(async function(options, config, models, singleModel) 
         copyCommonFiles(tmpdir);
 
         pipeline = pipeline.then(() =>
-            gen['/gen/setup.js'](options, config, models)
+            gen['/gen/setup.js'](null, config)
                 .then(content => writeFile(tmpPath('gen/setup.js'), content))
         );
 
         pipeline = pipeline.then(() => utils.section('Build models', () =>
-            models.reduce(
+            config.models.reduce(
                 (pipeline, modelConfig) =>
                     pipeline.then(() => utils.section(modelConfig.slug, () =>
                         createModel(
                             createPathResolver(tmpPath(modelConfig.slug)),
                             modelConfig,
+                            config,
                             options,
                             jsBundleOptions
                         )
@@ -220,7 +222,7 @@ module.exports = bootstrap(async function(options, config, models, singleModel) 
             )
         ));
 
-        if (!singleModel) {
+        if (config.mode === 'multi') {
             pipeline = pipeline.then(() => utils.process('Build index page bundles', () =>
                 Promise.all([
                     bundleFile(tmpPath('index.js'), jsBundleOptions),
@@ -246,7 +248,7 @@ module.exports = bootstrap(async function(options, config, models, singleModel) 
                 cleanDir(outputDir);
             }
 
-            copyDirContent(tmpPath(singleModel || ''), outputDir);
+            copyDirContent(tmpPath(options.model || ''), outputDir);
         }));
 
         pipeline.then(() => console.log('DONE 🎉'));

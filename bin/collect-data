@@ -19,21 +19,22 @@ const command = clap.create('collect-data', '[config] [model]')
     .version(require('../package.json').version)
     .action(function(args) {
         const configFile = this.values.config || args[0];
-        const modelName = this.values.model || args[1];
+        const model = this.values.model || args[1];
         const outputFile = this.values.output || null;
         const cachedir = this.values.cache || false;
         const rewriteCache = this.values.rewriteCache || false;
 
-        if (!modelName) {
+        if (!model) {
             console.error('Model name is not specified. Use `--model` option to specify a model');
             process.exit(2);
         }
-        const config = loadConfig(configFile, { cachedir });
-        const modelConfig = Array.isArray(config.models) ? config.models.find(model => model.slug === modelName) : null;
+
+        const config = loadConfig(configFile, { cachedir, model });
+        const modelConfig = config.models[0];
 
         if (!modelConfig) {
             console.error(
-                'Model `' + modelName + '` is not found in config. ' +
+                'Model `' + model + '` is not found in config. ' +
                 'Available models: ' +
                     (config.models.length ? config.models.map(model => model.slug).join(', ') : '<no model is available>')
             );

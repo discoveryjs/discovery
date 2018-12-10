@@ -5,15 +5,13 @@ const utils = require('./utils');
 module.exports = fn => options => {
     const configFile = configUtils.resolveConfigFilename(options.configFile);
     const config = !configFile
-        ? utils.println('No config is used') || {}
+        ? utils.println('No config is used') || { name: 'Discovery', mode: 'modelfree' }
         : utils.process(`Load config from ${path.relative(process.cwd(), configFile).replace(/^(?=[^.\/])/, './')}`, () =>
-            configUtils.load(configFile, { cachedir: options.cache })
+            configUtils.load(configFile, {
+                model: options.model,
+                cachedir: options.cache
+            })
         );
 
-    const singleModel = config.mode === 'single' ? 'default' : options.model;
-    const models = Array.isArray(config.models)
-        ? config.models.filter(model => !singleModel || model.slug === singleModel)
-        : [];
-
-    fn(options, config, models, singleModel);
+    fn(options, config);
 };

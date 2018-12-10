@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const libs = require('../tools/shared/libs.js');
-const { ensureDir } = require('../tools/shared/utils');
+const ensureDir = require('../src/ensure-dir');
 
 for (let name in libs) {
     fs.writeFileSync(

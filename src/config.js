@@ -53,8 +53,9 @@ function resolveModelConfig(value, basedir) {
 function normalize(config, options) {
     options = options || {};
 
-    const { basedir, cachedir } = options;
+    const { model, basedir, cachedir } = options;
     const cwd = process.env.PWD || process.cwd();
+    let models;
     let result;
 
     if (cachedir === true) {
@@ -63,46 +64,46 @@ function normalize(config, options) {
 
     // if no models treat it as single model configuration
     if (!config.models) {
-        return {
+        model = 'default';
+        result = {
             name: 'Implicit config',
             cache: cachedir,
-            mode: 'single',
-            models: [
-                normalizeModelConfig(Object.assign(
-                    { slug: 'default' },
-                    resolveModelConfig(config, basedir)
-                ))
-            ]
+            mode: 'single'
+        };
+        models = {
+            default: config
         };
     } else {
         result = Object.assign({
             name: 'Discovery',
             cache: cachedir
         }, config, {
-            mode: 'multi',
-            models: Object.keys(config.models || {}).reduce(
-                (res, slug) => res.concat(
-                    normalizeModelConfig(Object.assign(
-                        { slug },
-                        resolveModelConfig(config.models[slug], basedir)
-                    ))
-                ),
-                []
-            )
+            mode: model ? 'single' : 'multi'
         });
+        models = config.models;
     }
 
-    result.models.forEach(modelConfig => {
-        switch (modelConfig.cache) {
-            case true:
-                modelConfig.cache = cachedir || cwd;
-                break;
+    result.models = Object.keys(models).reduce((res, slug) => {
+        if (!model || model === slug) {
+            const modelConfig = normalizeModelConfig(
+                Object.assign({ slug }, resolveModelConfig(config.models[slug], basedir))
+            );
 
-            case undefined:
-                modelConfig.cache = result.cache;
-                break;
+            switch (modelConfig.cache) {
+                case true:
+                    modelConfig.cache = cachedir || cwd;
+                    break;
+
+                case undefined:
+                    modelConfig.cache = result.cache;
+                    break;
+            }
+
+            res.push(modelConfig);
         }
-    });
+
+        return res;
+    }, []);
 
     return result;
 }

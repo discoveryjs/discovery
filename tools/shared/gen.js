@@ -52,13 +52,28 @@ function generatePrepare(modelConfig = {}) {
     return fs.readFileSync(prepare, 'utf8');
 }
 
+function prepareModel({ name, slug, cache }) {
+    return {
+        name,
+        slug,
+        cache: Boolean(cache)
+    };
+}
+
 module.exports = {
-    '/gen/setup.js': function(options, config, models) {
-        return Promise.resolve('export default ' + JSON.stringify({
+    '/gen/setup.js': function(modelConfig, config) {
+        let data = {
             name: config.name,
-            dev: options.dev,
-            models: models.map(({ name, slug }) => ({ name, slug }))
-        }));
+            mode: config.mode
+        };
+
+        if (modelConfig) {
+            data.model = prepareModel(modelConfig);
+        } else {
+            data.models = Array.isArray(config.models) ? config.models.map(model => prepareModel(model)) : [];
+        }
+
+        return Promise.resolve('export default ' + JSON.stringify(data));
     },
     '/data.json': function(modelConfig, options = {}) {
         const { slug } = modelConfig;

@@ -21,8 +21,6 @@ const command = clap.create('build', '[config]')
             configFile
         });
 
-        console.log(options);
-
         build(options);
     });
 

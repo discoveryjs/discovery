@@ -44,7 +44,6 @@ function equal(a, b) {
 export default class Widget {
     constructor(container, options) {
         this.options = options || {};
-        this.dev = Boolean(this.options.dev);
         this.view = new ViewRenderer(this);
         this.page = new PageRenderer(this.view);
         this.badges = [];
@@ -223,7 +222,6 @@ export default class Widget {
             page: this.pageId,
             id: this.pageRef,
             params: this.pageParams,
-            dev: this.dev,
             ...this.context
         };
     }

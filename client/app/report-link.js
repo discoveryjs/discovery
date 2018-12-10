@@ -6,7 +6,7 @@ export function reportLink(options) {
     }
 
     const params = encodeParams(options);
-    const page = this.modelfree ? '' : 'report';
+    const page = this.mode === 'modelfree' ? '' : 'report';
 
     return params.length ? `#${page}&${params}` : `#${page}`;
 }
