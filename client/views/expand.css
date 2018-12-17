@@ -1,8 +1,14 @@
 .view-list > .view-list-item > .view-expand {
     margin-bottom: 1px;
 }
+.view-expand + .view-expand {
+    margin-top: 1px;
+}
 .view-list > .view-list-item:not(:last-child) > .view-expand.expanded {
     margin-bottom: 4px;
+}
+.view-expand.expanded + .view-expand {
+    margin-top: 4px;
 }
 .view-expand > .header {
     display: flex;
