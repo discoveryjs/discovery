@@ -56,7 +56,8 @@
 .view-struct .number {
     color: #07a;
 }
-.view-struct .string {
+.view-struct .string,
+.view-struct .string a {
     color: #690;
     white-space: nowrap;
 }

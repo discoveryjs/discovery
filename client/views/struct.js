@@ -4,6 +4,7 @@ import { escapeHtml } from '../core/utils/html.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
+const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 const collapseEl = document.createElement('span');
 const LIST_ITEM_LIMIT = 50;
 const ARRAY_ITEM_LIMIT = 4;
@@ -19,7 +20,7 @@ function more(num) {
     return token('more', '…' + num + ' more…');
 }
 
-function value2htmlString(value, linear, deep) {
+function value2htmlString(value, linear) {
     switch (typeof value) {
         case 'boolean':
         case 'undefined':
@@ -29,8 +30,14 @@ function value2htmlString(value, linear, deep) {
         case 'bigint':
             return token('number', value);
 
-        case 'string':
-            return token('string', escapeHtml(JSON.stringify(value)));
+        case 'string': {
+            const str = escapeHtml(JSON.stringify(value));
+
+            return token('string', (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
+                ? `"<a href="${escapeHtml(value)}">${str.substr(1, str.length - 2)}</a>"`
+                : str
+            );
+        }
 
         case 'symbol':
             return token('symbol', value);
@@ -44,7 +51,7 @@ function value2htmlString(value, linear, deep) {
             }
 
             if (Array.isArray(value)) {
-                const content = value.slice(0, ARRAY_ITEM_LIMIT).map(val => value2htmlString(val, !deep, deep)).join(', ');
+                const content = value.slice(0, ARRAY_ITEM_LIMIT).map(val => value2htmlString(val, true)).join(', ');
 
                 return (
                     '[' +
@@ -71,7 +78,7 @@ function value2htmlString(value, linear, deep) {
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
                         if (limit > 0) {
-                            res.push(token('property', key) + ': ' + value2htmlString(value[key], !deep, deep));
+                            res.push(token('property', key) + ': ' + value2htmlString(value[key], true));
                         }
 
                         limit--;
