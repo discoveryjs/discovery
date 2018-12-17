@@ -46,6 +46,8 @@ export default class Widget {
         this.options = options || {};
         this.view = new ViewRenderer(this);
         this.page = new PageRenderer(this.view);
+        this.entityResolvers = [];
+        this.linkResolvers = [];
         this.badges = [];
         this.prepare = data => data;
 
@@ -110,6 +112,43 @@ export default class Widget {
         lastSetDataPromise.set(this, setDataPromise);
 
         return setDataPromise;
+    }
+
+    addEntityResolver(fn) {
+        this.entityResolvers.push(fn);
+    }
+
+    resolveEntity(value) {
+        for (let i = 0; i < this.entityResolvers.length; i++) {
+            const entity = this.entityResolvers[i](value);
+
+            if (entity) {
+                return entity;
+            }
+        }
+    }
+
+    addValueLinkResolver(fn) {
+        this.linkResolvers.push(fn);
+    }
+
+    resolveValueLinks(value) {
+        const result = [];
+        const type = typeof value;
+
+        if (value && (type === 'object' || type === 'string')) {
+            const entity = this.resolveEntity(value);
+
+            for (let i = 0; i < this.linkResolvers.length; i++) {
+                const link = this.linkResolvers[i](entity, value, this.data, this.context);
+
+                if (link) {
+                    result.push(link);
+                }
+            }
+        }
+
+        return result.length ? result : null;
     }
 
     //
@@ -247,8 +286,47 @@ export default class Widget {
         }
     }
 
-    definePage(...args) {
-        this.page.define(...args);
+    definePage(pageId, render, options) {
+        this.page.define(pageId, render, options);
+
+        if (options && options.resolveLink) {
+            switch (typeof options.resolveLink) {
+                case 'string':
+                    const [type, ref = 'id'] = options.resolveLink.split(':');
+
+                    this.addValueLinkResolver((entity) => {
+                        if (entity && entity.type === type) {
+                            return {
+                                type: entity.type,
+                                text: entity.name,
+                                href: `#${pageId}${':' + entity[ref]}`
+                            };
+                        }
+                    });
+                    break;
+
+                case 'function':
+                    this.addValueLinkResolver((entity, value, data, context) => {
+                        if (!value) {
+                            return;
+                        }
+
+                        const link = options.resolveLink(entity, value, data, context);
+
+                        if (link) {
+                            return {
+                                type: pageId,
+                                text: typeof link === 'string' ? link : pageId,
+                                href: `#${pageId}${typeof link === 'string' ? ':' + link : ''}`
+                            };
+                        }
+                    });
+                    break;
+
+                default:
+                    console.warn(`Page '${pageId}' has a bad value for resolveLink:`, options.resolveLink);
+            }
+        }
     }
 
     scheduleRenderPage() {
