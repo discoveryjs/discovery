@@ -29,7 +29,7 @@
 .view-struct .struct-collapse-value::before {
     content: "–";
 }
-.view-struct.struct-expand-value:hover,
+.view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover,
 .view-struct .struct-collapse-value:hover {
     color: #333;
@@ -67,4 +67,17 @@
 .view-struct .more-buttons {
     padding-left: 4ch;
     display: block;
+}
+.view-struct-auto-link {
+    display: inline-block;
+    vertical-align: middle;
+    background: #dfeffb;
+    font-size: 10px;
+    padding: 1px 4px 1px;
+    line-height: 12px;
+    text-decoration: none;
+    color: #888;
+    margin-right: 2px;
+    border-radius: 3px;
+    user-select: none;
 }

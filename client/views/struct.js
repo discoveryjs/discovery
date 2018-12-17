@@ -125,21 +125,17 @@ function appendText(el, text) {
 }
 
 export default function(discovery) {
-    function maybeExpand(el, value) {
-        if (isValueExpandable(value)) {
-            el.classList.add('struct-expand-value');
-            elementDataMap.set(el, value);
-            return true;
+    function maybeExpand(valueEl, value, expandLimit) {
+        elementDataMap.set(valueEl, value);
+        if (expandLimit > 0) {
+            expandValue(valueEl, expandLimit - 1);
         }
     }
 
     function collapseValue(el) {
         const data = elementDataMap.get(el);
 
-        if (isValueExpandable(data)) {
-            el.classList.add('struct-expand-value');
-        }
-
+        el.classList.add('struct-expand-value');
         el.innerHTML = value2htmlString(data);
     }
 
@@ -154,10 +150,8 @@ export default function(discovery) {
 
                 appendText(el, '[');
                 el.appendChild(collapseEl.cloneNode(true));
-                render(el, data, false, expandLimit, (key, value) =>
-                    '<span class="value">' +
-                        value2htmlString(value) +
-                    '</span>'
+                render(el, data, false, expandLimit, (key, value, expandable) =>
+                    renderValue(value, expandable)
                 );
                 appendText(el, ']');
                 break;
@@ -167,15 +161,35 @@ export default function(discovery) {
 
                 appendText(el, '{');
                 el.appendChild(collapseEl.cloneNode(true));
-                render(el, data, true, expandLimit, (key, value) =>
+                render(el, data, true, expandLimit, (key, value, expandable) =>
                     '<span class="label">' +
                         '\xA0 \xA0 <span class="property">' + escapeHtml(key) + '</span>:\xA0' +
                     '</span>' +
-                    '<span class="value">' + value2htmlString(value) + '</span>'
+                    renderValue(value, expandable)
                 );
                 appendText(el, '}');
                 break;
         }
+    }
+
+    function renderValue(value, expandable) {
+        let links = discovery.resolveValueLinks(value);
+
+        if (Array.isArray(links)) {
+            links = links.map(
+                ({ type, href }) =>
+                    `<a class="view-struct-auto-link" href="${href}">${type}</a>`
+            ).join('');
+        } else {
+            links = '';
+        }
+
+        return (
+            links +
+            '<span class="value' + (expandable ? ' struct-expand-value' : '') + '">' +
+                value2htmlString(value) +
+            '</span>'
+        );
     }
 
     function render(container, data, keys, expandLimit, fn) {
@@ -184,12 +198,13 @@ export default function(discovery) {
             limit: LIST_ITEM_LIMIT,
             item: (el, config, key, { index, array }) => {
                 const value = keys ? data[key] : key;
+                const expandable = isValueExpandable(value);
 
                 el.className = 'entry-line';
-                el.innerHTML = fn(keys ? key : index, value);
+                el.innerHTML = fn(keys ? key : index, value, expandable);
 
-                if (maybeExpand(el.lastChild, value) && expandLimit > 1) {
-                    expandValue(el.lastChild, expandLimit - 1);
+                if (expandable) {
+                    maybeExpand(el.lastChild, value, expandLimit);
                 }
 
                 if (index !== array.length - 1) {
@@ -205,12 +220,25 @@ export default function(discovery) {
 
         while (cursor && cursor.classList) {
             if (cursor.classList.contains('struct-expand-value')) {
-                expandValue(cursor, 1);
+                expandValue(cursor, 0);
+                if (cursor.isStructRoot) {
+                    cursor.parentNode.classList.remove('struct-expand');
+                }
+                break;
+            }
+
+            if (cursor.classList.contains('struct-expand')) {
+                cursor.classList.remove('struct-expand');
+                expandValue(cursor.lastChild, 0);
                 break;
             }
 
             if (cursor.classList.contains('struct-collapse-value')) {
-                collapseValue(cursor.parentNode);
+                cursor = cursor.parentNode;
+                collapseValue(cursor);
+                if (cursor.isStructRoot) {
+                    cursor.parentNode.classList.add('struct-expand');
+                }
                 break;
             }
 
@@ -223,16 +251,21 @@ export default function(discovery) {
 
     discovery.view.define('struct', function(el, config, data) {
         const { expanded } = config;
+        const expandable = isValueExpandable(data);
 
-        elementDataMap.set(el, data);
+        el.innerHTML = renderValue(data, expandable);
+        el.lastChild.isStructRoot = true;
 
-        if (expanded && isValueExpandable(data)) {
-            expandValue(el, expanded);
-        } else {
-            collapseValue(el);
+        if (expandable) {
+            if (!expanded) {
+                el.classList.add('struct-expand');
+            }
+            maybeExpand(el.lastChild, data, expanded);
         }
+
     });
 
+    // FIXME: this function never call
     return () => {
         document.removeEventListener('click', clickHandler, false);
     };
