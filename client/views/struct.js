@@ -33,7 +33,7 @@ function value2htmlString(value, linear) {
         case 'string': {
             const str = escapeHtml(JSON.stringify(value));
 
-            return token('string', (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
+            return token('string', !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
                 ? `"<a href="${escapeHtml(value)}">${str.substr(1, str.length - 2)}</a>"`
                 : str
             );
