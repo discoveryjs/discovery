@@ -41,6 +41,15 @@ function equal(a, b) {
     return true;
 }
 
+function fuzzyStringCmp(a, b) {
+    const startChar = a[0];
+    const lastChar = a[a.length - 1];
+    const start = startChar === '"' || startChar === "'" ? 1 : 0;
+    const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
+
+    return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
+}
+
 export default class Widget {
     constructor(container, options) {
         this.options = options || {};
@@ -161,7 +170,7 @@ export default class Widget {
                 return query(data, context);
 
             case 'string':
-                return jora(query, this.queryExtensions)(data, context);
+                return jora(query, { methods: this.queryExtensions })(data, context);
 
             default:
                 return query;
@@ -174,6 +183,43 @@ export default class Widget {
         } catch (e) {
             return false;
         }
+    }
+
+    querySuggestions(query, offset, data, context) {
+        const typeOrder = ['property', 'value', 'method'];
+        let suggestions;
+
+        try {
+            suggestions = jora(query, {
+                methods: this.queryExtensions,
+                tolerant: true,
+                stat: true
+            })(data, context).suggestion(offset);
+
+            // console.log({ query, offset, suggestions, data, context });
+            if (suggestions) {
+                return suggestions
+                    .filter(
+                        item => item.value !== item.current && fuzzyStringCmp(item.current, item.value)
+                    )
+                    .sort((a, b) => {
+                        const at = typeOrder.indexOf(a.type);
+                        const bt = typeOrder.indexOf(b.type);
+                        return at - bt || (a.value < b.value ? -1 : 1);
+                    });
+            }
+        } catch (e) {
+            console.error(e);
+            return;
+        }
+    }
+
+    getQueryEngineInfo() {
+        return {
+            name: 'jora',
+            version: jora.version,
+            link: 'https://github.com/lahmatiy/jora'
+        };
     }
 
     addQueryHelpers(extensions) {

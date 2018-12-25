@@ -1,0 +1,68 @@
+.CodeMirror-hints {
+    position: absolute;
+    z-index: 10;
+    overflow: hidden;
+    list-style: none;
+
+    margin: 0;
+    padding: 2px;
+
+    box-shadow: 2px 3px 5px rgba(0, 0, 0, .2);
+    border-radius: 2px;
+    border: 1px solid silver;
+
+    background: white;
+    font-size: 90%;
+    font-family: monospace;
+
+    max-height: 20em;
+    overflow-y: auto;
+}
+
+.CodeMirror-hint {
+    display: flex;
+    align-items: baseline;
+    margin: 0;
+    padding: 0 4px;
+    border-radius: 2px;
+    white-space: pre;
+    color: black;
+    cursor: pointer;
+}
+
+.CodeMirror-hint .name {
+    flex: 1;
+}
+.CodeMirror-hint .match {
+    color: #06C;
+}
+.CodeMirror-hint .type {
+    color: #ccc;
+    font-family: Tahoma;
+    font-style: italic;
+    font-size: 85%;
+    padding: 0 .5ex 0 2ex;
+}
+
+li.CodeMirror-hint-active {
+    background: rgba(0, 170, 255, .2);
+}
+
+.CodeMirror-cursor .context-hint {
+    display: none;
+    position: absolute;
+    margin-bottom: 1px;
+    margin-left: -1px;
+    bottom: 100%;
+    visibility: visible;
+    background: rgba(0, 0, 0, .7);
+    border: 1px solid rgba(0, 0, 0, .4);
+    border-radius: 2px;
+    color: white;
+    padding: 1px 4px;
+    font-family: Arial;
+    font-size: 10px;
+}
+.CodeMirror-focused .CodeMirror-cursor .context-hint {
+    display: block;
+}

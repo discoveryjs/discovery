@@ -1,4 +1,5 @@
 .view-struct {
+    position: relative;
     overflow: auto;
     margin: 1px 0;
     padding: 8px;    

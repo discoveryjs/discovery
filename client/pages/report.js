@@ -4,12 +4,10 @@ import * as base64 from '../core/utils/base64.js';
 import { createElement, createText } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
+import './report-hint.js';
 
 const viewModeSource = {
-    default: results =>
-        Array.isArray(results)
-            ? '{\n    view: \'list\',\n    item: \'struct\'\n}'
-            : '{\n    view: \'struct\',\n    expanded: 1\n}',
+    default: () => '{\n    view: \'struct\',\n    expanded: 1\n}',
     custom: results => viewModeSource.default(results)
 };
 const viewPresets = {
@@ -88,20 +86,91 @@ export function decodeParams(params) {
 }
 
 export default function(discovery) {
-    let showQueryRawData = false;
+    let expandQueryResults = false;
+    let expandReportInputData = false;
+    let reportInputData = NaN;
     let viewMode = '';
     let processEditorChangeEvent = true;
+    let currentData;
+    let currentContext;
     let lastQuery = {};
     let lastView = {};
 
-    function createPageQueryEditor(textarea) {
+    function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
+        const startChar = current[0];
+        const lastChar = current[current.length - 1];
+        const start = startChar === '"' || startChar === "'" ? 1 : 0;
+        const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
+        const pattern = current.toLowerCase().substring(start, current.length - end);
+        const offset = pattern ? value.toLowerCase().indexOf(pattern, value[0] === '"' || value[0] === "'" ? 1 : 0) : -1;
+
+        el.appendChild(createElement('span', 'name',
+            offset === -1
+                ? value
+                : escapeHtml(value.substring(0, offset)) +
+                  '<span class="match">' + escapeHtml(value.substr(offset, pattern.length)) + '</span>' +
+                  escapeHtml(value.substr(offset + pattern.length))
+        ));
+        el.appendChild(createElement('span', 'type', type));
+    }
+
+    function autocompleteQuery(cm) {
+        const cursor = cm.getCursor();
+        const suggestions = discovery.querySuggestions(
+            cm.getValue(),
+            cm.doc.indexFromPos(cursor),
+            currentData,
+            currentContext
+        );
+
+        if (!suggestions) {
+            return;
+        }
+
+        return {
+            list: suggestions.slice(0, 50).map(entry => {
+                return {
+                    entry,
+                    text: entry.value,
+                    render: renderQueryAutocompleteItem,
+                    from: cm.posFromIndex(entry.from),
+                    to: cm.posFromIndex(entry.to)
+                };
+            })
+        };
+    }
+
+    function createEditor(textarea, autocomplete) {
         const liveEdit = textarea.parentNode.querySelector('.live-update');
         const editor = CodeMirror.fromTextArea(textarea, {
+            extraKeys: { 'Alt-Space': 'autocomplete' },
             mode: 'javascript',
             theme: 'neo',
-            indentUnit: 0
+            indentUnit: 0,
+            hintOptions: autocomplete && {
+                hint: autocomplete,
+                completeSingle: false,
+                closeOnUnfocus: true
+            }
         });
+
         editor.on('change', () => processEditorChangeEvent && liveEdit.checked && applyQuery());
+
+        if (autocomplete) {
+            // patch prepareSelection to inject a context hint
+            // const ps = editor.display.input.prepareSelection;
+            // editor.display.input.prepareSelection = function(...args) {
+            //     const selection = ps.apply(this, args);
+            //     if (selection.cursors.firstChild) {
+            //         selection.cursors.firstChild.appendChild(createElement('div', 'context-hint', 'asd'));
+            //     }
+            //     return selection;
+            // };
+
+            editor.on('cursorActivity', editor => editor.showHint(autocomplete));
+            editor.on('focus', editor => editor.showHint(autocomplete));
+        }
+
         return editor;
     }
 
@@ -234,13 +303,16 @@ export default function(discovery) {
     ]);
 
     let queryEditorEl;
+    const queryEngineInfo = discovery.getQueryEngineInfo();
     const filterEl = createElement('div', 'filter', [
         queryEditorEl = createElement('textarea', {
             placeholder: 'Query'
         }),
         createElement('div', 'editor-toolbar', [
             createElement('span', 'syntax-hint',
-                'Use <a href="https://github.com/lahmatiy/jora" target="_blank">jora</a> syntax for queries'
+                `Use <a href="${queryEngineInfo.link}" target="_blank">${
+                    queryEngineInfo.name
+                }</a> ${queryEngineInfo.version || ''} syntax for queries`
             ),
             createElement('label', null, [
                 createElement('input', {
@@ -267,6 +339,7 @@ export default function(discovery) {
         ])
     ]);
 
+    const reportInputDataEl = createElement('div', 'data-query-result');
     const queryResultEl = createElement('div', 'data-query-result');
 
     let contentEl;
@@ -341,8 +414,8 @@ export default function(discovery) {
         updateAvailableViewList();
     };
 
-    const queryEditor = createPageQueryEditor(queryEditorEl);
-    const viewEditor = createPageQueryEditor(viewEditorEl);
+    const queryEditor = createEditor(queryEditorEl, autocompleteQuery);
+    const viewEditor = createEditor(viewEditorEl);
 
     discovery.definePage('report', function(el, data, context) {
         let pageTitle = context.params.title;
@@ -353,12 +426,28 @@ export default function(discovery) {
         let results = null;
 
         setViewMode(context.params.mode);
+        currentData = data;
+        currentContext = context;
+
+        if (reportInputData !== data) {
+            reportInputData = data;
+            discovery.view.render(reportInputDataEl, {
+                view: 'expand',
+                title: `text:"${valueDescriptor(data)}"`,
+                expanded: expandReportInputData,
+                onToggle: state => expandReportInputData = state,
+                content: { view: 'struct', expanded: 1 }
+            }, data);
+        }
 
         if (applyQuery(pageQuery, pageView, pageTitle)) {
             return;
         }
 
         titleInputEl.parentNode.dataset.title = pageTitle || titleInputEl.placeholder;
+        dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'
+            ? 'Data collected at ' + context.createdAt.toLocaleString().replace(',', '') + ' | '
+            : '';
 
         // zero timeout, like a setImmediate()
         Promise.resolve().then(() => {
@@ -382,9 +471,6 @@ export default function(discovery) {
             }
 
             queryResultEl.innerHTML = '';
-            dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'
-                ? 'Data collected at ' + context.createdAt.toLocaleString().replace(',', '') + ' | '
-                : '';
 
             lastQuery = {
                 data,
@@ -395,9 +481,9 @@ export default function(discovery) {
 
             discovery.view.render(queryResultEl, {
                 view: 'expand',
-                title: `html:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
-                expanded: showQueryRawData,
-                onToggle: state => showQueryRawData = state,
+                title: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
+                expanded: expandQueryResults,
+                onToggle: state => expandQueryResults = state,
                 content: { view: 'struct', expanded: 1 }
             }, results);
         }
@@ -432,6 +518,7 @@ export default function(discovery) {
         init(el) {
             [
                 headerEl,
+                // reportInputDataEl,
                 filterEl,
                 queryResultEl,
                 dataViewEl
