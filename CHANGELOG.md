@@ -1,3 +1,14 @@
+## 1.0.0-beta.5 (25-12-2018)
+
+- Client
+    - Added `Widget#querySuggestions()` and `Widget#getQueryEngineInfo()` methods
+    - Added `jora` query suggestions on report page
+    - Added `Widget#resolveEntity()` and `Widget#resolveValueLinks()` methods
+    - Improved `struct` view to annotate a value with a badge using `Widget#resolveValueLinks()` method
+    - Improved `struct` view to detect a string as an url
+    - Added `auto-link` view
+    - Bumped `jora` to 1.0.0-alpha.7
+
 ## 1.0.0-beta.4 (10-12-2018)
 
 - Server
