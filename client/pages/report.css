@@ -265,6 +265,10 @@
 .discovery[data-dzen] .page-report .data-query-view-options .edit-mode {
     display: none;
 }
+.page-report .data-query-view-options .share {
+    background-image: url(./report-share.svg);
+    background-size: 25px;
+}
 .discovery[data-dzen] .page-report .data-query-view-options button:last-child {
     margin-right: -10px;
 }

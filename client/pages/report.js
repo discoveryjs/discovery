@@ -3,6 +3,7 @@
 import * as base64 from '../core/utils/base64.js';
 import { createElement, createText } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
+import copyText from '../core/utils/copy-text.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 import './report-hint.js';
 
@@ -88,6 +89,19 @@ export function decodeParams(params) {
     });
 
     return res;
+}
+
+function exportReportAsJson(pageParams) {
+    const quote = s => s.replace(/\\/g, '\\\\').replace(/\t/g, '\\t').replace(/\r/g, '\\r').replace(/\n/g, '\\n').replace(/'/g, '\\\'');
+    let { title, query, view } = pageParams;
+    const res = { title, query, view };
+
+    return `{\n${
+        Object.keys(res).reduce(
+            (props, k) => props.concat(res[k] ? `    ${k}: \'${quote(res[k])}\'` : []),
+            []
+        ).join(',\n')
+    }\n}`;
 }
 
 export default function(discovery) {
@@ -265,19 +279,8 @@ export default function(discovery) {
     let dataDateTimeEl;
     let viewDateTimeEl;
     let noeditToggleEl;
+    const shareOptionsPopup = new discovery.view.Popup();
     const headerEl = createElement('div', 'report-header', [
-        createElement('button', {
-            hidden: true,
-            onclick: () => {
-                const quote = s => s.replace(/\\/g, '\\\\').replace(/\t/g, '\\t').replace(/\r/g, '\\r').replace(/\n/g, '\\n').replace(/'/g, '\\\'');
-                let { title, query, view } = discovery.pageParams;
-                const res = { title, query, view };
-
-                window.currentReport = `{\n${Object.keys(res).map(k => res[k] ? `    ${k}: \'${quote(res[k])}\'` : false).filter(Boolean).join(',\n')}\n}`;
-                console.log(window.currentReport);
-            }
-        }, 'as JSON'),
-
         createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
                 placeholder: 'Untitled report',
@@ -289,7 +292,7 @@ export default function(discovery) {
                 }
             }),
             createElement('span', 'timestamp', [
-                dataDateTimeEl = createElement('span'),
+                dataDateTimeEl = createElement('span', null, '&nbsp;'),
                 viewDateTimeEl = createElement('span')
             ])
         ]),
@@ -302,6 +305,29 @@ export default function(discovery) {
                     discovery.setPageParams({
                         ...discovery.pageParams,
                         noedit: !discovery.pageParams.noedit
+                    });
+                }
+            }),
+            createElement('button', {
+                class: 'share',
+                title: 'Share ...',
+                onclick: (e) => {
+                    e.target.blur();
+                    shareOptionsPopup.show(e.target, {
+                        xAnchor: 'right',
+                        render: (popupEl) => {
+                            discovery.view.render(popupEl, {
+                                view: 'menu',
+                                data: [
+                                    { text: 'Copy link to report', action: () => copyText(location) },
+                                    { text: 'Copy report as JSON', action: () => copyText(exportReportAsJson(discovery.pageParams)) }
+                                ],
+                                onClick(item) {
+                                    shareOptionsPopup.hide();
+                                    item.action();
+                                }
+                            });
+                        }
                     });
                 }
             }),
