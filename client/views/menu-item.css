@@ -1,0 +1,11 @@
+.view-menu-item {
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.view-menu-item:hover {
+    background: #e0e0e0;
+}
+.view-menu-item.selected {
+    background: #c6dee7;
+    cursor: default;
+}

@@ -17,6 +17,8 @@ export { default as input } from './input.js';
 export { default as link } from './link.js';
 export { default as listItem } from './list-item.js';
 export { default as lists } from './lists.js';
+export { default as menu } from './menu.js';
+export { default as menuItem } from './menu-item.js';
 export { default as popup } from './popup.js';
 export { default as section } from './section.js';
 export { default as struct } from './struct.js';
