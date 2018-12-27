@@ -21,8 +21,8 @@
   },
   "scripts": {
     "lint": "eslint src tools client",
-    "build": "npm run build:es6 && npm run build:css",
-    "build:es6": "npm run build:umd && node scripts/lib-es5-to-es6",
+    "build": "npm run build:esm && npm run build:css",
+    "build:esm": "npm run build:umd && node scripts/lib-es5-to-es6",
     "build:umd": "node scripts/build-client-libs && browserify client/lib.js -o dist/lib.umd.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ]",
     "build:css": "node scripts/build-css",
     "prepublishOnly": "npm run build"
@@ -59,23 +59,5 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
-  ],
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "mocha": true,
-      "es6": true
-    },
-    "rules": {
-      "no-duplicate-case": 2,
-      "no-undef": 2,
-      "no-unused-vars": [
-        2,
-        {
-          "vars": "all",
-          "args": "after-used"
-        }
-      ]
-    }
-  }
+  ]
 }
