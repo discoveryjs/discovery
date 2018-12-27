@@ -2,8 +2,7 @@
 
 export default function(discovery) {
     function render(el, config, data, context) {
-        const { column = 'text', emptyText, limit: configLimit } = config;
-        const limit = isNaN(configLimit) ? 25 : parseInt(configLimit, 10);
+        const { column = 'text', emptyText, limit } = config;
 
         if (emptyText !== false && emptyText !== '') {
             el.setAttribute('emptyText', emptyText || 'Empty');
@@ -17,7 +16,7 @@ export default function(discovery) {
             discovery.view.renderList(el, {
                 view: 'column',
                 content: column
-            }, data, context, 0, limit);
+            }, data, context, 0, discovery.view.listLimit(limit, 25));
         }
     }
 

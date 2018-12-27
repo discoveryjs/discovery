@@ -16,8 +16,7 @@ function resolveColConfig(config) {
 
 export default function(discovery) {
     discovery.view.define('table', function(el, config, data, context) {
-        const limit = isNaN(config.limit) ? 25 : parseInt(config.limit, 10);
-        let { cols } = config;
+        let { cols, limit } = config;
         let colsMap = cols && typeof cols === 'object' ? cols : {};
         let scalarCol = false;
 
@@ -83,10 +82,10 @@ export default function(discovery) {
             headEl.appendChild(document.createElement('th')).innerText = col.header
         );
 
-        moreEl.colSpan = 1000;
+        moreEl.colSpan = cols.length;
         discovery.view.renderList(bodyEl, {
             view: 'table-row',
             cols
-        }, data, context, 0, limit, moreEl);
+        }, data, context, 0, discovery.view.listLimit(limit, 25), moreEl);
     });
 }

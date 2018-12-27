@@ -121,7 +121,23 @@ export default class ViewRenderer {
         }
     }
 
-    renderList(container, itemConfig, data, context, offset, limit, moreContainer) {
+    listLimit(value, defaultValue) {
+        if (value === false) {
+            return false;
+        }
+
+        if (!value || isNaN(value)) {
+            return defaultValue;
+        }
+
+        return Math.max(parseInt(value, 10), 0) || defaultValue;
+    }
+
+    renderList(container, itemConfig, data, context, offset = 0, limit = false, moreContainer) {
+        if (limit === false) {
+            limit = data.length;
+        }
+
         data.slice(offset, offset + limit).forEach((value, sliceIndex, slice) => {
             this.render(container, itemConfig, value, Object.assign({}, context, {
                 index: offset + sliceIndex,
