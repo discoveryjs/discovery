@@ -33,11 +33,16 @@ function encodeSearchParamPair(name, value) {
 }
 
 export function encodeParams(options) {
-    const { query, view, title, dzen, extra } = options;
+    const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
+    const { query, view, title, dzen, noedit, extra } = options;
     const result = [];
 
     if (dzen) {
         result.push('dzen');
+    }
+
+    if (noedit) {
+        result.push('noedit');
     }
 
     if (title) {
@@ -56,28 +61,28 @@ export function encodeParams(options) {
         }
     }
 
-    if (extra) {
-        Object.keys(extra).sort().forEach(name => {
-            if (name !== 'query' && name !== 'view' && name !== 'title' && name !== 'dzen') {
-                result.push(encodeSearchParamPair(name, extra[name]));
-            }
-        });
-    }
+    Object.keys(extra || {}).sort().forEach(name => {
+        if (!specialParams.includes(name)) {
+            result.push(encodeSearchParamPair(name, extra[name]));
+        }
+    });
 
     return result.join('&');
 }
 
 export function decodeParams(params) {
+    const specialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
     const res = {
         title: params.title || '',
         query: base64.decode(params.q || ''),
         view: base64.decode(params.v || ''),
         mode: 'v' in params ? 'custom' : 'default',
-        dzen: 'dzen' in params
+        dzen: 'dzen' in params,
+        noedit: 'noedit' in params
     };
 
     Object.keys(params).forEach(name => {
-        if (name !== 'q' && name !== 'v' && name !== 'title' && name !== 'dzen') {
+        if (!specialParams.includes(name)) {
             res[name] = params[name];
         }
     });
@@ -259,7 +264,8 @@ export default function(discovery) {
     let titleInputEl;
     let dataDateTimeEl;
     let viewDateTimeEl;
-    const headerEl = createElement('div', 'data-query-header', [
+    let noeditToggleEl;
+    const headerEl = createElement('div', 'report-header', [
         createElement('button', {
             hidden: true,
             onclick: () => {
@@ -272,7 +278,7 @@ export default function(discovery) {
             }
         }, 'as JSON'),
 
-        createElement('div', { class: 'data-query-title', 'data-title': '\xA0' }, [
+        createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
                 placeholder: 'Untitled report',
                 oninput: () => applyQuery(),
@@ -288,6 +294,17 @@ export default function(discovery) {
             ])
         ]),
         createElement('div', 'data-query-view-options', [
+            noeditToggleEl = createElement('button', {
+                class: 'edit-mode',
+                title: 'Toggle edit mode',
+                onclick: (e) => {
+                    e.target.blur();
+                    discovery.setPageParams({
+                        ...discovery.pageParams,
+                        noedit: !discovery.pageParams.noedit
+                    });
+                }
+            }),
             createElement('button', {
                 class: 'toggle-fullscreen',
                 title: 'Toggle fullscreen mode',
@@ -298,113 +315,119 @@ export default function(discovery) {
                         dzen: !discovery.pageParams.dzen
                     });
                 }
-            }, 'Toggle fullscreen mode')
+            })
         ])
     ]);
 
     let queryEditorEl;
     const queryEngineInfo = discovery.getQueryEngineInfo();
-    const filterEl = createElement('div', 'filter', [
-        queryEditorEl = createElement('textarea', {
-            placeholder: 'Query'
-        }),
-        createElement('div', 'editor-toolbar', [
-            createElement('span', 'syntax-hint',
-                `Use <a href="${queryEngineInfo.link}" target="_blank">${
-                    queryEngineInfo.name
-                }</a> ${queryEngineInfo.version || ''} syntax for queries`
-            ),
-            createElement('label', null, [
-                createElement('input', {
-                    class: 'live-update',
-                    type: 'checkbox',
-                    checked: true,
-                    onchange: (e) => {
-                        if (e.target.checked) {
-                            applyQuery();
+    const queryEditorFormEl = createElement('div', 'query-editor-form', [
+        createElement('div', 'query-editor', [
+            queryEditorEl = createElement('textarea', {
+                placeholder: 'Query'
+            }),
+            createElement('div', 'editor-toolbar', [
+                createElement('span', 'syntax-hint',
+                    `Use <a href="${queryEngineInfo.link}" target="_blank">${
+                        queryEngineInfo.name
+                    }</a> ${queryEngineInfo.version || ''} syntax for queries`
+                ),
+                createElement('label', null, [
+                    createElement('input', {
+                        class: 'live-update',
+                        type: 'checkbox',
+                        checked: true,
+                        onchange: (e) => {
+                            if (e.target.checked) {
+                                applyQuery();
+                            }
                         }
-                    }
-                }),
-                ' process on input'
-            ]),
-            createElement('div', 'buttons', [
-                createElement('button', {
-                    onclick: () => {
-                        lastQuery = {};
-                        applyQuery();
-                        discovery.renderPage();
-                    }
-                }, 'Process')
+                    }),
+                    ' process on input'
+                ]),
+                createElement('div', 'buttons', [
+                    createElement('button', {
+                        onclick: () => {
+                            lastQuery = {};
+                            applyQuery();
+                            discovery.renderPage();
+                        }
+                    }, 'Process')
+                ])
             ])
         ])
     ]);
 
     const reportInputDataEl = createElement('div', 'data-query-result');
-    const queryResultEl = createElement('div', 'data-query-result');
+    const queryEditorResultEl = createElement('div', 'data-query-result');
 
-    let contentEl;
     let viewSetupEl;
     let viewEditorEl;
     let availableViewListEl;
     let viewModeTabsEls;
-    const dataViewEl = createElement('div', 'data-view', [
-        createElement('div', 'view-switcher', [
-            createElement('div', 'tabs view-mode', viewModeTabsEls = Object.keys(viewModeSource).map(id =>
-                createElement('div', {
-                    class: 'tab',
-                    'data-mode': id,
-                    onclick: () => setViewMode(id)
-                }, id)
-            )),
-            createElement('div', 'tabs presets', Object.keys(viewPresets).map(id =>
-                createElement('div', {
-                    class: 'tab',
-                    onclick: () =>
-                        discovery.setPageParams({
-                            ...discovery.pageParams,
-                            view: viewPresets[id](lastView.data)
-                        })
-                }, id)
-            )),
-            viewSetupEl = createElement('div', {
-                class: 'query-view-setup',
-                hidden: true
-            }, [
-                viewEditorEl = createElement('textarea', {
-                    placeholder: 'View'
-                }),
-                createElement('div', 'editor-toolbar', [
-                    createElement('div', 'editor-toolbar-view-dict', [
-                        createText('Available views: '),
-                        availableViewListEl = createElement('span', 'editor-toolbar-view-list')
-                    ]),
-                    createElement('label', null, [
-                        createElement('input', {
-                            class: 'live-update',
-                            type: 'checkbox',
-                            checked: true,
-                            onchange: (e) => {
-                                if (e.target.checked) {
-                                    applyQuery();
-                                }
-                            }
-                        }),
-                        ' build on input'
-                    ]),
-                    createElement('div', 'buttons', [
-                        createElement('button', {
-                            onclick: () => {
-                                lastView = {};
+    const viewEditorFormEl = createElement('div', 'view-editor-form', [
+        createElement('div', 'tabs view-mode', viewModeTabsEls = Object.keys(viewModeSource).map(id =>
+            createElement('div', {
+                class: 'tab',
+                'data-mode': id,
+                onclick: () => setViewMode(id)
+            }, id)
+        )),
+        createElement('div', 'tabs presets', Object.keys(viewPresets).map(id =>
+            createElement('div', {
+                class: 'tab',
+                onclick: () =>
+                    discovery.setPageParams({
+                        ...discovery.pageParams,
+                        view: viewPresets[id](lastView.data)
+                    })
+            }, id)
+        )),
+        viewSetupEl = createElement('div', {
+            class: 'view-editor',
+            hidden: true
+        }, [
+            viewEditorEl = createElement('textarea', {
+                placeholder: 'View'
+            }),
+            createElement('div', 'editor-toolbar', [
+                createElement('div', 'editor-toolbar-view-dict', [
+                    createText('Available views: '),
+                    availableViewListEl = createElement('span', 'editor-toolbar-view-list')
+                ]),
+                createElement('label', null, [
+                    createElement('input', {
+                        class: 'live-update',
+                        type: 'checkbox',
+                        checked: true,
+                        onchange: (e) => {
+                            if (e.target.checked) {
                                 applyQuery();
-                                discovery.renderPage();
                             }
-                        }, 'Build')
-                    ])
+                        }
+                    }),
+                    ' build on input'
+                ]),
+                createElement('div', 'buttons', [
+                    createElement('button', {
+                        onclick: () => {
+                            lastView = {};
+                            applyQuery();
+                            discovery.renderPage();
+                        }
+                    }, 'Build')
                 ])
             ])
-        ]),
-        contentEl = createElement('div', 'content')
+        ])
     ]);
+
+    const reportEditFormEl = createElement('div', { hidden: true }, [
+        // reportInputDataEl,
+        queryEditorFormEl,
+        queryEditorResultEl,
+        viewEditorFormEl
+    ]);
+    const reportContentEl = createElement('div', 'report-content');
 
     // FIXME: find a better way to update a view list
     updateAvailableViewList();
@@ -426,6 +449,8 @@ export default function(discovery) {
         let results = null;
 
         setViewMode(context.params.mode);
+        reportEditFormEl.hidden = context.params.noedit;
+        noeditToggleEl.classList.toggle('disabled', context.params.noedit);
         currentData = data;
         currentContext = context;
 
@@ -462,15 +487,15 @@ export default function(discovery) {
                 queryTime = Date.now();
                 results = discovery.query(pageQuery, data, context);
                 queryTime = Date.now() - queryTime;
-                dataViewEl.hidden = false;
+                viewEditorFormEl.hidden = false;
             } catch (e) {
                 lastQuery = {};
-                queryResultEl.innerHTML = '<div class="error">' + escapeHtml(e.message) + '</div>';
-                dataViewEl.hidden = true;
+                queryEditorResultEl.innerHTML = '<div class="error">' + escapeHtml(e.message) + '</div>';
+                viewEditorFormEl.hidden = true;
                 return;
             }
 
-            queryResultEl.innerHTML = '';
+            queryEditorResultEl.innerHTML = '';
 
             lastQuery = {
                 data,
@@ -479,7 +504,7 @@ export default function(discovery) {
                 results
             };
 
-            discovery.view.render(queryResultEl, {
+            discovery.view.render(queryEditorResultEl, {
                 view: 'expand',
                 title: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
                 expanded: expandQueryResults,
@@ -493,14 +518,14 @@ export default function(discovery) {
         }
 
         if (lastView.data !== results || lastView.view !== pageView) {
-            contentEl.innerHTML = '';
+            reportContentEl.innerHTML = '';
 
             try {
                 view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
-                discovery.view.render(contentEl, view, results, context);
+                discovery.view.render(reportContentEl, view, results, context);
             } catch (e) {
                 view = { view: 'fallback', reason: e.message };
-                discovery.view.render(contentEl, el => {
+                discovery.view.render(reportContentEl, el => {
                     el.innerHTML = '<div class="error">' + escapeHtml(String(e)) + '<br>(see details in console)</div>';
                     console.error(e);
                 });
@@ -518,10 +543,8 @@ export default function(discovery) {
         init(el) {
             [
                 headerEl,
-                // reportInputDataEl,
-                filterEl,
-                queryResultEl,
-                dataViewEl
+                reportEditFormEl,
+                reportContentEl
             ].forEach(child => {
                 el.appendChild(child);
             });
