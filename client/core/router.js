@@ -5,7 +5,7 @@ function decodeParams() {
     const parts = hash.split('&');
     const [page, id] = (parts.shift() || '').split(':');
     const params = [...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
-        map[key] = value;
+        map[key] = value || true;
         return map;
     }, {});
 

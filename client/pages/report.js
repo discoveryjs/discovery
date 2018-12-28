@@ -71,12 +71,16 @@ export function encodeParams(options) {
     return result.join('&');
 }
 
+function ensureString(value, fallback) {
+    return typeof value === 'string' ? value : fallback || '';
+}
+
 export function decodeParams(params) {
     const specialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
     const res = {
         title: params.title || '',
-        query: base64.decode(params.q || ''),
-        view: base64.decode(params.v || ''),
+        query: base64.decode(ensureString(params.q, '')),
+        view: base64.decode(ensureString(params.v, '')),
         mode: 'v' in params ? 'custom' : 'default',
         dzen: 'dzen' in params,
         noedit: 'noedit' in params
@@ -186,7 +190,7 @@ export default function(discovery) {
             //     return selection;
             // };
 
-            editor.on('cursorActivity', editor => editor.showHint(autocomplete));
+            editor.on('cursorActivity', editor => editor.state.focused && editor.showHint(autocomplete));
             editor.on('focus', editor => editor.showHint(autocomplete));
         }
 
