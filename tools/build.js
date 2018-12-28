@@ -92,13 +92,14 @@ function bundleFile(filename, options) {
 
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
     [
-        'index.html',
+        'model.html',
         'model.js',
         'model.css'
     ].forEach(filename => {
         copyFile(
             path.join(clientSrc, filename),
-            pathResolver(), 'index' + path.extname(filename)
+            pathResolver(),
+            filename === 'model.html' ? 'index.html' : filename
         );
     });
 
@@ -120,8 +121,8 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
         )
         .then(() => utils.process('Build bundles', () =>
             Promise.all([
-                bundleFile(pathResolver('index.js'), jsBundleOptions),
-                bundleFile(pathResolver('index.css'))
+                bundleFile(pathResolver('model.js'), jsBundleOptions),
+                bundleFile(pathResolver('model.css'))
             ])
         ))
         .then(() => utils.section('Clean up', () =>
