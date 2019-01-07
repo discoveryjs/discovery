@@ -11,7 +11,7 @@ const viewModeSource = {
     default: () => '{\n    view: \'struct\',\n    expanded: 1\n}',
     custom: results => viewModeSource.default(results)
 };
-const viewPresets = {
+const DEFAULT_VIEW_PRESETS = {
     table: () => '"table"'
 };
 
@@ -118,6 +118,7 @@ export default function(discovery) {
     let currentContext;
     let lastQuery = {};
     let lastView = {};
+    const viewPresets = discovery.options.viewPresets || DEFAULT_VIEW_PRESETS;
 
     function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
         const startChar = current[0];
