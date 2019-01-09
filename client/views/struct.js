@@ -4,11 +4,10 @@ import { escapeHtml } from '../core/utils/html.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
+const expandedItemsLimit = 50;
+const collapedItemsLimit = 4;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 const collapseEl = document.createElement('span');
-const LIST_ITEM_LIMIT = 50;
-const ARRAY_ITEM_LIMIT = 4;
-const OBJECT_KEYS_LIMIT = 4;
 
 collapseEl.className = 'struct-collapse-value';
 
@@ -30,6 +29,12 @@ function value2htmlString(value, linear) {
         case 'bigint':
             return token('number', value);
 
+        case 'symbol':
+            return token('symbol', value);
+
+        case 'function':
+            return 'ƒn';
+
         case 'string': {
             const str = escapeHtml(JSON.stringify(value));
 
@@ -39,57 +44,50 @@ function value2htmlString(value, linear) {
             );
         }
 
-        case 'symbol':
-            return token('symbol', value);
-
-        case 'function':
-            return 'ƒn';
-
         case 'object': {
             if (value === null) {
                 return token('keyword', 'null');
             }
 
-            if (Array.isArray(value)) {
-                const content = value.slice(0, ARRAY_ITEM_LIMIT).map(val => value2htmlString(val, true)).join(', ');
-
-                return (
-                    '[' +
-                        content +
-                        (value.length > ARRAY_ITEM_LIMIT ? ', ' + more(value.length - ARRAY_ITEM_LIMIT) + ' ' : '') +
-                    ']'
-                );
-            }
-
             // NOTE: constructor check and instanceof doesn't work here,
-            // because value comes from sandbox
-            if (toString.call(value) === '[object Date]') {
-                return token('Date', value);
-            }
+            // since a value can come from any runtime
+            switch (toString.call(value)) {
+                case '[object Array]': {
+                    const content = value.slice(0, collapedItemsLimit).map(val => value2htmlString(val, true));
 
-            if (toString.call(value) === '[object RegExp]') {
-                return token('RegExp', value);
+                    if (value.length > collapedItemsLimit) {
+                        content.push(`${more(value.length - collapedItemsLimit)} `);
+                    }
+
+                    return `[${content.join(', ')}]`;
+                }
+
+                case '[object Date]':
+                    return token('date', value);
+
+                case '[object RegExp]':
+                    return token('regexp', value);
             }
 
             if (!linear) {
-                const res = [];
-                let limit = OBJECT_KEYS_LIMIT;
+                const content = [];
+                let count = 0;
 
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
-                        if (limit > 0) {
-                            res.push(token('property', key) + ': ' + value2htmlString(value[key], true));
+                        if (count < collapedItemsLimit) {
+                            content.push(`${token('property', key)}: ${value2htmlString(value[key], true)}`);
                         }
 
-                        limit--;
+                        count++;
                     }
                 }
 
-                if (limit < 0) {
-                    res.push(more(Math.abs(limit)));
+                if (count > collapedItemsLimit) {
+                    content.push(more(count - collapedItemsLimit));
                 }
 
-                return res.length ? '{ ' + res.join(', ') + ' }' : '{}';
+                return content.length ? `{ ${content.join(', ')} }` : '{}';
             } else {
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
@@ -102,7 +100,7 @@ function value2htmlString(value, linear) {
         }
 
         default:
-            return 'unknown type `' + (typeof value) + '`';
+            return `unknown type "${typeof value}"`;
     }
 }
 
@@ -133,21 +131,22 @@ function appendText(el, text) {
 
 export default function(discovery) {
     function maybeExpand(valueEl, value, expandLimit) {
-        elementDataMap.set(valueEl, value);
+        elementData.set(valueEl, value);
+
         if (expandLimit > 0) {
             expandValue(valueEl, expandLimit - 1);
         }
     }
 
     function collapseValue(el) {
-        const data = elementDataMap.get(el);
+        const data = elementData.get(el);
 
         el.classList.add('struct-expand-value');
         el.innerHTML = value2htmlString(data);
     }
 
     function expandValue(el, expandLimit) {
-        const data = elementDataMap.get(el);
+        const data = elementData.get(el);
 
         el.classList.remove('struct-expand-value');
 
@@ -193,16 +192,16 @@ export default function(discovery) {
 
         return (
             links +
-            '<span class="value' + (expandable ? ' struct-expand-value' : '') + '">' +
-                value2htmlString(value) +
-            '</span>'
+            `<span class="value${expandable ? ' struct-expand-value' : ''}">${
+                value2htmlString(value)
+            }</span>`
         );
     }
 
     function render(container, data, keys, expandLimit, fn) {
         discovery.view.render(container, {
             view: 'list',
-            limit: LIST_ITEM_LIMIT,
+            limit: expandedItemsLimit,
             item: (el, config, key, { index, array }) => {
                 const value = keys ? data[key] : key;
                 const expandable = isValueExpandable(value);
@@ -221,16 +220,19 @@ export default function(discovery) {
         }, keys ? Object.keys(data) : data);
     }
 
-    const elementDataMap = new WeakMap();
+    const elementData = new WeakMap();
+    const structViewRoots = new WeakSet();
     const clickHandler = (e) => {
         let cursor = e.target;
 
         while (cursor && cursor.classList) {
             if (cursor.classList.contains('struct-expand-value')) {
                 expandValue(cursor, 0);
-                if (cursor.isStructRoot) {
+
+                if (structViewRoots.has(cursor)) {
                     cursor.parentNode.classList.remove('struct-expand');
                 }
+
                 break;
             }
 
@@ -243,9 +245,11 @@ export default function(discovery) {
             if (cursor.classList.contains('struct-collapse-value')) {
                 cursor = cursor.parentNode;
                 collapseValue(cursor);
-                if (cursor.isStructRoot) {
+
+                if (structViewRoots.has(cursor)) {
                     cursor.parentNode.classList.add('struct-expand');
                 }
+
                 break;
             }
 
@@ -261,15 +265,15 @@ export default function(discovery) {
         const expandable = isValueExpandable(data);
 
         el.innerHTML = renderValue(data, expandable);
-        el.lastChild.isStructRoot = true;
+        structViewRoots.add(el.lastChild);
 
         if (expandable) {
             if (!expanded) {
                 el.classList.add('struct-expand');
             }
+
             maybeExpand(el.lastChild, data, expanded);
         }
-
     });
 
     // FIXME: this function never call
