@@ -138,35 +138,40 @@ export default class ViewRenderer {
             limit = data.length;
         }
 
-        data.slice(offset, offset + limit).forEach((value, sliceIndex, slice) => {
-            this.render(container, itemConfig, value, Object.assign({}, context, {
-                index: offset + sliceIndex,
-                array: data,
-                sliceIndex,
-                slice
-            }));
-        });
+        const result = Promise.all(
+            data
+                .slice(offset, offset + limit)
+                .map((value, sliceIndex, slice) =>
+                    this.render(container, itemConfig, value, Object.assign({}, context, {
+                        index: offset + sliceIndex,
+                        array: data,
+                        sliceIndex,
+                        slice
+                    }))
+                )
+        );
 
         this.maybeMoreButtons(
-            container,
-            itemConfig,
-            data,
-            context,
+            moreContainer || container,
+            null,
+            data.length,
             offset + limit,
             limit,
-            moreContainer
+            (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, moreContainer)
         );
+
+        return result;
     }
 
-    maybeMoreButtons(container, itemConfig, data, context, offset, limit, moreContainer) {
-        const restCount = data.length - offset;
-        const buttons = document.createDocumentFragment();
+    maybeMoreButtons(container, beforeEl, count, offset, limit, renderMore) {
+        const restCount = count - offset;
+        const buttons = restCount <= 0 ? null : document.createElement('span');
 
         if (restCount > limit) {
             this.renderMoreButton(
                 buttons,
                 'Show ' + limit + ' more...',
-                () => this.renderList(container, itemConfig, data, context, offset, limit, moreContainer)
+                () => renderMore(offset, limit)
             );
         }
 
@@ -174,16 +179,16 @@ export default class ViewRenderer {
             this.renderMoreButton(
                 buttons,
                 'Show all the rest ' + restCount + ' items...',
-                () => this.renderList(container, itemConfig, data, context, offset, Infinity, moreContainer)
+                () => renderMore(offset, Infinity)
             );
         }
 
-        if (buttons.firstChild) {
-            const buttonContainer = document.createElement('span');
-            buttonContainer.className = 'more-buttons';
-            buttonContainer.appendChild(buttons);
-            (moreContainer || container).appendChild(buttonContainer);
+        if (buttons !== null) {
+            buttons.className = 'more-buttons';
+            container.insertBefore(buttons, beforeEl);
         }
+
+        return buttons;
     }
 
     renderMoreButton(container, caption, fn) {
@@ -191,7 +196,7 @@ export default class ViewRenderer {
 
         moreButton.className = 'more-button';
         moreButton.addEventListener('click', () => {
-            moreButton.parentNode.remove();
+            container.remove();
             fn();
         });
         moreButton.innerHTML = caption;
