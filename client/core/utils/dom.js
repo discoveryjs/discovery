@@ -29,3 +29,13 @@ export function createElement(tag, attrs, children) {
 export function createText(text) {
     return document.createTextNode(String(text));
 }
+
+export function createFragment(...children) {
+    const fragment = document.createDocumentFragment();
+
+    children.forEach(child => {
+        fragment.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+    });
+
+    return fragment;
+}
