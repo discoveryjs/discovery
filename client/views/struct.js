@@ -1,15 +1,22 @@
 /* eslint-env browser */
 
 import { escapeHtml } from '../core/utils/html.js';
+import { createElement, createFragment } from '../core/utils/dom.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const expandedItemsLimit = 50;
 const collapedItemsLimit = 4;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
-const collapseEl = document.createElement('span');
-
-collapseEl.className = 'struct-collapse-value';
+const arrayValueProto = createFragment('[', createElement('span', 'struct-collapse-value'), ']');
+const objectValueProto = createFragment('{', createElement('span', 'struct-collapse-value'), '}');
+const entryProtoEl = createElement('div', 'entry-line');
+const valueProtoEl = createElement('span', 'value');
+const objectKeyProtoEl = createElement('span', 'label', [
+    '\xA0 \xA0 ',
+    createElement('span', 'property'),
+    ':\xA0'
+]);
 
 function token(type, str) {
     return `<span class="${type}">${str}</span>`;
@@ -119,10 +126,19 @@ function getValueType(value) {
 function isValueExpandable(value) {
     const type = getValueType(value);
 
-    return (
-        (type === 'array' && value.length > 0) ||
-        (type === 'object' && Object.keys(value).length > 0)
-    );
+    if (type === 'array') {
+        return value.length > 0;
+    }
+
+    if (type === 'object') {
+        for (const key in value) {
+            if (hasOwnProperty.call(value, key)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function appendText(el, text) {
@@ -130,14 +146,6 @@ function appendText(el, text) {
 }
 
 export default function(discovery) {
-    function maybeExpand(valueEl, value, expandLimit) {
-        elementData.set(valueEl, value);
-
-        if (expandLimit > 0) {
-            expandValue(valueEl, expandLimit - 1);
-        }
-    }
-
     function collapseValue(el) {
         const data = elementData.get(el);
 
@@ -153,83 +161,98 @@ export default function(discovery) {
         switch (getValueType(data)) {
             case 'array':
                 el.innerHTML = '';
+                el.appendChild(arrayValueProto.cloneNode(true));
 
-                appendText(el, '[');
-                el.appendChild(collapseEl.cloneNode(true));
-                render(el, data, false, expandLimit, (key, value, expandable) =>
-                    renderValue(value, expandable)
-                );
-                appendText(el, ']');
+                renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
+                    renderValue(entryEl, value, expandLimit);
+                });
                 break;
 
             case 'object':
                 el.innerHTML = '';
+                el.appendChild(objectValueProto.cloneNode(true));
 
-                appendText(el, '{');
-                el.appendChild(collapseEl.cloneNode(true));
-                render(el, data, true, expandLimit, (key, value, expandable) =>
-                    '<span class="label">' +
-                        '\xA0 \xA0 <span class="property">' + escapeHtml(key) + '</span>:\xA0' +
-                    '</span>' +
-                    renderValue(value, expandable)
-                );
-                appendText(el, '}');
+                renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
+                    renderObjectKey(entryEl, key);
+                    renderValue(entryEl, value, expandLimit);
+                });
                 break;
         }
     }
 
-    function renderValue(value, expandable) {
+    function renderObjectKey(container, name) {
+        const objectKeyEl = objectKeyProtoEl.cloneNode(true);
+
+        appendText(objectKeyEl.firstElementChild, name);
+        container.appendChild(objectKeyEl);
+    }
+
+    function renderValueLinks(container, value) {
         let links = discovery.resolveValueLinks(value);
 
         if (Array.isArray(links)) {
-            links = links.map(
-                ({ type, href }) =>
-                    `<a class="view-struct-auto-link" href="${href}">${type}</a>`
-            ).join('');
-        } else {
-            links = '';
+            links.forEach(({ type, href }) =>
+                container.appendChild(createElement('a', { href, class: 'view-struct-auto-link' }, [type]))
+            );
         }
-
-        return (
-            links +
-            `<span class="value${expandable ? ' struct-expand-value' : ''}">${
-                value2htmlString(value)
-            }</span>`
-        );
     }
 
-    function render(container, data, keys, expandLimit, fn) {
-        discovery.view.render(container, {
-            view: 'list',
-            limit: expandedItemsLimit,
-            item: (el, config, key, { index, array }) => {
-                const value = keys ? data[key] : key;
-                const expandable = isValueExpandable(value);
+    function renderValue(container, value, expandLimit) {
+        const expandable = isValueExpandable(value);
+        const valueEl = valueProtoEl.cloneNode(true);
 
-                el.className = 'entry-line';
-                el.innerHTML = fn(keys ? key : index, value, expandable);
-
-                if (expandable) {
-                    maybeExpand(el.lastChild, value, expandLimit);
-                }
-
-                if (index !== array.length - 1) {
-                    el.appendChild(document.createTextNode(','));
-                }
+        if (expandable && expandLimit) {
+            // expanded
+            elementData.set(valueEl, value);
+            expandValue(valueEl, expandLimit - 1);
+        } else {
+            // collapsed
+            if (expandable) {
+                elementData.set(valueEl, value);
+                valueEl.classList.add('struct-expand-value');
             }
-        }, keys ? Object.keys(data) : data);
+
+            valueEl.innerHTML = value2htmlString(value);
+        }
+
+        renderValueLinks(container, value);
+        container.appendChild(valueEl);
+    }
+
+    function renderEntries(container, beforeEl, entries, renderEntryContent, offset = 0, limit = expandedItemsLimit) {
+        const lastIndex = entries.length - offset - 1;
+
+        entries
+            .slice(offset, offset + limit)
+            .forEach(([key, value], index) => {
+                const el = entryProtoEl.cloneNode(true);
+
+                renderEntryContent(el, key, value);
+                if (index !== lastIndex) {
+                    appendText(el, ',');
+                }
+
+                container.insertBefore(el, beforeEl);
+            });
+
+        discovery.view.maybeMoreButtons(
+            container,
+            beforeEl,
+            entries.length,
+            offset + limit,
+            limit,
+            (offset, limit) => renderEntries(container, beforeEl, entries, renderEntryContent, offset, limit)
+        );
     }
 
     const elementData = new WeakMap();
     const structViewRoots = new WeakSet();
-    const clickHandler = (e) => {
-        let cursor = e.target;
-
+    const clickHandler = ({ target: cursor }) => {
         while (cursor && cursor.classList) {
             if (cursor.classList.contains('struct-expand-value')) {
                 expandValue(cursor, 0);
 
-                if (structViewRoots.has(cursor)) {
+                if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.remove('struct-expand');
                 }
 
@@ -246,7 +269,7 @@ export default function(discovery) {
                 cursor = cursor.parentNode;
                 collapseValue(cursor);
 
-                if (structViewRoots.has(cursor)) {
+                if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.add('struct-expand');
                 }
 
@@ -264,15 +287,11 @@ export default function(discovery) {
         const { expanded } = config;
         const expandable = isValueExpandable(data);
 
-        el.innerHTML = renderValue(data, expandable);
-        structViewRoots.add(el.lastChild);
+        structViewRoots.add(el);
+        renderValue(el, data, expanded);
 
-        if (expandable) {
-            if (!expanded) {
-                el.classList.add('struct-expand');
-            }
-
-            maybeExpand(el.lastChild, data, expanded);
+        if (expandable && !expanded) {
+            el.classList.add('struct-expand');
         }
     });
 
