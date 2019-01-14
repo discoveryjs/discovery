@@ -57,7 +57,7 @@ function value2htmlString(value, linear) {
             }
 
             // NOTE: constructor check and instanceof doesn't work here,
-            // since a value can come from any runtime
+            // since a value may come from any runtime
             switch (toString.call(value)) {
                 case '[object Array]': {
                     const content = value.slice(0, collapedItemsLimit).map(val => value2htmlString(val, true));
@@ -76,26 +76,7 @@ function value2htmlString(value, linear) {
                     return token('regexp', value);
             }
 
-            if (!linear) {
-                const content = [];
-                let count = 0;
-
-                for (let key in value) {
-                    if (hasOwnProperty.call(value, key)) {
-                        if (count < collapedItemsLimit) {
-                            content.push(`${token('property', key)}: ${value2htmlString(value[key], true)}`);
-                        }
-
-                        count++;
-                    }
-                }
-
-                if (count > collapedItemsLimit) {
-                    content.push(more(count - collapedItemsLimit));
-                }
-
-                return content.length ? `{ ${content.join(', ')} }` : '{}';
-            } else {
+            if (linear) {
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
                         return '{…}';
@@ -104,6 +85,25 @@ function value2htmlString(value, linear) {
 
                 return '{}';
             }
+
+            const content = [];
+            let count = 0;
+
+            for (let key in value) {
+                if (hasOwnProperty.call(value, key)) {
+                    if (count < collapedItemsLimit) {
+                        content.push(`${token('property', key)}: ${value2htmlString(value[key], true)}`);
+                    }
+
+                    count++;
+                }
+            }
+
+            if (count > collapedItemsLimit) {
+                content.push(more(count - collapedItemsLimit));
+            }
+
+            return content.length ? `{ ${content.join(', ')} }` : '{}';
         }
 
         default:
@@ -111,26 +111,14 @@ function value2htmlString(value, linear) {
     }
 }
 
-function getValueType(value) {
-    if (Array.isArray(value)) {
-        return 'array';
-    }
-
-    if (value && toString.call(value) === '[object Object]') {
-        return 'object';
-    }
-
-    return 'other';
-}
-
 function isValueExpandable(value) {
-    const type = getValueType(value);
-
-    if (type === 'array') {
+    // array
+    if (Array.isArray(value)) {
         return value.length > 0;
     }
 
-    if (type === 'object') {
+    // a plain object
+    if (value && toString.call(value) === '[object Object]') {
         for (const key in value) {
             if (hasOwnProperty.call(value, key)) {
                 return true;
@@ -147,36 +135,36 @@ function appendText(el, text) {
 
 export default function(discovery) {
     function collapseValue(el) {
-        const data = elementData.get(el);
+        const data = elementToData.get(el);
 
         el.classList.add('struct-expand-value');
         el.innerHTML = value2htmlString(data);
     }
 
     function expandValue(el, expandLimit) {
-        const data = elementData.get(el);
+        const data = elementToData.get(el);
 
         el.classList.remove('struct-expand-value');
 
-        switch (getValueType(data)) {
-            case 'array':
-                el.innerHTML = '';
-                el.appendChild(arrayValueProto.cloneNode(true));
+        // at this point we assume that a data is an array or an object,
+        // since only such type of data expandable
+        if (Array.isArray(data)) {
+            // array
+            el.innerHTML = '';
+            el.appendChild(arrayValueProto.cloneNode(true));
 
-                renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
-                    renderValue(entryEl, value, expandLimit);
-                });
-                break;
+            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
+                renderValue(entryEl, value, expandLimit);
+            });
+        } else {
+            // object
+            el.innerHTML = '';
+            el.appendChild(objectValueProto.cloneNode(true));
 
-            case 'object':
-                el.innerHTML = '';
-                el.appendChild(objectValueProto.cloneNode(true));
-
-                renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
-                    renderObjectKey(entryEl, key);
-                    renderValue(entryEl, value, expandLimit);
-                });
-                break;
+            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
+                renderObjectKey(entryEl, key);
+                renderValue(entryEl, value, expandLimit);
+            });
         }
     }
 
@@ -203,12 +191,12 @@ export default function(discovery) {
 
         if (expandable && expandLimit) {
             // expanded
-            elementData.set(valueEl, value);
+            elementToData.set(valueEl, value);
             expandValue(valueEl, expandLimit - 1);
         } else {
             // collapsed
             if (expandable) {
-                elementData.set(valueEl, value);
+                elementToData.set(valueEl, value);
                 valueEl.classList.add('struct-expand-value');
             }
 
@@ -245,10 +233,16 @@ export default function(discovery) {
         );
     }
 
-    const elementData = new WeakMap();
+    const elementToData = new WeakMap();
     const structViewRoots = new WeakSet();
     const clickHandler = ({ target: cursor }) => {
         while (cursor && cursor.classList) {
+            if (cursor.classList.contains('struct-expand')) {
+                cursor.classList.remove('struct-expand');
+                expandValue(cursor.lastChild, 0);
+                break;
+            }
+
             if (cursor.classList.contains('struct-expand-value')) {
                 expandValue(cursor, 0);
 
@@ -256,12 +250,6 @@ export default function(discovery) {
                     cursor.parentNode.classList.remove('struct-expand');
                 }
 
-                break;
-            }
-
-            if (cursor.classList.contains('struct-expand')) {
-                cursor.classList.remove('struct-expand');
-                expandValue(cursor.lastChild, 0);
                 break;
             }
 
