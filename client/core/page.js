@@ -1,5 +1,6 @@
 /* eslint-env browser */
 
+const pages = new WeakMap();
 const BUILDIN_NOT_FOUND = {
     name: 'not-found',
     render: (el, { name }) => {
@@ -11,27 +12,39 @@ const BUILDIN_NOT_FOUND = {
 export default class PageRenderer {
     constructor(view) {
         this.view = view;
-        this.pages = Object.create(null);
         this.lastPage = null;
+        pages.set(this, Object.create(null));
     }
 
     define(name, render, options) {
-        this.pages[name] = {
+        pages.get(this)[name] = Object.freeze({
             name,
             render: typeof render === 'function'
                 ? render
                 : (el, data, context) => this.view.render(el, render, data, context),
-            options: options || {}
-        };
+            options: Object.freeze(Object.assign({}, options))
+        });
+    }
+
+    isDefined(name) {
+        return name in pages.get(this);
+    }
+
+    get(name) {
+        return pages.get(this)[name];
+    }
+
+    get names() {
+        return Object.keys(pages.get(this)).sort();
     }
 
     render(oldPageEl, name, data, context) {
         const startTime = Date.now();
-        let page = this.pages[name];
+        let page = this.get(name);
         let rendered;
 
         if (!page) {
-            page = this.pages['not-found'] || BUILDIN_NOT_FOUND;
+            page = this.get('not-found') || BUILDIN_NOT_FOUND;
             data = { name };
         }
 

@@ -40,22 +40,26 @@ export default class ViewRenderer {
         views.set(this, Object.create(null));
     }
 
-    get views() {
-        return Object.keys(views.get(this)).sort();
+    define(name, customRender, options) {
+        views.get(this)[name] = Object.freeze({
+            name,
+            render: typeof customRender === 'function'
+                ? customRender.bind(this)
+                : (el, config, data, context) => this.render(el, customRender, data, context),
+            options: Object.freeze(Object.assign({}, options))
+        });
     }
 
     isDefined(name) {
         return name in views.get(this);
     }
 
-    define(name, customRender, options) {
-        views.get(this)[name] = {
-            name,
-            render: typeof customRender === 'function'
-                ? customRender.bind(this)
-                : (el, config, data, context) => this.render(el, customRender, data, context),
-            options: options || STUB_OBJECT
-        };
+    get(name) {
+        return views.get(this)[name];
+    }
+
+    get names() {
+        return Object.keys(views.get(this)).sort();
     }
 
     render(container, config, data, context) {
@@ -88,14 +92,14 @@ export default class ViewRenderer {
 
         let renderer = typeof config.view === 'function'
             ? { render: config.view, name: false, options: STUB_OBJECT }
-            : views.get(this)[config.view];
+            : this.get(config.view);
 
         if (!renderer) {
             const errorMsg = typeof config.view === 'string'
                 ? 'View `' + config.view + '` is not found'
                 : 'Render is not a function';
             console.error(errorMsg, config);
-            renderer = views.get(this).fallback || BUILDIN_FALLBACK;
+            renderer = this.get('fallback') || BUILDIN_FALLBACK;
             config = { reason: errorMsg };
         }
 
@@ -113,7 +117,7 @@ export default class ViewRenderer {
                 )
                 .then(data => renderDom(renderer, placeholder, config, data, context))
                 .catch(e => {
-                    renderDom(views.get(this)['alert-danger'], placeholder, {}, e);
+                    renderDom(this.get('alert-danger'), placeholder, {}, e);
                     console.log(e);
                 });
         } else {

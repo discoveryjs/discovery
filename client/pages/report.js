@@ -240,7 +240,7 @@ export default function(discovery) {
     }
 
     function updateAvailableViewList() {
-        availableViewListEl.innerHTML = discovery.view.views
+        availableViewListEl.innerHTML = discovery.view.names
             .map(name => `<span class="view">${name}</span>`)
             .join(', ');
     }

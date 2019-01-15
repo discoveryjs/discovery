@@ -312,7 +312,7 @@ export default class Widget {
     }
 
     getPageOption(name, fallback) {
-        const page = this.page.pages[this.pageId];
+        const page = this.page.get(this.pageId);
 
         return page && name in page.options ? page.options[name] : fallback;
     }
