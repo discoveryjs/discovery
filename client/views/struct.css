@@ -18,6 +18,17 @@
     text-overflow: ellipsis;
     border-radius: 4px;
 }
+.view-struct.struct-expanded-value,
+.view-struct .struct-expanded-value {
+    background-image: linear-gradient(to bottom, #eee, #eee);
+    background-size: 1px calc(100% - 38px);
+    background-position: 4.7ex 20px;
+    background-repeat: no-repeat;
+}
+.view-struct.struct-expanded-value {
+    background-size: 1px calc(100% - 54px);
+    background-position: 10px 28px;
+}
 .view-struct .struct-collapse-value {
     margin-left: 2px;
     padding: 1px 4px;

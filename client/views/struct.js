@@ -192,6 +192,7 @@ export default function(discovery) {
         if (expandable && expandLimit) {
             // expanded
             elementToData.set(valueEl, value);
+            container.classList.add('struct-expanded-value');
             expandValue(valueEl, expandLimit - 1);
         } else {
             // collapsed
@@ -245,6 +246,7 @@ export default function(discovery) {
 
             if (cursor.classList.contains('struct-expand-value')) {
                 expandValue(cursor, 0);
+                cursor.parentNode.classList.add('struct-expanded-value');
 
                 if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.remove('struct-expand');
@@ -256,6 +258,7 @@ export default function(discovery) {
             if (cursor.classList.contains('struct-collapse-value')) {
                 cursor = cursor.parentNode;
                 collapseValue(cursor);
+                cursor.parentNode.classList.remove('struct-expanded-value');
 
                 if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.add('struct-expand');
