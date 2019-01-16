@@ -91,6 +91,13 @@ class Popup {
             render(this.el);
         }
 
+        if (this.lastTriggerEl) {
+            this.lastTriggerEl.classList.remove('discovery-view-popup-active');
+        }
+
+        triggerEl.classList.add('discovery-view-popup-active');
+        this.lastTriggerEl = triggerEl;
+
         if (!this.visible) {
             window.addEventListener('resize', this.hide);
             document.addEventListener('scroll', this.hideIfEventOutside, true);
@@ -108,6 +115,7 @@ class Popup {
             document.removeEventListener('click', this.hideIfEventOutside, true);
 
             this.el.remove();
+            this.lastTriggerEl.classList.remove('discovery-view-popup-active');
             this.visible = false;
         }
     }

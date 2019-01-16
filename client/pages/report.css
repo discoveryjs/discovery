@@ -243,6 +243,7 @@
     opacity: .5;
     outline: none;
 }
+.page-report .data-query-view-options button.discovery-view-popup-active,
 .page-report .data-query-view-options button:hover,
 .page-report .data-query-view-options button:focus {
     background-color: #f8f8f8;
