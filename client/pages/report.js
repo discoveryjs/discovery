@@ -11,9 +11,9 @@ const viewModeSource = {
     default: () => '{\n    view: \'struct\',\n    expanded: 1\n}',
     custom: results => viewModeSource.default(results)
 };
-const viewPresets = {
-    table: () => '"table"'
-};
+const defaultViewPresets = [
+    { name: 'Table', content: '"table"' }
+];
 
 function valueDescriptor(value) {
     if (Array.isArray(value)) {
@@ -118,6 +118,9 @@ export default function(discovery) {
     let currentContext;
     let lastQuery = {};
     let lastView = {};
+    const viewPresets = Array.isArray(discovery.options.viewPresets)
+        ? defaultViewPresets.concat(discovery.options.viewPresets)
+        : defaultViewPresets;
 
     function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
         const startChar = current[0];
@@ -401,17 +404,17 @@ export default function(discovery) {
                 class: 'tab',
                 'data-mode': id,
                 onclick: () => setViewMode(id)
-            }, id)
+            }, id.replace(/^./, fc => fc.toUpperCase())) // captitalize
         )),
-        createElement('div', 'tabs presets', Object.keys(viewPresets).map(id =>
+        createElement('div', 'tabs presets', viewPresets.map(({ name, content }) =>
             createElement('div', {
                 class: 'tab',
                 onclick: () =>
                     discovery.setPageParams({
                         ...discovery.pageParams,
-                        view: viewPresets[id](lastView.data)
+                        view: content
                     })
-            }, id)
+            }, name || 'Untitled preset')
         )),
         viewSetupEl = createElement('div', {
             class: 'view-editor',

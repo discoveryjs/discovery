@@ -95,6 +95,7 @@
 }
 .page-report .data-query-result {
     margin: 1em 0 1em -40px;
+    overflow: hidden;
 }
 .page-report .view-editor-form {
     margin: 0 -40px 12px;
@@ -158,7 +159,6 @@
     padding: 2px 12px;
     background: #f4f4f4;
     font-size: 12px;
-    text-transform: capitalize;
     cursor: pointer;
 }
 .page-report .view-editor-form .tab:first-child {
