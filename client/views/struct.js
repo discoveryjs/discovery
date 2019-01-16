@@ -2,14 +2,15 @@
 
 import { escapeHtml } from '../core/utils/html.js';
 import { createElement, createFragment } from '../core/utils/dom.js';
+import copyText from '../core/utils/copy-text.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const expandedItemsLimit = 50;
 const collapedItemsLimit = 4;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
-const arrayValueProto = createFragment('[', createElement('span', 'struct-collapse-value'), ']');
-const objectValueProto = createFragment('{', createElement('span', 'struct-collapse-value'), '}');
+const arrayValueProto = createFragment('[', createElement('span', 'struct-collapse-value'), createElement('span', 'value-actions'), ']');
+const objectValueProto = createFragment('{', createElement('span', 'struct-collapse-value'), createElement('span', 'value-actions'), '}');
 const entryProtoEl = createElement('div', 'entry-line');
 const valueProtoEl = createElement('span', 'value');
 const objectKeyProtoEl = createElement('span', 'label', [
@@ -236,6 +237,7 @@ export default function(discovery) {
 
     const elementToData = new WeakMap();
     const structViewRoots = new WeakSet();
+    const valueActionsPopup = new discovery.view.Popup();
     const clickHandler = ({ target: cursor }) => {
         while (cursor && cursor.classList) {
             if (cursor.classList.contains('struct-expand')) {
@@ -263,6 +265,42 @@ export default function(discovery) {
                 if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.add('struct-expand');
                 }
+
+                break;
+            }
+
+            if (cursor.classList.contains('value-actions')) {
+                valueActionsPopup.show(cursor, {
+                    render: (popupEl) => {
+                        discovery.view.render(popupEl, {
+                            view: 'menu',
+                            data: [
+                                {
+                                    text: 'Copy as JSON (formatted)',
+                                    action: () => {
+                                        const value = elementToData.get(cursor.parentNode);
+                                        const json = JSON.stringify(value, null, 4);
+
+                                        copyText(json);
+                                    }
+                                },
+                                {
+                                    text: 'Copy as JSON (compact)',
+                                    action: () => {
+                                        const value = elementToData.get(cursor.parentNode);
+                                        const json = JSON.stringify(value);
+
+                                        copyText(json);
+                                    }
+                                }
+                            ],
+                            onClick(item) {
+                                valueActionsPopup.hide();
+                                item.action();
+                            }
+                        });
+                    }
+                });
 
                 break;
             }

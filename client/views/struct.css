@@ -29,7 +29,8 @@
     background-size: 1px calc(100% - 54px);
     background-position: 10px 28px;
 }
-.view-struct .struct-collapse-value {
+.view-struct .struct-collapse-value,
+.view-struct .value-actions {
     margin-left: 2px;
     padding: 1px 4px;
     border: 1px solid #eee;
@@ -41,9 +42,14 @@
 .view-struct .struct-collapse-value::before {
     content: "–";
 }
+.view-struct .value-actions::before {
+    content: "ƒ";
+}
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover,
-.view-struct .struct-collapse-value:hover {
+.view-struct .struct-collapse-value:hover,
+.view-struct .value-actions:hover,
+.view-struct .value-actions.discovery-view-popup-active {
     color: #333;
     background: #eee;
     border-color: #d0d0d0;
