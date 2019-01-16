@@ -1,3 +1,24 @@
+## 1.0.0-beta.6 (16-01-2019)
+
+- Build
+    - Tweaked build to use `model.html` for a model build result
+- Client
+    - Fixed dzen mode works for any page through location hash parameter
+    - Added toggle edit mode button on report page. Report editing can be disabled by `noedit` parameter in location hash
+    - Added share button on report page
+    - Added `Widget#options.viewPresets` option to extend view preset list on report page
+    - Changed `discovery.view.renderList()` to return a Promise
+    - Added `discovery.view.listLimit()` method to normalize a limit value
+    - Allowed to use `false` as a value for `limit` option for `columns`, `table` and list views, which disables list output limitation
+    - Added popup view (as `discovery.view.Popup` class)
+    - Added `menu` and `menu-item` views
+    - Improved UX and performance of `struct` view
+    - Uniform page and view renderers API
+        - Added `isDefined()` and `get()` methods and `names` getter to page renderer
+        - Added `get()` method to view renderer
+        - Renamed `views` getter to `names` for view renderer
+        - `get()` methods return freezed page or view object
+
 ## 1.0.0-beta.5 (25-12-2018)
 
 - Client
