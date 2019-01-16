@@ -12,7 +12,8 @@ const viewModeSource = {
     custom: results => viewModeSource.default(results)
 };
 const defaultViewPresets = [
-    { name: 'Table', content: '"table"' }
+    { name: 'Table', content: '{\n    view: \'table\'\n}' },
+    { name: 'Autolink list', content: '{\n    view: \'ol\',\n    item: \'auto-link\'\n}' }
 ];
 
 function valueDescriptor(value) {
