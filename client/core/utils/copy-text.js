@@ -1,26 +1,45 @@
 /* eslint-env browser */
 
-const copyTextBufferEl = document.createElement('textarea');
+import { createElement } from './dom.js';
 
-Object.assign(copyTextBufferEl, {
-    position: 'fixed',
-    width: '1px',
-    height: '1px',
-    top: '0px',
-    left: '-100px'
-});
+const copyTextBufferEl = createElement('div', {
+    style: [
+        'position: fixed',
+        'overflow: hidden',
+        'font-size: 1px',
+        'width: 1px',
+        'height: 1px',
+        'top: 0',
+        'left: 0',
+        'white-space: pre'
+    ].join(';')
+}, ['text']);
 
-export default function copyText(text) {
+function execCommandFallback(text) {
+    let selection = window.getSelection();
+    let range = document.createRange();
+
     document.body.appendChild(copyTextBufferEl);
-    copyTextBufferEl.value = text;
-    copyTextBufferEl.select();
+    copyTextBufferEl.firstChild.nodeValue = text;
+
+    range.selectNodeContents(copyTextBufferEl);
+    selection.removeAllRanges();
+    selection.addRange(range);
 
     try {
         document.execCommand('copy');
     } catch (err) {
-        // do nothing
+        console.error(err);
     }
 
-    window.getSelection().removeAllRanges();
+    selection.removeAllRanges();
     copyTextBufferEl.remove();
-};
+}
+
+export default function copyText(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    } else {
+        execCommandFallback(text);
+    }
+}
