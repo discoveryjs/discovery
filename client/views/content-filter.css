@@ -5,6 +5,14 @@
     margin-bottom: 1em;
 }
 
+.view-content-filter > .view-input input {
+    background-image: url('./content-filter.svg');
+    background-repeat: no-repeat;
+    background-size: 32px 16px;
+    background-position: right center;
+    padding-right: 30px;
+}
+
 .view-content-filter > .content {
     overflow: auto;
     flex: 1;
