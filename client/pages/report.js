@@ -522,10 +522,12 @@ export default function(discovery) {
                 results = discovery.query(pageQuery, data, context);
                 queryTime = Date.now() - queryTime;
                 viewEditorFormEl.hidden = false;
+                reportContentEl.hidden = false;
             } catch (e) {
                 lastQuery = {};
                 queryEditorResultEl.innerHTML = '<div class="error">' + escapeHtml(e.message) + '</div>';
                 viewEditorFormEl.hidden = true;
+                reportContentEl.hidden = true;
                 return;
             }
 
