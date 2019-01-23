@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+const defaultDetailsRender = { view: 'struct', expanded: 1 };
+
 function defaultCellRender(el, data) {
     if (Array.isArray(data)) {
         el.className = 'details complex';
@@ -35,14 +37,14 @@ export default function(discovery) {
     discovery.view.define('table-cell', function(el, config, data, context) {
         const { content, details } = config;
 
-        if (details) {
-            el.className = 'details';
-        }
-
         if (content) {
             discovery.view.render(el, content, data, context);
         } else {
             defaultCellRender(el, data);
+        }
+
+        if (details) {
+            el.classList.add('details');
         }
 
         if (el.classList.contains('details')) {
@@ -84,7 +86,7 @@ export default function(discovery) {
                     }
 
                     el.classList.add('details-expanded');
-                    discovery.view.render(detailsEl, details || { view: 'struct', expanded: true }, data, context);
+                    discovery.view.render(detailsEl, details || defaultDetailsRender, data, context);
                 }
             });
         }
