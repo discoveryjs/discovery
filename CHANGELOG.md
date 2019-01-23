@@ -3,6 +3,7 @@
 - Client
     - Added context menu in `struct` view with `Copy as JSON` actions
     - Improved copying performance of a large content to the buffer
+    - Added `tree` view
     - Fixed report content hide on query error
 
 ## 1.0.0-beta.6 (16-01-2019)

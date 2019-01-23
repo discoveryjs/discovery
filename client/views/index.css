@@ -25,6 +25,8 @@
 @import url('./text-match.css');
 @import url('./toc-item.css');
 @import url('./toc-section.css');
+@import url('./tree-leaf.css');
+@import url('./tree.css');
 
 .more-buttons {
     display: block;

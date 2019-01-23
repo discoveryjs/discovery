@@ -1,0 +1,69 @@
+.view-tree-leaf {
+    position: relative;
+    overflow: hidden;
+}
+.view-tree-leaf:not(.last)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 5px;
+    border-left: 1px solid #ccc;
+}
+
+.view-tree-leaf-toggle {
+    visibility: hidden;
+    display: inline-block;
+    position: relative;
+    width: 9px;
+    height: 9px;
+    background: white;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    margin-right: 9px;
+    font-size: 10px;
+    line-height: 8px;
+    text-align: center;
+    color: #aaa;
+    cursor: pointer;
+}
+.view-tree-leaf-toggle:hover {
+    color: #666;
+}
+.view-tree-leaf.has-children > .view-tree-leaf-toggle {
+    visibility: visible;
+}
+.view-tree-leaf-toggle::before {
+    content: '';
+    visibility: visible;
+    position: absolute;
+    z-index: -1;
+    left: 4px;
+    bottom: 4px;
+    height: 30px;
+    border-left: 1px solid #ccc;
+}
+.view-tree-leaf-toggle::after {
+    content: '';
+    visibility: visible;
+    position: absolute;
+    z-index: -1;
+    left: 4px;
+    bottom: 4px;
+    width: 12px;
+    border-top: 1px solid #ccc;
+}
+
+.view-tree-leaf-content {
+    display: inline-block;
+}
+
+.view-tree-leaf-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    padding-left: 24px;
+}
+.view-tree-leaf.collapsed > .view-tree-leaf-children {
+    display: none;
+}
