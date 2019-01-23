@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.7 (23-01-2019)
 
 - Client
     - Added context menu in `struct` view with `Copy as JSON` actions
