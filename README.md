@@ -12,7 +12,7 @@ Hackable JSON discovery tool
 
 ## Related projects
 
-- [JsonDiscovery](https://github.com/discoveryjs/browser-extension-json-discovery) – Chrome extension built on Discovery which allows you to discover a JSON documents and make beautiful reports on the fly
+- [JsonDiscovery](https://github.com/discoveryjs/browser-extension-json-discovery) – Chrome extension built on Discovery which allows you to discover a JSON documents and make reports on the fly
 
 ## Examples
 
@@ -40,11 +40,7 @@ By default server server starts on port `8123`. You can change it by `-p` (or `-
 
 See more options with `-h` (or `--help`) argument:
 
-```
-> npx discovery -h
-```
-
-## How to build model
+## How to build a model
 
 Run the command in folder with `discovery` installed:
 
@@ -60,13 +56,10 @@ The result will be placed to `build` folder by default. You can change it with `
 
 See more options with `-h` (or `--help`) argument:
 
-```
-> npx discovery-build -h
-```
 
 ## Modes
 
-Discovery can work in three modes:
+Discovery can work in following modes:
 
 * Model-free (when no any model specified)
 * Single model
@@ -74,7 +67,7 @@ Discovery can work in three modes:
 
 ### Model-free
 
-In this mode you can upload any data by clicking "Load data" button, or drag'n'drop file right into the browser,
+In this mode you can upload any data by clicking "Load data" button, or drag'n'drop file right into the browser.
 
 ### Multiple models
 
@@ -92,20 +85,20 @@ To configure discovery you should specify one of config files:
 * `.discoveryrc.json`
 * `.discoveryrc` (the same as `.discoveryrc.json`)
 
-Or you can use `discovery` key in your `package.json` file.
+Or you can add a section in your `package.json` file with `discovery` as a key.
 
 ### Config structure
 
-Config should provide JSON or export js-object with following properties:
+Config should provide JSON or exports an object with following properties:
 
-* `name` - name of discovery instance (used in title)
-* `models` - object with model configuration, where key used as model slug and value - model config
+* `name` - name of discovery instance (used in page title)
+* `models` - object with model configurations, where for each entry the key used as a slug and the value as a config
 
 Example:
 
 ```js
 module.exports = {
-    name: 'discovery',
+    name: 'My cool dashboards',
     models: {
         one: <modelConfig>,
         two: <modelConfig>
@@ -113,7 +106,7 @@ module.exports = {
 };
 ```
 
-## Define model
+## Define a model
 
 Model config consists of the following fields:
 
@@ -123,12 +116,15 @@ Model config consists of the following fields:
 * `ui` object with following fields:
     * `basedir` - directory to resolve relative path in `assets`
     * `assets` - path to `.js` and `.css` files
-    > js files has own scope (as modules) which have reference to `discovery` instance
+    > js files has own scope (as modules) with a reference `discovery` that points to discovery instance
 * `extendRouter` - `function(router, modelConfig, options)`
+* `cache`
+* `cacheTtl`
+* `cacheBgUpdate`
 
 ## Base concepts
 
-**Model** goes through `data->prepare->render` chain. Data can be modified with prepare function and rendered by various views and its combinations.
+**Model** goes through `data->prepare->render` chain. Data can be modified with `prepare` function and rendered by various views and its combinations.
 
 **View** is a function(el, config, data, context) where:
 
@@ -141,7 +137,7 @@ Model config consists of the following fields:
 
 ### Page
 
-To define page you should call `discovery.page.define(pageId, render(el, data, context), options)` where:
+To define a page you should call `discovery.page.define(pageId, render(el, data, context), options)` where:
 
 * `pageId` - unique page identifier
 * `render` - page render function described above
@@ -152,8 +148,8 @@ To define page you should call `discovery.page.define(pageId, render(el, data, c
 
 Other handy methods for working with page:
 
-* `discovery.renderPage()` `renderId, renderRef, renderParams`
-* `setPage(pageId, pageRef, renderParams)` or `setPageParams(renderParams)` triggers `renderPage()`
+* `discovery.renderPage()`
+* `discovery.setPage(pageId, pageRef, renderParam)`, `discovery.setPageParams(renderParams)` triggers `renderPage()`
 * `discovery.getPageContext()` gets context of page
 
 ### Special pages
@@ -164,7 +160,7 @@ There are some built-in special pages:
 * `report`
 * `not-found`
 
-you can override this pages with `definePage`
+you can override this pages with `page.define()`
 
 ### View
 
@@ -186,7 +182,7 @@ You can render your view with `discovery.view.render(el, view, data, context)` w
 
 ### Special views
 
-Also specail built-in `sidebar` view is available you can override this view with `view.define`
+Also special built-in `sidebar` view is available you can override this view with `view.define`
 
 ### Queries
 

@@ -1,5 +1,5 @@
 export default function(discovery) {
-    discovery.definePage('default', {
+    discovery.page.define('default', {
         view: 'switch',
         content: [
             {

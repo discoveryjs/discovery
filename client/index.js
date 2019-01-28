@@ -6,7 +6,7 @@ import setup from './gen/setup.js';
 const discovery = new Widget(document.body);
 
 document.title = setup.name;
-discovery.definePage('default', [
+discovery.page.define('default', [
     'h1:#.name',
     {
         view: 'ul',

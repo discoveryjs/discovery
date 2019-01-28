@@ -27,6 +27,49 @@ function getPageMethod(instance, pageId, name, fallback) {
         : fallback;
 }
 
+function extractValueLinkResolver(host, pageId) {
+    const { resolveLink } = host.page.get(pageId).options;
+
+    if (!resolveLink) {
+        return;
+    }
+
+    switch (typeof resolveLink) {
+        case 'string':
+            const [type, ref = 'id'] = resolveLink.split(':');
+
+            return (entity) => {
+                if (entity && entity.type === type) {
+                    return {
+                        type: pageId,
+                        text: entity.name,
+                        href: host.encodePageHash(pageId, entity[ref])
+                    };
+                }
+            };
+
+        case 'function':
+            return (entity, value, data, context) => {
+                if (!value) {
+                    return;
+                }
+
+                const link = resolveLink(entity, value, data, context);
+
+                if (link) {
+                    return {
+                        type: pageId,
+                        text: typeof link === 'string' ? link : pageId,
+                        href: host.encodePageHash(pageId, link)
+                    };
+                }
+            };
+
+        default:
+            console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, resolveLink);
+    }
+}
+
 function apply(fn, host) {
     if (typeof fn === 'function') {
         fn.call(window, host);
@@ -73,9 +116,9 @@ export default class Widget extends Emitter {
         this.options = options || {};
         this.view = new ViewRenderer(this);
         this.page = new PageRenderer(this.view);
+        this.page.on('define', name => this.addValueLinkResolver(extractValueLinkResolver(this, name)));
         this.entityResolvers = [];
         this.linkResolvers = [];
-        this.badges = [];
         this.prepare = data => data;
 
         this.defaultPageId = this.options.defaultPageId || 'default';
@@ -85,12 +128,14 @@ export default class Widget extends Emitter {
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
         this.scheduledRenderPage = null;
 
+        this.badges = [];
         this.dom = {};
         this.queryExtensions = {
             query: (...args) => this.query(...args),
             pageLink: (pageRef, pageId, pageParams) =>
                 this.encodePageHash(pageId, pageRef, pageParams)
         };
+
 
         this.apply(views);
         this.apply(pages);
@@ -164,8 +209,10 @@ export default class Widget extends Emitter {
         }
     }
 
-    addValueLinkResolver(fn) {
-        this.linkResolvers.push(fn);
+    addValueLinkResolver(resolver) {
+        if (typeof resolver === 'function') {
+            this.linkResolvers.push(resolver);
+        }
     }
 
     resolveValueLinks(value) {
@@ -377,49 +424,6 @@ export default class Widget extends Emitter {
     //
     // Page
     //
-
-    definePage(pageId, render, options) {
-        this.page.define(pageId, render, options);
-
-        if (options && options.resolveLink) {
-            switch (typeof options.resolveLink) {
-                case 'string':
-                    const [type, ref = 'id'] = options.resolveLink.split(':');
-
-                    this.addValueLinkResolver((entity) => {
-                        if (entity && entity.type === type) {
-                            return {
-                                type: entity.type,
-                                text: entity.name,
-                                href: this.encodePageHash(pageId, entity[ref])
-                            };
-                        }
-                    });
-                    break;
-
-                case 'function':
-                    this.addValueLinkResolver((entity, value, data, context) => {
-                        if (!value) {
-                            return;
-                        }
-
-                        const link = options.resolveLink(entity, value, data, context);
-
-                        if (link) {
-                            return {
-                                type: pageId,
-                                text: typeof link === 'string' ? link : pageId,
-                                href: this.encodePageHash(pageId, link)
-                            };
-                        }
-                    });
-                    break;
-
-                default:
-                    console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, options.resolveLink);
-            }
-        }
-    }
 
     encodePageHash(pageId, pageRef, pageParams) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);

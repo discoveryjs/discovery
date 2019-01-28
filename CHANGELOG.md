@@ -9,9 +9,10 @@
         - A value passing through `decodeParams()` or `encodeParams()` when such methods are defined by a page (see default `report` page as example)
     - Added `Widget#scheduleRender(subject)` and `Widget#cancelScheduledRender(subject)` methods to schedule/cancel scheduled render of a page or/and a sidebar
     - Changed `Widget#setData()` to schedule renders instead of immediate render
-    - Droped `App#reportLink()` method
-    - Droped `reportLink()` query helper (use `pageLink()` instead)
+    - Removed `App#reportLink()` method
+    - Removed `reportLink()` query helper (use `pageLink()` instead)
     - Added `Emitter` as a base class for `Widget`/`App`, `PageRenderer` and `ViewRenderer` classes
+    - Removed `Widget#definePage()` method, use `Widget#page.define()` instead
 
 ## 1.0.0-beta.7 (23-01-2019)
 

@@ -1,5 +1,5 @@
 export default function(discovery) {
-    discovery.definePage('not-found', [
+    discovery.page.define('not-found', [
         'alert-warning:"Page \`" + name + "\` not found"'
     ]);
 }
