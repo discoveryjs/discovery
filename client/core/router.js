@@ -1,24 +1,17 @@
 /* eslint-env browser */
 
 export default function(discovery) {
-    function updatePagePropsFromHash() {
-        discovery.setPageHash(location.hash);
-    }
-
-    const superSetPageHash = discovery.setPageHash;
-    discovery.setPageHash = function(hash, replace) {
-        if (superSetPageHash.call(this, hash, replace)) {
-            if (replace) {
-                location.replace(this.pageHash);
-            } else {
-                location.hash = this.pageHash;
-            }
-
-            return true;
-        }
-    };
-
-    updatePagePropsFromHash();
+    // init
+    discovery.setPageHash(location.hash);
     discovery.cancelScheduledRender();
-    window.addEventListener('hashchange', updatePagePropsFromHash, false);
+
+    // sync
+    window.addEventListener('hashchange', () => discovery.setPageHash(location.hash), false);
+    discovery.on('pageHashChange', function(replace) {
+        if (replace) {
+            location.replace(discovery.pageHash);
+        } else {
+            location.hash = discovery.pageHash;
+        }
+    });
 }

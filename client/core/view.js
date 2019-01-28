@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+import Emitter from './emitter.js';
+
 const views = new WeakMap();
 const STUB_OBJECT = Object.freeze({});
 const BUILDIN_FALLBACK = {
@@ -34,8 +36,10 @@ function renderDom(renderer, placeholder, config, data, context) {
         });
 }
 
-export default class ViewRenderer {
+export default class ViewRenderer extends Emitter {
     constructor(host) {
+        super();
+
         this.host = host;
         views.set(this, Object.create(null));
     }
@@ -48,6 +52,8 @@ export default class ViewRenderer {
                 : (el, config, data, context) => this.render(el, customRender, data, context),
             options: Object.freeze(Object.assign({}, options))
         });
+
+        this.emit('define', name);
     }
 
     isDefined(name) {

@@ -1,5 +1,6 @@
 /* eslint-env browser */
 
+import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
@@ -65,8 +66,10 @@ function fuzzyStringCmp(a, b) {
     return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
 }
 
-export default class Widget {
+export default class Widget extends Emitter {
     constructor(container, options) {
+        super();
+
         this.options = options || {};
         this.view = new ViewRenderer(this);
         this.page = new PageRenderer(this.view);
@@ -131,6 +134,8 @@ export default class Widget {
 
                 this.data = data;
                 this.context = context;
+
+                this.emit('data');
             });
 
         // mark as last setData promise
@@ -218,7 +223,6 @@ export default class Widget {
                 stat: true
             })(data, context).suggestion(offset);
 
-            // console.log({ query, offset, suggestions, data, context });
             if (suggestions) {
                 return suggestions
                     .filter(
@@ -306,6 +310,10 @@ export default class Widget {
         return badge;
     }
 
+    //
+    // Render scheduling
+    //
+
     scheduleRender(subject) {
         if (!renderScheduler.has(this)) {
             const subjects = new Set();
@@ -339,6 +347,10 @@ export default class Widget {
         }
     }
 
+    //
+    // Sidebar
+    //
+
     getSidebarContext() {
         return this.context;
     }
@@ -361,6 +373,10 @@ export default class Widget {
             ).then(() => console.log(`[Discovery] Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
+
+    //
+    // Page
+    //
 
     definePage(pageId, render, options) {
         this.page.define(pageId, render, options);
@@ -411,7 +427,7 @@ export default class Widget {
 
         return `#${
             pageId !== this.defaultPageId ? pageId : ''}${
-            pageRef && typeof pageRef === 'string' ? ':' + pageRef : ''}${
+            (typeof pageRef === 'string' && pageRef) || typeof pageRef === 'number' ? ':' + pageRef : ''}${
             encodedParams ? '&' + encodedParams : ''
         }`;
     }
@@ -447,21 +463,21 @@ export default class Widget {
         return page && name in page.options ? page.options[name] : fallback;
     }
 
-    setPage(pageId, pageRef, pageParams, replace) {
+    setPage(pageId, pageRef, pageParams, replace = false) {
         return this.setPageHash(
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
         );
     }
 
-    setPageParams(pageParams, replace) {
+    setPageParams(pageParams, replace = false) {
         return this.setPageHash(
             this.encodePageHash(this.pageId, this.pageRef, pageParams),
             replace
         );
     }
 
-    setPageHash(hash) {
+    setPageHash(hash, replace = false) {
         if (hash !== this.pageHash) {
             const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
             const changed =
@@ -476,6 +492,7 @@ export default class Widget {
                 this.pageRef = pageRef;
                 this.pageParams = pageParams;
                 this.scheduleRender('page');
+                this.emit('pageHashChange', replace);
             }
 
             return changed;

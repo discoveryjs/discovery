@@ -103,8 +103,6 @@ function exportReportAsJson(pageParams) {
 
 export default function(discovery) {
     let expandQueryResults = false;
-    let expandReportInputData = false;
-    let reportInputData = NaN;
     let currentData;
     let currentContext;
     let lastQuery = {};
@@ -204,12 +202,6 @@ export default function(discovery) {
             ...discovery.pageParams,
             ...delta
         }, replace);
-    }
-
-    function updateAvailableViewList() {
-        availableViewListEl.innerHTML = discovery.view.names
-            .map(name => `<span class="view">${name}</span>`)
-            .join(', ');
     }
 
     //
@@ -331,7 +323,6 @@ export default function(discovery) {
         ])
     ]);
 
-    const reportInputDataEl = createElement('div', 'data-query-result');
     const queryEditorResultEl = createElement('div', 'data-query-result');
 
     //
@@ -397,21 +388,24 @@ export default function(discovery) {
         ])
     ]);
 
+    // sync view list
+    const updateAvailableViewList = () =>
+        availableViewListEl.innerHTML = discovery.view.names
+            .map(name => `<span class="view">${name}</span>`)
+            .join(', ');
+
+    updateAvailableViewList();
+    discovery.view.on('define', updateAvailableViewList);
+
+    //
+    // Report form & content
+    //
     const reportEditFormEl = createElement('div', { hidden: true }, [
-        // reportInputDataEl,
         queryEditorFormEl,
         queryEditorResultEl,
         viewEditorFormEl
     ]);
     const reportContentEl = createElement('div', 'report-content');
-
-    // FIXME: find a better way to update a view list
-    updateAvailableViewList();
-    const oldViewDefine = discovery.view.define;
-    discovery.view.define = function(...args) {
-        oldViewDefine.apply(this, args);
-        updateAvailableViewList();
-    };
 
     //
     // Editors
@@ -448,17 +442,6 @@ export default function(discovery) {
         dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'
             ? 'Data collected at ' + context.createdAt.toLocaleString().replace(',', '') + ' | '
             : '';
-
-        if (reportInputData !== data) {
-            reportInputData = data;
-            discovery.view.render(reportInputDataEl, {
-                view: 'expand',
-                title: `text:"${valueDescriptor(data)}"`,
-                expanded: expandReportInputData,
-                onToggle: state => expandReportInputData = state,
-                content: { view: 'struct', expanded: 1 }
-            }, data);
-        }
 
         // update editors
         currentData = data;        // uses for autocomplete

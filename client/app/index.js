@@ -63,7 +63,7 @@ export default class App extends Widget {
 
                 this.defaultPageId = 'report';
                 this.pageHash = ''; // force update
-                this.setPageHash(pageHash);
+                this.setPageHash(pageHash, true);
             });
         }
 

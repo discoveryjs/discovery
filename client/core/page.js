@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+import Emitter from './emitter.js';
+
 const pages = new WeakMap();
 const BUILDIN_NOT_FOUND = {
     name: 'not-found',
@@ -9,8 +11,10 @@ const BUILDIN_NOT_FOUND = {
     }
 };
 
-export default class PageRenderer {
+export default class PageRenderer extends Emitter {
     constructor(view) {
+        super();
+
         this.view = view;
         this.lastPage = null;
         pages.set(this, Object.create(null));
@@ -24,6 +28,8 @@ export default class PageRenderer {
                 : (el, data, context) => this.view.render(el, render, data, context),
             options: Object.freeze(Object.assign({}, options))
         });
+
+        this.emit('define', name);
     }
 
     isDefined(name) {

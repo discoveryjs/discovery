@@ -11,6 +11,7 @@
     - Changed `Widget#setData()` to schedule renders instead of immediate render
     - Droped `App#reportLink()` method
     - Droped `reportLink()` query helper (use `pageLink()` instead)
+    - Added `Emitter` as a base class for `Widget`/`App`, `PageRenderer` and `ViewRenderer` classes
 
 ## 1.0.0-beta.7 (23-01-2019)
 
