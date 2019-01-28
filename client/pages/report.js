@@ -7,10 +7,7 @@ import copyText from '../core/utils/copy-text.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 import './report-hint.js';
 
-const viewModeSource = {
-    default: () => '{\n    view: \'struct\',\n    expanded: 1\n}',
-    custom: results => viewModeSource.default(results)
-};
+const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
     { name: 'Table', content: '{\n    view: \'table\'\n}' },
     { name: 'Autolink list', content: '{\n    view: \'ol\',\n    item: \'auto-link\'\n}' }
@@ -34,66 +31,61 @@ function encodeSearchParamPair(name, value) {
     return encodeURIComponent(name) + '=' + encodeURIComponent(value);
 }
 
-export function encodeParams(options) {
-    const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
-    const { query, view, title, dzen, noedit, extra } = options;
-    const result = [];
-
-    if (dzen) {
-        result.push('dzen');
-    }
-
-    if (noedit) {
-        result.push('noedit');
-    }
-
-    if (title) {
-        result.push(encodeSearchParamPair('title', title));
-    }
-
-    if (query) {
-        result.push(encodeSearchParamPair('q', base64.encode(query)));
-    }
-
-    if (view && typeof view === 'string') {
-        result.push(encodeSearchParamPair('v', base64.encode(view)));
-    } else {
-        if (view === true) {
-            result.push('v');
-        }
-    }
-
-    Object.keys(extra || {}).sort().forEach(name => {
-        if (!specialParams.includes(name)) {
-            result.push(encodeSearchParamPair(name, extra[name]));
-        }
-    });
-
-    return result.join('&');
-}
-
 function ensureString(value, fallback) {
     return typeof value === 'string' ? value : fallback || '';
 }
 
-export function decodeParams(params) {
+function encodeParams(params) {
+    const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
+    const { query, view, title, dzen, noedit, extra } = typeof params === 'string' ? { query: params } : params;
+    const parts = [];
+
+    if (dzen) {
+        parts.push('dzen');
+    }
+
+    if (noedit) {
+        parts.push('noedit');
+    }
+
+    if (title) {
+        parts.push(encodeSearchParamPair('title', title));
+    }
+
+    if (query) {
+        parts.push(encodeSearchParamPair('q', base64.encode(query)));
+    }
+
+    if (typeof view === 'string') {
+        parts.push(view ? encodeSearchParamPair('v', base64.encode(view)) : 'v');
+    }
+
+    Object.keys(extra || {}).sort().forEach(name => {
+        if (!specialParams.includes(name)) {
+            parts.push(encodeSearchParamPair(name, extra[name]));
+        }
+    });
+
+    return parts.join('&');
+}
+
+function decodeParams(params) {
     const specialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
-    const res = {
+    const decodedParams = {
         title: params.title || '',
         query: base64.decode(ensureString(params.q, '')),
-        view: base64.decode(ensureString(params.v, '')),
-        mode: 'v' in params ? 'custom' : 'default',
+        view: 'v' in params ? base64.decode(ensureString(params.v, '')) : undefined,
         dzen: 'dzen' in params,
         noedit: 'noedit' in params
     };
 
     Object.keys(params).forEach(name => {
         if (!specialParams.includes(name)) {
-            res[name] = params[name];
+            decodedParams[name] = params[name];
         }
     });
 
-    return res;
+    return decodedParams;
 }
 
 function exportReportAsJson(pageParams) {
@@ -113,8 +105,6 @@ export default function(discovery) {
     let expandQueryResults = false;
     let expandReportInputData = false;
     let reportInputData = NaN;
-    let viewMode = '';
-    let processEditorChangeEvent = true;
     let currentData;
     let currentContext;
     let lastQuery = {};
@@ -167,7 +157,7 @@ export default function(discovery) {
         };
     }
 
-    function createEditor(textarea, autocomplete) {
+    function createEditor(textarea, onChange, autocomplete) {
         const liveEdit = textarea.parentNode.querySelector('.live-update');
         const editor = CodeMirror.fromTextArea(textarea, {
             extraKeys: { 'Alt-Space': 'autocomplete' },
@@ -181,7 +171,15 @@ export default function(discovery) {
             }
         });
 
-        editor.on('change', () => processEditorChangeEvent && liveEdit.checked && applyQuery());
+        const setValue = editor.setValue;
+        editor.setValue = function(newValue) {
+            Promise.resolve().then(() => this.refresh()); // zero timeout, like a setImmediate()
+            if (typeof newValue === 'string' && this.getValue() !== newValue) {
+                setValue.call(this, newValue || '');
+            }
+        };
+
+        editor.on('change', () => liveEdit.checked && onChange(editor.getValue()));
 
         if (autocomplete) {
             // patch prepareSelection to inject a context hint
@@ -201,46 +199,11 @@ export default function(discovery) {
         return editor;
     }
 
-    function applyQuery(newQuery, newView, newTitle) {
-        const titleValue = titleInputEl.value;
-        const queryValue = queryEditor.getValue();
-        const viewValue = viewMode === 'custom' ? viewEditor.getValue() : undefined;
-
-        if (newTitle === undefined) {
-            newTitle = titleValue;
-        }
-
-        if (newQuery === undefined) {
-            newQuery = queryValue;
-        }
-
-        if (newView === undefined) {
-            newView = viewValue;
-        }
-
-        processEditorChangeEvent = false;
-
-        if (titleValue !== newTitle) {
-            titleInputEl.value = newTitle;
-        }
-
-        if (queryValue !== newQuery) {
-            queryEditor.setValue(newQuery);
-        }
-
-        if (viewValue !== newView) {
-            viewEditor.setValue(newView);
-        }
-
-        processEditorChangeEvent = true;
-
-        // update params
+    function updateParams(delta, replace) {
         return discovery.setPageParams({
             ...discovery.pageParams,
-            title: newTitle,
-            query: newQuery,
-            view: newView || viewMode === 'custom'
-        }, true);
+            ...delta
+        }, replace);
     }
 
     function updateAvailableViewList() {
@@ -249,40 +212,9 @@ export default function(discovery) {
             .join(', ');
     }
 
-    function updateViewModeTabs() {
-        viewSetupEl.hidden = viewMode !== 'custom';
-        viewModeTabsEls.forEach(el => {
-            if (el.dataset.mode === viewMode) {
-                el.classList.add('active');
-            } else {
-                el.classList.remove('active');
-            }
-        });
-    }
-
-    function setViewMode(mode) {
-        if (viewMode === mode) {
-            return;
-        }
-
-        switch (mode) {
-            case 'default':
-                viewMode = mode;
-                applyQuery();
-                break;
-
-            case 'custom':
-                viewMode = mode;
-                applyQuery(undefined, viewModeSource[mode](lastView.data));
-                break;
-
-            default:
-                console.log('Unknown view mode', mode);
-        }
-
-        updateViewModeTabs();
-    }
-
+    //
+    // Header
+    //
     let titleInputEl;
     let dataDateTimeEl;
     let viewDateTimeEl;
@@ -292,7 +224,9 @@ export default function(discovery) {
         createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
                 placeholder: 'Untitled report',
-                oninput: () => applyQuery(),
+                oninput: (e) => updateParams({
+                    title: e.target.value
+                }),
                 onkeypress: (e) => {
                     if (event.charCode === 13 || event.keyCode === 13) {
                         e.target.blur();
@@ -310,8 +244,7 @@ export default function(discovery) {
                 title: 'Toggle edit mode',
                 onclick: (e) => {
                     e.target.blur();
-                    discovery.setPageParams({
-                        ...discovery.pageParams,
+                    updateParams({
                         noedit: !discovery.pageParams.noedit
                     });
                 }
@@ -344,8 +277,7 @@ export default function(discovery) {
                 title: 'Toggle fullscreen mode',
                 onclick: (e) => {
                     e.target.blur();
-                    discovery.setPageParams({
-                        ...discovery.pageParams,
+                    updateParams({
                         dzen: !discovery.pageParams.dzen
                     });
                 }
@@ -353,6 +285,9 @@ export default function(discovery) {
         ])
     ]);
 
+    //
+    // Query form
+    //
     let queryEditorEl;
     const queryEngineInfo = discovery.getQueryEngineInfo();
     const queryEditorFormEl = createElement('div', 'query-editor-form', [
@@ -373,7 +308,9 @@ export default function(discovery) {
                         checked: true,
                         onchange: (e) => {
                             if (e.target.checked) {
-                                applyQuery();
+                                updateParams({
+                                    query: queryEditor.getValue()
+                                }, true);
                             }
                         }
                     }),
@@ -383,8 +320,10 @@ export default function(discovery) {
                     createElement('button', {
                         onclick: () => {
                             lastQuery = {};
-                            applyQuery();
-                            discovery.renderPage();
+                            updateParams({
+                                query: queryEditor.getValue()
+                            }, true);
+                            discovery.scheduleRender('page'); // force render
                         }
                     }, 'Process')
                 ])
@@ -395,26 +334,29 @@ export default function(discovery) {
     const reportInputDataEl = createElement('div', 'data-query-result');
     const queryEditorResultEl = createElement('div', 'data-query-result');
 
+    //
+    // View form
+    //
     let viewSetupEl;
     let viewEditorEl;
     let availableViewListEl;
     let viewModeTabsEls;
     const viewEditorFormEl = createElement('div', 'view-editor-form', [
-        createElement('div', 'tabs view-mode', viewModeTabsEls = Object.keys(viewModeSource).map(id =>
+        createElement('div', 'tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
             createElement('div', {
                 class: 'tab',
-                'data-mode': id,
-                onclick: () => setViewMode(id)
-            }, id.replace(/^./, fc => fc.toUpperCase())) // captitalize
+                'data-mode': viewMode.toLowerCase(),
+                onclick: () => updateParams({
+                    view: viewMode === 'Default' ? undefined : defaultViewSource
+                }, true)
+            }, viewMode)
         )),
         createElement('div', 'tabs presets', viewPresets.map(({ name, content }) =>
             createElement('div', {
                 class: 'tab',
-                onclick: () =>
-                    discovery.setPageParams({
-                        ...discovery.pageParams,
-                        view: content
-                    })
+                onclick: () => updateParams({
+                    view: content
+                })
             }, name || 'Untitled preset')
         )),
         viewSetupEl = createElement('div', {
@@ -436,7 +378,7 @@ export default function(discovery) {
                         checked: true,
                         onchange: (e) => {
                             if (e.target.checked) {
-                                applyQuery();
+                                updateParams({ view: viewEditor.getValue() }, true);
                             }
                         }
                     }),
@@ -446,8 +388,8 @@ export default function(discovery) {
                     createElement('button', {
                         onclick: () => {
                             lastView = {};
-                            applyQuery();
-                            discovery.renderPage();
+                            updateParams({ view: viewEditor.getValue() }, true);
+                            discovery.scheduleRender('page'); // force render
                         }
                     }, 'Build')
                 ])
@@ -471,10 +413,24 @@ export default function(discovery) {
         updateAvailableViewList();
     };
 
-    const queryEditor = createEditor(queryEditorEl, autocompleteQuery);
-    const viewEditor = createEditor(viewEditorEl);
+    //
+    // Editors
+    //
+    const queryEditor = createEditor(
+        queryEditorEl,
+        value => updateParams({ query: value }, true),
+        autocompleteQuery
+    );
+    const viewEditor = createEditor(
+        viewEditorEl,
+        value => updateParams({ view: value }, true)
+    );
 
+    //
+    // Page
+    //
     discovery.definePage('report', function(el, data, context) {
+        const viewMode = typeof context.params.view === 'string' ? 'custom' : 'default';
         let pageTitle = context.params.title;
         let pageQuery = context.params.query;
         let pageView = context.params.view;
@@ -482,11 +438,16 @@ export default function(discovery) {
         let view = null;
         let results = null;
 
-        setViewMode(context.params.mode);
+        // process noedit setting
         reportEditFormEl.hidden = context.params.noedit;
         noeditToggleEl.classList.toggle('disabled', context.params.noedit);
-        currentData = data;
-        currentContext = context;
+
+        // update report title
+        titleInputEl.parentNode.dataset.title = pageTitle || titleInputEl.placeholder;
+        titleInputEl.value = pageTitle;
+        dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'
+            ? 'Data collected at ' + context.createdAt.toLocaleString().replace(',', '') + ' | '
+            : '';
 
         if (reportInputData !== data) {
             reportInputData = data;
@@ -499,21 +460,13 @@ export default function(discovery) {
             }, data);
         }
 
-        if (applyQuery(pageQuery, pageView, pageTitle)) {
-            return;
-        }
+        // update editors
+        currentData = data;        // uses for autocomplete
+        currentContext = context;  // uses for autocomplete
+        queryEditor.setValue(pageQuery);
+        viewEditor.setValue(pageView);
 
-        titleInputEl.parentNode.dataset.title = pageTitle || titleInputEl.placeholder;
-        dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'
-            ? 'Data collected at ' + context.createdAt.toLocaleString().replace(',', '') + ' | '
-            : '';
-
-        // zero timeout, like a setImmediate()
-        Promise.resolve().then(() => {
-            queryEditor.refresh();
-            viewEditor.refresh();
-        });
-
+        // perform data query
         if (lastQuery.data === data && lastQuery.query === pageQuery && lastQuery.context === context) {
             results = lastQuery.results;
         } else {
@@ -549,8 +502,15 @@ export default function(discovery) {
             }, results);
         }
 
+        // update view form
+        viewSetupEl.hidden = viewMode !== 'custom';
+        viewModeTabsEls.forEach(el =>
+            el.classList.toggle('active', el.dataset.mode === viewMode)
+        );
+
+        // build a view
         if (!pageView && viewMode === 'default') {
-            pageView = viewModeSource[viewMode](results);
+            pageView = defaultViewSource;
         }
 
         if (lastView.data !== results || lastView.view !== pageView) {

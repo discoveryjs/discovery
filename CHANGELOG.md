@@ -1,3 +1,17 @@
+## next
+
+- Client
+    - Added `Windet#defaultPageId` and `options.defaultPageId` to define a page id that should be used when no `pageId` is specified
+    - Added `Widget#pageHash` that contains hashed `pageId`, `pageRef` and `pageParams`
+    - Added `Widget#encodePageHash(pageId, pageRef, pageParams)` and `Widget#decodePageHash(pageHash)` methods
+    - Changed set a value for `pageParams`:
+        - A value passing through `decodePageHash(encodePageHash())` pipeline, so it should serializable
+        - A value passing through `decodeParams()` or `encodeParams()` when such methods are defined by a page (see default `report` page as example)
+    - Added `Widget#scheduleRender(subject)` and `Widget#cancelScheduledRender(subject)` methods to schedule/cancel scheduled render of a page or/and a sidebar
+    - Changed `Widget#setData()` to schedule renders instead of immediate render
+    - Droped `App#reportLink()` method
+    - Droped `reportLink()` query helper (use `pageLink()` instead)
+
 ## 1.0.0-beta.7 (23-01-2019)
 
 - Client

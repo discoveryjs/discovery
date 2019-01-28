@@ -7,9 +7,24 @@ import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
 const lastSetDataPromise = new WeakMap();
-const renderPageScheduler = new WeakMap();
+const renderScheduler = new WeakMap();
+
+function defaultEncodeParams(params) {
+    return new URLSearchParams(params).toString();
+}
+
+function defaultDecodeParams(value) {
+    return value;
+}
+
+function getPageMethod(instance, pageId, name, fallback) {
+    const page = instance.page.get(pageId);
+
+    return page && typeof page.options[name] === 'function'
+        ? page.options[name]
+        : fallback;
+}
 
 function apply(fn, host) {
     if (typeof fn === 'function') {
@@ -60,14 +75,18 @@ export default class Widget {
         this.badges = [];
         this.prepare = data => data;
 
-        this.pageId = 'default';
+        this.defaultPageId = this.options.defaultPageId || 'default';
+        this.pageId = this.defaultPageId;
         this.pageRef = null;
         this.pageParams = {};
+        this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
         this.scheduledRenderPage = null;
 
         this.dom = {};
         this.queryExtensions = {
-            query: (...args) => this.query(...args)
+            query: (...args) => this.query(...args),
+            pageLink: (pageRef, pageId, pageParams) =>
+                this.encodePageHash(pageId, pageRef, pageParams)
         };
 
         this.apply(views);
@@ -102,23 +121,26 @@ export default class Widget {
     setData(data, context = {}) {
         const setDataPromise = Promise
             .resolve(this.prepare(data, value => data = value))
-            .then(() => {
-                const currentPromise = lastSetDataPromise.get(this);
+            .then(() => {  // TODO: use prepare ret
+                const lastPromise = lastSetDataPromise.get(this);
 
-                // prevent race conditions
-                if (currentPromise !== setDataPromise) {
-                    // chain by current promise
-                    return currentPromise;
+                // prevent race conditions, perform only this promise was last one
+                if (lastPromise !== setDataPromise) {
+                    throw new Error('Prevented by another setData()');
                 }
 
                 this.data = data;
                 this.context = context;
-
-                this.renderSidebar();
-                this.renderPage();
             });
 
+        // mark as last setData promise
         lastSetDataPromise.set(this, setDataPromise);
+
+        // run after data is prepared and set
+        setDataPromise.then(() => {
+            this.scheduleRender('sidebar');
+            this.scheduleRender('page');
+        });
 
         return setDataPromise;
     }
@@ -284,13 +306,51 @@ export default class Widget {
         return badge;
     }
 
+    scheduleRender(subject) {
+        if (!renderScheduler.has(this)) {
+            const subjects = new Set();
+
+            renderScheduler.set(this, subjects);
+            Promise.resolve().then(() => {
+                renderScheduler.delete(this);
+
+                if (subjects.has('sidebar')) {
+                    this.renderSidebar();
+                }
+
+                if (subjects.has('page')) {
+                    this.renderPage();
+                }
+            });
+        }
+
+        renderScheduler.get(this).add(subject);
+    }
+
+    cancelScheduledRender(subject) {
+        const sheduledRenders = renderScheduler.get(this);
+
+        if (sheduledRenders) {
+            if (subject) {
+                sheduledRenders.delete(subject);
+            } else {
+                sheduledRenders.clear();
+            }
+        }
+    }
+
     getSidebarContext() {
         return this.context;
     }
 
     renderSidebar() {
+        // cancel scheduled renderSidebar
+        if (renderScheduler.has(this)) {
+            renderScheduler.get(this).delete('sidebar');
+        }
+
         if (this.view.isDefined('sidebar')) {
-            const t = Date.now();
+            const renderStartTime = Date.now();
 
             this.dom.sidebar.innerHTML = '';
             this.view.render(
@@ -298,37 +358,7 @@ export default class Widget {
                 'sidebar',
                 this.data,
                 this.getSidebarContext()
-            ).then(() => console.log('[Discovery] renderSidebar', Date.now() - t));
-        }
-    }
-
-    getPageContext() {
-        return {
-            page: this.pageId,
-            id: this.pageRef,
-            params: this.pageParams,
-            ...this.context
-        };
-    }
-
-    getPageOption(name, fallback) {
-        const page = this.page.get(this.pageId);
-
-        return page && name in page.options ? page.options[name] : fallback;
-    }
-
-    setPage(id, ref, params) {
-        this.pageId = id || 'default';
-        this.pageRef = ref;
-        this.setPageParams(params);
-        this.scheduleRenderPage();
-    }
-
-    setPageParams(params) {
-        if (!equal(params, this.pageParams)) {
-            this.pageParams = params || {};
-            this.scheduleRenderPage();
-            return true;
+            ).then(() => console.log(`[Discovery] Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
 
@@ -345,7 +375,7 @@ export default class Widget {
                             return {
                                 type: entity.type,
                                 text: entity.name,
-                                href: `#${pageId}${':' + entity[ref]}`
+                                href: this.encodePageHash(pageId, entity[ref])
                             };
                         }
                     });
@@ -363,29 +393,101 @@ export default class Widget {
                             return {
                                 type: pageId,
                                 text: typeof link === 'string' ? link : pageId,
-                                href: `#${pageId}${typeof link === 'string' ? ':' + link : ''}`
+                                href: this.encodePageHash(pageId, link)
                             };
                         }
                     });
                     break;
 
                 default:
-                    console.warn(`Page '${pageId}' has a bad value for resolveLink:`, options.resolveLink);
+                    console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, options.resolveLink);
             }
         }
     }
 
-    scheduleRenderPage() {
-        if (!renderPageScheduler.has(this)) {
-            renderPageScheduler.set(this, setTimeout(() => this.renderPage(), 0));
+    encodePageHash(pageId, pageRef, pageParams) {
+        const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
+        const encodedParams = encodeParams(pageParams || {});
+
+        return `#${
+            pageId !== this.defaultPageId ? pageId : ''}${
+            pageRef && typeof pageRef === 'string' ? ':' + pageRef : ''}${
+            encodedParams ? '&' + encodedParams : ''
+        }`;
+    }
+
+    decodePageHash(hash) {
+        const parts = hash.substr(1).split('&');
+        const [pageId, pageRef] = (parts.shift() || '').split(':');
+        const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
+        const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
+            map[key] = value || true;
+            return map;
+        }, {}));
+
+        return {
+            pageId: pageId || this.defaultPageId,
+            pageRef,
+            pageParams
+        };
+    }
+
+    getPageContext() {
+        return {
+            page: this.pageId,
+            id: this.pageRef,
+            params: this.pageParams,
+            ...this.context
+        };
+    }
+
+    getPageOption(name, fallback) {
+        const page = this.page.get(this.pageId);
+
+        return page && name in page.options ? page.options[name] : fallback;
+    }
+
+    setPage(pageId, pageRef, pageParams, replace) {
+        return this.setPageHash(
+            this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
+            replace
+        );
+    }
+
+    setPageParams(pageParams, replace) {
+        return this.setPageHash(
+            this.encodePageHash(this.pageId, this.pageRef, pageParams),
+            replace
+        );
+    }
+
+    setPageHash(hash) {
+        if (hash !== this.pageHash) {
+            const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
+            const changed =
+                this.pageId !== pageId ||
+                this.pageRef !== pageRef ||
+                !equal(this.pageParams, pageParams);
+
+            this.pageHash = hash;
+
+            if (changed) {
+                this.pageId = pageId;
+                this.pageRef = pageRef;
+                this.pageParams = pageParams;
+                this.scheduleRender('page');
+            }
+
+            return changed;
         }
+
+        return false;
     }
 
     renderPage() {
-        // cancel renderPage schedule
-        if (renderPageScheduler.has(this)) {
-            clearTimeout(renderPageScheduler.get(this));
-            renderPageScheduler.delete(this);
+        // cancel scheduled renderPage
+        if (renderScheduler.has(this)) {
+            renderScheduler.get(this).delete('page');
         }
 
         this.dom.pageContent = this.page.render(

@@ -4,7 +4,6 @@ import Widget from '../widget/index.js';
 import * as complexViews from '../views/index-complex.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
-import { reportLink } from './report-link.js';
 
 export default class App extends Widget {
     constructor(container, options = {}) {
@@ -45,8 +44,8 @@ export default class App extends Widget {
             (host) => host.mode === 'modelfree'
         );
 
+        // setup the drag&drop listeners for model free mode
         if (this.mode === 'modelfree' && this.dom.container) {
-            // Setup the drag&drop listeners
             this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
             this.dom.container.addEventListener('dragover', e => {
                 e.stopPropagation();
@@ -55,14 +54,20 @@ export default class App extends Widget {
         }
     }
 
-    setData(data, context = {}) {
+    setData(data, context) {
+        const setDataPromise = super.setData(data, context);
+
         if (this.mode === 'modelfree') {
-            this.pageId = 'report';
+            setDataPromise.then(() => {
+                const pageHash = this.pageHash;
+
+                this.defaultPageId = 'report';
+                this.pageHash = ''; // force update
+                this.setPageHash(pageHash);
+            });
         }
 
-        return super
-            .setData(data, context)
-            .then(() => document.title = this.context.name);
+        return setDataPromise;
     }
 
     loadDataFromEvent(event) {
@@ -96,7 +101,7 @@ export default class App extends Widget {
 
         return fetch(url)
             .then(res => {
-                console.log(`data loaded in ${Date.now() - loadStartTime}ms`);
+                console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
                 this.dom.loadingOverlay.innerHTML = 'Processing data...';
 
                 return res.json();
@@ -121,7 +126,7 @@ export default class App extends Widget {
                 this.dom.loadingOverlay.innerHTML =
                     '<pre>Data loading error:<br>' + String(e).replace(/^Error:\s*Error:/, 'Error:') + '</pre>' +
                     '<button onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>';
-                console.error(e);
+                console.error('[Discovery] Data load error:', e);
             });
     }
 
@@ -135,10 +140,6 @@ export default class App extends Widget {
         }
     }
 
-    setPage(id, ref, params) {
-        super.setPage(this.mode === 'modelfree' ? this.pageId : id, ref, params);
-    }
-
     getPageContext() {
         return {
             ...super.getPageContext(),
@@ -147,16 +148,8 @@ export default class App extends Widget {
     }
 
     renderPage() {
-        if (this.mode === 'modelfree' && !this.data) {
-            this.pageId = 'default';
-        }
-
         super.renderPage();
 
-        document.title = this.getPageContext().name;
-    }
-
-    reportLink(...args) {
-        return reportLink.apply(this, args);
+        document.title = this.getPageContext().name || document.title;
     }
 }

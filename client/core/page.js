@@ -39,7 +39,7 @@ export default class PageRenderer {
     }
 
     render(oldPageEl, name, data, context) {
-        const startTime = Date.now();
+        const renderStartTime = Date.now();
         let page = this.get(name);
         let rendered;
 
@@ -81,7 +81,7 @@ export default class PageRenderer {
         }
 
         Promise.resolve(rendered).then(() =>
-            console.log('Page `' + page.name + '` rendered in ' + (Date.now() - startTime) + 'ms')
+            console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
         );
 
         return newPageEl;
