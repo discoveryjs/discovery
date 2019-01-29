@@ -2,6 +2,8 @@
 
 export default function(discovery) {
     discovery.view.define('auto-link', function(el, config, data, context) {
+        const { content } = config;
+
         if (!data) {
             return;
         }
@@ -9,9 +11,9 @@ export default function(discovery) {
         const links = discovery.resolveValueLinks(data);
 
         if (links) {
-            discovery.view.render(el, 'link', links[0], context);
+            discovery.view.render(el, { view: 'link', content }, links[0], context);
         } else {
-            discovery.view.render(el, 'text', data, context);
+            discovery.view.render(el, content || 'text', data, context);
         }
     }, {
         tag: false

@@ -14,6 +14,7 @@
     - Added `Emitter` as a base class for `Widget`/`App`, `PageRenderer` and `ViewRenderer` classes
     - Removed `Widget#definePage()` method, use `Widget#page.define()` instead
     - Extracted query and view editors from `report` page to a separate module, as `Widget#view.QueryEditor` and `Widget#view.ViewEditor` classes
+    - Added `content` option for `auto-link` view config
 
 ## 1.0.0-beta.7 (23-01-2019)
 
