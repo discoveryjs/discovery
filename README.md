@@ -108,19 +108,41 @@ module.exports = {
 
 ## Define a model
 
-Model config consists of the following fields:
+Model config may consists of the following fields (all fields are optional):
 
-* `name` - name of model (used in title)
-* `data` - function which returns `any|Promise<any>`. Result of this function must be JSON serializable
-* `prepare` - path to a file with additional initialization logic. (eg. add cyclic links and relations. extensions for query engine)
-* `ui` object with following fields:
-    * `basedir` - directory to resolve relative path in `assets`
-    * `assets` - path to `.js` and `.css` files
+* `name` – name of model (used in title)
+* `data` – function which returns `any|Promise<any>`. Result of this function must be JSON serializable
+* `prepare` – path to a script with additional initialization logic (e.g. add cyclic links and relations, extensions for query engine etc)
+* `view` – object with following fields:
+    * `basedir` – directory to resolve relative path in `assets`
+    * `assets` – path to `.js` and `.css` files
     > js files has own scope (as modules) with a reference `discovery` that points to discovery instance
-* `extendRouter` - `function(router, modelConfig, options)`
+* `extendRouter` – `function(router, modelConfig, options)`
 * `cache`
 * `cacheTtl`
 * `cacheBgUpdate`
+
+Example:
+
+```js
+const path = require('path');
+
+module.exports = {
+    name: 'Model config',
+    data: () => ({ hello: 'world' }),
+    prepare: path.join(__dirname, 'path/to/prepare.js'),
+    view: {
+        basedir: __dirname,
+        assets: [
+            'ui/page/default.js',
+            'ui/view/model-custom-view.css',
+            'ui/view/model-custom-view.js',
+            'ui/sidebar.css',
+            'ui/sidebar.js'
+        ]
+    }
+};
+```
 
 ## Base concepts
 
@@ -145,6 +167,8 @@ To define a page you should call `discovery.page.define(pageId, render(el, data,
     * `reuseEl` - do not clear container before render page (skiped for first render or pageId change)
     * `init` - invokes on first page render or pageId change
     * `keepScrollOffset` - dont scroll to page top if `pageId` didn't changed since last page render
+    * `encodeParams`
+    * `decodeParams`
 
 Other handy methods for working with page:
 
@@ -160,7 +184,7 @@ There are some built-in special pages:
 * `report`
 * `not-found`
 
-you can override this pages with `page.define()`
+You can override this pages with `page.define()` method
 
 ### View
 
@@ -168,7 +192,7 @@ To define new view just call `discovery.view.define(viewId, render, options)` wh
 * `viewId` - unique view identifier
 * `render` - function(el, config, data, context) or view definition object
 * `options` - object with following fields:
-    `tag` - container element. if `false|null` view will return `documentFragment`
+    * `tag` - a tag name for a view container element. When value is `false` or `null` then `DocumentFragment` is used as a container
 
 You can render your view with `discovery.view.render(el, view, data, context)` where:
 
