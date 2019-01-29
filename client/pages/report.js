@@ -4,8 +4,6 @@ import * as base64 from '../core/utils/base64.js';
 import { createElement, createText } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import copyText from '../core/utils/copy-text.js';
-import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
-import './report-hint.js';
 
 const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
@@ -103,99 +101,11 @@ function exportReportAsJson(pageParams) {
 
 export default function(discovery) {
     let expandQueryResults = false;
-    let currentData;
-    let currentContext;
     let lastQuery = {};
     let lastView = {};
     const viewPresets = Array.isArray(discovery.options.viewPresets)
         ? defaultViewPresets.concat(discovery.options.viewPresets)
         : defaultViewPresets;
-
-    function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
-        const startChar = current[0];
-        const lastChar = current[current.length - 1];
-        const start = startChar === '"' || startChar === "'" ? 1 : 0;
-        const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-        const pattern = current.toLowerCase().substring(start, current.length - end);
-        const offset = pattern ? value.toLowerCase().indexOf(pattern, value[0] === '"' || value[0] === "'" ? 1 : 0) : -1;
-
-        el.appendChild(createElement('span', 'name',
-            offset === -1
-                ? value
-                : escapeHtml(value.substring(0, offset)) +
-                  '<span class="match">' + escapeHtml(value.substr(offset, pattern.length)) + '</span>' +
-                  escapeHtml(value.substr(offset + pattern.length))
-        ));
-        el.appendChild(createElement('span', 'type', type));
-    }
-
-    function autocompleteQuery(cm) {
-        const cursor = cm.getCursor();
-        const suggestions = discovery.querySuggestions(
-            cm.getValue(),
-            cm.doc.indexFromPos(cursor),
-            currentData,
-            currentContext
-        );
-
-        if (!suggestions) {
-            return;
-        }
-
-        return {
-            list: suggestions.slice(0, 50).map(entry => {
-                return {
-                    entry,
-                    text: entry.value,
-                    render: renderQueryAutocompleteItem,
-                    from: cm.posFromIndex(entry.from),
-                    to: cm.posFromIndex(entry.to)
-                };
-            })
-        };
-    }
-
-    function createEditor(textarea, onChange, autocomplete) {
-        const liveEdit = textarea.parentNode.querySelector('.live-update');
-        const editor = CodeMirror.fromTextArea(textarea, {
-            extraKeys: { 'Alt-Space': 'autocomplete' },
-            mode: 'javascript',
-            theme: 'neo',
-            indentUnit: 0,
-            hintOptions: autocomplete && {
-                hint: autocomplete,
-                completeSingle: false,
-                closeOnUnfocus: true
-            }
-        });
-
-        const setValue = editor.setValue;
-        editor.setValue = function(newValue) {
-            Promise.resolve().then(() => this.refresh()); // zero timeout, like a setImmediate()
-            if (typeof newValue === 'string' && this.getValue() !== newValue) {
-                setValue.call(this, newValue || '');
-            }
-        };
-
-        editor.on('change', () => liveEdit.checked && onChange(editor.getValue()));
-
-        if (autocomplete) {
-            // patch prepareSelection to inject a context hint
-            // const ps = editor.display.input.prepareSelection;
-            // editor.display.input.prepareSelection = function(...args) {
-            //     const selection = ps.apply(this, args);
-            //     if (selection.cursors.firstChild) {
-            //         selection.cursors.firstChild.appendChild(createElement('div', 'context-hint', 'asd'));
-            //     }
-            //     return selection;
-            // };
-
-            editor.on('cursorActivity', editor => editor.state.focused && editor.showHint(autocomplete));
-            editor.on('focus', editor => editor.showHint(autocomplete));
-        }
-
-        return editor;
-    }
 
     function updateParams(delta, replace) {
         return discovery.setPageParams({
@@ -280,13 +190,14 @@ export default function(discovery) {
     //
     // Query form
     //
-    let queryEditorEl;
+    let queryLiveEditEl;
+    const queryEditor = new discovery.view.QueryEditor(discovery).on('change', value =>
+        queryLiveEditEl.checked && updateParams({ query: value }, true)
+    );
     const queryEngineInfo = discovery.getQueryEngineInfo();
     const queryEditorFormEl = createElement('div', 'query-editor-form', [
         createElement('div', 'query-editor', [
-            queryEditorEl = createElement('textarea', {
-                placeholder: 'Query'
-            }),
+            queryEditor.el,
             createElement('div', 'editor-toolbar', [
                 createElement('span', 'syntax-hint',
                     `Use <a href="${queryEngineInfo.link}" target="_blank">${
@@ -294,7 +205,7 @@ export default function(discovery) {
                     }</a> ${queryEngineInfo.version || ''} syntax for queries`
                 ),
                 createElement('label', null, [
-                    createElement('input', {
+                    queryLiveEditEl = createElement('input', {
                         class: 'live-update',
                         type: 'checkbox',
                         checked: true,
@@ -329,9 +240,12 @@ export default function(discovery) {
     // View form
     //
     let viewSetupEl;
-    let viewEditorEl;
     let availableViewListEl;
     let viewModeTabsEls;
+    let viewLiveEditEl;
+    const viewEditor = new discovery.view.ViewEditor(discovery).on('change', value =>
+        viewLiveEditEl.checked && updateParams({ view: value }, true)
+    );
     const viewEditorFormEl = createElement('div', 'view-editor-form', [
         createElement('div', 'tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
             createElement('div', {
@@ -354,16 +268,14 @@ export default function(discovery) {
             class: 'view-editor',
             hidden: true
         }, [
-            viewEditorEl = createElement('textarea', {
-                placeholder: 'View'
-            }),
+            viewEditor.el,
             createElement('div', 'editor-toolbar', [
                 createElement('div', 'editor-toolbar-view-dict', [
                     createText('Available views: '),
                     availableViewListEl = createElement('span', 'editor-toolbar-view-list')
                 ]),
                 createElement('label', null, [
-                    createElement('input', {
+                    viewLiveEditEl = createElement('input', {
                         class: 'live-update',
                         type: 'checkbox',
                         checked: true,
@@ -408,22 +320,9 @@ export default function(discovery) {
     const reportContentEl = createElement('div', 'report-content');
 
     //
-    // Editors
-    //
-    const queryEditor = createEditor(
-        queryEditorEl,
-        value => updateParams({ query: value }, true),
-        autocompleteQuery
-    );
-    const viewEditor = createEditor(
-        viewEditorEl,
-        value => updateParams({ view: value }, true)
-    );
-
-    //
     // Page
     //
-    discovery.definePage('report', function(el, data, context) {
+    discovery.page.define('report', function(el, data, context) {
         const viewMode = typeof context.params.view === 'string' ? 'custom' : 'default';
         let pageTitle = context.params.title;
         let pageQuery = context.params.query;
@@ -444,8 +343,6 @@ export default function(discovery) {
             : '';
 
         // update editors
-        currentData = data;        // uses for autocomplete
-        currentContext = context;  // uses for autocomplete
         queryEditor.setValue(pageQuery);
         viewEditor.setValue(pageView);
 

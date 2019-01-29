@@ -6,6 +6,7 @@ export { default as checkbox } from './checkbox.js';
 export { default as columns } from './columns.js';
 export { default as contentFilter } from './content-filter.js';
 export { default as context } from './context.js';
+export { default as editors } from './editors.js';
 export { default as expand } from './expand.js';
 export { default as fallback } from './fallback.js';
 export { default as headers } from './headers.js';
