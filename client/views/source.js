@@ -3,6 +3,7 @@
 import hitext from '/gen/hitext.js';
 import hitextPrismjs from '/gen/hitext-prismjs.js';
 
+const maxSourceSizeToHighlight = 100 * 1024;
 const mimeToSyntax = {
     'application/javascript': 'javascript',
     'application/x-httpd-php': 'php',
@@ -29,7 +30,7 @@ const printer = hitext.printer.html
             },
             link: {
                 open(href) {
-                    return '<a href="#' + href + '" class="spotlight">';
+                    return '<a href="' + href + '" class="spotlight">';
                 },
                 close() {
                     return '</a>';
@@ -48,8 +49,8 @@ const printer = hitext.printer.html
 
 export default function(discovery) {
     discovery.view.define('source', function(el, config, data) {
-        const { mime, binary, size, content, error, disabled } = data;
-        let { syntax, refs } = data;
+        const decorators = [];
+        const { mime, binary, size, syntax, content, refs, error, disabled } = data;
 
         if (disabled) {
             el.classList.add('disabled');
@@ -63,12 +64,26 @@ export default function(discovery) {
             return;
         }
 
-        if (!syntax && mime in mimeToSyntax) {
-            syntax = mimeToSyntax[mime];
+        // prevent syntax highlighting for sources over maxSourceSizeToHighlight to avoid page freeze
+        if (content.length < maxSourceSizeToHighlight && (syntax || mimeToSyntax.hasOwnProperty(mime))) {
+            decorators.push((source, addRange) => {
+                hitextPrismjs(syntax || mimeToSyntax[mime])(source, addRange);
+            });
         }
 
-        if (!Array.isArray(refs)) {
-            refs = [];
+        if (Array.isArray(refs)) {
+            decorators.push((source, addRange) =>
+                refs.forEach(ref => {
+                    if (ref.range) {
+                        addRange(
+                            ref.type,
+                            ref.range[0],
+                            ref.range[1],
+                            ref.href
+                        );
+                    }
+                })
+            );
         }
 
         if (binary) {
@@ -82,24 +97,7 @@ export default function(discovery) {
                 '</div>' +
                 hitext.decorate(
                     content,
-                    [
-                        (source, addRange) => {
-                            if (syntax) {
-                                hitextPrismjs(syntax || 'extend')(source, addRange);
-                            }
-                        },
-                        (source, addRange) =>
-                            refs.forEach(ref => {
-                                if (ref.range) {
-                                    addRange(
-                                        ref.ignore || !ref.resolved ? 'ignore' : ref.broken ? 'error' : 'link',
-                                        ref.range[0],
-                                        ref.range[1],
-                                        'file:' + ref.resolved // FIXME: should not use a view reference here
-                                    );
-                                }
-                            })
-                    ],
+                    decorators,
                     printer
                 );
         }
