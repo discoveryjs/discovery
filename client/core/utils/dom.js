@@ -18,7 +18,9 @@ export function createElement(tag, attrs, children) {
     }
 
     if (Array.isArray(children)) {
-        children.forEach(child => el.appendChild(child && child.nodeType ? child : createText(child)));
+        children.forEach(child =>
+            el.appendChild(child instanceof Node ? child : createText(child))
+        );
     } else if (typeof children === 'string') {
         el.innerHTML = children;
     }
@@ -33,9 +35,9 @@ export function createText(text) {
 export function createFragment(...children) {
     const fragment = document.createDocumentFragment();
 
-    children.forEach(child => {
-        fragment.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
-    });
+    children.forEach(child =>
+        fragment.appendChild(child instanceof Node ? child : createText(child))
+    );
 
     return fragment;
 }
