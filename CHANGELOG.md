@@ -14,7 +14,11 @@
     - Added `Emitter` as a base class for `Widget`/`App`, `PageRenderer` and `ViewRenderer` classes
     - Removed `Widget#definePage()` method, use `Widget#page.define()` instead
     - Extracted query and view editors from `report` page to a separate module, as `Widget#view.QueryEditor` and `Widget#view.ViewEditor` classes
-    - Added `content` option for `auto-link` view config
+    - Added `content` option in `auto-link` view config
+    - Changed `source` view:
+        - Removed `refs` preprocessing logic, now it takes array of `{ type: "error" | "ignore" | "link", range: [number, number], href?: string }` objects
+        - Disabled syntax highlighting when source size over 100k to avoid page freezing
+    - Added a pilot implementation of view presets. Preset's API available via `Widget#preset` and very common with page and view renderers. Preset can be used in views as preset name with `preset/` prefix (i.e. `{ view: 'preset/name', ... }`)
 
 ## 1.0.0-beta.7 (23-01-2019)
 

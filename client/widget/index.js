@@ -2,6 +2,7 @@
 
 import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
+import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
@@ -115,6 +116,7 @@ export default class Widget extends Emitter {
 
         this.options = options || {};
         this.view = new ViewRenderer(this);
+        this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
         this.page.on('define', name => this.addValueLinkResolver(extractValueLinkResolver(this, name)));
         this.entityResolvers = [];

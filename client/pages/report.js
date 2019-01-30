@@ -7,8 +7,19 @@ import copyText from '../core/utils/copy-text.js';
 
 const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
-    { name: 'Table', content: '{\n    view: \'table\'\n}' },
-    { name: 'Autolink list', content: '{\n    view: \'ol\',\n    item: \'auto-link\'\n}' }
+    {
+        name: 'Table',
+        content: JSON.stringify({
+            view: 'table'
+        }, null, 4)
+    },
+    {
+        name: 'Auto-link list',
+        content: JSON.stringify({
+            view: 'ol',
+            item: 'auto-link'
+        }, null, 4)
+    }
 ];
 
 function valueDescriptor(value) {
@@ -114,6 +125,15 @@ export default function(discovery) {
         }, replace);
     }
 
+    function createPresetTab(name, content) {
+        return createElement('div', {
+            class: 'tab',
+            onclick: () => updateParams({
+                view: content // JSON.stringify(content, null, 4)
+            })
+        }, name || 'Untitled preset');
+    }
+
     //
     // Header
     //
@@ -128,7 +148,7 @@ export default function(discovery) {
                 placeholder: 'Untitled report',
                 oninput: (e) => updateParams({
                     title: e.target.value
-                }),
+                }, true),
                 onkeypress: (e) => {
                     if (event.charCode === 13 || event.keyCode === 13) {
                         e.target.blur();
@@ -241,6 +261,7 @@ export default function(discovery) {
     //
     let viewSetupEl;
     let availableViewListEl;
+    // let availablePresetListEl;
     let viewModeTabsEls;
     let viewLiveEditEl;
     const viewEditor = new discovery.view.ViewEditor(discovery).on('change', value =>
@@ -256,13 +277,8 @@ export default function(discovery) {
                 }, true)
             }, viewMode)
         )),
-        createElement('div', 'tabs presets', viewPresets.map(({ name, content }) =>
-            createElement('div', {
-                class: 'tab',
-                onclick: () => updateParams({
-                    view: content
-                })
-            }, name || 'Untitled preset')
+        /* availablePresetListEl = */createElement('div', 'tabs presets', viewPresets.map(({ name, content }) =>
+            createPresetTab(name, content)
         )),
         viewSetupEl = createElement('div', {
             class: 'view-editor',
@@ -308,6 +324,12 @@ export default function(discovery) {
 
     updateAvailableViewList();
     discovery.view.on('define', updateAvailableViewList);
+
+    // sync view list
+    // const updateAvailablePresetList = (name, preset) =>
+    //     availablePresetListEl.appendChild(createPresetTab(name, preset.config));
+
+    // discovery.preset.on('define', updateAvailablePresetList);
 
     //
     // Report form & content

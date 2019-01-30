@@ -1,8 +1,7 @@
 /* eslint-env browser */
 
-import Emitter from './emitter.js';
+import Dict from './dict.js';
 
-const pages = new WeakMap();
 const BUILDIN_NOT_FOUND = {
     name: 'not-found',
     render: (el, { name }) => {
@@ -11,40 +10,26 @@ const BUILDIN_NOT_FOUND = {
     }
 };
 
-export default class PageRenderer extends Emitter {
+export default class PageRenderer extends Dict {
     constructor(view) {
         super();
 
         this.view = view;
         this.lastPage = null;
-        pages.set(this, Object.create(null));
+        this.lastPageId = null;
     }
 
     define(name, render, options) {
-        pages.get(this)[name] = Object.freeze({
+        super.define(name, Object.freeze({
             name,
             render: typeof render === 'function'
-                ? render
+                ? render.bind(this.view)
                 : (el, data, context) => this.view.render(el, render, data, context),
             options: Object.freeze(Object.assign({}, options))
-        });
-
-        this.emit('define', name);
+        }));
     }
 
-    isDefined(name) {
-        return name in pages.get(this);
-    }
-
-    get(name) {
-        return pages.get(this)[name];
-    }
-
-    get names() {
-        return Object.keys(pages.get(this)).sort();
-    }
-
-    render(oldPageEl, name, data, context) {
+    render(prevPageEl, name, data, context) {
         const renderStartTime = Date.now();
         let page = this.get(name);
         let rendered;
@@ -58,12 +43,12 @@ export default class PageRenderer extends Emitter {
         const pageChanged = this.lastPage !== name;
         const pageRef = context && context.id;
         const pageRefChanged = this.lastPageId !== pageRef;
-        const newPageEl = reuseEl && !pageChanged ? oldPageEl : document.createElement('article');
-        const parentEl = oldPageEl.parentNode;
+        const newPageEl = reuseEl && !pageChanged ? prevPageEl : document.createElement('article');
+        const parentEl = prevPageEl.parentNode;
 
         this.lastPage = name;
         this.lastPageId = pageRef;
-        newPageEl.id = oldPageEl.id;
+        newPageEl.id = prevPageEl.id;
         newPageEl.classList.add('page', 'page-' + name);
 
         if (pageChanged && typeof init === 'function') {
@@ -78,8 +63,8 @@ export default class PageRenderer extends Emitter {
             console.error(e);
         }
 
-        if (newPageEl !== oldPageEl) {
-            parentEl.replaceChild(newPageEl, oldPageEl);
+        if (newPageEl !== prevPageEl) {
+            parentEl.replaceChild(newPageEl, prevPageEl);
         }
 
         if (pageChanged || pageRefChanged || !keepScrollOffset) {

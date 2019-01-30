@@ -1,8 +1,7 @@
 /* eslint-env browser */
 
-import Emitter from './emitter.js';
+import Dict from './dict.js';
 
-const views = new WeakMap();
 const STUB_OBJECT = Object.freeze({});
 const BUILDIN_FALLBACK = {
     name: 'fallback',
@@ -36,36 +35,21 @@ function renderDom(renderer, placeholder, config, data, context) {
         });
 }
 
-export default class ViewRenderer extends Emitter {
+export default class ViewRenderer extends Dict {
     constructor(host) {
         super();
 
         this.host = host;
-        views.set(this, Object.create(null));
     }
 
-    define(name, customRender, options) {
-        views.get(this)[name] = Object.freeze({
+    define(name, render, options) {
+        super.define(name, Object.freeze({
             name,
-            render: typeof customRender === 'function'
-                ? customRender.bind(this)
-                : (el, config, data, context) => this.render(el, customRender, data, context),
+            render: typeof render === 'function'
+                ? render.bind(this)
+                : (el, _, data, context) => this.render(el, render, data, context),
             options: Object.freeze(Object.assign({}, options))
-        });
-
-        this.emit('define', name);
-    }
-
-    isDefined(name) {
-        return name in views.get(this);
-    }
-
-    get(name) {
-        return views.get(this)[name];
-    }
-
-    get names() {
-        return Object.keys(views.get(this)).sort();
+        }));
     }
 
     render(container, config, data, context) {
@@ -96,9 +80,31 @@ export default class ViewRenderer extends Emitter {
             };
         }
 
-        let renderer = typeof config.view === 'function'
-            ? { render: config.view, name: false, options: STUB_OBJECT }
-            : this.get(config.view);
+        let renderer = null;
+
+        switch (typeof config.view) {
+            case 'function':
+                renderer = { render: config.view, name: false, options: STUB_OBJECT };
+                break;
+
+            case 'string':
+                if (config.view.startsWith('preset/')) {
+                    const presetName = config.view.substr(7);
+
+                    if (this.host.preset.isDefined(presetName)) {
+                        renderer = {
+                            render: this.host.preset.get(presetName).render,
+                            name: false,
+                            options: { tag: false }
+                        };
+                    } else {
+                        return this.host.preset.render(container, presetName, data, context);
+                    }
+                } else {
+                    renderer = this.get(config.view);
+                }
+                break;
+        }
 
         if (!renderer) {
             const errorMsg = typeof config.view === 'string'
