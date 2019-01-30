@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.8 (30-01-2019)
 
 - Client
     - Added `Windet#defaultPageId` and `options.defaultPageId` to define a page id that should be used when no `pageId` is specified
