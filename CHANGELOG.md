@@ -1,3 +1,8 @@
+## next
+
+- Client
+    - Added hover trigger mode for `Popup` view which enables with options to constructor, e.g. `{ hoverTriggers: string, hoverElementToOptions: fn(triggerEl) }`
+
 ## 1.0.0-beta.8 (30-01-2019)
 
 - Client

@@ -1,6 +1,10 @@
 /* eslint-env browser */
 const { documentElement } = document;
 const standartsMode = document.compatMode === 'CSS1Compat';
+const defaultOptions = {
+    hoverTriggers: null,
+    hoverElementToOptions: el => el
+};
 
 function getOffset(element) {
     let top = 0;
@@ -56,12 +60,50 @@ function getBoundingRect(element, relElement) {
 }
 
 class Popup {
-    constructor() {
+    constructor(options) {
+        this.options = {
+            ...defaultOptions,
+            ...options
+        };
+
         this.el = document.createElement('div');
         this.el.className = 'discovery-view-popup';
 
         this.hide = this.hide.bind(this);
         this.hideIfEventOutside = this.hideIfEventOutside.bind(this);
+        this.hideTimer;
+
+        this.hoverTriggerEl = null;
+
+        if (this.options.hoverTriggers) {
+            document.addEventListener('mouseenter', ({ target }) => {
+                const triggerEl = this.el.contains(target)
+                    ? this.el
+                    : target !== document && target.closest(this.options.hoverTriggers);
+
+                if (triggerEl) {
+                    this.hideTimer = clearTimeout(this.hideTimer);
+
+                    if (triggerEl !== this.hoverTriggerEl) {
+                        this.hoverTriggerEl = triggerEl;
+
+                        if (triggerEl !== this.el) {
+                            this.show(
+                                triggerEl,
+                                this.options.hoverElementToOptions.call(this, triggerEl)
+                            );
+                        }
+                    }
+                }
+            }, true);
+
+            document.addEventListener('mouseleave', ({ target }) => {
+                if (this.hoverTriggerEl && this.hoverTriggerEl === target) {
+                    this.hoverTriggerEl = null;
+                    this.hideTimer = setTimeout(this.hide, 100);
+                }
+            }, true);
+        }
     }
 
     show(triggerEl, options) {
@@ -70,6 +112,8 @@ class Popup {
         const viewport = document.body.getBoundingClientRect();
         const availHeightTop = box.top - viewport.top - 4;
         const availHeightBottom = viewport.bottom - box.bottom - 4;
+
+        this.hideTimer = clearTimeout(this.hideTimer);
 
         if (availHeightTop > availHeightBottom) {
             // show to top
