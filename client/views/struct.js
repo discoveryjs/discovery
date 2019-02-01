@@ -9,8 +9,8 @@ const toString = Object.prototype.toString;
 const expandedItemsLimit = 50;
 const collapedItemsLimit = 4;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
-const arrayValueProto = createFragment('[', createElement('span', 'struct-collapse-value'), createElement('span', 'value-actions'), ']');
-const objectValueProto = createFragment('{', createElement('span', 'struct-collapse-value'), createElement('span', 'value-actions'), '}');
+const arrayValueProto = createFragment('[', ...createActionButtons(), ']');
+const objectValueProto = createFragment('{', ...createActionButtons(), '}');
 const entryProtoEl = createElement('div', 'entry-line');
 const valueProtoEl = createElement('span', 'value');
 const objectKeyProtoEl = createElement('span', 'label', [
@@ -18,6 +18,14 @@ const objectKeyProtoEl = createElement('span', 'label', [
     createElement('span', 'property'),
     ':\xA0'
 ]);
+
+function createActionButtons() {
+    return [
+        createElement('span', 'struct-collapse-value'),
+        createElement('span', 'show-signature'),
+        createElement('span', 'value-actions')
+    ];
+}
 
 function token(type, str) {
     return `<span class="${type}">${str}</span>`;
@@ -311,6 +319,19 @@ export default function(discovery) {
 
     // single event handler for all `struct` view instances
     document.addEventListener('click', clickHandler, false);
+    new discovery.view.Popup({
+        hoverTriggers: '.view-struct .show-signature',
+        hoverElementToOptions: function(triggerEl) {
+            const data = elementToData.get(triggerEl.parentNode);
+
+            return {
+                render: el => discovery.view.render(el, {
+                    view: 'signature',
+                    expanded: 2
+                }, data)
+            };
+        }
+    });
 
     discovery.view.define('struct', function(el, config, data) {
         const { expanded } = config;

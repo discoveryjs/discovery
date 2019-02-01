@@ -2,6 +2,8 @@
 
 - Client
     - Added hover trigger mode for `Popup` view which enables with options to constructor, e.g. `{ hoverTriggers: string, hoverElementToOptions: fn(triggerEl) }`
+    - Added `signature` view
+    - Improved `struct` view to show an object or an array signature when expanded and `[i]` action button is hovered
 
 ## 1.0.0-beta.8 (30-01-2019)
 

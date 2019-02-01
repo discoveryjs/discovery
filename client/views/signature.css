@@ -1,0 +1,25 @@
+.view-signature {
+    padding: 8px 32px 8px 8px;
+    white-space: pre;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+    line-height: 18px;
+    color: #666;
+}
+
+.view-signature .expand:hover {
+    border-radius: 4px;
+    color: #333;
+    background: #eee;
+    cursor: pointer;
+}
+
+.view-signature .property {
+    color: #bd6476;
+}
+.view-signature .optional {
+    color: #ff6e13;
+}
+.view-signature .type {
+    color: #07a;
+}

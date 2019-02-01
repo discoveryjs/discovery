@@ -13,10 +13,9 @@
 .view-struct .struct-expand-value {
     display: inline-block;
     vertical-align: top;
-    overflow: hidden;
     white-space: nowrap !important;
-    text-overflow: ellipsis;
     border-radius: 4px;
+    cursor: pointer;
 }
 .view-struct.struct-expanded-value,
 .view-struct .struct-expanded-value {
@@ -30,6 +29,7 @@
     background-position: 10px 28px;
 }
 .view-struct .struct-collapse-value,
+.view-struct .show-signature,
 .view-struct .value-actions {
     margin-left: 2px;
     padding: 1px 4px;
@@ -38,9 +38,16 @@
     font-size: 8px;
     color: #ddd;
     background: #fcfcfc;
+    cursor: pointer;
+}
+.view-struct .show-signature {
+    cursor: default;
 }
 .view-struct .struct-collapse-value::before {
     content: "–";
+}
+.view-struct .show-signature::before {
+    content: "i";
 }
 .view-struct .value-actions::before {
     content: "ƒ";
@@ -48,12 +55,12 @@
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover,
 .view-struct .struct-collapse-value:hover,
+.view-struct .show-signature:hover,
 .view-struct .value-actions:hover,
 .view-struct .value-actions.discovery-view-popup-active {
     color: #333;
     background: #eee;
     border-color: #d0d0d0;
-    cursor: pointer;
 }
 .view-struct .entry-line {
     white-space: nowrap;
