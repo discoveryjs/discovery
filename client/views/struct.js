@@ -246,79 +246,71 @@ export default function(discovery) {
     const elementToData = new WeakMap();
     const structViewRoots = new WeakSet();
     const valueActionsPopup = new discovery.view.Popup();
-    const clickHandler = ({ target: cursor }) => {
-        while (cursor && cursor.classList) {
-            if (cursor.classList.contains('struct-expand')) {
-                cursor.classList.remove('struct-expand');
-                expandValue(cursor.lastChild, 0);
-                break;
+    const clickHandler = ({ target }) => {
+        let cursor = target.closest(`
+            .view-struct.struct-expand,
+            .view-struct .struct-expand-value,
+            .view-struct .struct-collapse-value,
+            .view-struct .value-actions
+        `);
+
+        if (!cursor) {
+            return;
+        }
+
+        if (cursor.classList.contains('struct-expand')) {
+            // root element
+            cursor.classList.remove('struct-expand');
+            expandValue(cursor.lastChild, 0);
+        } else if (cursor.classList.contains('struct-expand-value')) {
+            // expander
+            expandValue(cursor, 0);
+            cursor.parentNode.classList.add('struct-expanded-value');
+
+            if (structViewRoots.has(cursor.parentNode)) {
+                cursor.parentNode.classList.remove('struct-expand');
             }
-
-            if (cursor.classList.contains('struct-expand-value')) {
-                expandValue(cursor, 0);
-                cursor.parentNode.classList.add('struct-expanded-value');
-
-                if (structViewRoots.has(cursor.parentNode)) {
-                    cursor.parentNode.classList.remove('struct-expand');
-                }
-
-                break;
-            }
-
-            if (cursor.classList.contains('struct-collapse-value')) {
-                cursor = cursor.parentNode;
-                collapseValue(cursor);
-                cursor.parentNode.classList.remove('struct-expanded-value');
-
-                if (structViewRoots.has(cursor.parentNode)) {
-                    cursor.parentNode.classList.add('struct-expand');
-                }
-
-                break;
-            }
-
-            if (cursor.classList.contains('value-actions')) {
-                valueActionsPopup.show(cursor, {
-                    render: (popupEl) => {
-                        discovery.view.render(popupEl, {
-                            view: 'menu',
-                            data: [
-                                {
-                                    text: 'Copy as JSON (formatted)',
-                                    action: () => {
-                                        const value = elementToData.get(cursor.parentNode);
-                                        const json = JSON.stringify(value, null, 4);
-
-                                        copyText(json);
-                                    }
-                                },
-                                {
-                                    text: 'Copy as JSON (compact)',
-                                    action: () => {
-                                        const value = elementToData.get(cursor.parentNode);
-                                        const json = JSON.stringify(value);
-
-                                        copyText(json);
-                                    }
-                                }
-                            ],
-                            onClick(item) {
-                                valueActionsPopup.hide();
-                                item.action();
-                            }
-                        });
-                    }
-                });
-
-                break;
-            }
-
+        } else if (cursor.classList.contains('struct-collapse-value')) {
+            // collapser
             cursor = cursor.parentNode;
+            collapseValue(cursor);
+            cursor.parentNode.classList.remove('struct-expanded-value');
+
+            if (structViewRoots.has(cursor.parentNode)) {
+                cursor.parentNode.classList.add('struct-expand');
+            }
+        } else if (cursor.classList.contains('value-actions')) {
+            // actions
+            valueActionsPopup.show(cursor, {
+                render: (popupEl) => {
+                    const value = elementToData.get(cursor.parentNode);
+
+                    discovery.view.render(popupEl, {
+                        view: 'menu',
+                        data: [
+                            {
+                                text: 'Copy as JSON (formatted)',
+                                action: () => copyText(JSON.stringify(value, null, 4))
+                            },
+                            {
+                                text: 'Copy as JSON (compact)',
+                                action: () => copyText(JSON.stringify(value))
+                            }
+                        ],
+                        onClick(item) {
+                            valueActionsPopup.hide();
+                            item.action();
+                        }
+                    });
+                }
+            });
         }
     };
 
     // single event handler for all `struct` view instances
     document.addEventListener('click', clickHandler, false);
+
+    // init signature popup
     new discovery.view.Popup({
         hoverTriggers: '.view-struct .show-signature',
         hoverElementToOptions: function(triggerEl) {

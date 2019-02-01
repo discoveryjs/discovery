@@ -171,8 +171,7 @@ function renderStat(el, stat, elementToData, offset = '') {
 
 export default function(discovery) {
     const elementToData = new WeakMap();
-
-    document.addEventListener('click', ({ target }) => {
+    const clickHandler = ({ target }) => {
         const expandEl = target.closest('.view-signature .expand');
         const data = elementToData.get(expandEl);
 
@@ -186,7 +185,10 @@ export default function(discovery) {
             renderStat(newEl, newStat, elementToData, offset);
             expandEl.replaceWith(newEl);
         }
-    });
+    };
+
+    // single event handler for all `signature` view instances
+    document.addEventListener('click', clickHandler, false);
 
     discovery.view.define('signature', function(el, config, data) {
         const { expanded } = config;

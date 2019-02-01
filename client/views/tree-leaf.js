@@ -5,22 +5,18 @@ import { createElement } from '../core/utils/dom.js';
 const toggleProto = createElement('span', 'view-tree-leaf-toggle', '–');
 
 export default function(discovery) {
-    const clickHandler = ({ target: cursor }) => {
-        while (cursor && cursor.classList) {
-            if (cursor.classList.contains('view-tree-leaf-toggle')) {
-                const leaf = cursor.parentNode;
+    const clickHandler = ({ target }) => {
+        const toggleEl = target.closest('.view-tree-leaf-toggle');
 
-                leaf.classList.toggle('collapsed');
-                cursor.firstChild.nodeValue = leaf.classList.contains('collapsed') ? '+' : '–';
+        if (toggleEl) {
+            const leafEl = toggleEl.parentNode;
 
-                break;
-            }
-
-            cursor = cursor.parentNode;
+            leafEl.classList.toggle('collapsed');
+            toggleEl.firstChild.nodeValue = leafEl.classList.contains('collapsed') ? '+' : '–';
         }
     };
 
-    // single event handler for all `struct` view instances
+    // single event handler for all `tree-leaf` view instances
     document.addEventListener('click', clickHandler, false);
 
     discovery.view.define('tree-leaf', function(el, config, data, context) {
