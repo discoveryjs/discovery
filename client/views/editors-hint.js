@@ -8,7 +8,7 @@
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 
 const HINT_ELEMENT_CLASS = 'CodeMirror-hint';
-const ACTIVE_HINT_ELEMENT_CLASS = 'CodeMirror-hint-active';
+const ACTIVE_HINT_ELEMENT_CLASS = 'active';
 const requestAnimationFrame = window.requestAnimationFrame || (fn => setTimeout(fn, 1000 / 60));
 const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 

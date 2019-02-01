@@ -29,6 +29,9 @@
     color: black;
     cursor: pointer;
 }
+.CodeMirror-hint:hover {
+    background-color: #f0f0f0;
+}
 
 .CodeMirror-hint .name {
     flex: 1;
@@ -44,7 +47,7 @@
     padding: 0 .5ex 0 2ex;
 }
 
-li.CodeMirror-hint-active {
+.CodeMirror-hint.active {
     background: rgba(0, 170, 255, .2);
 }
 
