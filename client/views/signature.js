@@ -31,13 +31,13 @@ function collectStat(value, expanded, stat = Object.create(null)) {
         case 'object':
             if ('object' in stat === false) {
                 stat.object = {
-                    values: [],
+                    values: new Set(),
                     skipped: false,
                     properties: Object.create(null)
                 };
             }
 
-            stat.object.values.push(value);
+            stat.object.values.add(value);
 
             for (let key in value) {
                 if (!hasOwnProperty.call(value, key)) {
@@ -68,13 +68,13 @@ function collectStat(value, expanded, stat = Object.create(null)) {
         case 'array':
             if ('array' in stat === false) {
                 stat.array = {
-                    values: [],
+                    values: new Set(),
                     skipped: false,
                     map: Object.create(null)
                 };
             }
 
-            stat.array.values.push(value);
+            stat.array.values.add(value);
 
             if (!expanded) {
                 stat.array.skipped = stat.array.skipped || value.length > 0;
@@ -106,7 +106,7 @@ function renderStat(el, stat, elementToData, offset = '') {
 
                 case 'object': {
                     const { values, properties, skipped } = stat[type];
-                    const count = values.length;
+                    const count = values.size;
                     const propertyOffset = offset + '    ';
                     const contentEl = el.appendChild(createElement('span', 'object', '{'));
 
@@ -179,7 +179,9 @@ export default function(discovery) {
         if (expandEl && data) {
             const { type, map, offset } = data;
             const newEl = createElement('span', type);
-            const newStat = map.values.reduce((map, value) => collectStat(value, 1, map), undefined);
+            const newStat = {};
+
+            map.values.forEach(value => collectStat(value, 1, newStat));
 
             renderStat(newEl, newStat, elementToData, offset);
             expandEl.replaceWith(newEl);
