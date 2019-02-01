@@ -112,11 +112,11 @@ export default class App extends Widget {
                 }
 
                 let data = dataField ? res[dataField] : res;
-                let context = Object.assign({
-                    name: 'Discovery'
-                }, dataField ? res : { data: res }, {
+                let context = {
+                    name: 'Discovery',
+                    ...dataField ? res : { data: res },
                     createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
-                });
+                };
 
                 this.setData(data, context);
                 this.dom.loadingOverlay.classList.add('done');

@@ -6,7 +6,7 @@ export default function(discovery) {
 
         if (Array.isArray(cols)) {
             cols.forEach((col, index) =>
-                discovery.view.render(el, col, data, Object.assign({}, context, { colIndex: index }))
+                discovery.view.render(el, col, data, { ...context, colIndex: index })
             );
         }
     }, { tag: 'tr' });

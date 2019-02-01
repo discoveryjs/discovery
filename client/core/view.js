@@ -48,7 +48,7 @@ export default class ViewRenderer extends Dict {
             render: typeof render === 'function'
                 ? render.bind(this)
                 : (el, _, data, context) => this.render(el, render, data, context),
-            options: Object.freeze(Object.assign({}, options))
+            options: Object.freeze({ ...options })
         }));
     }
 
@@ -158,12 +158,13 @@ export default class ViewRenderer extends Dict {
             data
                 .slice(offset, offset + limit)
                 .map((value, sliceIndex, slice) =>
-                    this.render(container, itemConfig, value, Object.assign({}, context, {
+                    this.render(container, itemConfig, value, {
+                        ...context,
                         index: offset + sliceIndex,
                         array: data,
                         sliceIndex,
                         slice
-                    }))
+                    })
                 )
         );
 

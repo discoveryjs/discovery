@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
+const self = data => data;
 
 function configFromName(name) {
     return {
@@ -11,7 +12,9 @@ function configFromName(name) {
 }
 
 function resolveColConfig(config) {
-    return typeof config === 'string' ? { data: data => data, content: config } : Object.assign({ data: data=>data },config);
+    return typeof config === 'string'
+        ? { data: self, content: config }
+        : { data: self, ...config };
 }
 
 export default function(discovery) {
@@ -35,11 +38,12 @@ export default function(discovery) {
             cols = cols.map((def, idx) =>
                 typeof def === 'string'
                     ? configFromName(def)
-                    : Object.assign({
+                    : {
                         header: 'col' + idx,
                         view: 'table-cell',
-                        data: data => data
-                    }, def)
+                        data: self,
+                        ...def
+                    }
             );
         } else if (Array.isArray(data)) {
             const colNames = new Set();
@@ -68,10 +72,10 @@ export default function(discovery) {
             }
 
             colNames.forEach(name =>
-                cols.push(Object.assign(
-                    configFromName(name),
-                    hasOwnProperty.call(colsMap, name) ? resolveColConfig(colsMap[name]) : null
-                ))
+                cols.push({
+                    ...configFromName(name),
+                    ...hasOwnProperty.call(colsMap, name) ? resolveColConfig(colsMap[name]) : null
+                })
             );
         } else {
             console.warn('config.cols and data is not an array, no way to build a table');

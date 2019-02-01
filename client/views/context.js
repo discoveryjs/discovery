@@ -22,9 +22,7 @@ export default function(discovery) {
 
         function updateContext(value, name) {
             if (name) {
-                Object.assign(localContext, {
-                    [name]: value
-                });
+                localContext[name] = value;
 
                 if (inited) {
                     renderContent();
@@ -32,7 +30,7 @@ export default function(discovery) {
             }
         }
 
-        let localContext = Object.assign({}, context);
+        let localContext = { ...context };
         let contentStartMarker = null;
         let contentEndMarker = null;
         let inited = false;
@@ -43,9 +41,11 @@ export default function(discovery) {
             modifiers = [modifiers];
         }
 
-        const awaitRender = discovery.view.render(el, modifiers.map(item =>
-            Object.assign({ onInit: updateContext, onChange: updateContext }, item)
-        ), data, context);
+        const awaitRender = discovery.view.render(el, modifiers.map(item => ({
+            onInit: updateContext,
+            onChange: updateContext,
+            ...item
+        })), data, context);
 
         contentStartMarker = el.appendChild(document.createComment('context view content start'));
         contentEndMarker = el.appendChild(document.createComment('context view content end'));

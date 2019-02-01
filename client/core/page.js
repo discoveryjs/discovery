@@ -25,7 +25,7 @@ export default class PageRenderer extends Dict {
             render: typeof render === 'function'
                 ? render.bind(this.view)
                 : (el, data, context) => this.view.render(el, render, data, context),
-            options: Object.freeze(Object.assign({}, options))
+            options: Object.freeze({ ...options })
         }));
     }
 

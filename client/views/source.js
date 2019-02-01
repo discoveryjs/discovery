@@ -19,7 +19,8 @@ const mimeToSyntax = {
 const printer = hitext.printer.html
     .fork(hitextPrismjs.printer.html)
     .fork({
-        hooks: Object.assign({}, hitext.printer.html.hooks, {
+        hooks: {
+            ...hitext.printer.html.hooks,
             error: {
                 open() {
                     return '<span class="spotlight spotlight-error">';
@@ -44,7 +45,7 @@ const printer = hitext.printer.html
                     return '</span>';
                 }
             }
-        })
+        }
     });
 
 export default function(discovery) {

@@ -33,7 +33,7 @@ export default function(discovery) {
         if (content) {
             const contentEl = el.appendChild(document.createElement('span'));
             renderContent = () => {
-                const localContext = name ? Object.assign({}, context, { [name]: inputEl.checked }) : context;
+                const localContext = name ? { ...context, [name]: inputEl.checked } : context;
 
                 contentEl.innerHTML = '';
                 discovery.view.render(contentEl, content, data, localContext);

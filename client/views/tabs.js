@@ -18,9 +18,7 @@ export default function(discovery) {
             }
 
             contentEl.innerHTML = '';
-            discovery.view.render(contentEl, content, data, Object.assign({}, context, {
-                [name]: value
-            }));
+            discovery.view.render(contentEl, content, data, { ...context, [name]: value });
         }
 
         const tabsEl = el.appendChild(document.createElement('div'));

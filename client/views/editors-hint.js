@@ -13,11 +13,13 @@ const requestAnimationFrame = window.requestAnimationFrame || (fn => setTimeout(
 const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
 CodeMirror.defineExtension('showHint', function(options) {
-    options = Object.assign({
+    options = {
         closeCharacters: /[\s()\[\]{};:>,]/,
         closeOnUnfocus: true,
-        container: null
-    }, this.options.hintOptions, options);
+        container: null,
+        ...this.options.hintOptions,
+        ...options
+    };
 
     const selections = this.listSelections();
     if (selections.length > 1) {
