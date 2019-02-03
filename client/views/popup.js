@@ -110,8 +110,10 @@ class Popup {
         const { render, xAnchor } = options || {};
         const box = getBoundingRect(triggerEl, document.body);
         const viewport = document.body.getBoundingClientRect();
-        const availHeightTop = box.top - viewport.top - 4;
-        const availHeightBottom = viewport.bottom - box.bottom - 4;
+        const availHeightTop = box.top - viewport.top - 3;
+        const availHeightBottom = viewport.bottom - box.bottom - 3;
+        const availWidthLeft = box.left - viewport.right - 3;
+        const availWidthRight = viewport.right - box.left - 3;
 
         this.hideTimer = clearTimeout(this.hideTimer);
 
@@ -127,8 +129,15 @@ class Popup {
             this.el.style.bottom = 'auto';
         }
 
-        this.el.style.left = xAnchor === 'right' ? 'auto' : box.left + 'px';
-        this.el.style.right = xAnchor === 'right' ? (viewport.right - box.right) + 'px' : 'auto';
+        if (xAnchor === 'right') {
+            this.el.style.left = 'auto';
+            this.el.style.right = (viewport.right - box.right) + 'px';
+            this.el.style.maxWidth = availWidthLeft + 'px';
+        } else {
+            this.el.style.left = box.left + 'px';
+            this.el.style.right = 'auto';
+            this.el.style.maxWidth = availWidthRight + 'px';
+        }
 
         if (typeof render === 'function') {
             this.el.innerHTML = '';
@@ -147,7 +156,7 @@ class Popup {
             document.addEventListener('scroll', this.hideIfEventOutside, true);
             document.addEventListener('click', this.hideIfEventOutside, true);
 
-            document.body.insertBefore(this.el, document.body.firstChild);
+            document.body.appendChild(this.el);
             this.visible = true;
         }
     }

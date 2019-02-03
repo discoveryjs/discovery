@@ -2,6 +2,8 @@
 
 - Client
     - Added hover trigger mode for `Popup` view which enables with options to constructor, e.g. `{ hoverTriggers: string, hoverElementToOptions: fn(triggerEl) }`
+    - Fixed `Popup` z-index when several popups are shown
+    - Fixed `Popup` to set `max-width` for its content
     - Added `signature` view
     - Improved `struct` view to show an object or an array signature when expanded and `[i]` action button is hovered
 
