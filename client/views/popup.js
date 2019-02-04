@@ -130,10 +130,12 @@ class Popup {
         }
 
         if (xAnchor === 'right') {
+            // show to left
             this.el.style.left = 'auto';
             this.el.style.right = (viewport.right - box.right) + 'px';
             this.el.style.maxWidth = availWidthLeft + 'px';
         } else {
+            // show to right
             this.el.style.left = box.left + 'px';
             this.el.style.right = 'auto';
             this.el.style.maxWidth = availWidthRight + 'px';
@@ -169,14 +171,25 @@ class Popup {
 
             this.el.remove();
             this.lastTriggerEl.classList.remove('discovery-view-popup-active');
+            this.hoverTriggerEl = null;
+            this.hideTimer = clearTimeout(this.hideTimer);
             this.visible = false;
         }
     }
 
     hideIfEventOutside(event) {
-        if (!this.el.contains(event.target)) {
-            this.hide();
+        // event inside a trigger element
+        if (this.lastTriggerEl && this.lastTriggerEl.contains(event.target)) {
+            return;
         }
+
+        // event inside a popup itself
+        if (this.el.contains(event.target)) {
+            return;
+        }
+
+        // otherwise hide a popup
+        this.hide();
     }
 }
 
