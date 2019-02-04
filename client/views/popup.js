@@ -69,6 +69,11 @@ class Popup {
         this.el = document.createElement('div');
         this.el.className = 'discovery-view-popup';
 
+        Popup.els = Popup.els || new Set();
+        Popup.els.add(this.el);
+
+        Popup.elQueue = Popup.elQueue || new Set();
+
         this.hide = this.hide.bind(this);
         this.hideIfEventOutside = this.hideIfEventOutside.bind(this);
         this.hideTimer;
@@ -118,6 +123,12 @@ class Popup {
         const availHeightBottom = viewport.bottom - box.bottom - 3;
         const availWidthLeft = box.left - viewport.right - 3;
         const availWidthRight = viewport.right - box.left - 3;
+
+        [...Popup.els]
+            .filter(el => el.contains(triggerEl))
+            .forEach(el => Popup.elQueue.add(el));
+
+        Popup.elQueue.add(this.el);
 
         this.hideTimer = clearTimeout(this.hideTimer);
 
@@ -178,6 +189,8 @@ class Popup {
             this.hoverTriggerEl = null;
             this.hideTimer = clearTimeout(this.hideTimer);
             this.visible = false;
+
+            Popup.elQueue.delete(this.el);
         }
     }
 
@@ -187,8 +200,19 @@ class Popup {
             return;
         }
 
+        const elQueueArray = [...Popup.elQueue];
+
+        // element in queue on which event was triggered
+        const elInQueue = elQueueArray.find(el => el.contains(event.target));
+
         // event inside a popup itself
-        if (this.el.contains(event.target)) {
+        if (
+            this.el.contains(event.target) || (
+                // or inside another popup
+                elInQueue &&
+                elQueueArray.indexOf(this.el) < elQueueArray.indexOf(elInQueue)
+            )
+        ) {
             return;
         }
 
