@@ -6,6 +6,7 @@
     - Fixed `Popup` closing on click on/inside a trigger element while a popup is visible, now it stays visible
     - Fixed `Popup` z-index when several popups are shown
     - Fixed `Popup` to set `max-width` for its content
+    - Added `select` view
     - Added `signature` view
     - Improved `struct` view to show an object or an array signature when expanded and `[i]` action button is hovered
     - Added `limit` option for `menu` view

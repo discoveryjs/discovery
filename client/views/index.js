@@ -22,6 +22,7 @@ export { default as menu } from './menu.js';
 export { default as menuItem } from './menu-item.js';
 export { default as popup } from './popup.js';
 export { default as section } from './section.js';
+export { default as select } from './select.js';
 export { default as signature } from './signature.js';
 export { default as struct } from './struct.js';
 export { default as switch } from './switch.js';
