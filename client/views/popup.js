@@ -75,6 +75,10 @@ class Popup {
 
         this.hoverTriggerEl = null;
 
+        if (this.options.className) {
+            this.el.classList.add(this.options.className);
+        }
+
         if (this.options.hoverTriggers) {
             document.addEventListener('mouseenter', ({ target }) => {
                 const triggerEl = this.el.contains(target)
