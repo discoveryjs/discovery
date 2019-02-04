@@ -69,6 +69,9 @@ class Popup {
         this.el = document.createElement('div');
         this.el.className = 'discovery-view-popup';
 
+        Popup.els = Popup.els || new Set();
+        Popup.els.add(this.el);
+
         this.hide = this.hide.bind(this);
         this.hideIfEventOutside = this.hideIfEventOutside.bind(this);
         this.hideTimer;
@@ -188,7 +191,7 @@ class Popup {
         }
 
         // event inside a popup itself
-        if (this.el.contains(event.target)) {
+        if ([...Popup.els].some(el => el.contains(event.target))) {
             return;
         }
 
