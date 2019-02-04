@@ -6,6 +6,7 @@
     - Fixed `Popup` to set `max-width` for its content
     - Added `signature` view
     - Improved `struct` view to show an object or an array signature when expanded and `[i]` action button is hovered
+    - Added `limit` option for `menu` view
 
 ## 1.0.0-beta.8 (30-01-2019)
 
