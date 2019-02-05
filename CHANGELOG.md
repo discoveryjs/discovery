@@ -1,7 +1,14 @@
 ## next
 
 - Client
-    - Added hover trigger mode for `Popup` view which enables with options to constructor, e.g. `{ hoverTriggers: string, hoverElementToOptions: fn(triggerEl) }`
+    - Added hover trigger mode for `Popup` view which enables with options to constructor:
+    ```js
+        new discovery.view.Popup({
+            hoverTriggers: string,
+            hoverElementToOptions: fn(triggerEl): object,
+            hoverPin: false | "popup-hover" | "trigger-click"
+        }
+    ```
     - Added `className` option for `Popup` view
     - Fixed `Popup` show/hide scenarios when several popups involved
     - Fixed `Popup` closing when clicking on/inside a trigger element while a popup is visible, now it stays visible

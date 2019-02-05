@@ -2,9 +2,11 @@
 const { documentElement } = document;
 const standartsMode = document.compatMode === 'CSS1Compat';
 const openedPopups = [];
+const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 const defaultOptions = {
     hoverTriggers: null,
-    hoverElementToOptions: el => el
+    hoverElementToOptions: el => el,
+    hoverPin: false
 };
 
 function getOffset(element) {
@@ -95,6 +97,11 @@ class Popup {
             this.el.classList.add(this.options.className);
         }
 
+        if (!hoverPinModes.includes(this.options.hoverPin)) {
+            console.warn(`Bad value for \`Popup#options.hoverPin\` (should be ${hoverPinModes.join(', ')}):`, this.options.hoverPin);
+            this.options.hoverPin = false;
+        }
+
         if (this.options.hoverTriggers) {
             document.addEventListener('mouseenter', ({ target }) => {
                 if (target === document) {
@@ -114,6 +121,10 @@ class Popup {
 
                         // show only if event target isn't a popup
                         if (!targetRelatedPopup) {
+                            if (this.options.hoverPin !== 'popup-hover') {
+                                this.el.style.pointerEvents = 'none';
+                            }
+
                             this.show(
                                 triggerEl,
                                 this.options.hoverElementToOptions.call(this, triggerEl)
@@ -129,6 +140,16 @@ class Popup {
                     this.hideTimer = setTimeout(this.hide, 100);
                 }
             }, true);
+
+            if (this.options.hoverPin === 'trigger-click') {
+                document.addEventListener('click', (event) => {
+                    if (this.lastHoverTriggerEl && this.lastHoverTriggerEl.contains(event.target)) {
+                        this.el.style.pointerEvents = '';
+                        this.lastHoverTriggerEl = null;
+                        event.stopPropagation();
+                    }
+                }, true);
+            }
         }
     }
 
