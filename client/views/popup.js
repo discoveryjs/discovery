@@ -59,6 +59,8 @@ function getBoundingRect(element, relElement) {
     };
 }
 
+const elQueue = new Set();
+
 class Popup {
     constructor(options) {
         this.options = {
@@ -119,6 +121,8 @@ class Popup {
         const availWidthLeft = box.left - viewport.right - 3;
         const availWidthRight = viewport.right - box.left - 3;
 
+        elQueue.add(this.el);
+
         this.hideTimer = clearTimeout(this.hideTimer);
 
         if (availHeightTop > availHeightBottom) {
@@ -178,6 +182,8 @@ class Popup {
             this.hoverTriggerEl = null;
             this.hideTimer = clearTimeout(this.hideTimer);
             this.visible = false;
+
+            elQueue.delete(this.el);
         }
     }
 
@@ -187,8 +193,19 @@ class Popup {
             return;
         }
 
+        const elQueueArray = [...elQueue];
+
+        // element in queue on which event was triggered
+        const elInQueue = elQueueArray.find(el => el.contains(event.target));
+
         // event inside a popup itself
-        if (this.el.contains(event.target)) {
+        if (
+            this.el.contains(event.target) || (
+                // or inside another popup
+                elInQueue &&
+                elQueueArray.indexOf(this.el) < elQueueArray.indexOf(elInQueue)
+            )
+        ) {
             return;
         }
 
