@@ -103,6 +103,8 @@ class Popup {
         }
 
         if (this.options.hoverTriggers) {
+            this.el.dataset.pinMode = this.options.hoverPin || 'none';
+
             document.addEventListener('mouseenter', ({ target }) => {
                 if (target === document) {
                     return;
@@ -122,7 +124,7 @@ class Popup {
                         // show only if event target isn't a popup
                         if (!targetRelatedPopup) {
                             if (this.options.hoverPin !== 'popup-hover') {
-                                this.el.style.pointerEvents = 'none';
+                                this.el.classList.add('no-hover');
                             }
 
                             this.show(
@@ -144,7 +146,7 @@ class Popup {
             if (this.options.hoverPin === 'trigger-click') {
                 document.addEventListener('click', (event) => {
                     if (this.lastHoverTriggerEl && this.lastHoverTriggerEl.contains(event.target)) {
-                        this.el.style.pointerEvents = '';
+                        this.el.classList.remove('no-hover');
                         this.lastHoverTriggerEl = null;
                         event.stopPropagation();
                     }
@@ -175,11 +177,13 @@ class Popup {
             this.el.style.maxHeight = availHeightTop + 'px';
             this.el.style.top = 'auto';
             this.el.style.bottom = (viewport.bottom - box.top) + 'px';
+            this.el.dataset.vTo = 'top';
         } else {
             // show to bottom
             this.el.style.maxHeight = availHeightBottom + 'px';
             this.el.style.top = box.bottom + 'px';
             this.el.style.bottom = 'auto';
+            this.el.dataset.vTo = 'bottom';
         }
 
         if (availWidthLeft > availWidthRight) {
@@ -187,11 +191,13 @@ class Popup {
             this.el.style.left = 'auto';
             this.el.style.right = (viewport.right - box.right) + 'px';
             this.el.style.maxWidth = availWidthLeft + 'px';
+            this.el.dataset.hTo = 'left';
         } else {
             // show to right
             this.el.style.left = box.left + 'px';
             this.el.style.right = 'auto';
             this.el.style.maxWidth = availWidthRight + 'px';
+            this.el.dataset.hTo = 'right';
         }
 
         this.hideTimer = clearTimeout(this.hideTimer);

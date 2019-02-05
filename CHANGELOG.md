@@ -12,6 +12,7 @@
         ```
         - Added `className` constructor option to set class name on popup's root element
         - Added setting a `max-width` for its content
+        - Added `data-v-to`, `data-h-to` and `data-pin-mode` attributes to indicate a state of popup
         - Removed `xAnchor` option for `show()` method
         - Fixed various show/hide issues when several popups involved
         - Fixed popup closing when a click performs on/inside a trigger element while the popup is visible, now it stays visible
