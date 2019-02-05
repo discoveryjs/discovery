@@ -1,6 +1,7 @@
 /* eslint-env browser */
 const { documentElement } = document;
 const standartsMode = document.compatMode === 'CSS1Compat';
+const openedPopups = [];
 const defaultOptions = {
     hoverTriggers: null,
     hoverElementToOptions: el => el
@@ -59,7 +60,20 @@ function getBoundingRect(element, relElement) {
     };
 }
 
-const elQueue = new Set();
+function findTargetRelatedPopup(popup, target) {
+    if (popup.el.contains(target)) {
+        return popup;
+    }
+
+    return popup.relatedPopups.reduce(
+        (res, related) => res || findTargetRelatedPopup(related, target),
+        null
+    );
+}
+
+function hideIfEventOutside(event) {
+    openedPopups.slice().forEach(popup => popup.hideIfEventOutside(event));
+}
 
 class Popup {
     constructor(options) {
@@ -72,10 +86,10 @@ class Popup {
         this.el.className = 'discovery-view-popup';
 
         this.hide = this.hide.bind(this);
-        this.hideIfEventOutside = this.hideIfEventOutside.bind(this);
         this.hideTimer;
 
-        this.hoverTriggerEl = null;
+        this.lastTriggerEl = null;
+        this.lastHoverTriggerEl = null;
 
         if (this.options.className) {
             this.el.classList.add(this.options.className);
@@ -83,17 +97,23 @@ class Popup {
 
         if (this.options.hoverTriggers) {
             document.addEventListener('mouseenter', ({ target }) => {
-                const triggerEl = this.el.contains(target)
-                    ? this.el
-                    : target !== document && target.closest(this.options.hoverTriggers);
+                if (target === document) {
+                    return;
+                }
+
+                const targetRelatedPopup = findTargetRelatedPopup(this, target);
+                const triggerEl = targetRelatedPopup
+                    ? targetRelatedPopup.el
+                    : target.closest(this.options.hoverTriggers);
 
                 if (triggerEl) {
                     this.hideTimer = clearTimeout(this.hideTimer);
 
-                    if (triggerEl !== this.hoverTriggerEl) {
-                        this.hoverTriggerEl = triggerEl;
+                    if (triggerEl !== this.lastHoverTriggerEl) {
+                        this.lastHoverTriggerEl = triggerEl;
 
-                        if (triggerEl !== this.el) {
+                        // show only if event target isn't a popup
+                        if (!targetRelatedPopup) {
                             this.show(
                                 triggerEl,
                                 this.options.hoverElementToOptions.call(this, triggerEl)
@@ -104,12 +124,20 @@ class Popup {
             }, true);
 
             document.addEventListener('mouseleave', ({ target }) => {
-                if (this.hoverTriggerEl && this.hoverTriggerEl === target) {
-                    this.hoverTriggerEl = null;
+                if (this.lastHoverTriggerEl && this.lastHoverTriggerEl === target) {
+                    this.lastHoverTriggerEl = null;
                     this.hideTimer = setTimeout(this.hide, 100);
                 }
             }, true);
         }
+    }
+
+    get relatedPopups() {
+        return openedPopups.filter(related => this.el.contains(related.lastTriggerEl));
+    }
+
+    get visible() {
+        return openedPopups.includes(this);
     }
 
     show(triggerEl, options) {
@@ -120,10 +148,6 @@ class Popup {
         const availHeightBottom = viewport.bottom - box.bottom - 3;
         const availWidthLeft = box.left - viewport.right - 3;
         const availWidthRight = viewport.right - box.left - 3;
-
-        elQueue.add(this.el);
-
-        this.hideTimer = clearTimeout(this.hideTimer);
 
         if (availHeightTop > availHeightBottom) {
             // show to top
@@ -149,6 +173,8 @@ class Popup {
             this.el.style.maxWidth = availWidthRight + 'px';
         }
 
+        this.hideTimer = clearTimeout(this.hideTimer);
+
         if (typeof render === 'function') {
             this.el.innerHTML = '';
             render(this.el);
@@ -161,51 +187,53 @@ class Popup {
         triggerEl.classList.add('discovery-view-popup-active');
         this.lastTriggerEl = triggerEl;
 
-        if (!this.visible) {
-            window.addEventListener('resize', this.hide);
-            document.addEventListener('scroll', this.hideIfEventOutside, true);
-            document.addEventListener('click', this.hideIfEventOutside, true);
+        // always append since it can pop up by z-index
+        document.body.appendChild(this.el);
 
-            document.body.appendChild(this.el);
-            this.visible = true;
+        if (!this.visible) {
+            openedPopups.push(this);
+
+            window.addEventListener('resize', this.hide);
+
+            if (openedPopups.length === 1) {
+                document.addEventListener('scroll', hideIfEventOutside, true);
+                document.addEventListener('click', hideIfEventOutside, true);
+            }
         }
     }
 
     hide() {
+        this.hideTimer = clearTimeout(this.hideTimer);
+
         if (this.visible) {
-            window.removeEventListener('resize', this.hide);
-            document.removeEventListener('scroll', this.hideIfEventOutside, true);
-            document.removeEventListener('click', this.hideIfEventOutside, true);
-
+            openedPopups.splice(openedPopups.indexOf(this), 1);
             this.el.remove();
-            this.lastTriggerEl.classList.remove('discovery-view-popup-active');
-            this.hoverTriggerEl = null;
-            this.hideTimer = clearTimeout(this.hideTimer);
-            this.visible = false;
 
-            elQueue.delete(this.el);
+            if (this.lastTriggerEl) {
+                this.lastTriggerEl.classList.remove('discovery-view-popup-active');
+                this.lastTriggerEl = null;
+            }
+
+            window.removeEventListener('resize', this.hide);
+
+            if (openedPopups.length === 0) {
+                document.removeEventListener('scroll', hideIfEventOutside, true);
+                document.removeEventListener('click', hideIfEventOutside, true);
+            }
+
+            // hide related popups
+            this.relatedPopups.forEach(related => related.hide());
         }
     }
 
-    hideIfEventOutside(event) {
+    hideIfEventOutside({ target }) {
         // event inside a trigger element
-        if (this.lastTriggerEl && this.lastTriggerEl.contains(event.target)) {
+        if (this.lastTriggerEl && this.lastTriggerEl.contains(target)) {
             return;
         }
 
-        const elQueueArray = [...elQueue];
-
-        // element in queue on which event was triggered
-        const elInQueue = elQueueArray.find(el => el.contains(event.target));
-
-        // event inside a popup itself
-        if (
-            this.el.contains(event.target) || (
-                // or inside another popup
-                elInQueue &&
-                elQueueArray.indexOf(this.el) < elQueueArray.indexOf(elInQueue)
-            )
-        ) {
+        // event inside a popup or its related popups
+        if (findTargetRelatedPopup(this, target)) {
             return;
         }
 

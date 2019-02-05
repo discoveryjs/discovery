@@ -3,7 +3,8 @@
 - Client
     - Added hover trigger mode for `Popup` view which enables with options to constructor, e.g. `{ hoverTriggers: string, hoverElementToOptions: fn(triggerEl) }`
     - Added `className` option for `Popup` view
-    - Fixed `Popup` closing on click on/inside a trigger element while a popup is visible, now it stays visible
+    - Fixed `Popup` show/hide scenarios when several popups involved
+    - Fixed `Popup` closing when clicking on/inside a trigger element while a popup is visible, now it stays visible
     - Fixed `Popup` z-index when several popups are shown
     - Fixed `Popup` to set `max-width` for its content
     - Added `select` view
