@@ -2,7 +2,8 @@
     position: relative;
     overflow: hidden;
 }
-.view-tree-leaf:not(.last)::before {
+.view-tree-leaf:not(:last-child)::before,
+.view-tree-leaf-children.incomplete > .view-tree-leaf:not(.last)::before {
     content: '';
     position: absolute;
     top: 0;
@@ -15,6 +16,7 @@
     visibility: hidden;
     display: inline-block;
     position: relative;
+    top: -1px;
     width: 9px;
     height: 9px;
     background: white;
@@ -33,15 +35,14 @@
 .view-tree-leaf.has-children > .view-tree-leaf-toggle {
     visibility: visible;
 }
+.view-tree-leaf.non-collapsible:not(.collapsed) .view-tree-leaf-toggle {
+    visibility: hidden;
+}
 .view-tree-leaf-toggle::before {
-    content: '';
-    visibility: visible;
-    position: absolute;
-    z-index: -1;
-    left: 4px;
-    bottom: 4px;
-    height: 30px;
-    border-left: 1px solid #ccc;
+    content: '–';
+}
+.view-tree-leaf.collapsed > .view-tree-leaf-toggle::before {
+    content: '+';
 }
 .view-tree-leaf-toggle::after {
     content: '';
@@ -50,8 +51,10 @@
     z-index: -1;
     left: 4px;
     bottom: 4px;
+    height: 30px;
     width: 12px;
-    border-top: 1px solid #ccc;
+    border: solid #ccc;
+    border-width: 0 0 1px 1px;
 }
 
 .view-tree-leaf-content {
