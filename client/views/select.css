@@ -2,14 +2,16 @@
     box-sizing: border-box;
     position: relative;
     display: inline-flex;
+    overflow: hidden;
     flex-shrink: 0;
     align-items: center;
     min-width: 10ex;
+    max-width: 100%;
     padding-right: 1.2em;
 
     font-size: 14px;
     line-height: 20px;
-    height: 30px;
+    min-height: 30px;
     border-width: 1px;
     border-radius: 3px;
     border-style: solid;

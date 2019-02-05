@@ -13,7 +13,7 @@ export default function(discovery) {
                 view: 'menu-item',
                 data: '{ value: $, text: ' + text + ' or "" }',
                 content: item
-            }, currentValue || {}, context);
+            }, currentValue, context);
         }
 
         const { name, value, text, item = defaultItemRender, onInit, onChange } = config;
@@ -47,7 +47,9 @@ export default function(discovery) {
                                 }
                             }
                         }
-                    }, data, context);
+                    }, data, context).then(() =>
+                        popupEl.querySelector('input').focus()
+                    );
                 }
             });
         });
