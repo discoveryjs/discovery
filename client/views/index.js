@@ -2,6 +2,7 @@ export { default as alerts } from './alerts.js';
 export { default as autoLink } from './auto-link.js';
 export { default as badges } from './badges.js';
 export { default as block } from './block.js';
+export { default as button } from './button.js';
 export { default as checkbox } from './checkbox.js';
 export { default as columns } from './columns.js';
 export { default as contentFilter } from './content-filter.js';
