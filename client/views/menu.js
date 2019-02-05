@@ -2,7 +2,11 @@
 
 export default function(discovery) {
     discovery.view.define('menu', function(el, config, data, context) {
-        const { item, limit, onClick } = config;
+        const { item, limit, emptyText, onClick } = config;
+
+        if (emptyText !== false && emptyText !== '') {
+            el.setAttribute('emptyText', emptyText || 'No items');
+        }
 
         if (Array.isArray(data)) {
             discovery.view.renderList(el, {

@@ -19,7 +19,7 @@
     - Added `select` view
     - Added `signature` view
     - Improved `struct` view to show an object or an array signature when expanded and `[i]` action button is hovered
-    - Added `limit` option for `menu` view
+    - Added `limit` and `emptyText` options for `menu` view
     - Improved `tree` view:
         - Added `limitLines` option to limit lines count on root children render, limits to 25 lines by default; use `limitLines: false` to disable it
         - Changed `limit` option to limit children count (this option served as `limitLines` before)

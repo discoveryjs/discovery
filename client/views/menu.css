@@ -1,0 +1,6 @@
+.view-menu:empty::before {
+    content: attr(emptyText);
+    display: block;
+    padding: 4px 12px;
+    color: #888;
+}
