@@ -19,6 +19,13 @@ const defaultViewPresets = [
             view: 'ol',
             item: 'auto-link'
         }, null, 4)
+    },
+    {
+        name: 'Signature',
+        content: JSON.stringify({
+            view: 'signature',
+            expanded: 2
+        }, null, 4)
     }
 ];
 

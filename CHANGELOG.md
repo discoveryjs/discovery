@@ -27,6 +27,7 @@
         - Added `expanded` option to specify initial leaf expanded level
         - Added `collapsable` option to hide a toggle element when a leaf is expaned
         - Prevented large tree growing by keeping already visited data leafs collapsed
+    - Add signature preset on report page
 
 ## 1.0.0-beta.8 (30-01-2019)
 
