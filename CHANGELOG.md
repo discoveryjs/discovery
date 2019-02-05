@@ -1,19 +1,21 @@
 ## next
 
 - Client
-    - Added hover trigger mode for `Popup` view which enables with options to constructor:
-    ```js
-        new discovery.view.Popup({
-            hoverTriggers: string,
-            hoverElementToOptions: fn(triggerEl): object,
-            hoverPin: false | "popup-hover" | "trigger-click"
-        }
-    ```
-    - Added `className` option for `Popup` view
-    - Fixed `Popup` show/hide scenarios when several popups involved
-    - Fixed `Popup` closing when clicking on/inside a trigger element while a popup is visible, now it stays visible
-    - Fixed `Popup` z-index when several popups are shown
-    - Fixed `Popup` to set `max-width` for its content
+    - Changes and fixes in `Popup` view
+        - Added hover trigger mode which enables with options to constructor:
+        ```js
+            new discovery.view.Popup({
+                hoverTriggers: string,
+                hoverElementToOptions: fn(triggerEl): object,
+                hoverPin: false | "popup-hover" | "trigger-click"
+            }
+        ```
+        - Added `className` constructor option to set class name on popup's root element
+        - Added setting a `max-width` for its content
+        - Removed `xAnchor` option for `show()` method
+        - Fixed various show/hide issues when several popups involved
+        - Fixed popup closing when a click performs on/inside a trigger element while the popup is visible, now it stays visible
+        - Fixed z-index when several popups are shown
     - Added `select` view
     - Added `signature` view
     - Improved `struct` view to show an object or an array signature when expanded and `[i]` action button is hovered

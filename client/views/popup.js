@@ -162,12 +162,12 @@ class Popup {
     }
 
     show(triggerEl, options) {
-        const { render, xAnchor } = options || {};
+        const { render } = options || {};
         const box = getBoundingRect(triggerEl, document.body);
         const viewport = document.body.getBoundingClientRect();
         const availHeightTop = box.top - viewport.top - 3;
         const availHeightBottom = viewport.bottom - box.bottom - 3;
-        const availWidthLeft = box.left - viewport.right - 3;
+        const availWidthLeft = box.right - viewport.left - 3;
         const availWidthRight = viewport.right - box.left - 3;
 
         if (availHeightTop > availHeightBottom) {
@@ -182,7 +182,7 @@ class Popup {
             this.el.style.bottom = 'auto';
         }
 
-        if (xAnchor === 'right') {
+        if (availWidthLeft > availWidthRight) {
             // show to left
             this.el.style.left = 'auto';
             this.el.style.right = (viewport.right - box.right) + 'px';

@@ -177,7 +177,6 @@ export default function(discovery) {
                 onclick: (e) => {
                     e.target.blur();
                     shareOptionsPopup.show(e.target, {
-                        xAnchor: 'right',
                         render: (popupEl) => {
                             discovery.view.render(popupEl, {
                                 view: 'menu',
