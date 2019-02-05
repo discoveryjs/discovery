@@ -14,3 +14,28 @@
 .discovery-view-popup.no-hover {
     pointer-events: none;
 }
+
+.discovery-view-popup.no-hover[data-pin-mode="trigger-click"]::before,
+.discovery-view-popup.no-hover[data-pin-mode="trigger-click"]::after {
+    display: block;
+    visibility: hidden;
+    content: "Click to pin this popup";
+    padding: 2px 8px;
+    font-size: 10px;
+    text-align: center;
+    color: #888;
+    background: #f0f0f0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+.discovery-view-popup.no-hover[data-v-to="top"]::before {
+    position: absolute;
+    visibility: visible;
+    bottom: 0;
+}
+.discovery-view-popup.no-hover[data-v-to="bottom"]::after {
+    position: absolute;
+    visibility: visible;
+    top: 0;
+}
