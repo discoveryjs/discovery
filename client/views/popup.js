@@ -59,6 +59,8 @@ function getBoundingRect(element, relElement) {
     };
 }
 
+const elQueue = new Set();
+
 class Popup {
     constructor(options) {
         this.options = {
@@ -68,11 +70,6 @@ class Popup {
 
         this.el = document.createElement('div');
         this.el.className = 'discovery-view-popup';
-
-        Popup.els = Popup.els || new Set();
-        Popup.els.add(this.el);
-
-        Popup.elQueue = Popup.elQueue || new Set();
 
         this.hide = this.hide.bind(this);
         this.hideIfEventOutside = this.hideIfEventOutside.bind(this);
@@ -124,11 +121,7 @@ class Popup {
         const availWidthLeft = box.left - viewport.right - 3;
         const availWidthRight = viewport.right - box.left - 3;
 
-        [...Popup.els]
-            .filter(el => el.contains(triggerEl))
-            .forEach(el => Popup.elQueue.add(el));
-
-        Popup.elQueue.add(this.el);
+        elQueue.add(this.el);
 
         this.hideTimer = clearTimeout(this.hideTimer);
 
@@ -190,7 +183,7 @@ class Popup {
             this.hideTimer = clearTimeout(this.hideTimer);
             this.visible = false;
 
-            Popup.elQueue.delete(this.el);
+            elQueue.delete(this.el);
         }
     }
 
@@ -200,7 +193,7 @@ class Popup {
             return;
         }
 
-        const elQueueArray = [...Popup.elQueue];
+        const elQueueArray = [...elQueue];
 
         // element in queue on which event was triggered
         const elInQueue = elQueueArray.find(el => el.contains(event.target));
