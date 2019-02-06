@@ -10,6 +10,9 @@
     color: #666;
     white-space: pre;
 }
+.discovery-view-popup .view-signature {
+    background: none;
+}
 
 .view-signature .expand {
     padding: 2px;
@@ -46,6 +49,9 @@
     font-size: 90%;
     color: #ddd;
 }
+.view-signature .count::before {
+    content: attr(data-value);
+}
 .view-signature .count:hover {
     color: #aaa;
 }
@@ -56,12 +62,13 @@
     color: #bd6476;
     cursor: pointer;
 }
+.view-signature .property.discovery-view-popup-active,
 .view-signature .property:hover {
     background-color: #eee;
 }
 .view-signature .optional {
     color: #ff6e13;
-    margin-left: 2px;
+    padding-left: 2px;
 }
 
 .view-signature .type {
@@ -70,6 +77,178 @@
     color: #07a;
     cursor: pointer;
 }
+.view-signature .type.discovery-view-popup-active,
 .view-signature .type:hover {
     background-color: #eee;
+}
+
+.signature-details {
+    padding: 10px;
+}
+.signature-details > * {
+    max-width: 420px;
+}
+
+.signature-details .path {
+    position: relative;
+    top: -4px;
+    margin-bottom: -2px;
+    font-size: 12px;
+    color: #888;
+    opacity: .8;
+}
+.signature-details .path::before {
+    content: "@.";
+    color: #bd6476;
+}
+.signature-details .path > .view-list-item {
+    color: #bd6476;
+}
+.signature-details .path > .view-list-item:not(:first-child)::before {
+    content: ".";
+    color: #888;
+    padding: 0 1px 0 2px;
+}
+
+.signature-details .view-h1 {
+    margin: 20px 0 15px;
+    line-height: 1;
+    font-size: 180%;
+}
+.signature-details .view-h1.property {
+    color: #bd6476;
+}
+.signature-details .view-h1.type {
+    color: #07a;
+    margin-bottom: 8px;
+}
+.signature-details .path + .view-h1,
+.signature-details .view-h1:first-child {
+    margin-top: 0;
+}
+.signature-details .view-h1:last-child {
+    margin-bottom: 0;
+}
+.signature-details .usage-stat {
+    display: inline-block;
+    padding: 0 2ex 0 1ex;
+    font-size: 12px;
+    font-weight: normal;
+    color: #aaa;
+}
+.signature-details .usage-stat.optional::before {
+    content: 'optional ';
+    color: #ff6e13;
+}
+.signature-details .num {
+    /* padding: 2px; */
+    /* background: #ecf6fd; */
+    color: #5193c1;
+}
+.signature-details .pie-stat {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+.signature-details .pie-stat .list-header {
+    font-size: 11px;
+    color: #aaa;
+}
+.signature-details .pie-stat .view-list {
+    max-width: 270px;
+}
+.signature-details .pie-stat .view-list-item {
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+}
+.signature-details .pie-stat .dot {
+    display: inline-block;
+    min-width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+}
+.signature-details .pie-stat .caption {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 5px;
+}
+.signature-details .pie-stat .caption:empty::before {
+    content: 'empty string';
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: #f0f0f0;
+    color: #888;
+    font-size: 11px;
+}
+.signature-details .pie-stat .times {
+    color: #aaa;
+    font-size: 11px;
+}
+.signature-details .pie-stat .pie {
+    height: var(--size);
+    width: var(--size);
+    margin: 0 20px 0 10px;
+    border-radius: 50%;
+}
+
+.signature-details .overview-stat {
+    color: #aaa;
+    font-size: 12px;
+}
+.signature-details .overview-stat + .view-content-filter {
+    margin-top: 8px;
+}
+.signature-details .view-content-filter > .view-input {
+    margin-bottom: 4px;
+}
+
+.signature-details .view-menu-item {
+    display: flex;
+    align-items: baseline;
+}
+.signature-details .view-menu-item > .caption {
+    flex: 1;
+}
+.signature-details .view-menu-item > .caption:empty::before {
+    content: '[empty string]';
+    color: #888;
+}
+.signature-details .view-menu-item > .count {
+    color: #aaa;
+    font-size: 11px;
+}
+.signature-details .struct-list > .view-list-item {
+    position: relative;
+}
+.signature-details .struct-list > .view-list-item > .view-struct {
+    overflow: hidden;
+}
+.signature-details .struct-list > .view-list-item > .count {
+    position: absolute;
+    top: 7px;
+    right: 0;
+    color: #aaa;
+    font-size: 11px;
+    padding: 0 4px;
+    border-radius: 3px 0 0 3px;
+    background: rgba(255, 255, 255, .9);
+}
+
+.signature-details .array-types {
+    padding: 8px 0 8px 12px;
+    margin-top: 4px;
+    border-left: 2px solid #07a;
+}
+.signature-details .array-types::before {
+    content: 'Array value types';
+    display: inline-block;
+    position: relative;
+    top: -12px;
+    left: -12px;
+    padding: 2px 4px;
+    color: white;
+    font-size: 10px;
+    line-height: 12px;
+    background: #07a;
 }

@@ -2,18 +2,23 @@
 
 import { createElement, createText, createFragment } from '../core/utils/dom.js';
 
+const colors = ['#7ede78', '#f5f061', '#f7b28a', '#af8af7', '#61a3f5', '#ef9898', '#80ccb4', '#b1ae8a', '#e290d3', '#91d9ea', '#bbb'];
 const signatureTypeOrder = [
+    'null',
+    'undefined',
     'string',
     'number',
     'bigint',
     'boolean',
     'symbol',
     'function',
-    'null',
-    'undefined',
     'array',
     'object'
 ];
+
+function fixedNum(num, prec) {
+    return num.toFixed(prec).replace(/\.?0+$/, '');
+}
 
 function collectObjectMap(value, expanded, objectStat) {
     for (let key in value) {
@@ -26,15 +31,16 @@ function collectObjectMap(value, expanded, objectStat) {
             break;
         }
 
-        let propMap = objectStat.properties[key];
+        let propMap;
 
-        if (!propMap) {
+        if (key in objectStat.properties) {
+            propMap = objectStat.properties[key];
+            propMap.count++;
+        } else {
             propMap = objectStat.properties[key] = {
                 count: 1,
                 map: Object.create(null)
             };
-        } else {
-            propMap.count++;
         }
 
         collectStat(value[key], expanded - 1, propMap.map);
@@ -60,33 +66,31 @@ function collectStat(value, expanded, stat = Object.create(null)) {
 
         case 'object':
             if ('object' in stat === false) {
-                stat.object = {
-                    values: new Set(),
-                    count: 0,
-                    properties: Object.create(null)
-                };
+                stat.object = new Map();
+                stat.object.count = 0;
+                stat.object.properties = Object.create(null);
             }
 
             stat.object.count++;
 
-            if (!stat.object.values.has(value)) {
-                stat.object.values.add(value);
+            if (!stat.object.has(value)) {
+                stat.object.set(value, 1);
                 collectObjectMap(value, expanded, stat.object);
+            } else {
+                stat.object.set(value, stat.object.get(value) + 1);
             }
 
             break;
 
         case 'array':
             if ('array' in stat === false) {
-                stat.array = {
-                    values: new Set(),
-                    count: 0,
-                    map: Object.create(null)
-                };
+                stat.array = new Map();
+                stat.array.count = 0;
+                stat.array.map = Object.create(null);
             }
 
             stat.array.count++;
-            stat.array.values.add(value);
+            stat.array.set(value, (stat.array.get(value) || 0) + 1);
 
             for (let i = 0; i < value.length; i++) {
                 collectStat(value[i], expanded, stat.array.map);
@@ -102,22 +106,24 @@ function getStatCount(stat) {
     let count = 0;
 
     for (let type in stat) {
-        switch (type) {
-            default:
-                stat[type].forEach(occurrences => count += occurrences);
-                break;
-
-            case 'object':
-            case 'array':
-                count += stat[type].count;
-                break;
-        }
+        stat[type].forEach(occurrences => count += occurrences);
     }
 
     return count;
 }
 
-function renderStat(el, stat, elementToData, offset = '') {
+function getStatCounts(stat) {
+    let result = Object.create(null);
+
+    for (let type in stat) {
+        result[type] = 0;
+        stat[type].forEach(occurrences => result[type] += occurrences);
+    }
+
+    return result;
+}
+
+function renderStat(el, stat, elementToData, path = [], offset = '') {
     Object.keys(stat)
         .sort((a, b) => signatureTypeOrder.indexOf(a) - signatureTypeOrder.indexOf(b))
         .forEach((type, idx) => {
@@ -131,6 +137,7 @@ function renderStat(el, stat, elementToData, offset = '') {
 
                     elementToData.set(typeEl, {
                         type: 'type',
+                        path,
                         stat,
                         name: type
                     });
@@ -138,18 +145,20 @@ function renderStat(el, stat, elementToData, offset = '') {
                 }
 
                 case 'object': {
-                    const { values, count, properties } = stat[type];
+                    const values = stat[type];
+                    const { properties } = stat[type];
 
                     if (properties === null) {
                         elementToData.set(el.appendChild(createElement('span', 'expand', '{…}')), {
                             type: 'expand',
+                            path,
                             map: stat[type],
                             offset
                         });
                         break;
                     }
 
-                    const totalCount = values.size;
+                    const valuesCount = values.size;
                     const propertyOffset = offset + '    ';
                     const contentEl = el.appendChild(createElement('span', 'object', [
                         '{',
@@ -158,12 +167,13 @@ function renderStat(el, stat, elementToData, offset = '') {
 
                     elementToData.set(contentEl, {
                         type: 'collapse',
+                        path,
                         map: stat[type],
                         offset
                     });
 
-                    if (count > 1) {
-                        contentEl.appendChild(createElement('span', 'count', String(count)));
+                    if (valuesCount > 1) {
+                        contentEl.appendChild(createElement('span', 'count')).dataset.value = String(valuesCount);
                     }
 
                     for (let name in properties) {
@@ -172,6 +182,7 @@ function renderStat(el, stat, elementToData, offset = '') {
 
                         elementToData.set(propertyEl, {
                             type: 'property',
+                            path,
                             stat,
                             name,
                             map
@@ -180,12 +191,12 @@ function renderStat(el, stat, elementToData, offset = '') {
                         contentEl.appendChild(createText(`\n${propertyOffset}`));
                         contentEl.appendChild(propertyEl);
 
-                        if (count !== totalCount) {
+                        if (count !== valuesCount) {
                             propertyEl.appendChild(createElement('span', 'optional', '?'));
                         }
 
                         contentEl.appendChild(createText(': '));
-                        renderStat(contentEl, map, elementToData, propertyOffset);
+                        renderStat(contentEl, map, elementToData, path.concat(name), propertyOffset);
                         contentEl.appendChild(createText(';'));
                     }
 
@@ -200,7 +211,7 @@ function renderStat(el, stat, elementToData, offset = '') {
 
                 case 'array':
                     el.appendChild(createText('['));
-                    renderStat(el, stat[type].map, elementToData, offset);
+                    renderStat(el, stat[type].map, elementToData, path, offset);
                     el.appendChild(createText(']'));
 
                     break;
@@ -208,14 +219,365 @@ function renderStat(el, stat, elementToData, offset = '') {
         });
 }
 
+function renderPropertyDetails(el, data, discovery) {
+    const { count, map } = data.stat.object.properties[data.name];
+    const total = data.stat.object.count;
+    const output = {
+        name: data.name,
+        path: data.path,
+        total,
+        count,
+        percent: fixedNum(100 * count / total, 1) + '%'
+    };
+
+    discovery.view.render(el, [
+        {
+            view: 'inline-list',
+            when: 'path',
+            className: 'path',
+            data: 'path'
+        },
+        {
+            view: 'h1',
+            className: 'property',
+            content: [
+                'text:name',
+                {
+                    view: 'html',
+                    when: 'count != total',
+                    data: `"<span class=\\"usage-stat optional\\">" + (
+                        "(in <span class=\\"num\\">" + count + "</span> of <span class=\\"num\\">" + total + "</span> objects, <span class=\\"num\\">" + percent + "</span>)"
+                    ) + "</span>"`
+                }
+            ]
+        }
+    ], output, {});
+
+    renderTypeStat(el, {
+        map,
+        count
+    }, discovery);
+}
+
+function renderTypeStat(el, { map, count }, discovery) {
+    const typeCounts = getStatCounts(map);
+    const typeStat = [];
+    const output = {
+        count,
+        typeStat
+    };
+
+    const types = signatureTypeOrder.filter(type => type in map);
+    let acc = 0;
+    Object.entries(typeCounts).sort(([,a], [,b]) => a - b).reverse().forEach(([name, val], idx) => {
+        acc += val / count;
+        typeStat.push({
+            name,
+            count: val,
+            percent: fixedNum(100 * val / count, 1),
+            color: colors[idx],
+            pie: colors[idx] + ' 0, ' + colors[idx] + ' ' + acc + 'turn'
+        });
+    });
+
+    discovery.view.render(el, {
+        view: 'block',
+        when: 'typeStat.size() > 1',
+        className: 'pie-stat',
+        content: [
+            {
+                view: 'block',
+                content: {
+                    view: 'html',
+                    data: '"<div class=\\"pie\\" style=\\"--size: 100px; background: conic-gradient(' + typeStat.map(s => s.pie) + ')\\"></div>"'
+                }
+            },
+            {
+                view: 'block',
+                content: [
+                    'html:"<span class=\\"list-header\\">Types usage:</span>"',
+                    {
+                        view: 'list',
+                        data: 'typeStat',
+                        item: `html:
+                            "<span class=\\"dot\\" style=\\"--size: 10px; background-color: " + color + "\\"></span> " +
+                            "<span class=\\"caption\\">" + name + "</span>" +
+                            "<span class=\\"times\\"> × " + count + " (" + percent + "%)</span>"
+                        `
+                    }
+                ]
+            }
+        ]
+    }, output, {});
+
+    types.forEach((name) => {
+        renderTypeDetails(el, { name, stat: map }, discovery);
+    });
+}
+
+function renderTypeDetails(el, data, discovery) {
+    const stat = data.stat[data.name];
+    const total = getStatCount(data.stat);
+    const renderSections = [];
+    let output = data;
+
+    switch (data.name) {
+        case 'number': {
+            const values = [];
+            let sum = 0;
+            let count = 0;
+            let duplicated = 0;
+            let min = Infinity;
+            let max = -Infinity;
+
+            stat.forEach((occurrences, value) => {
+                values.push({
+                    count: occurrences,
+                    value
+                });
+
+                sum += value * occurrences;
+                count += occurrences;
+
+                if (occurrences > 1) {
+                    duplicated++;
+                }
+
+                if (value < min) {
+                    min = value;
+                }
+
+                if (value > max) {
+                    max = value;
+                }
+            });
+
+            output = {
+                count,
+                distinct: stat.size,
+                duplicated,
+                min,
+                max,
+                sum,
+                avg: fixedNum(sum / count, 3),
+                values: values.sort((a, b) => b.count - a.count || a.value - b.value)
+            };
+
+            renderSections.push({
+                view: 'block',
+                className: 'overview-stat',
+                content: `html:
+                    "range: (min) <span class=\\"num\\">" + min + "</span> ... " +
+                    "<span class=\\"num\\">" + max + "</span> (max), " +
+                    "avg: <span class=\\"num\\">" + avg + "</span>"
+                `
+            });
+
+            break;
+        }
+
+        default: {
+            const values = [];
+            let count = 0;
+            let duplicated = 0;
+
+            stat.forEach((occurrences, value) => {
+                values.push({
+                    count: occurrences,
+                    value
+                });
+
+                count += occurrences;
+
+                if (occurrences > 1) {
+                    duplicated++;
+                }
+            });
+
+            output = {
+                count,
+                distinct: stat.size,
+                duplicated,
+                values: data.name === 'object' || data.name === 'array'
+                    ? values.sort((a, b) => b.count - a.count)
+                    : values.sort((a, b) => b.count - a.count || (a.value > b.value) || -(a.value < b.value))
+            };
+
+            break;
+        }
+    }
+
+    if (data.name !== 'undefined' && data.name !== 'null') {
+        renderSections.unshift({
+            view: 'block',
+            className: 'overview-stat',
+            content: [
+                'html:"<span class=\\"num\\">" + count + "</span> values, "',
+                {
+                    view: 'switch',
+                    content: [
+                        { when: 'count = distinct', content: 'text:"all unique, no duplicates"' },
+                        { content: [
+                            'html:"<span class=\\"num\\">" + distinct + "</span> unique, "',
+                            'html:duplicated = distinct ? "all occur more than once" : "<span class=\\"num\\">" + duplicated + "</span> occur more than once"'
+                        ] }
+                    ]
+                }
+            ]
+        });
+
+        if (output.values &&
+            output.values.length > 1 &&
+            output.duplicated &&
+            data.name !== 'object' &&  // exclude object and array since we can't presentate those values in legend in short at the moment
+            data.name !== 'array') {
+            const maxSegmentsCount = output.values.length === 10 ? 10 : Math.min(9, output.values.length);
+            let duplicateCount = 0;
+            let segments = [];
+
+            for (let i = 0, acc = 0; i < maxSegmentsCount; i++) {
+                const { count, value } = output.values[i];
+
+                duplicateCount += count;
+                acc += count / output.count;
+                segments.push({
+                    name: value,
+                    count,
+                    percent: fixedNum(100 * count / output.count, 1),
+                    color: colors[i],
+                    pie: colors[i] + ' 0, ' + colors[i] + ' ' + acc + 'turn'
+                });
+            }
+
+            if (segments.length) {
+                const count = output.count - duplicateCount;
+
+                if (count > 0) {
+                    segments.push({
+                        name: '...',
+                        count,
+                        percent: fixedNum(100 * count / output.count, 1),
+                        color: colors[segments.length],
+                        pie: colors[segments.length] + ' 0, ' + colors[segments.length] + ' 1turn'
+                    });
+                }
+
+                renderSections.push({
+                    view: 'block',
+                    className: 'pie-stat',
+                    data: segments,
+                    content: [
+                        {
+                            view: 'block',
+                            content: {
+                                view: 'html',
+                                data: '"<div class=\\"pie\\" style=\\"--size: 100px; background: conic-gradient(' + segments.map(s => s.pie) + ')\\"></div>"'
+                            }
+                        },
+                        {
+                            view: 'block',
+                            content: [
+                                'html:"<span class=\\"list-header\\">Dominators:</span>"',
+                                {
+                                    view: 'list',
+                                    item: `html:
+                                        "<span class=\\"dot\\" style=\\"--size: 10px; background-color: " + color + "\\"></span> " +
+                                        "<span class=\\"caption\\" title=\\"" + name + "\\">" + name + "</span>" +
+                                        "<span class=\\"times\\"> × " + count + " (" + percent + "%)</span>"
+                                    `
+                                }
+                            ]
+                        }
+                    ]
+                });
+            }
+        }
+
+        if (data.name === 'number' || data.name === 'string') {
+            renderSections.push({
+                view: 'content-filter',
+                name: 'filter',
+                content: {
+                    view: 'menu',
+                    data: 'values.[no #.filter or value~=#.filter].sort(<value>)',
+                    item: [
+                        {
+                            view: 'block',
+                            className: 'caption',
+                            content: 'text-match:{ text: value, match: #.filter }'
+                        },
+                        {
+                            view: 'block',
+                            when: 'count > 1',
+                            className: 'count',
+                            content: 'text:" × " + count'
+                        }
+                    ]
+                }
+            });
+        }
+
+        if (data.name === 'object') {
+            renderSections.push({
+                view: 'list',
+                className: 'struct-list',
+                data: 'values',
+                item: [
+                    'struct:value',
+                    {
+                        view: 'block',
+                        when: 'count > 1',
+                        className: 'count',
+                        content: 'text:" × " + count'
+                    }
+                ]
+            });
+        }
+
+        if (data.name === 'array' && Object.keys(stat.map).length) {
+            renderSections.push({
+                view: 'block',
+                className: 'array-types',
+                content: (el) => renderTypeStat(el, stat, discovery)
+            });
+        }
+    }
+
+    discovery.view.render(el, [
+        {
+            view: 'inline-list',
+            when: 'path',
+            className: 'path',
+            data: 'path'
+        },
+        {
+            view: 'h1',
+            className: 'type',
+            content: [
+                'text:name',
+                `html:"<span class=\\"usage-stat\\">" + (
+                    count = total
+                        ? "only this type is used"
+                        : "used in <span class=\\"num\\">" + count + "</span> of <span class=\\"num\\">" + total + "</span> cases (<span class=\\"num\\">" + percent + "</span>)"
+                ) + "</span>"`
+            ]
+        },
+        ...renderSections
+    ], {
+        name: data.name,
+        path: data.path,
+        total,
+        percent: fixedNum(100 * output.count / total, 1) + '%',
+        ...output
+    }, {});
+}
+
 export default function(discovery) {
     const elementToData = new WeakMap();
     const clickHandler = ({ target }) => {
         let activeEl = target.closest(`
             .view-signature .expand,
-            .view-signature .collapse,
-            .view-signature .property,
-            .view-signature .type
+            .view-signature .collapse
         `);
 
         if (!activeEl) {
@@ -229,164 +591,32 @@ export default function(discovery) {
         const data = elementToData.get(activeEl);
 
         if (data) {
-            const { type, map, offset } = data;
+            const { path, map, offset } = data;
+            const fragment = createFragment();
 
-            switch (type) {
-                case 'property':
-                case 'type':
-                    // TODO
-                    console.log(data);
-                    break;
-
-                case 'expand':
-                case 'collapse': {
-                    const fragment = createFragment();
-
-                    if (map.properties === null) {
-                        map.properties = Object.create(null);
-                        map.values.forEach(value => collectObjectMap(value, 1, map));
-                    } else {
-                        map.properties = null;
-                    }
-
-                    renderStat(fragment, { object: map }, elementToData, offset);
-                    activeEl.replaceWith(fragment);
-
-                    break;
-                }
+            if (map.properties === null) {
+                map.properties = Object.create(null);
+                map.forEach((_, value) => collectObjectMap(value, 1, map));
+            } else {
+                map.properties = null;
             }
+
+            renderStat(fragment, { object: map }, elementToData, path, offset);
+            activeEl.replaceWith(fragment);
         }
     };
 
     const createRender = {
-        property: data => el => {
-            const count = data.stat.object.properties[data.name].count;
-            const total = data.stat.object.count;
-            const output = {
-                total,
-                count,
-                percent: (100 * count / total).toFixed(1) + '%'
-            };
-
-            discovery.view.render(el, [
-                {
-                    view: 'block',
-                    content: `text:
-                        count = total
-                            ? "Always defined"
-                            : "Defined in " + count + " of " + total + " objects (" + percent + ")"
-                    `
-                },
-                {
-                    view: 'struct',
-                    expanded: 2
-                }
-            ], output, {});
-        },
-        type: data => el => {
-            const stat = data.stat[data.name];
-            const total = getStatCount(data.stat);
-            let output = data;
-
-            switch (data.name) {
-                case 'number': {
-                    const values = [];
-                    let sum = 0;
-                    let count = 0;
-                    let duplicated = 0;
-                    let min = Infinity;
-                    let max = -Infinity;
-
-                    stat.forEach((occurrences, value) => {
-                        values.push({
-                            count: occurrences,
-                            value
-                        });
-
-                        sum += value * occurrences;
-                        count += occurrences;
-
-                        if (occurrences > 1) {
-                            duplicated++;
-                        }
-
-                        if (value < min) {
-                            min = value;
-                        }
-
-                        if (value > max) {
-                            max = value;
-                        }
-                    });
-
-                    output = {
-                        count,
-                        distinct: stat.size,
-                        duplicated,
-                        min,
-                        max,
-                        sum,
-                        avg: sum / count,
-                        values: values.sort((a, b) => b.count - a.count || a.value - b.value)
-                    };
-
-                    break;
-                }
-
-                default: {
-                    const values = [];
-                    let count = 0;
-                    let duplicated = 0;
-
-                    stat.forEach((occurrences, value) => {
-                        values.push({
-                            count: occurrences,
-                            value
-                        });
-
-                        count += occurrences;
-
-                        if (occurrences > 1) {
-                            duplicated++;
-                        }
-                    });
-
-                    output = {
-                        count,
-                        distinct: stat.size,
-                        duplicated,
-                        values: values.sort((a, b) => b.count - a.count || a.value - b.value)
-                    };
-
-                    break;
-                }
-            }
-
-            discovery.view.render(el, [
-                {
-                    view: 'block',
-                    content: `text:
-                        count = total
-                            ? "Always used this type"
-                            : "Type used in " + count + " of " + total + " cases (" + percent + ")"
-                    `
-                },
-                {
-                    view: 'struct',
-                    expanded: 2
-                }
-            ], {
-                total,
-                percent: (100 * output.count / total).toFixed(1) + '%',
-                ...output
-            });
-        }
+        property: data => el => renderPropertyDetails(el, data, discovery),
+        type: data => el => renderTypeDetails(el, data, discovery)
     };
 
     // single event handler for all `signature` view instances
     document.addEventListener('click', clickHandler, false);
 
     new discovery.view.Popup({
+        className: 'signature-details',
+        hoverPin: 'trigger-click',
         hoverTriggers: `
             .view-signature .property,
             .view-signature .type
