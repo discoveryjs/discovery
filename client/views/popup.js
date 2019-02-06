@@ -145,9 +145,8 @@ class Popup {
 
             if (this.options.hoverPin === 'trigger-click') {
                 document.addEventListener('click', (event) => {
-                    if (this.lastHoverTriggerEl && this.lastHoverTriggerEl.contains(event.target)) {
+                    if (this.lastHoverTriggerEl && this.lastTriggerEl.contains(event.target)) {
                         this.el.classList.remove('no-hover');
-                        this.lastHoverTriggerEl = null;
                         event.stopPropagation();
                     }
                 }, true);
