@@ -1,7 +1,18 @@
-## next
+## 1.0.0-beta.9 (05-02s-2019)
 
 - Client
-    - Changes and fixes in `Popup` view
+    - Added `signature` view to inspect a signature of dataset with details on value axises
+    - Added `select` view
+    - Added button views: `button`, `button-primary`, `button-danger` and `button-warning`
+    - Added `limit` and `emptyText` options for `menu` view
+    - Improved `struct` view to show an object or an array signature when expanded and `[𝕊]` action button is hovered
+    - Improved `tree` view:
+        - Added `limitLines` option to limit lines count on root children render, limits to 25 lines by default; use `limitLines: false` to disable it
+        - Changed `limit` option to limit children count (this option served as `limitLines` before)
+        - Added `expanded` option to specify initial leaf expanded level
+        - Added `collapsable` option to hide a toggle element when a leaf is expaned
+        - Prevented large tree growing by keeping already visited data leafs collapsed
+    - Improved `Popup` view:
         - Added hover trigger mode which enables with options to constructor:
         ```js
             new discovery.view.Popup({
@@ -17,17 +28,6 @@
         - Fixed various show/hide issues when several popups involved
         - Fixed popup closing when a click performs on/inside a trigger element while the popup is visible, now it stays visible
         - Fixed z-index when several popups are shown
-    - Added button views: `button`, `button-primary`, `button-danger` and `button-warning`
-    - Added `select` view
-    - Added `signature` view
-    - Added `limit` and `emptyText` options for `menu` view
-    - Improved `struct` view to show an object or an array signature when expanded and `[𝕊]` action button is hovered
-    - Improved `tree` view:
-        - Added `limitLines` option to limit lines count on root children render, limits to 25 lines by default; use `limitLines: false` to disable it
-        - Changed `limit` option to limit children count (this option served as `limitLines` before)
-        - Added `expanded` option to specify initial leaf expanded level
-        - Added `collapsable` option to hide a toggle element when a leaf is expaned
-        - Prevented large tree growing by keeping already visited data leafs collapsed
     - Added signature preset on report page
     - Added view editor input prettify button on report page
 
