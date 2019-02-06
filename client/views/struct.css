@@ -1,14 +1,17 @@
 .view-struct {
     position: relative;
-    overflow: auto;
     margin: 1px 0;
-    padding: 8px;    
+    padding: 7px 8px;
+    overflow: auto;
     font-family: Consolas, Monaco, monospace;
     font-size: 11px;
     line-height: 18px;
     background: #fafafa;
     color: #666;
     white-space: nowrap;
+}
+.view-struct.struct-expand {
+    cursor: pointer;
 }
 .view-struct .struct-expand-value {
     display: inline-block;
@@ -43,11 +46,14 @@
 .view-struct .show-signature {
     cursor: default;
 }
+.discovery-view-popup .view-struct .show-signature { /* FIXME: temporary, until multiple popups support */
+    display: none;
+}
 .view-struct .struct-collapse-value::before {
     content: "–";
 }
 .view-struct .show-signature::before {
-    content: "i";
+    content: "𝕊";
 }
 .view-struct .value-actions::before {
     content: "ƒ";
@@ -57,7 +63,7 @@
 .view-struct .struct-collapse-value:hover,
 .view-struct .show-signature:hover,
 .view-struct .value-actions:hover,
-.view-struct .value-actions.discovery-view-popup-active {
+.view-struct .discovery-view-popup-active {
     color: #333;
     background: #eee;
     border-color: #d0d0d0;
@@ -80,6 +86,9 @@
 .view-struct .keyword,
 .view-struct .number {
     color: #07a;
+}
+.view-struct .num-delim {
+    padding-left: 3px;
 }
 .view-struct .string,
 .view-struct .string a {

@@ -42,8 +42,15 @@ function value2htmlString(value, linear) {
             return token('keyword', value);
 
         case 'number':
-        case 'bigint':
-            return token('number', value);
+        case 'bigint': {
+            let str = String(value);
+
+            if (str.length > 3) {
+                str = str.replace(/\..+$|\B(?=(\d{3})+(\D|$))/g, m => m || '<span class="num-delim"></span>');
+            }
+
+            return token('number', str);
+        }
 
         case 'symbol':
             return token('symbol', value);
@@ -312,6 +319,7 @@ export default function(discovery) {
 
     // init signature popup
     new discovery.view.Popup({
+        hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
         hoverElementToOptions: function(triggerEl) {
             const data = elementToData.get(triggerEl.parentNode);
