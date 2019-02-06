@@ -9,25 +9,35 @@ const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
     {
         name: 'Table',
-        content: JSON.stringify({
+        content: toFormattedViewSource({
             view: 'table'
-        }, null, 4)
+        })
     },
     {
         name: 'Auto-link list',
-        content: JSON.stringify({
+        content: toFormattedViewSource({
             view: 'ol',
             item: 'auto-link'
-        }, null, 4)
+        })
     },
     {
         name: 'Signature',
-        content: JSON.stringify({
+        content: toFormattedViewSource({
             view: 'signature',
             expanded: 2
-        }, null, 4)
+        })
     }
 ];
+
+function toFormattedViewSource(value) {
+    return JSON
+        .stringify(value, null, 4)
+        .replace(/"((?:\\.|[^"])*)"(:?)/g,
+            (_, content, colon) => colon && /^[a-z$_][a-z$_\d]*$/i.test(content)
+                ? content + colon
+                : `'${content.replace(/\\"/g, '"').replace(/'/g, '\\\'')}'` + colon
+        );
+}
 
 function valueDescriptor(value) {
     if (Array.isArray(value)) {
@@ -290,6 +300,24 @@ export default function(discovery) {
             class: 'view-editor',
             hidden: true
         }, [
+            createElement('button', {
+                class: 'view-button formatting',
+                title: 'Prettify (input should be a JSON)',
+                onclick() {
+                    viewEditor.focus();
+
+                    try {
+                        const currentText = viewEditor.getValue().trim();
+                        const json = new Function('return 0,' + currentText)();
+
+                        updateParams({
+                            view: toFormattedViewSource(json)
+                        });
+                    } catch (e) {
+                        console.error('[Discovery] Prettify failed', e);
+                    }
+                }
+            }),
             viewEditor.el,
             createElement('div', 'editor-toolbar', [
                 createElement('div', 'editor-toolbar-view-dict', [

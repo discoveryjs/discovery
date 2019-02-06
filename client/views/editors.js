@@ -78,6 +78,10 @@ class Editor extends Emitter {
             this.cm.setValue(value || '');
         }
     }
+
+    focus() {
+        this.cm.focus();
+    }
 }
 
 class QueryEditor extends Editor {
