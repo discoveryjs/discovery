@@ -252,7 +252,28 @@ export default function(discovery) {
 
     const elementToData = new WeakMap();
     const structViewRoots = new WeakSet();
-    const valueActionsPopup = new discovery.view.Popup();
+    const valueActionsPopup = new discovery.view.Popup({
+        render: (popupEl, triggerEl) => {
+            const value = elementToData.get(triggerEl.parentNode);
+
+            discovery.view.render(popupEl, {
+                view: 'menu',
+                onClick(item) {
+                    valueActionsPopup.hide();
+                    item.action();
+                }
+            }, [
+                {
+                    text: 'Copy as JSON (formatted)',
+                    action: () => copyText(JSON.stringify(value, null, 4))
+                },
+                {
+                    text: 'Copy as JSON (compact)',
+                    action: () => copyText(JSON.stringify(value))
+                }
+            ]);
+        }
+    });
     const clickHandler = ({ target }) => {
         let cursor = target.closest(`
             .view-struct.struct-expand,
@@ -288,29 +309,7 @@ export default function(discovery) {
             }
         } else if (cursor.classList.contains('value-actions')) {
             // actions
-            valueActionsPopup.show(cursor, {
-                render: (popupEl) => {
-                    const value = elementToData.get(cursor.parentNode);
-
-                    discovery.view.render(popupEl, {
-                        view: 'menu',
-                        data: [
-                            {
-                                text: 'Copy as JSON (formatted)',
-                                action: () => copyText(JSON.stringify(value, null, 4))
-                            },
-                            {
-                                text: 'Copy as JSON (compact)',
-                                action: () => copyText(JSON.stringify(value))
-                            }
-                        ],
-                        onClick(item) {
-                            valueActionsPopup.hide();
-                            item.action();
-                        }
-                    });
-                }
-            });
+            valueActionsPopup.show(cursor);
         }
     };
 
@@ -321,15 +320,13 @@ export default function(discovery) {
     new discovery.view.Popup({
         hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
-        hoverElementToOptions: function(triggerEl) {
+        render: function(popupEl, triggerEl) {
             const data = elementToData.get(triggerEl.parentNode);
 
-            return {
-                render: el => discovery.view.render(el, {
-                    view: 'signature',
-                    expanded: 2
-                }, data)
-            };
+            discovery.view.render(popupEl, {
+                view: 'signature',
+                expanded: 2
+            }, data);
         }
     });
 

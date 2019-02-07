@@ -25,33 +25,31 @@ export default function(discovery) {
                 return;
             }
 
-            variantsPopup.show(el, {
-                render(popupEl) {
-                    discovery.view.render(popupEl, {
-                        view: 'content-filter',
-                        data: '.({ value: $, text: ' + text + ' })',
-                        content: {
-                            view: 'menu',
-                            data: '.[no #.filter or text~=#.filter]',
-                            item,
-                            onClick: (data) => {
-                                variantsPopup.hide();
+            variantsPopup.show(el, popupEl =>
+                discovery.view.render(popupEl, {
+                    view: 'content-filter',
+                    data: '.({ value: $, text: ' + text + ' })',
+                    content: {
+                        view: 'menu',
+                        data: '.[no #.filter or text~=#.filter]',
+                        item,
+                        onClick: (data) => {
+                            variantsPopup.hide();
 
-                                if (currentValue !== data.value) {
-                                    currentValue = data.value;
-                                    renderCaption();
+                            if (currentValue !== data.value) {
+                                currentValue = data.value;
+                                renderCaption();
 
-                                    if (typeof onChange === 'function') {
-                                        onChange(data.value, name);
-                                    }
+                                if (typeof onChange === 'function') {
+                                    onChange(data.value, name);
                                 }
                             }
                         }
-                    }, data, context).then(() =>
-                        popupEl.querySelector('input').focus()
-                    );
-                }
-            });
+                    }
+                }, data, context).then(() =>
+                    popupEl.querySelector('input').focus()
+                )
+            );
         });
 
         if (typeof onInit === 'function') {

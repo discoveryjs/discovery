@@ -606,14 +606,10 @@ export default function(discovery) {
         }
     };
 
-    const createRender = {
-        property: data => el => renderPropertyDetails(el, data, discovery),
-        type: data => el => renderTypeDetails(el, data, discovery)
-    };
-
     // single event handler for all `signature` view instances
     document.addEventListener('click', clickHandler, false);
 
+    // signature details popup
     new discovery.view.Popup({
         className: 'signature-details',
         hoverPin: 'trigger-click',
@@ -621,12 +617,16 @@ export default function(discovery) {
             .view-signature .property,
             .view-signature .type
         `,
-        hoverElementToOptions: function(triggerEl) {
+        render: function(popupEl, triggerEl) {
             const data = elementToData.get(triggerEl);
 
-            return {
-                render: createRender[data.type](data)
-            };
+            switch (data.type) {
+                case 'property':
+                    return renderPropertyDetails(popupEl, data, discovery);
+
+                case 'type':
+                    return renderTypeDetails(popupEl, data, discovery);
+            }
         }
     });
 

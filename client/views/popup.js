@@ -5,8 +5,8 @@ const openedPopups = [];
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 const defaultOptions = {
     hoverTriggers: null,
-    hoverElementToOptions: el => el,
-    hoverPin: false
+    hoverPin: false,
+    render: undefined
 };
 
 function getOffset(element) {
@@ -131,10 +131,7 @@ class Popup {
                             this.hoverPinned = false;
                             this.el.classList.remove('pinned');
 
-                            this.show(
-                                triggerEl,
-                                this.options.hoverElementToOptions.call(this, triggerEl)
-                            );
+                            this.show(triggerEl);
                         }
                     }
                 }
@@ -168,8 +165,7 @@ class Popup {
         return openedPopups.includes(this);
     }
 
-    show(triggerEl, options) {
-        const { render } = options || {};
+    show(triggerEl, render = this.options.render) {
         const box = getBoundingRect(triggerEl, document.body);
         const viewport = document.body.getBoundingClientRect();
         const availHeightTop = box.top - viewport.top - 3;
@@ -210,7 +206,7 @@ class Popup {
 
         if (typeof render === 'function') {
             this.el.innerHTML = '';
-            render(this.el);
+            render(this.el, triggerEl, this.hide);
         }
 
         if (this.lastTriggerEl) {

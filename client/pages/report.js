@@ -158,7 +158,19 @@ export default function(discovery) {
     let dataDateTimeEl;
     let viewDateTimeEl;
     let noeditToggleEl;
-    const shareOptionsPopup = new discovery.view.Popup();
+    const shareOptionsPopup = new discovery.view.Popup({
+        render: (popupEl, _, hide) => discovery.view.render(popupEl, {
+            view: 'menu',
+            data: [
+                { text: 'Copy link to report', action: () => copyText(location) },
+                { text: 'Copy report as JSON', action: () => copyText(exportReportAsJson(discovery.pageParams)) }
+            ],
+            onClick(item) {
+                hide();
+                item.action();
+            }
+        })
+    });
     const headerEl = createElement('div', 'report-header', [
         createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
@@ -191,23 +203,9 @@ export default function(discovery) {
             createElement('button', {
                 class: 'share',
                 title: 'Share ...',
-                onclick: (e) => {
-                    e.target.blur();
-                    shareOptionsPopup.show(e.target, {
-                        render: (popupEl) => {
-                            discovery.view.render(popupEl, {
-                                view: 'menu',
-                                data: [
-                                    { text: 'Copy link to report', action: () => copyText(location) },
-                                    { text: 'Copy report as JSON', action: () => copyText(exportReportAsJson(discovery.pageParams)) }
-                                ],
-                                onClick(item) {
-                                    shareOptionsPopup.hide();
-                                    item.action();
-                                }
-                            });
-                        }
-                    });
+                onclick: ({ target }) => {
+                    target.blur();
+                    shareOptionsPopup.show(target);
                 }
             }),
             createElement('button', {

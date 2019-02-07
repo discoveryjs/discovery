@@ -5,6 +5,10 @@
 - Client
     - Bump `jora` to [1.0.0-alpha.8](https://github.com/lahmatiy/jora/releases/tag/v1.0.0-alpha.8)
     - Changed pinned popup to not close on `mouseleave`
+    - Changed `Popup` API:
+        - Method `show` takes a render function as second parameter (optional) instead of `options`
+        - Added `options.render(popupEl, triggerEl, hide)` which is using when the second parameter to `show` method is `undefined`
+        - Removed `options.hoverElementToOptions` (use `options.render` instead)
 
 ## 1.0.0-beta.9 (05-02s-2019)
 
