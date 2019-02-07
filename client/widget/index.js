@@ -10,6 +10,7 @@ import { createElement } from '../core/utils/dom.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
 const lastSetDataPromise = new WeakMap();
+const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
 
 function defaultEncodeParams(params) {
@@ -266,11 +267,22 @@ export default class Widget extends Emitter {
         let suggestions;
 
         try {
-            suggestions = jora(query, {
-                methods: this.queryExtensions,
-                tolerant: true,
-                stat: true
-            })(data, context).suggestion(offset);
+            let stat = lastQuerySuggestionsStat.get(this);
+
+            if (!stat || stat.query !== query || stat.data !== data || stat.context !== context) {
+                const options = {
+                    methods: this.queryExtensions,
+                    tolerant: true,
+                    stat: true
+                };
+
+                lastQuerySuggestionsStat.set(this, stat = Object.assign(
+                    jora(query, options)(data, context),
+                    { query, data, context }
+                ));
+            }
+
+            suggestions = stat.suggestion(offset);
 
             if (suggestions) {
                 return suggestions

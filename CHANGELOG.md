@@ -4,6 +4,7 @@
     - Fixed config normalization in single model setup (#9)
 - Client
     - Bump `jora` to [1.0.0-alpha.8](https://github.com/lahmatiy/jora/releases/tag/v1.0.0-alpha.8)
+    - Add a cache for `Widget#querySuggestion()`
     - Changed pinned popup to not close on `mouseleave`
     - Changed `Popup` API:
         - Method `show` takes a render function as second parameter (optional) instead of `options`
