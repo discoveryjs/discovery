@@ -4,6 +4,7 @@
     - Fixed config normalization in single model setup (#9)
 - Client
     - Bump `jora` to [1.0.0-alpha.8](https://github.com/lahmatiy/jora/releases/tag/v1.0.0-alpha.8)
+    - Changed pinned popup to not close on `mouseleave`
 
 ## 1.0.0-beta.9 (05-02s-2019)
 

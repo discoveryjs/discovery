@@ -92,6 +92,7 @@ class Popup {
 
         this.lastTriggerEl = null;
         this.lastHoverTriggerEl = null;
+        this.hoverPinned = false;
 
         if (this.options.className) {
             this.el.classList.add(this.options.className);
@@ -103,6 +104,7 @@ class Popup {
         }
 
         if (this.options.hoverTriggers) {
+            this.el.classList.add('show-on-hover');
             this.el.dataset.pinMode = this.options.hoverPin || 'none';
 
             document.addEventListener('mouseenter', ({ target }) => {
@@ -119,13 +121,15 @@ class Popup {
                     this.hideTimer = clearTimeout(this.hideTimer);
 
                     if (triggerEl !== this.lastHoverTriggerEl) {
-                        this.lastHoverTriggerEl = triggerEl;
+                        // change hover pinned only when trigger is not a popup in pinned mode
+                        if (!targetRelatedPopup || !targetRelatedPopup.hoverPinned) {
+                            this.lastHoverTriggerEl = triggerEl;
+                        }
 
                         // show only if event target isn't a popup
                         if (!targetRelatedPopup) {
-                            if (this.options.hoverPin !== 'popup-hover') {
-                                this.el.classList.add('no-hover');
-                            }
+                            this.hoverPinned = false;
+                            this.el.classList.remove('pinned');
 
                             this.show(
                                 triggerEl,
@@ -146,7 +150,9 @@ class Popup {
             if (this.options.hoverPin === 'trigger-click') {
                 document.addEventListener('click', (event) => {
                     if (this.lastHoverTriggerEl && this.lastTriggerEl.contains(event.target)) {
-                        this.el.classList.remove('no-hover');
+                        this.lastHoverTriggerEl = null;
+                        this.hoverPinned = true;
+                        this.el.classList.add('pinned');
                         event.stopPropagation();
                     }
                 }, true);
@@ -200,6 +206,7 @@ class Popup {
         }
 
         this.hideTimer = clearTimeout(this.hideTimer);
+        this.relatedPopups.forEach(related => related.hide());
 
         if (typeof render === 'function') {
             this.el.innerHTML = '';
@@ -232,6 +239,10 @@ class Popup {
         this.hideTimer = clearTimeout(this.hideTimer);
 
         if (this.visible) {
+            // hide related popups first
+            this.relatedPopups.forEach(related => related.hide());
+
+            // hide popup itself
             openedPopups.splice(openedPopups.indexOf(this), 1);
             this.el.remove();
 
@@ -246,9 +257,6 @@ class Popup {
                 document.removeEventListener('scroll', hideIfEventOutside, true);
                 document.removeEventListener('click', hideIfEventOutside, true);
             }
-
-            // hide related popups
-            this.relatedPopups.forEach(related => related.hide());
         }
     }
 

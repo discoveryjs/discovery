@@ -11,12 +11,12 @@
     background: white;
 }
 
-.discovery-view-popup.no-hover {
+.discovery-view-popup.show-on-hover:not([data-pin-mode="popup-hover"]):not(.pinned) {
     pointer-events: none;
 }
 
-.discovery-view-popup.no-hover[data-pin-mode="trigger-click"]::before,
-.discovery-view-popup.no-hover[data-pin-mode="trigger-click"]::after {
+.discovery-view-popup:not(.pinned)[data-pin-mode="trigger-click"]::before,
+.discovery-view-popup:not(.pinned)[data-pin-mode="trigger-click"]::after {
     display: block;
     visibility: hidden;
     content: "Click to pin this popup";
@@ -29,12 +29,12 @@
     right: 0;
     z-index: 100;
 }
-.discovery-view-popup.no-hover[data-v-to="top"]::before {
+.discovery-view-popup:not(.pinned)[data-v-to="top"]::before {
     position: absolute;
     visibility: visible;
     bottom: 0;
 }
-.discovery-view-popup.no-hover[data-v-to="bottom"]::after {
+.discovery-view-popup:not(.pinned)[data-v-to="bottom"]::after {
     position: absolute;
     visibility: visible;
     top: 0;
