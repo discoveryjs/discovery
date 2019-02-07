@@ -53,7 +53,7 @@ function resolveModelConfig(value, basedir) {
 function normalize(config, options) {
     options = options || {};
 
-    const { model, basedir, cachedir } = options;
+    let { model, basedir, cachedir } = options;
     const cwd = process.env.PWD || process.cwd();
     let models;
     let result;
@@ -86,7 +86,7 @@ function normalize(config, options) {
     result.models = Object.keys(models).reduce((res, slug) => {
         if (!model || model === slug) {
             const modelConfig = normalizeModelConfig(
-                Object.assign({ slug }, resolveModelConfig(config.models[slug], basedir))
+                Object.assign({ slug }, resolveModelConfig(models[slug], basedir))
             );
 
             switch (modelConfig.cache) {
