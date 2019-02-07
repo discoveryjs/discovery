@@ -1,3 +1,10 @@
+## next
+
+- Server/builder
+    - Fixed config normalization in single model setup (#9)
+- Client
+    - Bump `jora` to [1.0.0-alpha.8](https://github.com/lahmatiy/jora/releases/tag/v1.0.0-alpha.8)
+
 ## 1.0.0-beta.9 (05-02s-2019)
 
 - Client
@@ -19,7 +26,7 @@
                 hoverTriggers: string,
                 hoverElementToOptions: fn(triggerEl): object,
                 hoverPin: false | "popup-hover" | "trigger-click"
-            }
+            })
         ```
         - Added `className` constructor option to set class name on popup's root element
         - Added setting a `max-width` for its content
