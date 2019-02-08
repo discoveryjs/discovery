@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.10 (07-02-2019)
 
 - Server/builder
     - Fixed config normalization in single model setup (#9)
@@ -12,7 +12,7 @@
         - Removed `options.hoverElementToOptions` (use `options.render` instead)
     - Fixed `checkbox` issue when `checked` is not set but `name` is set
 
-## 1.0.0-beta.9 (05-02s-2019)
+## 1.0.0-beta.9 (05-02-2019)
 
 - Client
     - Added `signature` view to inspect a signature of dataset with details on value axises
