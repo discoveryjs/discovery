@@ -9,7 +9,7 @@ export default function(discovery) {
         let renderContent = null;
 
         inputEl.type = 'checkbox';
-        inputEl.checked = defined([discovery.queryBool(checked, data, context), context[name]], false);
+        inputEl.checked = defined([checked !== undefined ? discovery.queryBool(checked, data, context) : undefined, context[name]], false);
         inputEl.readOnly = readonly;
         inputEl.addEventListener('click', (e) => {
             if (readonly) {

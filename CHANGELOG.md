@@ -10,6 +10,7 @@
         - Method `show` takes a render function as second parameter (optional) instead of `options`
         - Added `options.render(popupEl, triggerEl, hide)` which is using when the second parameter to `show` method is `undefined`
         - Removed `options.hoverElementToOptions` (use `options.render` instead)
+    - Fixed `checkbox` issue when `checked` is not set but `name` is set
 
 ## 1.0.0-beta.9 (05-02s-2019)
 
