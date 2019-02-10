@@ -34,7 +34,6 @@ export { default as tab } from './tab.js';
 export { default as tabs } from './tabs.js';
 export { default as text } from './text.js';
 export { default as textMatch } from './text-match.js';
-export { default as tocItem } from './toc-item.js';
 export { default as tocSection } from './toc-section.js';
 export { default as treeItem } from './tree-leaf.js';
 export { default as tree } from './tree.js';
