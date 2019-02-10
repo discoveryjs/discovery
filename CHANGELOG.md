@@ -4,6 +4,7 @@
     - Removed `toc-item` view
     - Replaced `Widget#getSidebarContext()` and `Widget#getPageContext()` for `Widget#getRenderContext()`
     - Added `placeholder` option for `select` view
+    - Fixed `button` view styles
 
 ## 1.0.0-beta.10 (07-02-2019)
 

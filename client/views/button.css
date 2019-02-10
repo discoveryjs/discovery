@@ -3,7 +3,7 @@
     display: inline-block;
     vertical-align: middle;
     min-height: 30px;
-    padding-top: 4px 12px;
+    padding: 6px 12px;
     outline: 0;
     margin: 0;
     z-index: 1;
@@ -13,9 +13,9 @@
     background-color: white;
     color: black;
     
-    font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
-    font-size: 14px;
-    line-height: 20px;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
     text-align: center;
     cursor: pointer;
 }
