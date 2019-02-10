@@ -3,11 +3,14 @@
 export default function(discovery) {
     discovery.view.define('tabs', function(el, config, data, context) {
         function renderContent(value) {
+            const handler = inited ? onChange : onInit;
+
             if (currentValue === value) {
                 return;
             }
 
             currentValue = value;
+            inited = true;
 
             if (Array.isArray(tabs)) {
                 tabsEl.innerHTML = '';
@@ -21,14 +24,21 @@ export default function(discovery) {
                 );
             }
 
-            contentEl.innerHTML = '';
-            discovery.view.render(contentEl, content, data, { ...context, [name]: value });
+            if (content) {
+                contentEl.innerHTML = '';
+                discovery.view.render(contentEl, content, data, { ...context, [name]: value });
+            }
+
+            if (typeof handler === 'function') {
+                handler(currentValue, name);
+            }
         }
 
         const tabsEl = el.appendChild(document.createElement('div'));
         const contentEl = el.appendChild(document.createElement('div'));
-        const { content } = config;
+        const { content, onInit, onChange } = config;
         let { name, tabs } = config;
+        let inited = false;
         let currentValue = NaN;
         let initValue =
             'value' in config

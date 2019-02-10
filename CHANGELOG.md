@@ -6,6 +6,7 @@
     - Added `placeholder` option for `select` view
     - Fixed `button` view styles
     - Fixed `tabs` init value setting when `name` option is specified
+    - Added `onInit` and `onChange` options for `tabs` view
 
 ## 1.0.0-beta.10 (07-02-2019)
 
