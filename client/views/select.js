@@ -16,8 +16,12 @@ export default function(discovery) {
             }, currentValue, context);
         }
 
-        const { name, value, text, item = defaultItemRender, onInit, onChange } = config;
+        const { name, value, text, placeholder, item = defaultItemRender, onInit, onChange } = config;
         let currentValue = value ? discovery.query(value, data, context) : context[name];
+
+        if (placeholder) {
+            el.dataset.placeholder = placeholder;
+        }
 
         el.addEventListener('click', () => {
             if (variantsPopup.visible) {

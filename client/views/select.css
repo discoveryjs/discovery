@@ -9,18 +9,26 @@
     max-width: 100%;
     padding-right: 1.2em;
 
-    font-size: 14px;
-    line-height: 20px;
     min-height: 30px;
-    border-width: 1px;
     border-radius: 3px;
-    border-style: solid;
-    border-color: #cccccc;
-    background-color: #ffffff;
-    color: #000000;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: black;
+}
+.view-select::before {
+    content: '.';
+    width: 0;
+    visibility: hidden;
+    padding: 5px 0;
+}
+.view-select:empty[data-placeholder]::before {
+    content: attr(data-placeholder);
+    visibility: visible;
+    padding-left: 12px;
+    color: #777;
 }
 .view-select::after {
-    content: "";
+    content: '';
     right: 7px;
     color: #999999;
     display: flex;
@@ -30,7 +38,7 @@
     position: absolute;
     width: 1em;
     height: 1em;
-    background-image: url("select-arrow.svg");
+    background-image: url('select-arrow.svg');
     background-size: 1em;
     background-position: center;
 }
