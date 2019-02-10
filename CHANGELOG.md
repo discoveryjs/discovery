@@ -5,6 +5,7 @@
     - Replaced `Widget#getSidebarContext()` and `Widget#getPageContext()` for `Widget#getRenderContext()`
     - Added `placeholder` option for `select` view
     - Fixed `button` view styles
+    - Fixed `tabs` init value setting when `name` option is specified
 
 ## 1.0.0-beta.10 (07-02-2019)
 

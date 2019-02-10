@@ -3,6 +3,10 @@
 export default function(discovery) {
     discovery.view.define('tabs', function(el, config, data, context) {
         function renderContent(value) {
+            if (currentValue === value) {
+                return;
+            }
+
             currentValue = value;
 
             if (Array.isArray(tabs)) {
@@ -25,7 +29,13 @@ export default function(discovery) {
         const contentEl = el.appendChild(document.createElement('div'));
         const { content } = config;
         let { name, tabs } = config;
-        let currentValue;
+        let currentValue = NaN;
+        let initValue =
+            'value' in config
+                ? config.value
+                : name in context
+                    ? context[name]
+                    : undefined;
 
         tabsEl.className = 'view-tabs-buttons';
         contentEl.className = 'view-tabs-content';
@@ -42,20 +52,16 @@ export default function(discovery) {
                     tab = { value: tab };
                 }
 
-                if (currentValue === undefined || tab.active) {
-                    currentValue = tab.value;
+                if (initValue === undefined || tab.active) {
+                    initValue = tab.value;
                 }
 
                 return tab;
             });
-
-            if ('value' in config && tabs.some(tab => tab.value === config.value)) {
-                currentValue = config.value;
-            }
         } else {
             tabs = [];
         }
 
-        renderContent(currentValue);
+        renderContent(initValue);
     });
 }
