@@ -2,6 +2,7 @@
 
 - Client
     - Removed `toc-item` view
+    - Replaced `Widget#getSidebarContext()` and `Widget#getPageContext()` for `Widget#getRenderContext()`
 
 ## 1.0.0-beta.10 (07-02-2019)
 

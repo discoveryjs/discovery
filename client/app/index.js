@@ -140,9 +140,9 @@ export default class App extends Widget {
         }
     }
 
-    getPageContext() {
+    getRenderContext() {
         return {
-            ...super.getPageContext(),
+            ...super.getRenderContext(),
             modelfree: this.mode === 'modelfree'
         };
     }
@@ -150,6 +150,6 @@ export default class App extends Widget {
     renderPage() {
         super.renderPage();
 
-        document.title = this.getPageContext().name || document.title;
+        document.title = this.getRenderContext().name || document.title;
     }
 }

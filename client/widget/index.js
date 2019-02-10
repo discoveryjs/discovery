@@ -372,7 +372,7 @@ export default class Widget extends Emitter {
     }
 
     //
-    // Render scheduling
+    // Render common
     //
 
     scheduleRender(subject) {
@@ -408,13 +408,18 @@ export default class Widget extends Emitter {
         }
     }
 
+    getRenderContext() {
+        return {
+            page: this.pageId,
+            id: this.pageRef,
+            params: this.pageParams,
+            ...this.context
+        };
+    }
+
     //
     // Sidebar
     //
-
-    getSidebarContext() {
-        return this.context;
-    }
 
     renderSidebar() {
         // cancel scheduled renderSidebar
@@ -430,7 +435,7 @@ export default class Widget extends Emitter {
                 this.dom.sidebar,
                 'sidebar',
                 this.data,
-                this.getSidebarContext()
+                this.getRenderContext()
             ).then(() => console.log(`[Discovery] Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
@@ -463,15 +468,6 @@ export default class Widget extends Emitter {
             pageId: pageId || this.defaultPageId,
             pageRef,
             pageParams
-        };
-    }
-
-    getPageContext() {
-        return {
-            page: this.pageId,
-            id: this.pageRef,
-            params: this.pageParams,
-            ...this.context
         };
     }
 
@@ -529,7 +525,7 @@ export default class Widget extends Emitter {
             this.dom.pageContent,
             this.pageId,
             this.data,
-            this.getPageContext()
+            this.getRenderContext()
         );
 
         this.badges.forEach(badge => badge.el.hidden = !badge.visible(this));
