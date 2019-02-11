@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 export default function(discovery) {
-    function renderTreeLines(container, renderElStack, itemConfig, collapsible, data, context, offset, limit) {
+    function renderTreeLines(container, renderElStack, leafBaseConfig, data, context, offset, limit) {
         if (limit === false) {
             limit = data.length;
         }
@@ -14,9 +14,7 @@ export default function(discovery) {
 
                     return discovery.view
                         .render(targetContainer, {
-                            view: 'tree-leaf',
-                            content: itemConfig,
-                            collapsible,
+                            ...leafBaseConfig,
                             expanded: entry.expanded,
                             last: entry.last,
                             hasChildren: entry.hasChildren,
@@ -44,7 +42,7 @@ export default function(discovery) {
                     data.length,
                     offset + limit,
                     limit,
-                    (offset, limit) => renderTreeLines(container, renderElStack, itemConfig, collapsible, data, context, offset, limit)
+                    (offset, limit) => renderTreeLines(container, renderElStack, leafBaseConfig, data, context, offset, limit)
                 )
             );
     }
@@ -55,7 +53,12 @@ export default function(discovery) {
                 const children = discovery.query(childrenGetter, data, context);
                 const hasChildren = Array.isArray(children) && children.length > 0;
                 const last = index === array.length - 1;
-                const leafExpanded = visited.has(data) ? 0 : expanded;
+                const leafExpanded =
+                    visited.has(data)
+                        ? 0
+                        : typeof expanded === 'function'
+                            ? expanded(data, context)
+                            : expanded;
 
                 visited.add(data);
                 leafs.push({
@@ -68,7 +71,11 @@ export default function(discovery) {
                 });
 
                 if (hasChildren && leafExpanded) {
-                    processChildren(children, expanded - 1, last ? popCount + 1 : 0);
+                    if (typeof expanded === 'number') {
+                        expanded--;
+                    }
+
+                    processChildren(children, expanded, last ? popCount + 1 : 0);
                 }
             });
         }
@@ -82,7 +89,7 @@ export default function(discovery) {
     }
 
     discovery.view.define('tree', function render(el, config, data, context) {
-        const { children, item = 'text', collapsible, emptyText } = config;
+        const { children, item = 'text', collapsible, emptyText, onToggle } = config;
         let { expanded, limit, limitLines = true } = config;
 
         if (emptyText !== false && emptyText !== '') {
@@ -96,12 +103,18 @@ export default function(discovery) {
         if (Array.isArray(data)) {
             limit = discovery.view.listLimit(limit, 25);
             limitLines = discovery.view.listLimit(limitLines, 25);
-            expanded = discovery.view.listLimit(expanded, 1);
+            expanded = typeof expanded === 'function' ? expanded : discovery.view.listLimit(expanded, 1);
 
             if (limitLines) {
                 const lines = buildTreeLines(data, context, children, expanded);
+                const leafBaseConfig = {
+                    view: 'tree-leaf',
+                    content: item,
+                    collapsible,
+                    onToggle
+                };
 
-                renderTreeLines(el, [el], item, collapsible, lines, context, 0, limitLines);
+                renderTreeLines(el, [el], leafBaseConfig, lines, context, 0, limitLines);
             } else {
                 discovery.view.renderList(el, {
                     view: 'tree-leaf',
@@ -109,7 +122,8 @@ export default function(discovery) {
                     collapsible,
                     expanded,
                     children,
-                    limit
+                    limit,
+                    onToggle
                 }, data, context, 0, limit);
             }
         }

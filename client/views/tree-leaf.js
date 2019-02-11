@@ -2,22 +2,22 @@
 
 import { createElement } from '../core/utils/dom.js';
 
-const toggleProto = createElement('span', 'view-tree-leaf-toggle');
-
-
 export default function(discovery) {
     const elementToData = new WeakMap();
     const clickHandler = ({ target }) => {
         const toggleEl = target.closest('.view-tree-leaf-toggle');
 
         if (toggleEl) {
-            const fn = elementToData.get(toggleEl);
+            const state = elementToData.get(toggleEl);
+            const expanded = !toggleEl.parentNode.classList.toggle('collapsed');
 
-            if (typeof fn === 'function') {
-                fn();
+            if (typeof state.render === 'function') {
+                state.render();
             }
 
-            toggleEl.parentNode.classList.toggle('collapsed');
+            if (typeof state.onToggle === 'function') {
+                state.onToggle(expanded, toggleEl.parentNode, state.data, state.context);
+            }
         }
     };
 
@@ -25,12 +25,11 @@ export default function(discovery) {
     document.addEventListener('click', clickHandler, false);
 
     discovery.view.define('tree-leaf', function(el, config, data, context) {
-        const { expanded, content, collapsible = true, last, hasChildren, children, limit } = config;
+        const { expanded, content, collapsible = true, last, hasChildren, children, limit, onToggle } = config;
+        const toggleEl = el.appendChild(createElement('span', 'view-tree-leaf-toggle'));
         const contentEl = el.appendChild(createElement('span', 'tree-leaf-content'));
         let childrenData = null;
         let hasChildrenEl = hasChildren;
-
-        el.insertBefore(toggleProto.cloneNode(true), el.firstChild);
 
         if (last) {
             el.classList.add('last');
@@ -49,29 +48,38 @@ export default function(discovery) {
 
         if (hasChildrenEl) {
             const childrenEl = el.appendChild(createElement('ul', 'view-tree-leaf-children'));
+            const state = { data, context, onToggle, render: null };
             const renderChildren = function(data, expanded) {
+                if (typeof expanded === 'number') {
+                    expanded--;
+                }
+
                 discovery.view.renderList(childrenEl, {
                     view: 'tree-leaf',
                     expanded,
                     content,
-                    children
+                    collapsible,
+                    children,
+                    limit,
+                    onToggle
                 }, data, context, 0, discovery.view.listLimit(limit, 25));
             };
 
             el.classList.add('has-children');
+            elementToData.set(toggleEl, state);
 
-            if (expanded) {
+            if (typeof expanded === 'function' ? expanded(data, context) : expanded) {
                 if (childrenData) {
-                    renderChildren(childrenData, expanded - 1);
+                    renderChildren(childrenData, expanded);
                 }
             } else {
                 el.classList.add('collapsed');
 
                 if (childrenData) {
-                    elementToData.set(el.firstChild, () => {
-                        elementToData.delete(el.firstChild);
-                        renderChildren(childrenData, 0);
-                    });
+                    state.render = () => {
+                        state.render = null;
+                        renderChildren(childrenData, expanded || 1);
+                    };
                 }
             }
         }
