@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.11 (10-02-2019)
 
 - Client
     - Removed `toc-item` view
