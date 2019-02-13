@@ -7,3 +7,6 @@
     margin-right: 40px;
     min-width: 240px;
 }
+.view-hstack > :last-child {
+    margin-right: 0;
+}
