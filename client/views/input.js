@@ -10,14 +10,23 @@ export default function(discovery) {
     };
 
     discovery.view.define('input', function(el, config, data, context) {
-        const { name, value, type = 'text', placeholder, onInit, onChange } = config;
+        const { name, value, type = 'text', placeholder, onInit, onChange, htmlType = 'text', htmlMin, htmlMax } = config;
         const factory = factories[type] || factories.text;
         const inputEl = el.appendChild(document.createElement('input'));
         let lastInput = defined([value, context[name]], '');
 
         inputEl.value = lastInput;
         inputEl.placeholder = (placeholder || '') + (factory !== factories.text ? ' (' + type + ')' : '');
-        inputEl.type = type;
+        inputEl.type = htmlType;
+
+        if (htmlMin) {
+            inputEl.min = htmlMin;
+        }
+
+        if (htmlMax) {
+            inputEl.max = htmlMax;
+        }
+
         inputEl.addEventListener('input', () => {
             const newInput = inputEl.value.trim();
 
