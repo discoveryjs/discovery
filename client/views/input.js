@@ -17,6 +17,7 @@ export default function(discovery) {
 
         inputEl.value = lastInput;
         inputEl.placeholder = (placeholder || '') + (factory !== factories.text ? ' (' + type + ')' : '');
+        inputEl.type = type;
         inputEl.addEventListener('input', () => {
             const newInput = inputEl.value.trim();
 
