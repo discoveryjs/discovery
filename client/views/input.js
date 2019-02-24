@@ -19,7 +19,7 @@ export default function(discovery) {
         inputEl.placeholder = (placeholder || '') + (factory !== factories.text ? ' (' + type + ')' : '');
         inputEl.type = htmlType;
 
-        if (htmlMin) {
+        if (typeof htmlMin !== 'undefined') {
             inputEl.min = htmlMin;
         }
 
