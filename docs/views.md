@@ -55,11 +55,7 @@ Tag: `div`
 
 | Config parameter | Default | Purpose |
 | ---------------- | ------- | ------- |
-| item             | text    | Views to render inside |
-| limit            |         | Views to render inside |
-| emptyText        | 'Empty list' | Views to render inside |
-
-`data` Object|Array — data to render list
+| content          | text    | Views to render inside |
 
 
 ## Lists
