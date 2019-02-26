@@ -1,10 +1,12 @@
 # Views
 
-All view's containers get css class `view-<viewId>` and that in `config.className`
+All view's container get css class `view-<viewId>` and also that in `config.className`
 
 ## Blocks
 
 * `block`
+
+Tag: `div`
 
 | Config parameter | Default | Purpose |
 | ---------------- | ------- | ------- |
@@ -60,11 +62,13 @@ Tag: `div`
 
 | Config parameter | Default | Purpose |
 | ---------------- | ------- | ------- |
-| item             | text    | Views to render inside child `list-items` |
+| item             | text    | Views to render inside child `list-item`'s |
 | limit            | 25      | Views to render inside |
 | emptyText        | 'Empty list' | Views to render inside |
 
 `data` Array — data to render list. If not Array will be wrapped to array as element 0
+
+--------------------------------------------------
 
 * `list-item`
 
@@ -73,6 +77,36 @@ Tag: `li`
 | Config parameter | Default | Purpose |
 | ---------------- | ------- | ------- |
 | content          | text    | Views to render inside |
+
+
+--------------------------------------------------
+
+* `menu`
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| item             | text    | Views to render inside child `menu-item`'s |
+| limit            | 25      | Views to render inside |
+| emptyText        | 'No items' | Views to render inside |
+| onClick          |         | Function to handle click on `menu-item` |
+
+`data` Array — data to render
+
+--------------------------------------------------
+
+* `menu-item`
+
+Tag: `li`
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| content          | text    | Views to render inside |
+| onClick          |         | Function(data) to handle click |
+
+| Data parameter   | Default | Purpose |
+| ---------------- | ------- | ------- |
+| text             | 'Untitled item' | Text inside if no `config.content` |
+| selected         |                 | Is item selected? Adds `selected` css class |
 
 ## Badges
 
@@ -96,6 +130,7 @@ Tag: `a`
 If `data` is String `text = data`
 
 ## Table
+
 
 ## Forms
 
