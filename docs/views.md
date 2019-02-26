@@ -12,7 +12,18 @@ Tag: `div`
 | ---------------- | ------- | ------- |
 | content          |         | Views to render inside |
 
+--------------------------------------------------
 
+* `section`
+
+Tag: `div`
+
+Renders section with header
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| header           |         | Views to render inside `header`'s `content` |
+| content          |         | Views to render inside |
 
 ## Text
 
@@ -129,7 +140,41 @@ Tag: `a`
 
 If `data` is String `text = data`
 
+## Tabs
+
+* `tabs`
+
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| content          | text     | Views to render inside |
+| name             | 'filter' |
+| tabs             |          |
+| onInit           |          | Function(value) to handle ... |
+| onChange         |          | Function(value) to handle ... |
+
+// @WIP
+
+--------------------------------------------------
+
+* `tab`
+
+Tag: `div`
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| content          | text    | Views to render inside |
+| active           |         | Is tab active? Adds `active` css class |
+| onClick          |         | Function(value) to handle click |
+
+| Data parameter   | Default | Purpose |
+| ---------------- | ------- | ------- |
+| text             |         | Text inside if no `config.content` |
+| value            |         | Text inside if no `text` |
+
+
 ## Table
+
 
 
 ## Forms
