@@ -25,6 +25,22 @@ Renders section with header
 | header           |         | Views to render inside `header`'s `content` |
 | content          |         | Views to render inside |
 
+
+### Alerts
+
+* `alert`
+* `alert-success`
+* `alert-danger`
+* `alert-warning`
+
+Tag: `div`
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| content          | text    | Views to render inside |
+
+
+
 ## Text
 
 * `text` — renders text node
@@ -43,20 +59,6 @@ Tag: corresponding header tag
 | Config parameter | Default | Purpose |
 | ---------------- | ------- | ------- |
 | content          | text    | Views to render inside |
-
-## Alerts
-
-* `alert`
-* `alert-success`
-* `alert-danger`
-* `alert-warning`
-
-Tag: `div`
-
-| Config parameter | Default | Purpose |
-| ---------------- | ------- | ------- |
-| content          | text    | Views to render inside |
-
 
 ## Lists
 
@@ -140,20 +142,26 @@ If `data` is String `text = data`
 
 * `tabs`
 
+Renders tab buttons and tab content block switching by click on tab button. 
 
-| Config parameter | Default | Purpose |
-| ---------------- | ------- | ------- |
-| content          | text     | Views to render inside |
-| name             | 'filter' |
-| tabs             |          |
-| onInit           |          | Function(value) to handle ... |
-| onChange         |          | Function(value) to handle ... |
+| Config parameter | Default  | Purpose |
+| ---------------- | -------  | ------- |
+| content          | text     | Views to render inside tab content |
+| tabs             |          | Array. Tab buttons to render. Consists of data objects for `tab` views. Can be String, Number or Boolean for simple tabs. |
+| value            |          | Initial tab ID |
+| name             | 'filter' | Name of context property that gets tab ID for filter data |
+| onInit           |          | Function(currentValue, name) to handle tab show initially |
+| onChange         |          | Function(currentValue, name) to handle change current tab |
 
-// @WIP
+| Context parameter | Default  | Purpose |
+| ----------------- | -------  | ------- |
+| <name>            |          | Current selected tab ID. You may filter your data by it. Also initial tab ID if no `config.value`. |
 
 --------------------------------------------------
 
 * `tab`
+
+Renders tab button.
 
 Tag: `div`
 
@@ -166,7 +174,7 @@ Tag: `div`
 | Data parameter   | Default | Purpose |
 | ---------------- | ------- | ------- |
 | text             |         | Text inside if no `config.content` |
-| value            |         | Text inside if no `text` |
+| value            |         | Tab ID. Text inside if no `text`. |
 
 
 ## Table
@@ -199,6 +207,16 @@ Class: `view-button`
 
 ### Input
 
+## Misc.
+
+* `struct`
+
+Prints JSON formatted
+
+* `signature`
+
+Prints field types of JSON
+
 ## Complex
 
 ### Chart
@@ -208,3 +226,4 @@ Class: `view-button`
 ### Code editor
 
 ### Tree
+
