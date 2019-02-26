@@ -155,7 +155,7 @@ Renders tab buttons and tab content block switching by click on tab button.
 
 | Context parameter | Default  | Purpose |
 | ----------------- | -------  | ------- |
-| <name>            |          | Current selected tab ID. You may filter your data by it. Also initial tab ID if no `config.value`. |
+| `<name>`          |          | Current selected tab ID. You may filter your data by it. Also initial tab ID if no `config.value`. |
 
 --------------------------------------------------
 
