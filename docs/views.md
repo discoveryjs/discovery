@@ -42,10 +42,37 @@ Tag: `div`
 
 | Config parameter | Default | Purpose |
 | ---------------- | ------- | ------- |
-| content          | text    | Views to render inside |
+| item             | text    | Views to render inside |
+| limit            |         | Views to render inside |
+| emptyText        | 'Empty list' | Views to render inside |
+
+`data` Object|Array — data to render list
 
 
 ## Lists
+
+* `list` — tag: `div`
+* `inline-list` — tag: `div`
+* `comma-list` — tag: `div`
+* `ol` — tag: `ol`
+* `ul` — tag: `ul`
+
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| item             | text    | Views to render inside child `list-items` |
+| limit            | 25      | Views to render inside |
+| emptyText        | 'Empty list' | Views to render inside |
+
+`data` Array — data to render list. If not Array will be wrapped to array as element 0
+
+* `list-item`
+
+Tag: `li`
+
+| Config parameter | Default | Purpose |
+| ---------------- | ------- | ------- |
+| content          | text    | Views to render inside |
 
 ## Badges
 
