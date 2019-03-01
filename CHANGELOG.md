@@ -1,3 +1,8 @@
+## next
+
+- Client
+    - Added `ViewRenderer#normalizeConfig(config)` and `ViewRenderer#extendConfig(config, extension)` methods (available as `discovery.view.*`)
+
 ## 1.0.0-beta.11 (10-02-2019)
 
 - Client
