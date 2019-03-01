@@ -250,26 +250,56 @@ export default function(discovery) {
         );
     }
 
+    function formatSize(size) {
+        if (!size) {
+            return '';
+        }
+
+        return ', ' + String(size.length).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
+    }
+
     const elementToData = new WeakMap();
     const structViewRoots = new WeakSet();
     const valueActionsPopup = new discovery.view.Popup({
+        className: 'view-struct-actions-popup',
         render: (popupEl, triggerEl) => {
             const value = elementToData.get(triggerEl.parentNode);
+            let stringifiedJson;
+            let error = false;
+
+            try {
+                stringifiedJson = JSON.stringify(value);
+            } catch (e) {
+                error = 'Can\'t be copied: ' + e.message;
+            }
 
             discovery.view.render(popupEl, {
                 view: 'menu',
                 onClick(item) {
                     valueActionsPopup.hide();
                     item.action();
-                }
+                },
+                item: [
+                    'html:text',
+                    {
+                        view: 'block',
+                        className: 'error',
+                        when: 'error',
+                        content: 'text:error'
+                    }
+                ]
             }, [
                 {
                     text: 'Copy as JSON (formatted)',
-                    action: () => copyText(JSON.stringify(value, null, 4))
+                    error,
+                    disabled: Boolean(error),
+                    action: () => copyText(formatSize(JSON.stringify(value, null, 4)))
                 },
                 {
-                    text: 'Copy as JSON (compact)',
-                    action: () => copyText(JSON.stringify(value))
+                    text: `Copy as JSON (compact${formatSize(stringifiedJson)})`,
+                    error,
+                    disabled: Boolean(error),
+                    action: () => copyText(stringifiedJson)
                 }
             ]);
         }
@@ -331,7 +361,7 @@ export default function(discovery) {
     });
 
     discovery.view.define('struct', function(el, config, data) {
-        const { expanded } = config;
+        const { expanded } = config; // FIXME: add limit option
         const expandable = isValueExpandable(data);
 
         structViewRoots.add(el);
