@@ -8,6 +8,7 @@
     - Added a message and disable menu items when JSON can't be copied through `struct` actions popup
     - Improved experience when JSON can't be copied through `struct` view actions, items are disabled and annotated with a reason message now
     - Added size of compacted JSON in `struct` actions menu
+    - Renamed css class name for content block of `tree-leaf` view (added `view-` prefix)
 
 ## 1.0.0-beta.11 (10-02-2019)
 

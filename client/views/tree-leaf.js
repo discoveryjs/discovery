@@ -27,7 +27,7 @@ export default function(discovery) {
     discovery.view.define('tree-leaf', function(el, config, data, context) {
         const { expanded, content, collapsible = true, last, hasChildren, children, limit, onToggle } = config;
         const toggleEl = el.appendChild(createElement('span', 'view-tree-leaf-toggle'));
-        const contentEl = el.appendChild(createElement('span', 'tree-leaf-content'));
+        const contentEl = el.appendChild(createElement('span', 'view-tree-leaf-content'));
         let childrenData = null;
         let hasChildrenEl = hasChildren;
 
