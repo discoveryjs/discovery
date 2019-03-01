@@ -23,6 +23,7 @@ export default function(discovery) {
             el.dataset.placeholder = placeholder;
         }
 
+        el.tabIndex = 0;
         el.addEventListener('click', () => {
             if (variantsPopup.visible) {
                 variantsPopup.hide();

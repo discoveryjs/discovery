@@ -9,15 +9,14 @@
     max-width: 100%;
     padding-right: 1.2em;
 
-    min-height: 30px;
     border-radius: 3px;
     border: 1px solid #ccc;
     background-color: white;
     color: black;
+    outline: none;
 }
-.view-select::before {
-    content: '.';
-    width: 0;
+.view-select:empty:not([data-placeholder])::before {
+    content: '|';
     visibility: hidden;
     padding: 5px 0;
 }
@@ -49,6 +48,7 @@
 .view-select:focus {
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2);
     border-color: #b3b3b3;
+    z-index: 1;
 }
 .view-select > * {
     pointer-events: none;

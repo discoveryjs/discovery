@@ -16,7 +16,10 @@ export default function(discovery) {
         let lastInput = defined([value, context[name]], '');
 
         inputEl.value = lastInput;
-        inputEl.placeholder = (placeholder || '') + (factory !== factories.text ? ' (' + type + ')' : '');
+        inputEl.placeholder = [
+            placeholder || '',
+            factory !== factories.text ? '(' + type + ')' : ''
+        ].filter(Boolean).join(' ');
         inputEl.addEventListener('input', () => {
             const newInput = inputEl.value.trim();
 

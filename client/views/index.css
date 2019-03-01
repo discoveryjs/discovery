@@ -43,6 +43,10 @@
     border: 1px solid #ddd;
     border-radius: 3px;
     padding: 4px 8px;
+    font-size: 11px;
+    line-height: normal;
+    font-family: system-ui;
+    min-height: 0;
     cursor: pointer;
 }
 .more-buttons .more-button:hover,

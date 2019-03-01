@@ -3,7 +3,7 @@
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content, disabled = false, onClick } = config;
-        const { text } = data;
+        const { text = '' } = data || {};
 
         el.classList.add('view-button');
         el.disabled = discovery.query(disabled, data, context);
