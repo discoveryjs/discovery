@@ -9,3 +9,8 @@
     background: #c6dee7;
     cursor: default;
 }
+.view-menu-item.disabled {
+    opacity: .65;
+    background: none;
+    pointer-events: none;
+}

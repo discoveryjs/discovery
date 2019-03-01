@@ -4,6 +4,7 @@
     - Added `ViewRenderer#normalizeConfig(config)` and `ViewRenderer#extendConfig(config, extension)` methods (available as `discovery.view.*`)
     - Removed right padding/margin for last items in `hstack` and `columns`
     - Changed styles for `button`, `input` and `select` to be consistent with each others
+    - Added disabled state for `menu-item` view
 
 ## 1.0.0-beta.11 (10-02-2019)
 
