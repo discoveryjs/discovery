@@ -5,8 +5,8 @@ import safeFilterRx from '../core/utils/safe-filter-rx.js';
 
 export default function(discovery) {
     const factories = {
-        regexp: value => value ? safeFilterRx(value) : null,
-        text: value => value
+        regexp: pattern => pattern ? safeFilterRx(pattern) : null,
+        text: pattern => pattern
     };
 
     discovery.view.define('input', function(el, config, data, context) {

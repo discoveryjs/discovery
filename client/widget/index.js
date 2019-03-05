@@ -139,7 +139,6 @@ export default class Widget extends Emitter {
                 this.encodePageHash(pageId, pageRef, pageParams)
         };
 
-
         this.apply(views);
         this.apply(pages);
         this.setContainer(container);
