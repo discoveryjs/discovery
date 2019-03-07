@@ -1,3 +1,16 @@
+## next
+
+- Client
+    - Added `ViewRenderer#normalizeConfig(config)` and `ViewRenderer#extendConfig(config, extension)` methods (available as `discovery.view.*`)
+    - Removed right padding/margin for last items in `hstack` and `columns`
+    - Changed styles for `button`, `input` and `select` to be consistent with each others
+    - Added disabled state for `menu-item` view
+    - Added a message and disable menu items when JSON can't be copied through `struct` actions popup
+    - Improved experience when JSON can't be copied through `struct` view actions, items are disabled and annotated with a reason message now
+    - Added size of compacted JSON in `struct` actions menu
+    - Renamed css class name for content block of `tree-leaf` view (added `view-` prefix)
+    - Changed `source` view to extend flexibility to setup highlight ranges
+
 ## 1.0.0-beta.11 (10-02-2019)
 
 - Client

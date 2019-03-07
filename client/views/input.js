@@ -5,8 +5,8 @@ import safeFilterRx from '../core/utils/safe-filter-rx.js';
 
 export default function(discovery) {
     const factories = {
-        regexp: value => value ? safeFilterRx(value) : null,
-        text: value => value
+        regexp: pattern => pattern ? safeFilterRx(pattern) : null,
+        text: pattern => pattern
     };
 
     discovery.view.define('input', function(el, config, data, context) {
@@ -15,9 +15,12 @@ export default function(discovery) {
         const inputEl = el.appendChild(document.createElement('input'));
         let lastInput = defined([value, context[name]], '');
 
-        inputEl.value = lastInput;
-        inputEl.placeholder = (placeholder || '') + (factory !== factories.text ? ' (' + type + ')' : '');
         inputEl.type = htmlType;
+        inputEl.value = lastInput;
+        inputEl.placeholder = [
+            placeholder || '',
+            factory !== factories.text ? '(' + type + ')' : ''
+        ].filter(Boolean).join(' ');
 
         if (typeof htmlMin !== 'undefined') {
             inputEl.min = htmlMin;
@@ -27,7 +30,7 @@ export default function(discovery) {
             inputEl.max = htmlMax;
         }
 
-        inputEl.addEventListener('input', () => {
+      inputEl.addEventListener('input', () => {
             const newInput = inputEl.value.trim();
 
             if (lastInput !== newInput) {

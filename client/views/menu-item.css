@@ -2,10 +2,19 @@
     padding: 4px 12px;
     cursor: pointer;
 }
+.view-menu-item:empty::before {
+    content: '|';
+    visibility: hidden;
+}
 .view-menu-item:hover {
     background: #e0e0e0;
 }
 .view-menu-item.selected {
     background: #c6dee7;
     cursor: default;
+}
+.view-menu-item.disabled {
+    opacity: .65;
+    background: none;
+    pointer-events: none;
 }

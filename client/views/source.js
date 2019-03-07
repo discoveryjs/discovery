@@ -16,30 +16,35 @@ const mimeToSyntax = {
     'image/svg+xml': 'svg'
 };
 
+function classNames(options, defaultClassNames) {
+    const customClassName = options && options.className;
+    const classNames = [
+        defaultClassNames,
+        Array.isArray(customClassName)
+            ? customClassName.join(' ')
+            : (typeof customClassName === 'string' ? customClassName : false)
+    ].filter(Boolean).join(' ');
+
+    return classNames ? ` class="${classNames}"` : '';
+}
+
 const printer = hitext.printer.html
     .fork(hitextPrismjs.printer.html)
     .fork({
         hooks: {
             ...hitext.printer.html.hooks,
-            error: {
-                open() {
-                    return '<span class="spotlight spotlight-error">';
-                },
-                close() {
-                    return '</span>';
-                }
-            },
             link: {
-                open(href) {
-                    return '<a href="' + href + '" class="spotlight">';
+                open(options) {
+                    return `<a href="${options.href}"${classNames(options)}${options.marker ? ` data-marker="${options.marker}"` : ''}>`;
                 },
                 close() {
                     return '</a>';
                 }
             },
-            ignore: {
-                open() {
-                    return '<span class="spotlight spotlight-ignore">';
+
+            spotlight: {
+                open(options) {
+                    return `<span ${classNames(options, 'spotlight')}${options.marker ? ` data-marker="${options.marker}"` : ''}>`;
                 },
                 close() {
                     return '</span>';
@@ -77,10 +82,10 @@ export default function(discovery) {
                 refs.forEach(ref => {
                     if (ref.range) {
                         addRange(
-                            ref.type,
+                            ref.type || 'spotlight',
                             ref.range[0],
                             ref.range[1],
-                            ref.href
+                            ref
                         );
                     }
                 })

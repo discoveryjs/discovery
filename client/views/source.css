@@ -25,10 +25,19 @@
 }
 .view-source .spotlight {
     background: #fdf8cc;
-    padding: 2px 0;
+    padding: 1px 2px 2px;
 }
-.view-source .spotlight-error {
-    background: #ffc9c9
+.view-source .spotlight.error {
+    background: #ffc9c9;
+}
+.view-source .spotlight.def {
+    background: #d3e7fb;
+}
+.view-source .spotlight.ref {
+    background: #ebfdca;
+}
+.view-source .spotlight.global-ref {
+    background: #ffd8a3;
 }
 .view-source a.spotlight {
     position: relative;

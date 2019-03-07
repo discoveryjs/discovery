@@ -35,6 +35,72 @@ function renderDom(renderer, placeholder, config, data, context) {
         });
 }
 
+function render(container, config, data, context) {
+    if (Array.isArray(config)) {
+        return Promise.all(config.map(config => render.call(this, container, config, data, context)));
+    }
+
+    let renderer = null;
+
+    switch (typeof config.view) {
+        case 'function':
+            renderer = { render: config.view, name: false, options: STUB_OBJECT };
+            break;
+
+        case 'string':
+            if (config.view.startsWith('preset/')) {
+                const presetName = config.view.substr(7);
+
+                if (this.host.preset.isDefined(presetName)) {
+                    renderer = {
+                        render: this.host.preset.get(presetName).render,
+                        name: false,
+                        options: { tag: false }
+                    };
+                } else {
+                    return this.host.preset.render(container, presetName, data, context);
+                }
+            } else {
+                renderer = this.get(config.view);
+            }
+            break;
+    }
+
+    if (!renderer) {
+        const errorMsg = typeof config.view === 'string'
+            ? 'View `' + config.view + '` is not found'
+            : 'Render is not a function';
+        console.error(errorMsg, config);
+        renderer = this.get('fallback') || BUILDIN_FALLBACK;
+        config = { reason: errorMsg };
+    }
+
+    if (!container) {
+        container = document.createDocumentFragment();
+    }
+
+    if ('when' in config === false || this.host.queryBool(config.when, data, context)) {
+        // immediately append a view insert point (a placeholder)
+        const placeholder = container.appendChild(document.createComment(''));
+
+        // resolve data and render a view when ready
+        return Promise
+            .resolve(
+                // change context data if necessary
+                'data' in config
+                    ? this.host.query(config.data, data, context)
+                    : data
+            )
+            .then(data => renderDom(renderer, placeholder, config, data, context))
+            .catch(e => {
+                renderDom(this.get('alert-danger'), placeholder, {}, e);
+                console.log(e);
+            });
+    } else {
+        return Promise.resolve();
+    }
+}
+
 export default class ViewRenderer extends Dict {
     constructor(host) {
         super();
@@ -52,13 +118,16 @@ export default class ViewRenderer extends Dict {
         }));
     }
 
-    render(container, config, data, context) {
+    normalizeConfig(config) {
         if (!config) {
             config = 'struct';
         }
 
         if (Array.isArray(config)) {
-            return Promise.all(config.map(config => this.render(container, config, data, context)));
+            return config.reduce(
+                (res, item) => res.concat(this.normalizeConfig(item)),
+                []
+            );
         }
 
         if (typeof config === 'string') {
@@ -80,61 +149,26 @@ export default class ViewRenderer extends Dict {
             };
         }
 
-        let renderer = null;
-
-        switch (typeof config.view) {
-            case 'function':
-                renderer = { render: config.view, name: false, options: STUB_OBJECT };
-                break;
-
-            case 'string':
-                if (config.view.startsWith('preset/')) {
-                    const presetName = config.view.substr(7);
-
-                    if (this.host.preset.isDefined(presetName)) {
-                        renderer = {
-                            render: this.host.preset.get(presetName).render,
-                            name: false,
-                            options: { tag: false }
-                        };
-                    } else {
-                        return this.host.preset.render(container, presetName, data, context);
-                    }
-                } else {
-                    renderer = this.get(config.view);
-                }
-                break;
+        if (!config || !config.view) {
+            config = {
+                view: 'bad-config',
+                value: config
+            };
         }
 
-        if (!renderer) {
-            const errorMsg = typeof config.view === 'string'
-                ? 'View `' + config.view + '` is not found'
-                : 'Render is not a function';
-            console.error(errorMsg, config);
-            renderer = this.get('fallback') || BUILDIN_FALLBACK;
-            config = { reason: errorMsg };
-        }
+        return config;
+    }
 
-        if ('when' in config === false || this.host.queryBool(config.when, data, context)) {
-            // immediately append a view insert point (a placeholder)
-            const placeholder = container.appendChild(document.createComment(''));
+    extendConfig(config, extension) {
+        config = this.normalizeConfig(config);
 
-            // resolve data and render a view when ready
-            return Promise
-                .resolve(
-                    // change context data if necessary
-                    'data' in config
-                        ? this.host.query(config.data, data, context)
-                        : data
-                )
-                .then(data => renderDom(renderer, placeholder, config, data, context))
-                .catch(e => {
-                    renderDom(this.get('alert-danger'), placeholder, {}, e);
-                    console.log(e);
-                });
-        } else {
-            return Promise.resolve();
-        }
+        return Array.isArray(config)
+            ? config.map(item => ({ ...item, ...extension }))
+            : { ...config, ...extension };
+    }
+
+    render(container, config, data, context) {
+        return render.call(this, container, this.normalizeConfig(config), data, context);
     }
 
     listLimit(value, defaultValue) {

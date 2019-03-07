@@ -1,12 +1,10 @@
 .view-button {
     position: relative;
     display: inline-block;
-    vertical-align: middle;
-    min-height: 30px;
-    padding: 6px 12px;
-    outline: 0;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    outline: none;
     margin: 0;
-    z-index: 1;
     
     border: 1px solid #ccc;
     border-radius: 3px;    
@@ -15,9 +13,14 @@
     
     font-family: inherit;
     font-size: inherit;
-    line-height: inherit;
+    line-height: 1.2;
     text-align: center;
     cursor: pointer;
+}
+.view-button:empty::before {
+    content: '|';
+    width: 0;
+    visibility: hidden;
 }
 .view-button:hover {
     background-color: #f5f5f5;
@@ -27,7 +30,8 @@
     background-color: #e0e0e0;
 }
 .view-button:focus {
-    box-shadow: 0px 0px 1px 3px rgba(0, 170, 255, 0.3);
+    box-shadow: 0 0 1px 3px rgba(0, 170, 255, 0.2);
+    z-index: 1;
 }
 .view-button[disabled] {
     opacity: .5;
@@ -70,5 +74,3 @@
 .view-button-warning:active {
     background-color: #f7ad00;
 }
-
-
