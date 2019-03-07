@@ -30,7 +30,7 @@ export default function(discovery) {
             inputEl.max = htmlMax;
         }
 
-      inputEl.addEventListener('input', () => {
+        inputEl.addEventListener('input', () => {
             const newInput = inputEl.value.trim();
 
             if (lastInput !== newInput) {
