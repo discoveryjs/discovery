@@ -224,11 +224,12 @@ export default function(discovery) {
     //
     // Query form
     //
-    let queryLiveEditEl;
+    let queryEditorLiveEditEl;
     const queryEditor = new discovery.view.QueryEditor(discovery).on('change', value =>
-        queryLiveEditEl.checked && updateParams({ query: value }, true)
+        queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
     );
     const queryEngineInfo = discovery.getQueryEngineInfo();
+    const queryEditorButtonsEl = createElement('div', 'buttons');
     const queryEditorFormEl = createElement('div', 'query-editor-form', [
         createElement('div', 'query-editor', [
             queryEditor.el,
@@ -239,7 +240,7 @@ export default function(discovery) {
                     }</a> ${queryEngineInfo.version || ''} syntax for queries`
                 ),
                 createElement('label', null, [
-                    queryLiveEditEl = createElement('input', {
+                    queryEditorLiveEditEl = createElement('input', {
                         class: 'live-update',
                         type: 'checkbox',
                         checked: true,
@@ -253,20 +254,22 @@ export default function(discovery) {
                     }),
                     ' process on input'
                 ]),
-                createElement('div', 'buttons', [
-                    createElement('button', {
-                        onclick: () => {
-                            lastQuery = {};
-                            updateParams({
-                                query: queryEditor.getValue()
-                            }, true);
-                            discovery.scheduleRender('page'); // force render
-                        }
-                    }, 'Process')
-                ])
+                queryEditorButtonsEl
             ])
         ])
     ]);
+    // FIXME: temporary until full migration on discovery render
+    discovery.view.render(queryEditorButtonsEl, {
+        view: 'button-primary',
+        content: 'text:"Process"',
+        onClick: () => {
+            lastQuery = {};
+            updateParams({
+                query: queryEditor.getValue()
+            }, true);
+            discovery.scheduleRender('page'); // force render
+        }
+    });
 
     const queryEditorResultEl = createElement('div', 'data-query-result');
 
@@ -281,6 +284,7 @@ export default function(discovery) {
     const viewEditor = new discovery.view.ViewEditor(discovery).on('change', value =>
         viewLiveEditEl.checked && updateParams({ view: value }, true)
     );
+    const viewEditorButtonsEl = createElement('div', 'buttons');
     const viewEditorFormEl = createElement('div', 'view-editor-form', [
         createElement('div', 'tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
             createElement('div', {
@@ -335,18 +339,22 @@ export default function(discovery) {
                     }),
                     ' build on input'
                 ]),
-                createElement('div', 'buttons', [
-                    createElement('button', {
-                        onclick: () => {
-                            lastView = {};
-                            updateParams({ view: viewEditor.getValue() }, true);
-                            discovery.scheduleRender('page'); // force render
-                        }
-                    }, 'Build')
-                ])
+                viewEditorButtonsEl
             ])
         ])
     ]);
+    // FIXME: temporary until full migration on discovery render
+    discovery.view.render(viewEditorButtonsEl, {
+        view: 'button-primary',
+        content: 'text:"Build"',
+        onClick: () => {
+            lastView = {};
+            updateParams({
+                view: viewEditor.getValue()
+            }, true);
+            discovery.scheduleRender('page'); // force render
+        }
+    });
 
     // sync view list
     const updateAvailableViewList = () =>
