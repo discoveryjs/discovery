@@ -8,6 +8,7 @@
     min-width: 10ex;
     max-width: 100%;
     padding-right: 1.2em;
+    line-height: 1.2;
 
     border-radius: 3px;
     border: 1px solid #ccc;
@@ -49,6 +50,10 @@
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2);
     border-color: #b3b3b3;
     z-index: 1;
+}
+.view-select .view-menu-item {
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 .view-select > * {
     pointer-events: none;
