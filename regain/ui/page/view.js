@@ -9,7 +9,7 @@ discovery.page.define(
                 ast,
                 content,
                 views: ast.exports().functions()
-                .body.body.expression.[callee.property.name.[$="define"]].arguments.value
+                    .body.body.expression.[callee.property.name.[$="define"]].arguments.value
             }).group(<views>).pick(<(key=#.id)>).value.pick(0)
         `,
         content: {
@@ -31,6 +31,18 @@ discovery.page.define(
                             data: `
                                 (ast.exports().functions().body.body.expression.arguments.body.body.declarations.[init.name="config"].id.properties().name() +
                                 ast.exports().functions().body.body.body.body.declarations.[init.name="config"].id.properties().name())
+                                .[not $~=/^on./]
+                            `,
+                            item: 'text:$'
+                        },
+                        "h3:'📝Data properties'",
+                        {
+                            view: 'list',
+                            emptyText: 'no data properties',
+                            data: `
+                                (ast.exports().functions().body.body.expression.arguments.body.body.declarations.[init.name="data"].id.properties().name() +
+                                ast.exports().functions().body.body.body.body.declarations.[init.left.name="data"].id.properties().name()+
+                                ast.exports().functions().body.body.body.body.declarations.[init.name="data"].id.properties().name())
                                 .[not $~=/^on./]
                             `,
                             item: 'text:$'
