@@ -1,3 +1,8 @@
+## next
+
+- Server
+    - Fixed model assets generation when non-default config file is specified
+
 ## 1.0.0-beta.12 (07-03-2019)
 
 - Client

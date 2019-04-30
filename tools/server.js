@@ -186,8 +186,8 @@ module.exports = bootstrap(function createServer(options, config) {
                     [ROUTE_RESET_DATA]: dropDataCache(modelConfig),
                     [ROUTE_SETUP]: generate(ROUTE_SETUP, modelConfig, config),
                     [ROUTE_MODEL_PREPARE]: generate(ROUTE_MODEL_PREPARE, modelConfig),
-                    [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS, modelConfig),
-                    [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS, modelConfig)
+                    [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS, modelConfig, options),
+                    [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS, modelConfig, options)
                 });
             })
         );
