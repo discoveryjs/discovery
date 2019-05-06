@@ -71,11 +71,11 @@ export default function(discovery) {
                 });
 
                 if (hasChildren && leafExpanded) {
-                    if (typeof expanded === 'number') {
-                        expanded--;
-                    }
-
-                    processChildren(children, expanded, last ? popCount + 1 : 0);
+                    processChildren(
+                        children,
+                        typeof expanded === 'number' ? expanded - 1 : expanded,
+                        last ? popCount + 1 : 0
+                    );
                 }
             });
         }

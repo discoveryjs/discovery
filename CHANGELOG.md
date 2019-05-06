@@ -2,6 +2,8 @@
 
 - Server
     - Fixed model assets generation when non-default config file is specified
+- Client
+    - Fixed expanded state for `tree` view leafs when `expanded` setting is a number
 
 ## 1.0.0-beta.12 (07-03-2019)
 
