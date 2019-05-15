@@ -24,15 +24,17 @@
 .view-struct .struct-expanded-value {
     background-image: linear-gradient(to bottom, #eee, #eee);
     background-size: 1px calc(100% - 38px);
-    background-position: 4.7ex 20px;
+    background-position: 4.85ex 20px;
     background-repeat: no-repeat;
+    background-attachment: local;
 }
 .view-struct.struct-expanded-value {
     background-size: 1px calc(100% - 54px);
-    background-position: 10px 28px;
+    background-position: 11px 28px;
 }
 .view-struct .struct-collapse-value,
 .view-struct .show-signature,
+.view-struct .string-as-text-toggle,
 .view-struct .value-actions {
     margin-left: 2px;
     padding: 1px 4px;
@@ -55,6 +57,12 @@
 .view-struct .show-signature::before {
     content: "𝕊";
 }
+.view-struct .string-as-text-toggle::before {
+    content: "as text";
+}
+.view-struct .string-value-as-text .string-as-text-toggle::before {
+    content: "as value";
+}
 .view-struct .value-actions::before {
     content: "ƒ";
 }
@@ -62,6 +70,7 @@
 .view-struct .struct-expand-value:hover,
 .view-struct .struct-collapse-value:hover,
 .view-struct .show-signature:hover,
+.view-struct .string-as-text-toggle:hover,
 .view-struct .value-actions:hover,
 .view-struct .discovery-view-popup-active {
     color: #333;
@@ -93,11 +102,37 @@
 .view-struct .string,
 .view-struct .string a {
     color: #690;
-    white-space: nowrap;
+    white-space: pre;
+}
+.view-struct .string-length {
+    padding-left: 6px;
+    color: #ccc;
+    font-size: 9px;
+}
+.view-struct .string-text-wrapper {
+    display: block;
+    padding: 4px 4px 4px 5.5ex;
+}
+.view-struct .string-text {
+    display: inline;
+    white-space: pre-wrap;
+    box-shadow: 0 0 0 3px #e9f6e8;
+    background: #e9f6e8;
+    color: #690;
+}
+.view-struct .string-value-as-text .string-text {
+    display: block;
+    white-space: pre;
+    box-shadow: 0 0 0 3px #f4f4f4;
+    background: #f4f4f4;
+    color: #666;
 }
 .view-struct .more {
     color: #999;
     white-space: nowrap;
+}
+.view-struct .string .more {
+    margin: 0 3px;
 }
 .view-struct .more-buttons {
     padding-left: 4ch;

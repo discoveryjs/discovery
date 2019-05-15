@@ -8,7 +8,21 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const expandedItemsLimit = 50;
 const collapedItemsLimit = 4;
+const maxStringLength = 150;
+const maxLinearStringLength = 50;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
+const stringValueProto = createFragment(
+    '"',
+    createElement('span', 'struct-collapse-value'),
+    createElement('span', 'value-actions'),
+    createElement('span', 'string-as-text-toggle'),
+    createElement('span', 'string-length'),
+    createElement('br'),
+    createElement('span', 'string-text-wrapper', [
+        createElement('span', 'string-text')
+    ]),
+    '"'
+);
 const arrayValueProto = createFragment('[', ...createActionButtons(), ']');
 const objectValueProto = createFragment('{', ...createActionButtons(), '}');
 const entryProtoEl = createElement('div', 'entry-line');
@@ -32,7 +46,7 @@ function token(type, str) {
 }
 
 function more(num) {
-    return token('more', '…' + num + ' more…');
+    return token('more', `…${num} more…`);
 }
 
 function value2htmlString(value, linear) {
@@ -59,11 +73,23 @@ function value2htmlString(value, linear) {
             return 'ƒn';
 
         case 'string': {
+            const maxLength = linear ? maxLinearStringLength : maxStringLength;
+
+            if (value.length > maxLength + 15) {
+                return token(
+                    'string',
+                    escapeHtml(JSON.stringify(value.substr(0, maxLength)))
+                        .replace(/"$/, more(value.length - maxLength) + '"')
+                );
+            }
+
             const str = escapeHtml(JSON.stringify(value));
 
-            return token('string', !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
-                ? `"<a href="${escapeHtml(value)}">${str.substr(1, str.length - 2)}</a>"`
-                : str
+            return token(
+                'string',
+                !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
+                    ? `"<a href="${escapeHtml(value)}">${str.substr(1, str.length - 2)}</a>"`
+                    : str
             );
         }
 
@@ -133,6 +159,11 @@ function isValueExpandable(value) {
         return value.length > 0;
     }
 
+    // a string
+    if (typeof value === 'string' && (value.length > maxStringLength || /[\r\n\f\t]/.test(value))) {
+        return true;
+    }
+
     // a plain object
     if (value && toString.call(value) === '[object Object]') {
         for (const key in value) {
@@ -172,6 +203,15 @@ export default function(discovery) {
             renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
                 renderValue(entryEl, value, expandLimit);
             });
+        } else if (typeof data === 'string') {
+            // string
+            el.innerHTML = '';
+            el.appendChild(stringValueProto.cloneNode(true));
+
+            const stringValueEl = el.lastChild.previousSibling;
+            const text = JSON.stringify(data);
+            appendText(stringValueEl.firstChild, text.slice(1, -1));
+            appendText(stringValueEl.previousSibling, `length: ${text.length} chars`);
         } else {
             // object
             el.innerHTML = '';
@@ -205,7 +245,7 @@ export default function(discovery) {
         const expandable = isValueExpandable(value);
         const valueEl = valueProtoEl.cloneNode(true);
 
-        if (expandable && expandLimit) {
+        if (expandable && typeof value !== 'string' && expandLimit) {
             // expanded
             elementToData.set(valueEl, value);
             container.classList.add('struct-expanded-value');
@@ -264,13 +304,47 @@ export default function(discovery) {
         className: 'view-struct-actions-popup',
         render: (popupEl, triggerEl) => {
             const value = elementToData.get(triggerEl.parentNode);
-            let stringifiedJson;
-            let error = false;
+            let actions = [];
 
-            try {
-                stringifiedJson = JSON.stringify(value);
-            } catch (e) {
-                error = 'Can\'t be copied: ' + e.message;
+            if (typeof value === 'string') {
+                actions = [
+                    {
+                        text: 'Copy as quoted string',
+                        action: () => copyText(JSON.stringify(value))
+                    },
+                    {
+                        text: 'Copy as unquoted string',
+                        action: () => copyText(JSON.stringify(value).slice(1, -1))
+                    },
+                    {
+                        text: 'Copy a value (unescaped)',
+                        action: () => copyText(value)
+                    }
+                ];
+            } else {
+                let error = false;
+                let stringifiedJson;
+
+                try {
+                    stringifiedJson = JSON.stringify(value);
+                } catch (e) {
+                    error = 'Can\'t be copied: ' + e.message;
+                }
+
+                actions = [
+                    {
+                        text: 'Copy as JSON (formatted)',
+                        error,
+                        disabled: Boolean(error),
+                        action: () => copyText(JSON.stringify(value, null, 4))
+                    },
+                    {
+                        text: `Copy as JSON (compact${formatSize(stringifiedJson)})`,
+                        error,
+                        disabled: Boolean(error),
+                        action: () => copyText(stringifiedJson)
+                    }
+                ];
             }
 
             discovery.view.render(popupEl, {
@@ -288,20 +362,7 @@ export default function(discovery) {
                         content: 'text:error'
                     }
                 ]
-            }, [
-                {
-                    text: 'Copy as JSON (formatted)',
-                    error,
-                    disabled: Boolean(error),
-                    action: () => copyText(formatSize(JSON.stringify(value, null, 4)))
-                },
-                {
-                    text: `Copy as JSON (compact${formatSize(stringifiedJson)})`,
-                    error,
-                    disabled: Boolean(error),
-                    action: () => copyText(stringifiedJson)
-                }
-            ]);
+            }, actions);
         }
     });
     const clickHandler = ({ target }) => {
@@ -309,6 +370,7 @@ export default function(discovery) {
             .view-struct.struct-expand,
             .view-struct .struct-expand-value,
             .view-struct .struct-collapse-value,
+            .view-struct .string-as-text-toggle,
             .view-struct .value-actions
         `);
 
@@ -337,6 +399,12 @@ export default function(discovery) {
             if (structViewRoots.has(cursor.parentNode)) {
                 cursor.parentNode.classList.add('struct-expand');
             }
+        } else if (cursor.classList.contains('string-as-text-toggle')) {
+            const stringTextNode = cursor.parentNode.querySelector('.string-text').firstChild;
+
+            stringTextNode.nodeValue = cursor.parentNode.classList.toggle('string-value-as-text')
+                ? JSON.parse(`"${stringTextNode.nodeValue}"`)
+                : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
         } else if (cursor.classList.contains('value-actions')) {
             // actions
             valueActionsPopup.show(cursor);
