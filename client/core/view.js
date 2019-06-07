@@ -3,13 +3,29 @@
 import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
-const BUILDIN_FALLBACK = {
-    name: 'fallback',
-    render: (el, config) => {
-        el.style.cssText = 'color:#a00;border:1px dashed #a00;font-size:12px;padding:4px';
-        el.innerText = config.reason;
-    },
-    options: STUB_OBJECT
+
+function createDefaultConfigErrorView(view) {
+    return  {
+        name: 'config-error',
+        render: function(el, config) {
+            el.className = 'buildin-view-config-error';
+            el.textContent = config.reason;
+
+            if (config.config) {
+                const configEl = el.appendChild(document.createElement('span'));
+                configEl.className = 'show-config';
+                configEl.textContent = 'show config...';
+                configEl.addEventListener('click', () => {
+                    configEl.remove();
+
+                    const buffer = document.createDocumentFragment();
+                    view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
+                        .then(() => el.appendChild(buffer));
+                });
+            }
+        },
+        options: STUB_OBJECT
+    };
 };
 
 function renderDom(renderer, placeholder, config, data, context) {
@@ -59,7 +75,11 @@ function render(container, config, data, context) {
 
     switch (typeof config.view) {
         case 'function':
-            renderer = { render: config.view, name: false, options: STUB_OBJECT };
+            renderer = {
+                render: config.view,
+                name: false,
+                options: STUB_OBJECT
+            };
             break;
 
         case 'string':
@@ -85,9 +105,11 @@ function render(container, config, data, context) {
         const errorMsg = typeof config.view === 'string'
             ? 'View `' + config.view + '` is not found'
             : 'Render is not a function';
+
         console.error(errorMsg, config);
-        renderer = this.get('fallback') || BUILDIN_FALLBACK;
-        config = { reason: errorMsg };
+
+        renderer = this.get('config-error') || this.defaultConfigErrorRenderer;
+        config = { reason: errorMsg, config };
     }
 
     if (!container) {
@@ -109,7 +131,7 @@ function render(container, config, data, context) {
             .then(data => renderDom(renderer, placeholder, config, data, context))
             .catch(e => {
                 renderDom(this.get('alert-danger'), placeholder, {}, e);
-                console.log(e);
+                console.error(e);
             });
     } else {
         return Promise.resolve();
@@ -121,6 +143,7 @@ export default class ViewRenderer extends Dict {
         super();
 
         this.host = host;
+        this.defaultConfigErrorRenderer = createDefaultConfigErrorView(this);
     }
 
     define(name, render, options) {
@@ -166,8 +189,9 @@ export default class ViewRenderer extends Dict {
 
         if (!config || !config.view) {
             config = {
-                view: 'bad-config',
-                value: config
+                view: this.defaultConfigErrorRenderer.render,
+                reason: !config ? 'Config is not a valid value' : 'Option `view` is missed',
+                config
             };
         }
 

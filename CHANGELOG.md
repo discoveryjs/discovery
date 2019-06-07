@@ -8,6 +8,8 @@
     - Fixed config composing in `context` view
     - Renamed `View#extendConfig()` method to `View#composeConfig()`
     - Extended `className` option in a view config to take a `function(data, context)` or `Array.<function(data, context)|string>` beside a string
+    - Removed `fallback` view
+    - Improved view config error output (view can be overrided by defining custom `config-error` view)
 
 ## 1.0.0-beta.12 (07-03-2019)
 

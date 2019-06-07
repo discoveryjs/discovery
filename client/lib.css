@@ -1,2 +1,33 @@
 @import url('/widget/index.css');
 @import url('/app/index.css');
+
+.discovery .buildin-view-config-error {
+    overflow: hidden;
+    margin: 1px;
+    border: 1px solid #e99;
+    background: #ffe8e8;
+    color: #c66;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 10px;
+    line-height: 1;
+}
+.discovery .buildin-view-config-error::before {
+    content: 'CONFIG ERROR';
+    margin: -4px 1ex -4px -4px;
+    background: #e99;
+    color: white;
+    padding: 4px;
+}
+.discovery .buildin-view-config-error .show-config {
+    margin-left: 1ex;
+    cursor: pointer;
+    opacity: .65;
+    color: #888;
+}
+.discovery .buildin-view-config-error .show-config:hover {
+    opacity: 1;
+}
+.discovery .buildin-view-config-error .view-struct {
+    margin: 4px -4px -4px;
+}
