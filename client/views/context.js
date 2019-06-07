@@ -41,11 +41,12 @@ export default function(discovery) {
             modifiers = [modifiers];
         }
 
-        const awaitRender = discovery.view.render(el, modifiers.map(item => ({
-            onInit: updateContext,
-            onChange: updateContext,
-            ...item
-        })), data, context);
+        const awaitRender = discovery.view.render(el, modifiers.map(
+            item => this.extendConfig(item, {
+                onInit: updateContext,
+                onChange: updateContext
+            })
+        ), data, context);
 
         contentStartMarker = el.appendChild(document.createComment('context view content start'));
         contentEndMarker = el.appendChild(document.createComment('context view content end'));
