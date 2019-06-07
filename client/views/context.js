@@ -42,7 +42,7 @@ export default function(discovery) {
         }
 
         const awaitRender = discovery.view.render(el, modifiers.map(
-            item => this.extendConfig(item, {
+            item => this.composeConfig(item, {
                 onInit: updateContext,
                 onChange: updateContext
             })

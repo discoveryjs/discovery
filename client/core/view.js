@@ -159,7 +159,7 @@ export default class ViewRenderer extends Dict {
         return config;
     }
 
-    extendConfig(config, extension) {
+    composeConfig(config, extension) {
         config = this.normalizeConfig(config);
 
         return Array.isArray(config)

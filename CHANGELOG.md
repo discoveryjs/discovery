@@ -5,6 +5,8 @@
 - Client
     - Fixed expanded state for `tree` view leafs when `expanded` setting is a number
     - Improved display of long strings and strings that contains newlines in `struct` view
+    - Fixed config composing in `context` view
+    - Renamed `View#extendConfig()` method to `View#composeConfig()`
 
 ## 1.0.0-beta.12 (07-03-2019)
 
