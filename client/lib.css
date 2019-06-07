@@ -2,7 +2,6 @@
 @import url('/app/index.css');
 
 .discovery .buildin-view-config-error {
-    overflow: hidden;
     margin: 1px;
     border: 1px solid #e99;
     background: #ffe8e8;
@@ -15,6 +14,7 @@
 .discovery .buildin-view-config-error::before {
     content: 'CONFIG ERROR';
     margin: -4px 1ex -4px -4px;
+    border-radius: 4px 0 0 4px;
     background: #e99;
     color: white;
     padding: 4px;

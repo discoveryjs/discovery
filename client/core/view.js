@@ -158,12 +158,12 @@ export default class ViewRenderer extends Dict {
 
     normalizeConfig(config) {
         if (!config) {
-            config = 'struct';
+            return null;
         }
 
         if (Array.isArray(config)) {
             return config.reduce(
-                (res, item) => res.concat(this.normalizeConfig(item)),
+                (res, item) => res.concat(this.normalizeConfig(item) || []),
                 []
             );
         }
@@ -187,8 +187,16 @@ export default class ViewRenderer extends Dict {
             };
         }
 
+        return config;
+    }
+
+    ensureValidConfig(config) {
+        if (Array.isArray(config)) {
+            return config.map(item => this.ensureValidConfig(item));
+        }
+
         if (!config || !config.view) {
-            config = {
+            return {
                 view: this.defaultConfigErrorRenderer.render,
                 reason: !config ? 'Config is not a valid value' : 'Option `view` is missed',
                 config
@@ -200,14 +208,28 @@ export default class ViewRenderer extends Dict {
 
     composeConfig(config, extension) {
         config = this.normalizeConfig(config);
+        extension = this.normalizeConfig(extension);
 
-        return Array.isArray(config)
-            ? config.map(item => ({ ...item, ...extension }))
-            : { ...config, ...extension };
+        // mix
+        if (config && extension) {
+            return this.ensureValidConfig(
+                Array.isArray(config)
+                    ? config.map(item => ({ ...item, ...extension }))
+                    : { ...config, ...extension }
+            );
+        }
+
+        return this.ensureValidConfig(config || extension);
     }
 
     render(container, config, data, context) {
-        return render.call(this, container, this.normalizeConfig(config), data, context);
+        return render.call(
+            this,
+            container,
+            this.ensureValidConfig(this.normalizeConfig(config) || { view: 'struct' }),
+            data,
+            context
+        );
     }
 
     listLimit(value, defaultValue) {

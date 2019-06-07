@@ -6,7 +6,9 @@
     - Fixed expanded state for `tree` view leafs when `expanded` setting is a number
     - Improved display of long strings and strings that contains newlines in `struct` view
     - Fixed config composing in `context` view
-    - Renamed `View#extendConfig()` method to `View#composeConfig()`
+    - Added `View#ensureValidConfig()` to return a config that can be rendered
+    - Renamed `View#extendConfig()` to `View#composeConfig()` and changed behaviour to handle more use cases
+    - Changed `View#normalizeConfig()` to able return a `null` (no config) and no validation on view option is present (use `View#ensureValidConfig()` for that)
     - Extended `className` option in a view config to take a `function(data, context)` or `Array.<function(data, context)|string>` beside a string
     - Removed `fallback` view
     - Improved view config error output (view can be overrided by defining custom `config-error` view)
