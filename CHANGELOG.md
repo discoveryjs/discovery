@@ -7,6 +7,7 @@
     - Improved display of long strings and strings that contains newlines in `struct` view
     - Fixed config composing in `context` view
     - Renamed `View#extendConfig()` method to `View#composeConfig()`
+    - Extended `className` option in a view config to take a `function(data, context)` or `Array.<function(data, context)|string>` beside a string
 
 ## 1.0.0-beta.12 (07-03-2019)
 

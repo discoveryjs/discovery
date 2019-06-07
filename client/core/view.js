@@ -27,7 +27,22 @@ function renderDom(renderer, placeholder, config, data, context) {
                 }
 
                 if (config.className) {
-                    el.classList.add(config.className);
+                    let classNames = config.className;
+
+                    if (typeof classNames === 'string') {
+                        // fast path
+                        el.classList.add(classNames);
+                    } else {
+                        if (!Array.isArray(classNames)) {
+                            classNames = [classNames];
+                        }
+
+                        el.classList.add(
+                            ...classNames
+                                .map(item => typeof item === 'function' ? item(data, context) : item)
+                                .filter(Boolean)
+                        );
+                    }
                 }
             }
 
