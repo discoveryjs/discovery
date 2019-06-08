@@ -9,14 +9,14 @@ export default function(discovery) {
     discovery.view.define('select', function(el, config, data, context) {
         function renderCaption() {
             el.innerHTML = '';
-            discovery.view.render(el, {
+            discovery.view.render(el, discovery.view.composeConfig({
                 view: 'menu-item',
                 data: '{ value: $, text: ' + text + ' or "" }',
                 content: item
-            }, currentValue, context);
+            }, itemConfig), currentValue, context);
         }
 
-        const { name, value, text = '$', placeholder, item = defaultItemRender, onInit, onChange } = config;
+        const { name, value, text = '$', placeholder, item = defaultItemRender, itemConfig, onInit, onChange } = config;
         let currentValue = value ? discovery.query(value, data, context) : context[name];
 
         if (placeholder) {
@@ -37,6 +37,7 @@ export default function(discovery) {
                     content: {
                         view: 'menu',
                         data: '.[no #.filter or text~=#.filter]',
+                        itemConfig,
                         item,
                         onClick: (data) => {
                             variantsPopup.hide();

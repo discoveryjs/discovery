@@ -15,12 +15,12 @@ export default function(discovery) {
             if (Array.isArray(tabs)) {
                 tabsEl.innerHTML = '';
                 tabs.forEach(tab =>
-                    discovery.view.render(tabsEl, {
+                    discovery.view.render(tabsEl, discovery.view.composeConfig({
                         view: 'tab',
                         active: tab.value === currentValue,
                         content: tab.content,
                         onClick: renderContent
-                    }, tab, context)
+                    }, tabConfig), tab, context)
                 );
             }
 
@@ -36,7 +36,7 @@ export default function(discovery) {
 
         const tabsEl = el.appendChild(document.createElement('div'));
         const contentEl = el.appendChild(document.createElement('div'));
-        const { content, onInit, onChange } = config;
+        const { content, tabConfig, onInit, onChange } = config;
         let { name, tabs } = config;
         let inited = false;
         let currentValue = NaN;

@@ -9,6 +9,10 @@
     - Added `View#ensureValidConfig()` to return a config that can be rendered
     - Renamed `View#extendConfig()` to `View#composeConfig()` and changed behaviour to handle more use cases
     - Changed `View#normalizeConfig()` to able return a `null` (no config) and no validation on view option is present (use `View#ensureValidConfig()` for that)
+    - Added a list item config extension:
+        - via `itemConfig` option for `list` (`list-*`), `columns`, `menu`, `select`, `tree` and `tree-leaf` views
+        - via `rowConfig` option for `table` view
+        - via `tabConfig` option for `tabs` view
     - Extended `className` option in a view config to take a `function(data, context)` or `Array.<function(data, context)|string>` beside a string
     - Removed `fallback` view
     - Improved view config error output (view can be overrided by defining custom `config-error` view)

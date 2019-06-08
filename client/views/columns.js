@@ -2,7 +2,7 @@
 
 export default function(discovery) {
     function render(el, config, data, context) {
-        const { column = 'text', emptyText, limit } = config;
+        const { column = 'text', columnConfig, emptyText, limit } = config;
 
         if (emptyText !== false && emptyText !== '') {
             el.setAttribute('emptyText', emptyText || 'Empty');
@@ -13,10 +13,10 @@ export default function(discovery) {
         }
 
         if (Array.isArray(data)) {
-            discovery.view.renderList(el, {
+            discovery.view.renderList(el, this.composeConfig({
                 view: 'column',
                 content: column
-            }, data, context, 0, discovery.view.listLimit(limit, 25));
+            }, columnConfig), data, context, 0, discovery.view.listLimit(limit, 25));
         }
     }
 

@@ -89,7 +89,7 @@ export default function(discovery) {
     }
 
     discovery.view.define('tree', function render(el, config, data, context) {
-        const { children, item = 'text', collapsible, emptyText, onToggle } = config;
+        const { children, item = 'text', itemConfig, collapsible, emptyText, onToggle } = config;
         let { expanded, limit, limitLines = true } = config;
 
         if (emptyText !== false && emptyText !== '') {
@@ -107,24 +107,26 @@ export default function(discovery) {
 
             if (limitLines) {
                 const lines = buildTreeLines(data, context, children, expanded);
-                const leafBaseConfig = {
+                const leafBaseConfig = this.composeConfig({
                     view: 'tree-leaf',
+                    itemConfig,
                     content: item,
                     collapsible,
                     onToggle
-                };
+                }, itemConfig);
 
                 renderTreeLines(el, [el], leafBaseConfig, lines, context, 0, limitLines);
             } else {
-                discovery.view.renderList(el, {
+                this.renderList(el, this.composeConfig({
                     view: 'tree-leaf',
+                    itemConfig,
                     content: item,
                     collapsible,
                     expanded,
                     children,
                     limit,
                     onToggle
-                }, data, context, 0, limit);
+                }, itemConfig), data, context, 0, limit);
             }
         }
     }, {

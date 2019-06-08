@@ -25,7 +25,7 @@ export default function(discovery) {
     document.addEventListener('click', clickHandler, false);
 
     discovery.view.define('tree-leaf', function(el, config, data, context) {
-        const { expanded, content, collapsible = true, last, hasChildren, children, limit, onToggle } = config;
+        const { expanded, content, itemConfig, collapsible = true, last, hasChildren, children, limit, onToggle } = config;
         const toggleEl = el.appendChild(createElement('span', 'view-tree-leaf-toggle'));
         const contentEl = el.appendChild(createElement('span', 'view-tree-leaf-content'));
         let childrenData = null;
@@ -39,7 +39,7 @@ export default function(discovery) {
             el.classList.add('non-collapsible');
         }
 
-        discovery.view.render(contentEl, content, data, context);
+        this.render(contentEl, content, data, context);
 
         if (children) {
             childrenData = discovery.query(children, data, context);
@@ -49,20 +49,21 @@ export default function(discovery) {
         if (hasChildrenEl) {
             const childrenEl = el.appendChild(createElement('ul', 'view-tree-leaf-children'));
             const state = { data, context, onToggle, render: null };
-            const renderChildren = function(data, expanded) {
+            const renderChildren = (data, expanded) => {
                 if (typeof expanded === 'number') {
                     expanded--;
                 }
 
-                discovery.view.renderList(childrenEl, {
+                this.renderList(childrenEl, this.composeConfig({
                     view: 'tree-leaf',
                     expanded,
+                    itemConfig,
                     content,
                     collapsible,
                     children,
                     limit,
                     onToggle
-                }, data, context, 0, discovery.view.listLimit(limit, 25));
+                }, itemConfig), data, context, 0, this.listLimit(limit, 25));
             };
 
             el.classList.add('has-children');

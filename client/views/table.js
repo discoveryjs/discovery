@@ -19,7 +19,7 @@ function resolveColConfig(config) {
 
 export default function(discovery) {
     discovery.view.define('table', function(el, config, data, context) {
-        let { cols, limit } = config;
+        let { cols, rowConfig, limit } = config;
         let colsMap = cols && typeof cols === 'object' ? cols : {};
         let scalarCol = false;
 
@@ -87,9 +87,9 @@ export default function(discovery) {
         );
 
         moreEl.colSpan = cols.length;
-        discovery.view.renderList(bodyEl, {
+        discovery.view.renderList(bodyEl, this.composeConfig({
             view: 'table-row',
             cols
-        }, data, context, 0, discovery.view.listLimit(limit, 25), moreEl);
+        }, rowConfig), data, context, 0, discovery.view.listLimit(limit, 25), moreEl);
     });
 }
