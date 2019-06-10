@@ -212,14 +212,12 @@ export default class ViewRenderer extends Dict {
 
         // mix
         if (config && extension) {
-            return this.ensureValidConfig(
-                Array.isArray(config)
-                    ? config.map(item => ({ ...item, ...extension }))
-                    : { ...config, ...extension }
-            );
+            return Array.isArray(config)
+                ? config.map(item => ({ ...item, ...extension }))
+                : { ...config, ...extension };
         }
 
-        return this.ensureValidConfig(config || extension);
+        return config || extension;
     }
 
     render(container, config, data, context) {

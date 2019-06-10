@@ -6,7 +6,7 @@
     - Fixed expanded state for `tree` view leafs when `expanded` setting is a number
     - Improved display of long strings and strings that contains newlines in `struct` view
     - Fixed config composing in `context` view
-    - Added `View#ensureValidConfig()` to return a config that can be rendered
+    - Added `View#ensureValidConfig()` to return a config that can be used for rendering
     - Renamed `View#extendConfig()` to `View#composeConfig()` and changed behaviour to handle more use cases
     - Changed `View#normalizeConfig()` to able return a `null` (no config) and no validation on view option is present (use `View#ensureValidConfig()` for that)
     - Added a list item config extension:
