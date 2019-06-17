@@ -21,6 +21,7 @@
         - Added `resetItem` option to specify a reset item in variants
         - Fixed `placeholder` is not visible
         - Fixed size when no item selected and no plahceholder
+    - Added `href` option to `auto-link` view, a function to preprocess a href value
 
 ## 1.0.0-beta.12 (07-03-2019)
 
