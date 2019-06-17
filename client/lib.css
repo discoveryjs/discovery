@@ -2,6 +2,7 @@
 @import url('/app/index.css');
 
 .discovery .buildin-view-config-error {
+    display: table;
     margin: 1px;
     border: 1px solid #e99;
     background: #ffe8e8;
@@ -30,4 +31,5 @@
 }
 .discovery .buildin-view-config-error .view-struct {
     margin: 4px -4px -4px;
+    border-radius: 0 0 4px 4px;
 }
