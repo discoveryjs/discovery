@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.13 (18-06-2019)
 
 - Server
     - Fixed model assets generation when non-default config file is specified
