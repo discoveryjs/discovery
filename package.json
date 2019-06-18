@@ -25,7 +25,8 @@
     "build:esm": "npm run build:umd && node scripts/lib-es5-to-es6",
     "build:umd": "node scripts/build-client-libs && browserify client/lib.js -o dist/lib.umd.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ]",
     "build:css": "node scripts/build-css",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "regain": "discovery"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -48,7 +49,10 @@
     "resolve": "^1.8.1"
   },
   "devDependencies": {
-    "eslint": "^5.8.0"
+    "eslint": "^5.8.0",
+    "@discoveryjs/discovery": "^1.0.0-beta.11",
+    "@babel/parser": "^7.3.1",
+    "async-directory-tree": "^2.3.1"
   },
   "files": [
     "bin",
