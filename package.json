@@ -48,7 +48,7 @@
     "resolve": "^1.8.1"
   },
   "devDependencies": {
-    "eslint": "^5.8.0"
+    "eslint": "^5.16.0"
   },
   "files": [
     "bin",
