@@ -1,19 +1,41 @@
 .view-h1 {
-    margin: 0 0 20px;
     font-size: 220%;
     font-weight: normal;
+    margin: .812em 0 .65em;
 }
 
 .view-h2,
 .view-header {
-    font-size: 120%;
+    font-size: 150%;
     font-weight: normal;
+    margin: .78em 0 .53em;
 }
 
 .view-h3 {
-    font-size: 110%;
+    font-size: 130%;
+    font-weight: normal;
+    margin: .73em 0 .43em;
 }
 
 .view-h4 {
-    font-size: 100%;
+    font-size: 115%;
+    font-weight: normal;
+    color: #444;
+    margin: .68em 0 .28em;
+}
+
+.view-h5 {
+    font-size: 110%;
+    font-weight: normal;
+    color: #777;
+    margin: .63em 0 .23em;
+}
+
+.view-h1:first-child,
+.view-h2:first-child,
+.view-header:first-child,
+.view-h3:first-child,
+.view-h4:first-child,
+.view-h5:first-child {
+    margin-top: 0;
 }

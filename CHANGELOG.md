@@ -5,6 +5,8 @@
     - Tweaked `config-error` view styles
     - Changed render behaviour when a view config is not specified, `config-error` view is using in such cases now instead of `struct` view
     - Prevented influence on `h3` and `textarea` element styles on report page
+    - Tweaked headers styles
+    - Added `h5` view
 
 ## 1.0.0-beta.13 (18-06-2019)
 

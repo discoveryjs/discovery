@@ -12,4 +12,5 @@ export default function(discovery) {
     discovery.view.define('h2', render, { tag: 'h2' });
     discovery.view.define('h3', render, { tag: 'h3' });
     discovery.view.define('h4', render, { tag: 'h4' });
+    discovery.view.define('h5', render, { tag: 'h5' });
 }
