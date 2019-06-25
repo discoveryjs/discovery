@@ -41,7 +41,7 @@
     background-size: 12px;
     transition: transform .15s ease-in;
     width: 12px;
-    height: 12px;
+    height: 100%;
     display: inline-block;
     vertical-align: middle;
     opacity: .5;
