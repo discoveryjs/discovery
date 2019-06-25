@@ -11,7 +11,7 @@ function createDefaultConfigErrorView(view) {
             el.className = 'buildin-view-config-error';
             el.textContent = config.reason;
 
-            if (config.config) {
+            if ('config' in config) {
                 const configEl = el.appendChild(document.createElement('span'));
                 configEl.className = 'show-config';
                 configEl.textContent = 'show config...';
@@ -227,7 +227,7 @@ export default class ViewRenderer extends Dict {
         return render.call(
             this,
             container,
-            this.ensureValidConfig(this.normalizeConfig(config) || { view: 'struct' }),
+            this.ensureValidConfig(this.normalizeConfig(config)),
             data,
             context
         );
