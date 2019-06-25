@@ -374,7 +374,7 @@ export default function(discovery) {
     //
     // Report form & content
     //
-    const reportEditFormEl = createElement('div', { hidden: true }, [
+    const reportEditFormEl = createElement('div', { class: 'report-editor', hidden: true }, [
         queryEditorFormEl,
         queryEditorResultEl,
         viewEditorFormEl
