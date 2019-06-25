@@ -8,6 +8,7 @@
     - Tweaked headers styles
     - Added `h5` view
     - Added `beforeTabs` and `afterTabs` config options to `tabs` view
+    - Fixed report header jumping on hover in edit mode on report page in some browsers
 
 ## 1.0.0-beta.13 (18-06-2019)
 
