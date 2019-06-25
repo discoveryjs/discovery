@@ -2,7 +2,8 @@
 @import url('/app/index.css');
 
 .discovery .buildin-view-config-error {
-    display: table;
+    display: inline-block;
+    vertical-align: top;
     margin: 1px;
     border: 1px solid #e99;
     background: #ffe8e8;
@@ -19,6 +20,9 @@
     background: #e99;
     color: white;
     padding: 4px;
+}
+.discovery .buildin-view-config-error.expanded::before {
+    border-bottom-left-radius: 0;
 }
 .discovery .buildin-view-config-error .show-config {
     margin-left: 1ex;

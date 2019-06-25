@@ -1,3 +1,9 @@
+## next
+
+- Client
+    - Fixed trigger arrow position in `expand` view to be at the vertical middle
+    - Tweaked `config-error` view styles
+
 ## 1.0.0-beta.13 (18-06-2019)
 
 - Server
@@ -20,7 +26,7 @@
         - Added selected value state in variants list
         - Added `resetItem` option to specify a reset item in variants
         - Fixed `placeholder` is not visible
-        - Fixed size when no item selected and no plahceholder
+        - Fixed size when no item selected and no placeholder
     - Added `href` option to `auto-link` view, a function to preprocess a href value
 
 ## 1.0.0-beta.12 (07-03-2019)

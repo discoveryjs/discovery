@@ -34,8 +34,6 @@
     text-align: center;
     background-color: rgba(0, 0, 0, .05);
 }
-.view-expand.expanded > .header > .trigger {
-}
 .view-expand > .header > .trigger::before {
     background: url(expand.svg) no-repeat center;
     background-size: 12px;

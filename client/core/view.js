@@ -20,7 +20,10 @@ function createDefaultConfigErrorView(view) {
 
                     const buffer = document.createDocumentFragment();
                     view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
-                        .then(() => el.appendChild(buffer));
+                        .then(() => {
+                            el.appendChild(buffer);
+                            el.classList.add('expanded');
+                        });
                 });
             }
         },
