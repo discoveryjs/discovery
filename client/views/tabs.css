@@ -2,6 +2,16 @@
     border-bottom: 1px solid #ddd;
     padding: 2px 5px 0 5px;
 }
+.view-tabs-buttons-before,
+.view-tabs-buttons-after {
+    display: inline-block;
+}
+.view-tabs-buttons-before {
+    margin-right: 1ex;
+}
+.view-tabs-buttons-after {
+    margin-left: 1ex;
+}
 .view-tabs-content {
     overflow: auto;
 }

@@ -9,11 +9,22 @@ export default function(discovery) {
                 return;
             }
 
+            const renderContext = beforeTabs || afterTabs || content
+                ? { ...context, [name]: value }
+                : null;
+
             currentValue = value;
             inited = true;
 
             if (Array.isArray(tabs)) {
                 tabsEl.innerHTML = '';
+
+                if (beforeTabs) {
+                    beforeTabsEl.innerHTML = '';
+                    discovery.view.render(beforeTabsEl, beforeTabs, data, renderContext);
+                    tabsEl.appendChild(beforeTabsEl);
+                }
+
                 tabs.forEach(tab =>
                     discovery.view.render(tabsEl, discovery.view.composeConfig({
                         view: 'tab',
@@ -22,11 +33,17 @@ export default function(discovery) {
                         onClick: renderContent
                     }, tabConfig), tab, context)
                 );
+
+                if (afterTabs) {
+                    afterTabsEl.innerHTML = '';
+                    discovery.view.render(afterTabsEl, afterTabs, data, renderContext);
+                    tabsEl.appendChild(afterTabsEl);
+                }
             }
 
             if (content) {
                 contentEl.innerHTML = '';
-                discovery.view.render(contentEl, content, data, { ...context, [name]: value });
+                discovery.view.render(contentEl, content, data, renderContext);
             }
 
             if (typeof handler === 'function') {
@@ -34,10 +51,12 @@ export default function(discovery) {
             }
         }
 
-        const tabsEl = el.appendChild(document.createElement('div'));
-        const contentEl = el.appendChild(document.createElement('div'));
-        const { content, tabConfig, onInit, onChange } = config;
+        const { content, beforeTabs, afterTabs, tabConfig, onInit, onChange } = config;
         let { name, tabs } = config;
+        const tabsEl = el.appendChild(document.createElement('div'));
+        let contentEl = null;
+        let beforeTabsEl = null;
+        let afterTabsEl = null;
         let inited = false;
         let currentValue = NaN;
         let initValue =
@@ -48,7 +67,21 @@ export default function(discovery) {
                     : undefined;
 
         tabsEl.className = 'view-tabs-buttons';
-        contentEl.className = 'view-tabs-content';
+
+        if (beforeTabs) {
+            beforeTabsEl = document.createElement('div');
+            beforeTabsEl.className = 'view-tabs-buttons-before';
+        }
+
+        if (afterTabs) {
+            afterTabsEl = document.createElement('div');
+            afterTabsEl.className = 'view-tabs-buttons-after';
+        }
+
+        if (content) {
+            contentEl = el.appendChild(document.createElement('div'));
+            contentEl.className = 'view-tabs-content';
+        }
 
         if (typeof name !== 'string') {
             name = 'filter';

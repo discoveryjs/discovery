@@ -7,6 +7,7 @@
     - Prevented influence on `h3` and `textarea` element styles on report page
     - Tweaked headers styles
     - Added `h5` view
+    - Added `beforeTabs` and `afterTabs` config options to `tabs` view
 
 ## 1.0.0-beta.13 (18-06-2019)
 
