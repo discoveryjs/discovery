@@ -6,6 +6,11 @@
 .view-ul,
 .view-ol {
     margin: 0;
+    padding-left: 0;
+}
+
+.view-ul:not(:empty),
+.view-ol:not(:empty) {
     padding-left: 20px;
 }
 
