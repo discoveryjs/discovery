@@ -8,15 +8,6 @@
     line-height: 1.6;
 }
 
-a {
-    color: #0099DD;
-    text-decoration-skip: ink;
-}
-a:hover {
-    color: #0077BB;
-    text-decoration-color: currentColor;
-}
-
 .discovery-content {
     flex: 1;
     position: relative;

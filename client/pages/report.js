@@ -235,7 +235,7 @@ export default function(discovery) {
             queryEditor.el,
             createElement('div', 'editor-toolbar', [
                 createElement('span', 'syntax-hint',
-                    `Use <a href="${queryEngineInfo.link}" target="_blank">${
+                    `Use <a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
                         queryEngineInfo.name
                     }</a> ${queryEngineInfo.version || ''} syntax for queries`
                 ),
