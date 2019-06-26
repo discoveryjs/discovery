@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.14 (26-06-2019)
 
 - Client
     - Fixed trigger arrow position in `expand` view to be at the vertical middle
@@ -6,6 +6,7 @@
     - Changed render behaviour when a view config is not specified, `config-error` view is using in such cases now instead of `struct` view
     - Prevented influence on `h3` and `textarea` element styles on report page
     - Tweaked headers styles
+    - Changed `header` view to look like `h4` view but still level 2 header (`h2` tag is used)
     - Added `h5` view
     - Added `beforeTabs` and `afterTabs` config options to `tabs` view
     - Fixed report header jumping on hover in edit mode on report page in some browsers
