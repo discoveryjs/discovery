@@ -86,7 +86,14 @@ function render(container, config, data, context) {
             break;
 
         case 'string':
-            if (config.view.startsWith('preset/')) {
+            if (config.view === 'render') {
+                renderer = {
+                    render: (el, _, config, context) =>
+                        this.render(el, config, data, context),
+                    name: false,
+                    options: { tag: false }
+                };
+            } else if (config.view.startsWith('preset/')) {
                 const presetName = config.view.substr(7);
 
                 if (this.host.preset.isDefined(presetName)) {
