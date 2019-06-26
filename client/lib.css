@@ -1,5 +1,8 @@
-@import url('/widget/index.css');
-@import url('/app/index.css');
+@import url('/pages/index.css');
+@import url('/views/index.css');
+@import url('/widget/widget.css');
+@import url('/views/index-complex.css');
+@import url('/app/app.css');
 
 .discovery .buildin-view-config-error {
     display: inline-block;

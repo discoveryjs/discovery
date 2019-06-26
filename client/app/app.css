@@ -1,0 +1,34 @@
+.discovery > .loading-overlay {
+    position: fixed;
+    z-index: 10000;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 20px;
+    background: white;
+    font-size: 16px;
+}
+.discovery > .loading-overlay.error {
+    color: #a00;
+}
+.discovery > .loading-overlay.done {
+    opacity: 0;
+    visibility: hidden;
+    transition: all .2s;
+}
+
+.discovery-content-badges > .load-data-badge {
+    position: relative;
+    overflow: hidden;
+}
+.discovery-content-badges > .load-data-badge input {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: -150px;
+    height: 100px;
+    width: 400px;
+    opacity: 0;
+    cursor: pointer;
+}

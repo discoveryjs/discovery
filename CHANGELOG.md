@@ -11,6 +11,7 @@
     - Fixed report header jumping on hover in edit mode on report page in some browsers
     - Added virtual view `render` to render a view with config as current data and data as previous data
     - Removed global style rules for `<a>` element (it localized to `link` view now) and tweaked link's underline style
+    - Restructed CSS imports to avoid style duplicates
 
 ## 1.0.0-beta.13 (18-06-2019)
 
