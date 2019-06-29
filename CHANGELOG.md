@@ -1,3 +1,8 @@
+## next
+
+- Client
+    - Added `fallback` option to `auto-link` view, which is using as a view config when a link is not resolved
+
 ## 1.0.0-beta.14 (26-06-2019)
 
 - Client
@@ -12,7 +17,7 @@
     - Fixed report header jumping on hover in edit mode on report page in some browsers
     - Added virtual view `render` to render a view with config as current data and data as previous data
     - Removed global style rules for `<a>` element (it localized to `link` view now) and tweaked link's underline style
-    - Restructed CSS imports to avoid style duplicates
+    - Reorganized CSS imports to avoid style duplicates
     - Fixed indent of empty list text for `ul` and `ol` views
 
 ## 1.0.0-beta.13 (18-06-2019)

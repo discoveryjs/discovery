@@ -2,7 +2,7 @@
 
 export default function(discovery) {
     discovery.view.define('auto-link', function(el, config, data, context) {
-        const { content, href } = config;
+        const { content, fallback, href } = config;
 
         if (!data) {
             return;
@@ -20,7 +20,7 @@ export default function(discovery) {
                 href: processedHref
             }, context);
         } else {
-            discovery.view.render(el, content || 'text', data, context);
+            discovery.view.render(el, fallback || content || 'text', data, context);
         }
     }, {
         tag: false
