@@ -1,6 +1,7 @@
 .view-toc-section > .header {
     top: 0px;
     position: sticky;
+    z-index: 1;
     padding: 9px 12px;
     line-height: 1;
     font-size: 14px;

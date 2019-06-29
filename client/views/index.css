@@ -45,7 +45,7 @@
     padding: 4px 8px;
     font-size: 11px;
     line-height: normal;
-    font-family: system-ui;
+    font-family: system-ui, Arial, sans-serif;
     min-height: 0;
     cursor: pointer;
 }
