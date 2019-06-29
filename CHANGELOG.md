@@ -2,6 +2,7 @@
 
 - Client
     - Added `fallback` option to `auto-link` view, which is using as a view config when a link is not resolved
+    - Prevented influence of view build error block styles on other views on report page
 
 ## 1.0.0-beta.14 (26-06-2019)
 

@@ -462,9 +462,9 @@ export default function(discovery) {
                 view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
                 discovery.view.render(reportContentEl, view, results, context);
             } catch (e) {
-                view = { view: 'fallback', reason: e.message };
                 discovery.view.render(reportContentEl, el => {
-                    el.innerHTML = '<div class="error">' + escapeHtml(String(e)) + '<br>(see details in console)</div>';
+                    el.className = 'view-build-error';
+                    el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
                     console.error(e);
                 });
             }

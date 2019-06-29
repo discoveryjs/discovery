@@ -78,7 +78,7 @@
     overflow: hidden;
 }
 .page-report .data-query-result .error,
-.page-report .report-content .error {
+.page-report .report-content > .view-build-error:only-child {
     display: block;
     overflow: hidden;
     border-left: 3px solid #f33;
@@ -90,13 +90,13 @@
     font-size: 11px;
 }
 .page-report .data-query-result .error::before,
-.page-report .report-content .error::before {
+.page-report .report-content > .view-build-error:only-child::before {
     display: block;
     margin-bottom: .5em;
     content: 'Query error';
     font-size: 16px;
 }
-.page-report .report-content .error::before {
+.page-report .report-content > .view-build-error:only-child::before {
     content: 'View build error';
 }
 .page-report .view-editor-form .tab {
