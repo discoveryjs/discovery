@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.15 (03-07-2019)
 
 - Client
     - Added `fallback` option to `auto-link` view, which is using as a view config when a link is not resolved
