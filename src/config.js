@@ -112,17 +112,8 @@ function normalize(config, options) {
     return result;
 }
 
-function loadFromPackageJson(filename) {
-    const data = require(filename);
-
-    return Object.assign(
-        { name: data.name },
-        data.discovery
-    );
-}
-
 function load(filename, options) {
-    const configFilename = resolveConfigFilename(filename);
+    let configFilename = resolveConfigFilename(filename);
     let config;
 
     if (!configFilename) {
@@ -139,7 +130,20 @@ function load(filename, options) {
             break;
 
         case 'package.json':
-            config = loadFromPackageJson(configFilename);
+            const packageJson = require(configFilename);
+            config = packageJson.discovery;
+
+            if (typeof packageJson.discovery === 'string') {
+                configFilename = path.resolve(path.dirname(configFilename), packageJson.discovery);
+                config = require(configFilename);
+            } else {
+                config = packageJson.discovery;
+            }
+
+            config = Object.assign(
+                { name: packageJson.name },
+                config
+            );
             break;
 
         default:
