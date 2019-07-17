@@ -5,28 +5,41 @@ const fs = require('fs');
 const clap = require('clap');
 const loadConfig = require('../src').config.load;
 
+function fetchFileContent(filepath) {
+    if (!fs.existsSync(filepath)) {
+        console.error('File `' + filepath + '` defined in `config.view` is not found');
+        return '';
+    }
+
+    let content = fs.readFileSync(filepath, 'utf8');
+
+    return content;
+}
+
 function generateAsset(view = {}, type) {
     const baseURI = view.basedir || view.base || '';
+    const libs = view.libs || {};
     const assets = Array.isArray(view.assets)
         ? view.assets
             .filter(asset => path.extname(asset) === ('.' + type))
             .map(filepath => path.resolve(baseURI, filepath))
         : [];
 
-    return Promise.resolve(assets.map(filepath => {
-        if (!fs.existsSync(filepath)) {
-            console.error('File `' + filepath + '` defined in `config.view` is not found');
-            return '';
-        }
+    let content = assets.map(
+        type === 'js'
+            ? filepath => `\n!(function(module, exports){\n${fetchFileContent(filepath)}\n}).call(this);\n`
+            : filepath => fetchFileContent(filepath)
+    );
 
-        let content = fs.readFileSync(filepath, 'utf8');
+    if (type === 'js') {
+        content = Object.keys(libs).map(name =>
+            `\nvar ${name} = (function(module, exports){var exports = {};\nvar module = { exports: exports };\n${
+                fetchFileContent(path.resolve(baseURI, libs[name]))
+            }\nreturn module.exports}).call(this);\n`
+        ).concat(content);
+    }
 
-        if (type === 'js') {
-            content = `\n!(function(module, exports){\n${content}\n}).call(this);\n`;
-        }
-
-        return content;
-    }).join(''));
+    return Promise.resolve(content.join(''));
 };
 
 // define command

@@ -1,10 +1,10 @@
 ## next
 
+- Added `--pretty-data` option to build to output `data.json` with indentation (better for deltas)
 - Added `favicon` option to general and model configs to cusomize favicon
 - Added model name injection into page HTML (as title)
+- Added `libs` option to model view config
 - Allowed to set up path to config as a value for `discovery` field in `package.json`
-- Build
-    - Add `--pretty-data` option to output data with indentation (better for deltas)
 
 ## 1.0.0-beta.15 (03-07-2019)
 
