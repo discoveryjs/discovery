@@ -1,5 +1,6 @@
 ## next
 
+- Added `favicon` option to general and model configs to cusomize favicon
 - Build
     - Add `--pretty-data` option to output data with indentation (better for deltas)
 

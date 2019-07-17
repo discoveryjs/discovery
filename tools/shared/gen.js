@@ -1,8 +1,23 @@
 const path = require('path');
 const fs = require('fs');
+const mime = require('mime');
 const { fork } = require('child_process');
 const collectDataCommand = path.join(__dirname, '../../bin/collect-data');
 const assetCommand = path.join(__dirname, '../../bin/asset');
+
+function generateHtml(filepath, modelConfig = {}, config = {}) {
+    const favicon = modelConfig.favicon || config.favicon;
+    let html = fs.readFileSync(path.join(__dirname, filepath), 'utf8');
+
+    if (favicon) {
+        html = html.replace(
+            /<link rel="icon".*?>/,
+            `<link rel="icon" type="${mime.getType(path.extname(favicon))}" href="${path.basename(favicon)}">`
+        );
+    }
+
+    return Promise.resolve(html);
+}
 
 function wrapCodeIntoDefaultFunction(code) {
     return `export default function(discovery) {\n${code}\n}`;
@@ -74,6 +89,12 @@ module.exports = {
         }
 
         return Promise.resolve('export default ' + JSON.stringify(data));
+    },
+    '/index.html': function(modelConfig, config) {
+        return generateHtml('../../client/index.html', modelConfig || undefined, config);
+    },
+    '/model-index.html': function(modelConfig, config) {
+        return generateHtml('../../client/model.html', modelConfig || undefined, config);
     },
     '/data.json': function(modelConfig, options = {}) {
         const { slug } = modelConfig;

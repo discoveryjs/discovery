@@ -36,6 +36,14 @@ function generate(filename, ...args) {
         });
 }
 
+function faviconIfSpecified(router, modelConfig, config) {
+    const favicon = (modelConfig ? modelConfig.favicon : null) || config.favicon;
+
+    if (favicon) {
+        router.get('/' + path.basename(favicon), (req, res) => res.sendFile(favicon));
+    }
+}
+
 function generateDataJson(modelConfig, options) {
     const { slug } = modelConfig;
     const prefix = `/${slug}/data.json`;
@@ -115,7 +123,7 @@ function dropDataCache(modelConfig) {
     };
 }
 
-function createModelRouter(modelConfig, options, routes = {}) {
+function createModelRouter(modelConfig, config, options, routes = {}) {
     const { slug } = modelConfig;
     const cacheFilename = getCacheFilename(modelConfig);
     const router = express.Router();
@@ -134,8 +142,11 @@ function createModelRouter(modelConfig, options, routes = {}) {
             router.get(path, routes[path] || defaultRoutes[path])
         );
 
+        // favicon
+        faviconIfSpecified(router, modelConfig, config);
+
         // index html
-        router.get('/', (req, res) => res.sendFile(path.join(__dirname, '../client/model.html')));
+        router.get('/', generate('/model-index.html', modelConfig, config));
         router.get('/model.js', (req, res) => res.sendFile(path.join(__dirname, '../client/model.js')));
         router.get('/model.css', (req, res) => res.sendFile(path.join(__dirname, '../client/model.css')));
     });
@@ -175,13 +186,13 @@ module.exports = bootstrap(function createServer(options, config) {
         // model free mode
         utils.println('  Models are not defined (model free mode is enabled)');
         utils.silent(() =>
-            app.use(createModelRouter({ name: 'Discovery' }, options))
+            app.use(createModelRouter({ name: 'Discovery' }, config, options))
         );
     } else {
         const routers = utils.section(
             config.mode === 'single' ? 'Init single model' : 'Init models',
             () => config.models.map(modelConfig => {
-                return createModelRouter(modelConfig, options, {
+                return createModelRouter(modelConfig, config, options, {
                     [ROUTE_DATA]: generateDataJson(modelConfig, options),
                     [ROUTE_RESET_DATA]: dropDataCache(modelConfig),
                     [ROUTE_SETUP]: generate(ROUTE_SETUP, modelConfig, config),
@@ -195,6 +206,8 @@ module.exports = bootstrap(function createServer(options, config) {
         if (config.mode === 'single') {
             app.use(routers[0]);
         } else {
+            faviconIfSpecified(app, null, config);
+            app.get('/', generate('/index.html', null, config));
             config.models.forEach((model, idx) => app.use('/' + model.slug, routers[idx]));
         }
     }

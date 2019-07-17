@@ -83,6 +83,10 @@ function normalize(config, options) {
         models = config.models;
     }
 
+    if (result.favicon) {
+        result.favicon = path.resolve(basedir, result.favicon);
+    }
+
     result.models = Object.keys(models).reduce((res, slug) => {
         if (!model || model === slug) {
             const modelConfig = normalizeModelConfig(

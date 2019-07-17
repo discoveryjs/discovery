@@ -91,17 +91,12 @@ function bundleFile(filename, options) {
 }
 
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
-    [
-        'model.html',
-        'model.js',
-        'model.css'
-    ].forEach(filename => {
-        copyFile(
-            path.join(clientSrc, filename),
-            pathResolver(),
-            filename === 'model.html' ? 'index.html' : filename
-        );
-    });
+    ['model.js', 'model.css']
+        .forEach(filename => copyFile(path.join(clientSrc, filename), pathResolver(), filename));
+
+    if (modelConfig.favicon) {
+        copyFile(modelConfig.favicon, pathResolver(), path.basename(modelConfig.favicon));
+    }
 
     return Promise
         .all(
@@ -116,8 +111,12 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
             )
         )
         .then(() =>
-            gen['/gen/setup.js'](modelConfig, config)
-                .then(content => writeFile(pathResolver('gen/setup.js'), content))
+            Promise.all([
+                '/model-index.html',
+                '/gen/setup.js'
+            ].map(filename => gen[filename](modelConfig, config)
+                .then(content => writeFile(pathResolver(filename === '/model-index.html' ? '/index.html' : filename), content))
+            ))
         )
         .then(() => utils.process('Build bundles', () =>
             Promise.all([
@@ -130,10 +129,11 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
         ));
 }
 
-function copyCommonFiles(dest) {
+function copyCommonFiles(dest, config) {
+    copyFile(config.favicon || path.join(clientSrc, 'favicon.png'), dest);
+
     [
         'common.css',
-        'favicon.png',
         '../dist/lib.js',
         '../dist/lib.css'
     ].forEach(filename => {
@@ -163,7 +163,7 @@ module.exports = bootstrap(async function(options, config) {
         cleanDir(tmpdir);
         Promise.resolve()
             .then(() =>
-                copyCommonFiles(tmpdir)
+                copyCommonFiles(tmpdir, config)
             )
             .then(() =>
                 createModel(
@@ -191,7 +191,6 @@ module.exports = bootstrap(async function(options, config) {
 
         if (config.mode === 'multi') {
             [
-                'index.html',
                 'index.js',
                 'index.css',
                 'logo.svg'
@@ -200,11 +199,15 @@ module.exports = bootstrap(async function(options, config) {
             });
         }
 
-        copyCommonFiles(tmpdir);
+        copyCommonFiles(tmpdir, config);
 
         pipeline = pipeline.then(() =>
-            gen['/gen/setup.js'](null, config)
-                .then(content => writeFile(tmpPath('gen/setup.js'), content))
+            Promise.all([
+                '/index.html',
+                '/gen/setup.js'
+            ].map(filename => gen[filename](null, config)
+                .then(content => writeFile(tmpPath(filename), content))
+            ))
         );
 
         pipeline = pipeline.then(() => utils.section('Build models', () =>
