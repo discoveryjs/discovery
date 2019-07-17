@@ -5,9 +5,17 @@ const { fork } = require('child_process');
 const collectDataCommand = path.join(__dirname, '../../bin/collect-data');
 const assetCommand = path.join(__dirname, '../../bin/asset');
 
-function generateHtml(filepath, modelConfig = {}, config = {}) {
+function generateHtml(filepath, modelConfig, config) {
     const favicon = modelConfig.favicon || config.favicon;
+    const title = modelConfig.name || config.name;
     let html = fs.readFileSync(path.join(__dirname, filepath), 'utf8');
+
+    if (title) {
+        html = html.replace(
+            /<title>.*?<\/title>/,
+            `<title>${title}</title>`
+        );
+    }
 
     if (favicon) {
         html = html.replace(
@@ -91,10 +99,10 @@ module.exports = {
         return Promise.resolve('export default ' + JSON.stringify(data));
     },
     '/index.html': function(modelConfig, config) {
-        return generateHtml('../../client/index.html', modelConfig || undefined, config);
+        return generateHtml('../../client/index.html', {}, config);
     },
     '/model-index.html': function(modelConfig, config) {
-        return generateHtml('../../client/model.html', modelConfig || undefined, config);
+        return generateHtml('../../client/model.html', modelConfig, config);
     },
     '/data.json': function(modelConfig, options = {}) {
         const { slug } = modelConfig;

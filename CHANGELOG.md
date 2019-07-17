@@ -1,6 +1,7 @@
 ## next
 
 - Added `favicon` option to general and model configs to cusomize favicon
+- Added model name injection into page HTML (as title)
 - Allowed to set up path to config as a value for `discovery` field in `package.json`
 - Build
     - Add `--pretty-data` option to output data with indentation (better for deltas)
