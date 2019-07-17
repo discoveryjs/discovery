@@ -1,3 +1,8 @@
+## next
+
+- Build
+    - Add `--pretty-data` option to output data with indentation (better for deltas)
+
 ## 1.0.0-beta.15 (03-07-2019)
 
 - Client

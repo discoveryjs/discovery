@@ -13,6 +13,7 @@ const command = clap.create('collect-data', '[config] [model]')
         (value = '') => path.resolve(process.cwd(), value)
     )
     .option('--rewrite-cache', 'Ignore existing cache')
+    .option('--pretty [indent]', 'Pretty print with optionally specified indentation (4 spaces by default)', (value = 4) => Number(value) || false, false)
     .option('-o, --output <filename>', 'Output file',
         (value = '') => path.resolve(process.cwd(), value)
     )
@@ -22,7 +23,8 @@ const command = clap.create('collect-data', '[config] [model]')
         const model = this.values.model || args[1];
         const outputFile = this.values.output || null;
         const cachedir = this.values.cache || false;
-        const rewriteCache = this.values.rewriteCache || false;
+        const pretty = this.values.pretty;
+        const rewriteCache = this.values.rewriteCache;
 
         if (!model) {
             console.error('Model name is not specified. Use `--model` option to specify a model');
@@ -41,7 +43,7 @@ const command = clap.create('collect-data', '[config] [model]')
             process.exit(2);
         }
 
-        getData(modelConfig, true, { rewriteCache })
+        getData(modelConfig, true, { rewriteCache, pretty })
             .then(stringifiedData => {
                 if (outputFile) {
                     fs.writeFileSync(outputFile, stringifiedData, 'utf8');

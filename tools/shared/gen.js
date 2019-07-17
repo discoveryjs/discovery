@@ -98,6 +98,13 @@ module.exports = {
             args.push('--rewrite-cache');
         }
 
+        if (options.prettyData) {
+            args.push('--pretty');
+            if (typeof options.prettyData === 'number') {
+                args.push(options.prettyData);
+            }
+        }
+
         args.push('--model', slug);
 
         return new Promise((resolve, reject) => {

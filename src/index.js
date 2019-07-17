@@ -13,7 +13,7 @@ function getCacheFilename(modelConfig) {
         : undefined;
 }
 
-function getData(modelConfig, stringify, { rewriteCache } = {}) {
+function getData(modelConfig, stringify, { rewriteCache, pretty } = {}) {
     const cacheFile = getCacheFilename(modelConfig);
 
     if (cacheFile && !rewriteCache) {
@@ -29,7 +29,7 @@ function getData(modelConfig, stringify, { rewriteCache } = {}) {
     }
 
     return collectData(modelConfig).then(data => {
-        const stringifiedData = stringify || cacheFile ? JSON.stringify(data) : null;
+        const stringifiedData = stringify || cacheFile ? JSON.stringify(data, null, pretty || undefined) : null;
 
         if (stringify) {
             data = stringifiedData;
