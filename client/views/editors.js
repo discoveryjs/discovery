@@ -59,7 +59,7 @@ class Editor extends Emitter {
             // };
 
             cm.on('cursorActivity', cm => cm.state.focused && cm.showHint(autocomplete));
-            cm.on('focus', cm => cm.showHint(autocomplete));
+            cm.on('focus', cm => !cm.state.completionActive && cm.showHint(autocomplete));
         }
 
         this.cm = cm;

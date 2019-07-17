@@ -39,10 +39,9 @@ CodeMirror.defineExtension('showHint', function(options) {
         return;
     }
 
-    const completion = this.state.completionActive = new Completion(this, options);
-
+    this.state.completionActive = new Completion(this, options);
+    this.state.completionActive.update(true);
     CodeMirror.signal(this, 'startCompletion', this);
-    completion.update(true);
 });
 
 class Completion {
