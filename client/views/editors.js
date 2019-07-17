@@ -85,14 +85,12 @@ class Editor extends Emitter {
 }
 
 class QueryEditor extends Editor {
-    constructor(discovery) {
+    constructor(getSuggestions) {
         super(function(cm) {
             const cursor = cm.getCursor();
-            const suggestions = discovery.querySuggestions(
+            const suggestions = getSuggestions(
                 cm.getValue(),
-                cm.doc.indexFromPos(cursor),
-                discovery.data,    // TODO: fix me, should be configurable
-                discovery.context  // TODO: fix me, should be configurable
+                cm.doc.indexFromPos(cursor)
             );
 
             if (!suggestions) {

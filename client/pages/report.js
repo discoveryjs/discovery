@@ -225,7 +225,8 @@ export default function(discovery) {
     // Query form
     //
     let queryEditorLiveEditEl;
-    const queryEditor = new discovery.view.QueryEditor(discovery).on('change', value =>
+    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, discovery.data, discovery.context);
+    const queryEditor = new discovery.view.QueryEditor(getQuerySuggestions).on('change', value =>
         queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
     );
     const queryEngineInfo = discovery.getQueryEngineInfo();

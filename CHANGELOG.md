@@ -5,6 +5,8 @@
 - Added model name injection into page HTML (as title)
 - Added `libs` option to model view config
 - Allowed to set up path to config as a value for `discovery` field in `package.json`
+- Changed `QueryEditor` constructor to take a function to get suggestions instead of `discovery` instance
+- Fixed issue when suggestion item in editor can't be choosen by a click
 
 ## 1.0.0-beta.15 (03-07-2019)
 
