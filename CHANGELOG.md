@@ -7,6 +7,7 @@
 - Allowed to set up path to config as a value for `discovery` field in `package.json`
 - Changed `QueryEditor` constructor to take a function to get suggestions instead of `discovery` instance
 - Fixed issue when suggestion item in editor can't be choosen by a click
+- Fixed routing in model-free mode, when loading a data doesn't switch to report page
 
 ## 1.0.0-beta.15 (03-07-2019)
 
