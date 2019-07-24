@@ -27,10 +27,10 @@ function resolveFile(node) {
     return url;
 }
 
-function inlineResource(uri, baseURI) {
+function inlineResource(uri, baseURI, value) {
     // do nothing if uri is already a dataURI resource
     if (/^data:/i.test(uri)) {
-        return uri;
+        return value;
     }
 
     const filepath = path.resolve(baseURI, uri);
@@ -71,10 +71,15 @@ function processFile(filename) {
         leave(node) {
             const { type, value } = node.value;
             const url = type === 'String' ? value.substring(1, value.length - 1) : value;
+            const inlined = inlineResource(url, path.dirname(filename), value);
+
+            if (inlined === value) {
+                return;
+            }
 
             node.value = {
                 type: 'Raw',
-                value: inlineResource(url, path.dirname(filename))
+                value: inlined
             };
         }
     });
