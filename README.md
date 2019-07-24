@@ -5,6 +5,7 @@
 # Discovery
 
 [![NPM version](https://img.shields.io/npm/v/@discoveryjs/discovery.svg)](https://www.npmjs.com/package/@discoveryjs/discovery)
+[![Twitter](https://img.shields.io/badge/Twitter-@js_discovery-blue.svg)](https://twitter.com/js_discovery)
 
 Hackable JSON discovery tool
 
