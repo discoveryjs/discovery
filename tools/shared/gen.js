@@ -5,8 +5,16 @@ const { fork } = require('child_process');
 const collectDataCommand = path.join(__dirname, '../../bin/collect-data');
 const assetCommand = path.join(__dirname, '../../bin/asset');
 
+function escapeValueForHtml(value) {
+    return String(value)
+        .replace(/"/g, '&quot;')
+        .replace(/&/g, '&amp;')
+        .replace(/>/g, '&gt;');
+}
+
 function generateHtml(filepath, modelConfig, config) {
     const favicon = modelConfig.favicon || config.favicon;
+    const viewport = modelConfig.viewport || config.viewport;
     const title = modelConfig.name || config.name;
     let html = fs.readFileSync(path.join(__dirname, filepath), 'utf8');
 
@@ -17,10 +25,21 @@ function generateHtml(filepath, modelConfig, config) {
         );
     }
 
+    if (viewport) {
+        html = html.replace(
+            /<meta name="viewport".*?>/,
+            `<meta name="viewport" content="${escapeValueForHtml(viewport)}">`
+        );
+    }
+
     if (favicon) {
         html = html.replace(
             /<link rel="icon".*?>/,
-            `<link rel="icon" type="${mime.getType(path.extname(favicon))}" href="${path.basename(favicon)}">`
+            `<link rel="icon" type="${
+                escapeValueForHtml(mime.getType(path.extname(favicon)))
+            }" href="${
+                escapeValueForHtml(path.basename(favicon))
+            }">`
         );
     }
 
