@@ -120,7 +120,10 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
         )
         .then(() => utils.process('Build bundles', () =>
             Promise.all([
-                bundleFile(pathResolver('model.js'), jsBundleOptions),
+                bundleFile(pathResolver('model.js'), {
+                    ...jsBundleOptions,
+                    noParse: jsBundleOptions.noParse.concat(pathResolver('/gen/model-view.js'))
+                }),
                 bundleFile(pathResolver('model.css'))
             ])
         ))
@@ -185,6 +188,7 @@ module.exports = bootstrap(async function(options, config) {
                 console.log('DONE 🎉')
             );
     } else {
+        const model = options.model || config.mode === 'single' && config.models[0].slug || false;
         let pipeline = Promise.resolve();
 
         cleanDir(tmpdir);
@@ -197,18 +201,18 @@ module.exports = bootstrap(async function(options, config) {
             ].forEach(filename => {
                 copyFile(path.join(clientSrc, filename), tmpdir);
             });
+
+            pipeline = pipeline.then(() =>
+                Promise.all([
+                    '/index.html',
+                    '/gen/setup.js'
+                ].map(filename => gen[filename](null, config)
+                    .then(content => writeFile(tmpPath(filename), content))
+                ))
+            );
         }
 
         copyCommonFiles(tmpdir, config);
-
-        pipeline = pipeline.then(() =>
-            Promise.all([
-                '/index.html',
-                '/gen/setup.js'
-            ].map(filename => gen[filename](null, config)
-                .then(content => writeFile(tmpPath(filename), content))
-            ))
-        );
 
         pipeline = pipeline.then(() => utils.section('Build models', () =>
             config.models.reduce(
@@ -252,7 +256,7 @@ module.exports = bootstrap(async function(options, config) {
                 cleanDir(outputDir);
             }
 
-            copyDirContent(tmpPath(options.model || ''), outputDir);
+            copyDirContent(tmpPath(model || ''), outputDir);
         }));
 
         pipeline.then(() => console.log('DONE 🎉'));
