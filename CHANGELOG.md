@@ -1,15 +1,19 @@
-## next
+## 1.0.0-beta.16 (24-07-2019)
 
-- Added `--pretty-data` option to build to output `data.json` with indentation (better for deltas)
-- Added `favicon` option to general and model configs
-- Added `viewport` option to general and model configs (to cusomize `<meta name="viewport">` value)
-- Added model name injection into page HTML (as title)
-- Added `libs` option to model view config
-- Allowed to set up path to config as a value for `discovery` field in `package.json`
-- Changed `QueryEditor` constructor to take a function to get suggestions instead of `discovery` instance
-- Fixed issue when suggestion item in editor can't be choosen by a click
-- Fixed routing in model-free mode, when loading a data doesn't switch to report page
-- Fixed missed quotes for `data:` urls on CSS bundling
+- Config
+    - Added `--pretty-data` option to build to output `data.json` with indentation (better for deltas)
+    - Allowed to set up path to config as a value for `discovery` field in `package.json`
+    - Added `favicon` option to general and model configs
+    - Added `viewport` option to general and model configs (to cusomize `<meta name="viewport">` value)
+    - Added `libs` option to model view config
+    - Added model name injection into page HTML (as title)
+- Build
+    - Fixed missed quotes for `data:` urls on CSS bundling
+    - Fixed unnecessary `require()` resolving in model code
+- Client
+    - Changed `QueryEditor` constructor to take a function to get suggestions instead of `discovery` instance
+    - Fixed issue when suggestion item in editor can't be choosen by a click
+    - Fixed routing in model-free mode, when loading a data doesn't switch to report page
 
 ## 1.0.0-beta.15 (03-07-2019)
 
