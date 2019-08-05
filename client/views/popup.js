@@ -166,8 +166,10 @@ class Popup {
     }
 
     show(triggerEl, render = this.options.render) {
-        const box = getBoundingRect(triggerEl, document.body);
-        const viewport = document.body.getBoundingClientRect();
+        const rootEl = document.querySelector('.discovery');
+
+        const box = getBoundingRect(triggerEl, rootEl);
+        const viewport = rootEl.getBoundingClientRect();
         const availHeightTop = box.top - viewport.top - 3;
         const availHeightBottom = viewport.bottom - box.bottom - 3;
         const availWidthLeft = box.right - viewport.left - 3;
@@ -217,7 +219,7 @@ class Popup {
         this.lastTriggerEl = triggerEl;
 
         // always append since it can pop up by z-index
-        document.body.appendChild(this.el);
+        rootEl.appendChild(this.el);
 
         if (!this.visible) {
             openedPopups.push(this);
