@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import { createElement, createText, createFragment } from '../core/utils/dom.js';
+import { escapeHtml } from '../core/utils/html.js';
 
 const colors = ['#7ede78', '#f5f061', '#f7b28a', '#af8af7', '#61a3f5', '#ef9898', '#80ccb4', '#b1ae8a', '#e290d3', '#91d9ea', '#bbb'];
 const signatureTypeOrder = [
@@ -177,7 +178,7 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
                     }
 
                     for (let name in properties) {
-                        const propertyEl = createElement('span', 'property', name);
+                        const propertyEl = createElement('span', 'property', [name]); // NOTE: name w/o brackets inserted as HTML
                         const { count, map } = properties[name];
 
                         elementToData.set(propertyEl, {
@@ -272,7 +273,7 @@ function renderTypeStat(el, { map, count }, discovery) {
     Object.entries(typeCounts).sort(([,a], [,b]) => a - b).reverse().forEach(([name, val], idx) => {
         acc += val / count;
         typeStat.push({
-            name,
+            name: escapeHtml(name),
             count: val,
             percent: fixedNum(100 * val / count, 1),
             color: colors[idx],
@@ -441,7 +442,7 @@ function renderTypeDetails(el, data, discovery) {
                 duplicateCount += count;
                 acc += count / output.count;
                 segments.push({
-                    name: value,
+                    name: escapeHtml(value),
                     count,
                     percent: fixedNum(100 * count / output.count, 1),
                     color: colors[i],

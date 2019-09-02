@@ -1,3 +1,8 @@
+## next
+
+- Client
+    - Fixed output of values that contain HTML in `signature` view
+
 ## 1.0.0-beta.16 (24-07-2019)
 
 - Config
