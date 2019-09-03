@@ -46,30 +46,32 @@ function generateHtml(filepath, modelConfig, config) {
     return Promise.resolve(html);
 }
 
-function generateAsset(modelConfig = {}, options = {}, type) {
-    const { slug } = modelConfig;
-    const args = [];
+function generateAsset(type) {
+    return (modelConfig = {}, options = {}) => {
+        const { slug } = modelConfig;
+        const args = [];
 
-    if (!slug) {
-        return Promise.resolve('');
-    }
+        if (!slug) {
+            return Promise.resolve('');
+        }
 
-    if (options.configFile) {
-        args.push(options.configFile);
-    }
+        if (options.configFile) {
+            args.push(options.configFile);
+        }
 
-    args.push('--model', slug);
-    args.push('--type', type);
+        args.push('--model', slug);
+        args.push('--type', type);
 
-    return new Promise((resolve, reject) => {
-        fork(assetCommand, args)
-            .on('message', data => resolve(data))
-            .on('close', code => {
-                if (code) {
-                    reject(code);
-                }
-            });
-    });
+        return new Promise((resolve, reject) => {
+            fork(assetCommand, args)
+                .on('message', data => resolve(data))
+                .on('close', code => {
+                    if (code) {
+                        reject(code);
+                    }
+                });
+        });
+    };
 }
 
 function prepareModel({ name, slug, cache }) {
@@ -143,19 +145,9 @@ module.exports = {
                 });
         });
     },
-    '/gen/model-prepare.js': function(modelConfig, options) {
-        return generateAsset(modelConfig, options, 'prepare');
-    },
-    '/gen/model-view.js': function(modelConfig, options) {
-        return generateAsset(modelConfig, options, 'js');
-    },
-    '/gen/model-libs.js': function(modelConfig, options) {
-        return generateAsset(modelConfig, options, 'libs-js');
-    },
-    '/gen/model-view.css': function(modelConfig, options) {
-        return generateAsset(modelConfig, options, 'css');
-    },
-    '/gen/model-libs.css': function(modelConfig, options) {
-        return generateAsset(modelConfig, options, 'libs-css');
-    }
+    '/gen/model-prepare.js': generateAsset('prepare'),
+    '/gen/model-view.js': generateAsset('js'),
+    '/gen/model-libs.js': generateAsset('libs-js'),
+    '/gen/model-view.css': generateAsset('css'),
+    '/gen/model-libs.css': generateAsset('libs-css')
 };
