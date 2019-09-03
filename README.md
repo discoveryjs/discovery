@@ -115,8 +115,8 @@ Model config may consists of the following fields (all fields are optional):
 * `data` – function which returns `any|Promise<any>`. Result of this function must be JSON serializable
 * `prepare` – path to a script with additional initialization logic (e.g. add cyclic links and relations, extensions for query engine etc)
 * `view` – object with following fields:
-    * `basedir` – directory to resolve relative path in `assets`
-    * `libs` – path to libs, where key is local name available in asset's scope and value is a path to library file
+    * `basedir` – directory to resolve relative path in `assets` and `libs`
+    * `libs` – path to libs, where key is local name available in asset's scope and value is a path to library file or an array of files (`.js` or `.css`)
     * `assets` – path to `.js` and `.css` files
     > js files has own scope (as modules) with a reference `discovery` that points to discovery instance
 * `extendRouter` – `function(router, modelConfig, options)`

@@ -1,5 +1,7 @@
 ## next
 
+- Config
+    - Added support for `libs` options in model config. Libs module available in model's modules as `libs`
 - Client
     - Fixed output of values that contain HTML in `signature` view
 

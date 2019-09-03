@@ -4,6 +4,28 @@ const path = require('path');
 const fs = require('fs');
 const clap = require('clap');
 const loadConfig = require('../src').config.load;
+const types = {
+    js: {
+        ext: '.js',
+        from: fromAssets,
+        to: toJsAsset
+    },
+    css: {
+        ext: '.css',
+        from: fromAssets,
+        to: toCSSAsset
+    },
+    'libs-js': {
+        ext: '.js',
+        from: fromLibs,
+        to: toJsLib
+    },
+    'libs-css': {
+        ext: '.css',
+        from: fromLibs,
+        to: toCSSLib
+    }
+};
 
 function fetchFileContent(filepath) {
     if (!fs.existsSync(filepath)) {
@@ -11,35 +33,83 @@ function fetchFileContent(filepath) {
         return '';
     }
 
-    let content = fs.readFileSync(filepath, 'utf8');
+    return fs.readFileSync(filepath, 'utf8');
+}
 
-    return content;
+function normFileList(list, baseURI, ext) {
+    if (!Array.isArray(list)) {
+        return [];
+    }
+
+    return list
+        .filter(filepath => path.extname(filepath) === ext)
+        .map(filepath => path.resolve(baseURI, filepath));
+}
+
+function fromAssets(view, baseURI, ext) {
+    return normFileList(view.assets, baseURI, ext);
+}
+
+function fromLibs(view, baseURI, ext) {
+    if (!view.libs) {
+        return null;
+    }
+
+    return Object.keys(view.libs).map(name => {
+        let libConfig = view.libs[name];
+
+        if (typeof libConfig === 'string') {
+            libConfig = {
+                files: [libConfig]
+            };
+        } else if (Array.isArray(libConfig)) {
+            libConfig = {
+                files: libConfig
+            };
+        }
+
+        return {
+            name: libConfig.name ? String(libConfig.name) : name,
+            files: normFileList(libConfig.files, baseURI, ext)
+        };
+    }).filter(config => config.files.length);
+}
+
+function toConcatContent(assets) {
+    return assets.map(filepath => fetchFileContent(filepath)).join('');
+}
+
+function toJsAsset(assets) {
+    return assets.map(filepath => 
+        `\n!(function(module, exports){\n${fetchFileContent(filepath)}\n}).call(this);\n`
+    ).join('');
+}
+
+function toCSSAsset(assets) {
+    return toConcatContent(assets);
+}
+
+function toJsLib(libs) {
+    return libs.map(({ name, files }) =>
+        `\nexport const ${name} = (function(module, exports){var exports = {};\nvar module = { exports: exports };\n${
+            toConcatContent(files)
+        }\nreturn module.exports}).call(this);\n`
+    ).join('');
+}
+
+function toCSSLib(libs) {
+    return libs.map(({ files }) => toConcatContent(files)).join('');
 }
 
 function generateAsset(view = {}, type) {
     const baseURI = view.basedir || view.base || '';
-    const libs = view.libs || {};
-    const assets = Array.isArray(view.assets)
-        ? view.assets
-            .filter(asset => path.extname(asset) === ('.' + type))
-            .map(filepath => path.resolve(baseURI, filepath))
-        : [];
+    const config = types[type];
 
-    let content = assets.map(
-        type === 'js'
-            ? filepath => `\n!(function(module, exports){\n${fetchFileContent(filepath)}\n}).call(this);\n`
-            : filepath => fetchFileContent(filepath)
+    return Promise.resolve(
+        config.to(
+            config.from(view, baseURI, config.ext)
+        )
     );
-
-    if (type === 'js') {
-        content = Object.keys(libs).map(name =>
-            `\nvar ${name} = (function(module, exports){var exports = {};\nvar module = { exports: exports };\n${
-                fetchFileContent(path.resolve(baseURI, libs[name]))
-            }\nreturn module.exports}).call(this);\n`
-        ).concat(content);
-    }
-
-    return Promise.resolve(content.join(''));
 };
 
 // define command
@@ -64,7 +134,7 @@ const command = clap.create('asset', '[config]')
             console.error('Asset type is not specified. Use `--type` option to specify a type');
         }
 
-        if (type !== 'js' && type !== 'css') {
+        if (!types.hasOwnProperty(type)) {
             console.error('Wrong asset type: ' + type);
             process.exit(2);
         }

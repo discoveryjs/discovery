@@ -79,15 +79,22 @@ function writeFile(dest, content) {
 }
 
 function bundleFile(filename, options) {
+    const startTime = Date.now();
+    let task;
+
     switch (path.extname(filename)) {
         case '.js':
-            return bundleJs(filename, options)
-                .then(js => fs.writeFileSync(filename, js));
+            task = bundleJs(filename, options);
+            break;
 
         case '.css':
-            return bundleCss(filename, options)
-                .then(css => fs.writeFileSync(filename, css));
+            task = bundleCss(filename, options);
+            break;
     }
+
+    return task
+        .then(content => fs.writeFileSync(filename, content))
+        .then(() => utils.println(filename, `(${elapsedTime(startTime)}s)`));
 }
 
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
@@ -104,7 +111,9 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
                 '/data.json',
                 '/gen/model-prepare.js',
                 '/gen/model-view.js',
-                '/gen/model-view.css'
+                '/gen/model-libs.js',
+                '/gen/model-view.css',
+                '/gen/model-libs.css'
             ].map(filename =>
                 gen[filename](modelConfig, options)
                     .then(content => writeFile(pathResolver(filename), content))
@@ -115,14 +124,13 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
                 '/model-index.html',
                 '/gen/setup.js'
             ].map(filename => gen[filename](modelConfig, config)
-                .then(content => writeFile(pathResolver(filename === '/model-index.html' ? '/index.html' : filename), content))
+                .then(content => writeFile(pathResolver(filename.replace('model-index.html', 'index.html')), content))
             ))
         )
-        .then(() => utils.process('Build bundles', () =>
+        .then(() => utils.section('Build bundles', () =>
             Promise.all([
                 bundleFile(pathResolver('model.js'), {
-                    ...jsBundleOptions,
-                    noParse: jsBundleOptions.noParse.concat(pathResolver('/gen/model-view.js'))
+                    ...jsBundleOptions
                 }),
                 bundleFile(pathResolver('model.css'))
             ])
@@ -133,17 +141,29 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
 }
 
 function copyCommonFiles(dest, config) {
-    copyFile(config.favicon || path.join(clientSrc, 'favicon.png'), dest);
+    utils.section('Copy common files', () => {
+        copyFile(config.favicon || path.join(clientSrc, 'favicon.png'), dest);
 
-    [
-        'common.css',
-        '../dist/lib.js',
-        '../dist/lib.css'
-    ].forEach(filename => {
-        copyFile(path.join(clientSrc, filename), dest);
+        [
+            'common.css',
+            '../dist/lib.js',
+            '../dist/lib.css'
+        ].forEach(filename => {
+            copyFile(path.join(clientSrc, filename), dest);
+        });
     });
+}
 
-    return ;
+function cleanupTempDir(tmpdir) {
+    utils.section('Clean up temp dir', () => cleanDir(tmpdir));
+}
+
+function elapsedTime(startTime) {
+    return ((Date.now() - startTime) / 1000).toFixed(1);
+}
+
+function done(startTime) {
+    console.log(`\nDONE 🎉  (in ${elapsedTime(startTime)} sec)`);
 }
 
 module.exports = bootstrap(async function(options, config) {
@@ -151,6 +171,7 @@ module.exports = bootstrap(async function(options, config) {
     const tmpdir = path.join(__dirname, '../../tmp/build');
     const tmpPath = createPathResolver(tmpdir);
     const jsBundleOptions = { noParse: [tmpPath('lib.js')] };
+    const startTime = Date.now();
 
     // check up models
     if (!config.models || !config.models.length) {
@@ -163,7 +184,8 @@ module.exports = bootstrap(async function(options, config) {
         // model free mode
         utils.println('Models are not defined (model free mode is enabled)');
 
-        cleanDir(tmpdir);
+        cleanupTempDir(tmpdir);
+
         Promise.resolve()
             .then(() =>
                 copyCommonFiles(tmpdir, config)
@@ -184,14 +206,12 @@ module.exports = bootstrap(async function(options, config) {
 
                 copyDirContent(tmpPath('modelfree'), outputDir);
             }))
-            .then(() =>
-                console.log('DONE 🎉')
-            );
+            .then(() => done(startTime));
     } else {
         const model = options.model || config.mode === 'single' && config.models[0].slug || false;
         let pipeline = Promise.resolve();
 
-        cleanDir(tmpdir);
+        cleanupTempDir(tmpdir);
 
         if (config.mode === 'multi') {
             [
@@ -259,6 +279,6 @@ module.exports = bootstrap(async function(options, config) {
             copyDirContent(tmpPath(model || ''), outputDir);
         }));
 
-        pipeline.then(() => console.log('DONE 🎉'));
+        pipeline.then(() => done(startTime));
     }
 });

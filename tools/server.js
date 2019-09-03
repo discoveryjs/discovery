@@ -12,14 +12,18 @@ const ROUTE_RESET_DATA = '/drop-cache';
 const ROUTE_SETUP = '/gen/setup.js';
 const ROUTE_MODEL_PREPARE = '/gen/model-prepare.js';
 const ROUTE_MODEL_VIEW_JS = '/gen/model-view.js';
+const ROUTE_MODEL_LIBS_JS = '/gen/model-libs.js';
 const ROUTE_MODEL_VIEW_CSS = '/gen/model-view.css';
+const ROUTE_MODEL_LIBS_CSS = '/gen/model-libs.css';
 const defaultRoutes = {
     [ROUTE_DATA]: (req, res) => res.send({ name: 'Model free mode' }),
     [ROUTE_RESET_DATA]: (req, res) => res.send(null),
     [ROUTE_SETUP]: generate(ROUTE_SETUP, {}, { name: 'Discovery', mode: 'modelfree' }),
     [ROUTE_MODEL_PREPARE]: generate(ROUTE_MODEL_PREPARE),
     [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS),
-    [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS)
+    [ROUTE_MODEL_LIBS_JS]: generate(ROUTE_MODEL_LIBS_JS),
+    [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS),
+    [ROUTE_MODEL_LIBS_CSS]: generate(ROUTE_MODEL_LIBS_CSS)
 };
 
 const stubApi = new Proxy({}, {
@@ -198,7 +202,9 @@ module.exports = bootstrap(function createServer(options, config) {
                     [ROUTE_SETUP]: generate(ROUTE_SETUP, modelConfig, config),
                     [ROUTE_MODEL_PREPARE]: generate(ROUTE_MODEL_PREPARE, modelConfig),
                     [ROUTE_MODEL_VIEW_JS]: generate(ROUTE_MODEL_VIEW_JS, modelConfig, options),
-                    [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS, modelConfig, options)
+                    [ROUTE_MODEL_LIBS_JS]: generate(ROUTE_MODEL_LIBS_JS, modelConfig, options),
+                    [ROUTE_MODEL_VIEW_CSS]: generate(ROUTE_MODEL_VIEW_CSS, modelConfig, options),
+                    [ROUTE_MODEL_LIBS_CSS]: generate(ROUTE_MODEL_LIBS_CSS, modelConfig, options)
                 });
             })
         );

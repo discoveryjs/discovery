@@ -47,7 +47,12 @@ function generateHtml(filepath, modelConfig, config) {
 }
 
 function wrapCodeIntoDefaultFunction(code) {
-    return `export default function(discovery) {\n${code}\n}`;
+    return [
+        'import * as libs from \'./model-libs.js\';',
+        'export default function(discovery) {',
+        code,
+        '}'  
+    ].join('\n');
 }
 
 function generateAsset(modelConfig = {}, options = {}, type) {
@@ -177,7 +182,13 @@ module.exports = {
     '/gen/model-view.js': function(modelConfig, options) {
         return generateAsset(modelConfig, options, 'js').then(wrapCodeIntoDefaultFunction);
     },
+    '/gen/model-libs.js': function(modelConfig, options) {
+        return generateAsset(modelConfig, options, 'libs-js');
+    },
     '/gen/model-view.css': function(modelConfig, options) {
         return generateAsset(modelConfig, options, 'css');
+    },
+    '/gen/model-libs.css': function(modelConfig, options) {
+        return generateAsset(modelConfig, options, 'libs-css');
     }
 };
