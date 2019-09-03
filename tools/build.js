@@ -100,10 +100,13 @@ function bundleFile(filename, options) {
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
     ['model.js', 'model.css']
         .forEach(filename => copyFile(path.join(clientSrc, filename), pathResolver(), filename));
-
-    if (modelConfig.favicon) {
-        copyFile(modelConfig.favicon, pathResolver(), path.basename(modelConfig.favicon));
-    }
+    
+    // favicon
+    copyFile(
+        modelConfig.favicon || config.favicon,
+        pathResolver(),
+        '/favicon' + path.extname(modelConfig.favicon || config.favicon)
+    );
 
     return Promise
         .all(
@@ -148,9 +151,9 @@ function copyCommonFiles(dest, config) {
             'common.css',
             '../dist/lib.js',
             '../dist/lib.css'
-        ].forEach(filename => {
-            copyFile(path.join(clientSrc, filename), dest);
-        });
+        ].forEach(filename =>
+            copyFile(path.join(clientSrc, filename), dest)
+        );
     });
 }
 

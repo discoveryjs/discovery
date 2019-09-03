@@ -38,7 +38,7 @@ function generateHtml(filepath, modelConfig, config) {
             `<link rel="icon" type="${
                 escapeValueForHtml(mime.getType(path.extname(favicon)))
             }" href="${
-                escapeValueForHtml(path.basename(favicon))
+                escapeValueForHtml('favicon' + path.extname(favicon))
             }">`
         );
     }

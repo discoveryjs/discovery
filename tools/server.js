@@ -44,7 +44,7 @@ function faviconIfSpecified(router, modelConfig, config) {
     const favicon = (modelConfig ? modelConfig.favicon : null) || config.favicon;
 
     if (favicon) {
-        router.get('/' + path.basename(favicon), (req, res) => res.sendFile(favicon));
+        router.get('/favicon' + path.extname(favicon), (req, res) => res.sendFile(favicon));
     }
 }
 
