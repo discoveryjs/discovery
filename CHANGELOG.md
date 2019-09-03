@@ -1,7 +1,7 @@
 ## next
 
 - Config
-    - Added support for `libs` options in model config. Libs module available in model's modules as `libs`
+    - Extended `libs` option in model config to contain CSS files and available for model's `prepare` script
 - Build
     - Fixed no favicon when favicon is not set up in a config (use default instead)
     - Tweaked relative path output in build log

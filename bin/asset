@@ -5,31 +5,29 @@ const fs = require('fs');
 const clap = require('clap');
 const loadConfig = require('../src').config.load;
 const types = {
-    js: {
-        ext: '.js',
-        from: fromAssets,
-        to: toJsAsset
-    },
-    css: {
-        ext: '.css',
-        from: fromAssets,
-        to: toCSSAsset
-    },
-    'libs-js': {
-        ext: '.js',
-        from: fromLibs,
-        to: toJsLib
-    },
-    'libs-css': {
-        ext: '.css',
-        from: fromLibs,
-        to: toCSSLib
-    }
+    'prepare': (modelConfig, baseURI) => wrapInModule(
+        modelConfig,
+        baseURI,
+        getPrepare(modelConfig)
+    ),
+    'js': (modelConfig, baseURI) => wrapInModule(
+        modelConfig,
+        baseURI,
+        getAssetList(modelConfig.view || {}, baseURI, '.js')
+            .map(filepath =>
+                `\n!(function(module, exports){\n${
+                    fetchFileContent(filepath)
+                }\n}).call(this);\n`
+            ).join('')
+    ),
+    'css': (modelConfig, baseURI) => toConcatContent(getAssetList(modelConfig.view || {}, baseURI, '.css')),
+    'libs-js': (modelConfig, baseURI) => toJsLib(getLibsList(modelConfig.view || {}, baseURI, '.js')),
+    'libs-css': (modelConfig, baseURI) => toCSSLib(getLibsList(modelConfig.view || {}, baseURI, '.css'))
 };
 
 function fetchFileContent(filepath) {
     if (!fs.existsSync(filepath)) {
-        console.error('File `' + filepath + '` defined in `config.view` is not found');
+        console.error('File `' + filepath + '` defined in `config` is not found');
         return '';
     }
 
@@ -46,11 +44,37 @@ function normFileList(list, baseURI, ext) {
         .map(filepath => path.resolve(baseURI, filepath));
 }
 
-function fromAssets(view, baseURI, ext) {
+function wrapInModule(modelConfig, baseURI, code) {
+    const libs = getLibsList(modelConfig.view || {}, baseURI, '.js');
+
+    return [
+        `import { ${libs.map(({ name }) => name).join(', ')} } from './model-libs.js';`,
+        '',
+        'export default function(discovery) {',
+        code,
+        '}'
+    ].join('\n');
+}
+
+function getPrepare(modelConfig) {
+    const { slug, prepare } = modelConfig;
+
+    if (!prepare) {
+        return '/* prepare code is not defined in a model config */';
+    }
+
+    if (typeof prepare !== 'string') {
+        throw new Error(`Error in \`${slug}\` model: prepare option should be a string or undefined`);
+    }
+
+    return fetchFileContent(prepare);
+}
+
+function getAssetList(view, baseURI, ext) {
     return normFileList(view.assets, baseURI, ext);
 }
 
-function fromLibs(view, baseURI, ext) {
+function getLibsList(view, baseURI, ext) {
     if (!view.libs) {
         return null;
     }
@@ -75,18 +99,8 @@ function fromLibs(view, baseURI, ext) {
     }).filter(config => config.files.length);
 }
 
-function toConcatContent(assets) {
-    return assets.map(filepath => fetchFileContent(filepath)).join('');
-}
-
-function toJsAsset(assets) {
-    return assets.map(filepath => 
-        `\n!(function(module, exports){\n${fetchFileContent(filepath)}\n}).call(this);\n`
-    ).join('');
-}
-
-function toCSSAsset(assets) {
-    return toConcatContent(assets);
+function toConcatContent(files) {
+    return files.map(filepath => fetchFileContent(filepath)).join('');
 }
 
 function toJsLib(libs) {
@@ -101,16 +115,12 @@ function toCSSLib(libs) {
     return libs.map(({ files }) => toConcatContent(files)).join('');
 }
 
-function generateAsset(view = {}, type) {
+function generateAsset(modelConfig, type) {
+    const view = modelConfig.view || {};
     const baseURI = view.basedir || view.base || '';
-    const config = types[type];
 
-    return Promise.resolve(
-        config.to(
-            config.from(view, baseURI, config.ext)
-        )
-    );
-};
+    return Promise.resolve(types[type](modelConfig, baseURI));
+}
 
 // define command
 const command = clap.create('asset', '[config]')
@@ -151,7 +161,7 @@ const command = clap.create('asset', '[config]')
             process.exit(2);
         }
 
-        generateAsset(modelConfig.view, type).then(asset => {
+        generateAsset(modelConfig, type).then(asset => {
             if (outputFile) {
                 fs.writeFileSync(
                     path.resolve(process.cwd(), outputFile),

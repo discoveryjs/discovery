@@ -46,15 +46,6 @@ function generateHtml(filepath, modelConfig, config) {
     return Promise.resolve(html);
 }
 
-function wrapCodeIntoDefaultFunction(code) {
-    return [
-        'import * as libs from \'./model-libs.js\';',
-        'export default function(discovery) {',
-        code,
-        '}'
-    ].join('\n');
-}
-
 function generateAsset(modelConfig = {}, options = {}, type) {
     const { slug } = modelConfig;
     const args = [];
@@ -79,24 +70,6 @@ function generateAsset(modelConfig = {}, options = {}, type) {
                 }
             });
     });
-}
-
-function generatePrepare(modelConfig = {}) {
-    const { slug, prepare } = modelConfig;
-
-    if (!prepare) {
-        return '/* prepare code is not defined in a model config */';
-    }
-
-    if (typeof prepare !== 'string') {
-        throw new Error(`Error in \`${slug}\` model: prepare option should a string or undefined`);
-    }
-
-    if (!fs.existsSync(prepare)) {
-        throw new Error(`Error in \`${slug}\` model: path for prepare code (${prepare}) is not found`);
-    }
-
-    return fs.readFileSync(prepare, 'utf8');
 }
 
 function prepareModel({ name, slug, cache }) {
@@ -170,17 +143,11 @@ module.exports = {
                 });
         });
     },
-    '/gen/model-prepare.js': function(modelConfig) {
-        return new Promise((resolve, reject) => {
-            try {
-                resolve(wrapCodeIntoDefaultFunction(generatePrepare(modelConfig)));
-            } catch (e) {
-                reject(e);
-            }
-        });
+    '/gen/model-prepare.js': function(modelConfig, options) {
+        return generateAsset(modelConfig, options, 'prepare');
     },
     '/gen/model-view.js': function(modelConfig, options) {
-        return generateAsset(modelConfig, options, 'js').then(wrapCodeIntoDefaultFunction);
+        return generateAsset(modelConfig, options, 'js');
     },
     '/gen/model-libs.js': function(modelConfig, options) {
         return generateAsset(modelConfig, options, 'libs-js');
