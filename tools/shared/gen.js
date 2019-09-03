@@ -51,7 +51,7 @@ function wrapCodeIntoDefaultFunction(code) {
         'import * as libs from \'./model-libs.js\';',
         'export default function(discovery) {',
         code,
-        '}'  
+        '}'
     ].join('\n');
 }
 
