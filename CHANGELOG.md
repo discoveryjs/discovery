@@ -4,6 +4,7 @@
     - Added support for `libs` options in model config. Libs module available in model's modules as `libs`
 - Build
     - Fixed no favicon when favicon is not set up in a config (use default instead)
+    - Tweaked relative path output in build log
 - Client
     - Fixed output of values that contain HTML in `signature` view
 

@@ -7,14 +7,25 @@ const utils = require('./shared/utils');
 const gen = require('./shared/gen');
 const ensureDir = require('../src/ensure-dir');
 const rootSrc = path.join(__dirname, '..');
+const tmpdir = path.join(__dirname, '../../tmp/build');
 const clientSrc = path.join(rootSrc, 'client');
 
 function createPathResolver(dir) {
     return filename => path.join(dir, filename || '');
 }
 
+function isRelatedToPath(pathname, dir, name) {
+    return pathname.slice(0, dir.length) === dir
+        ? `(${name})${pathname.slice(dir.length + 1)}`
+        : false;
+}
+
 function relpath(pathname) {
-    return path.relative(rootSrc, pathname);
+    return (
+        isRelatedToPath(pathname, rootSrc, 'discovery') ||
+        isRelatedToPath(pathname, tmpdir, 'temp') ||
+        path.relative(process.cwd(), pathname)
+    );
 }
 
 function scanFs(pathname, fn, includeDir) {
@@ -94,13 +105,13 @@ function bundleFile(filename, options) {
 
     return task
         .then(content => fs.writeFileSync(filename, content))
-        .then(() => utils.println(filename, `(${elapsedTime(startTime)}s)`));
+        .then(() => utils.println(relpath(filename), `(${elapsedTime(startTime)}s)`));
 }
 
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
     ['model.js', 'model.css']
         .forEach(filename => copyFile(path.join(clientSrc, filename), pathResolver(), filename));
-    
+
     // favicon
     copyFile(
         modelConfig.favicon || config.favicon,
@@ -157,7 +168,7 @@ function copyCommonFiles(dest, config) {
     });
 }
 
-function cleanupTempDir(tmpdir) {
+function cleanupTempDir() {
     utils.section('Clean up temp dir', () => cleanDir(tmpdir));
 }
 
@@ -171,7 +182,6 @@ function done(startTime) {
 
 module.exports = bootstrap(async function(options, config) {
     const outputDir = options.output;
-    const tmpdir = path.join(__dirname, '../../tmp/build');
     const tmpPath = createPathResolver(tmpdir);
     const jsBundleOptions = { noParse: [tmpPath('lib.js')] };
     const startTime = Date.now();
@@ -187,7 +197,7 @@ module.exports = bootstrap(async function(options, config) {
         // model free mode
         utils.println('Models are not defined (model free mode is enabled)');
 
-        cleanupTempDir(tmpdir);
+        cleanupTempDir();
 
         Promise.resolve()
             .then(() =>
@@ -214,7 +224,7 @@ module.exports = bootstrap(async function(options, config) {
         const model = options.model || config.mode === 'single' && config.models[0].slug || false;
         let pipeline = Promise.resolve();
 
-        cleanupTempDir(tmpdir);
+        cleanupTempDir();
 
         if (config.mode === 'multi') {
             [
