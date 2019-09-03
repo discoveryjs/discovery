@@ -5,6 +5,7 @@
 - Build
     - Fixed no favicon when favicon is not set up in a config (use default instead)
     - Tweaked relative path output in build log
+    - Added `--single-file` option to produce a model build as a single file
 - Client
     - Fixed output of values that contain HTML in `signature` view
 

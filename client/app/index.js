@@ -96,15 +96,16 @@ export default class App extends Widget {
 
     loadDataFromUrl(url, dataField) {
         const loadStartTime = Date.now();
+        const explicitData = typeof url === 'string' ? undefined : url;
 
         this.dom.loadingOverlay.classList.remove('error', 'done');
 
-        return fetch(url)
+        return fetch(explicitData ? 'data:application/json,{}' : url)
             .then(res => {
                 console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
                 this.dom.loadingOverlay.innerHTML = 'Processing data...';
 
-                return res.json();
+                return explicitData || res.json();
             })
             .then(res => {
                 if (res.error) {

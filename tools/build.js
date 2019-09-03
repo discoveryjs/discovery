@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const mime = require('mime');
 const bundleJs = require('./shared/bundle-js');
 const bundleCss = require('./shared/bundle-css');
 const bootstrap = require('./shared/bootstrap');
@@ -89,6 +90,22 @@ function writeFile(dest, content) {
     );
 }
 
+function replaceFileContent(pathname, pattern, replace) {
+    fs.writeFileSync(
+        pathname,
+        fs.readFileSync(pathname, 'utf8').replace(pattern, replace),
+        'utf8'
+    );
+}
+
+function readScriptContentWithDataReplaced(pathname, dataFilePath) {
+    return fs.readFileSync(pathname, 'utf8')
+        .replace(
+            /(loadDataFromUrl\()'\.\/data.json'/,
+            (m, pre) => pre + fs.readFileSync(dataFilePath,'utf8')
+        );
+}
+
 function bundleFile(filename, options) {
     const startTime = Date.now();
     let task;
@@ -109,6 +126,8 @@ function bundleFile(filename, options) {
 }
 
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
+    const favicon = '/favicon' + path.extname(modelConfig.favicon || config.favicon);
+
     ['model.js', 'model.css']
         .forEach(filename => copyFile(path.join(clientSrc, filename), pathResolver(), filename));
 
@@ -116,7 +135,7 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
     copyFile(
         modelConfig.favicon || config.favicon,
         pathResolver(),
-        '/favicon' + path.extname(modelConfig.favicon || config.favicon)
+        favicon
     );
 
     return Promise
@@ -149,9 +168,50 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
                 bundleFile(pathResolver('model.css'))
             ])
         ))
-        .then(() => utils.section('Clean up', () =>
+        .then(() => options.singleFile && utils.section('Convert to single page', () => {
+            fs.writeFileSync(
+                pathResolver('index.html'),
+                fs.readFileSync(pathResolver('index.html'), 'utf8')
+                    .replace(/<link rel="icon".+?>/g, m => {
+                        utils.println('Inline', m);
+                        return m.replace(/\s+href="(.+?)"/, (m, filepath) =>
+                            ` href="data:${
+                                mime.getType(path.extname(filepath))
+                            };base64,${
+                                fs.readFileSync(pathResolver(filepath), 'base64')
+                            }"`
+                        );
+                    })
+                    .replace(/<link rel="stylesheet".+?>/g, m => {
+                        const hrefMatch = m.match(/\s+href="(.+?)"/);
+
+                        return hrefMatch
+                            ? utils.println('Inline', m) || `<style>${fs.readFileSync(pathResolver(hrefMatch[1]), 'utf8')}</style>`
+                            : m;
+                    })
+                    .replace(/<script .+?>/g, m => {
+                        let scriptSrc = null;
+                        const newOpenTag = m.replace(/\s+src="(.+?)"/, (m, src) => (scriptSrc = src, ''));
+
+                        return scriptSrc
+                            ? utils.println('Inline', m) || newOpenTag + readScriptContentWithDataReplaced(pathResolver(scriptSrc), pathResolver('data.json'))
+                            : m;
+                    }),
+                'utf8'
+            );
+        }))
+        .then(() => utils.section('Clean up', () => {
             rm(pathResolver('gen'))
-        ));
+
+            if (options.singleFile) {
+                [
+                    favicon,
+                    'data.json',
+                    'model.css',
+                    'model.js'
+                ].forEach(filepath => rm(pathResolver(filepath)));
+            }
+        }));
 }
 
 function copyCommonFiles(dest, config) {
