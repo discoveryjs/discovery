@@ -172,6 +172,14 @@ function cleanupTempDir() {
     utils.section('Clean up temp dir', () => cleanDir(tmpdir));
 }
 
+function cleanupDestDir(options) {
+    if (options.cleanup) {
+        utils.section(`Clean up dest dir before write (${options.output})`, () =>
+            cleanDir(options.output)
+        );
+    }
+}
+
 function elapsedTime(startTime) {
     return ((Date.now() - startTime) / 1000).toFixed(1);
 }
@@ -212,13 +220,10 @@ module.exports = bootstrap(async function(options, config) {
                     jsBundleOptions
                 )
             )
-            .then(() => utils.section(`Copy files to dest (${outputDir})`, () => {
-                if (options.cleanup) {
-                    cleanDir(outputDir);
-                }
-
-                copyDirContent(tmpPath('modelfree'), outputDir);
-            }))
+            .then(() => cleanupDestDir(options))
+            .then(() => utils.section(`Copy files to dest (${outputDir})`, () =>
+                copyDirContent(tmpPath('modelfree'), outputDir)
+            ))
             .then(() => done(startTime));
     } else {
         const model = options.model || config.mode === 'single' && config.models[0].slug || false;
@@ -284,11 +289,8 @@ module.exports = bootstrap(async function(options, config) {
             })
         );
 
+        pipeline = pipeline.then(() => cleanupDestDir(options));
         pipeline = pipeline.then(() => utils.section(`Copy files to dest (${outputDir})`, () => {
-            if (options.cleanup) {
-                cleanDir(outputDir);
-            }
-
             copyDirContent(tmpPath(model || ''), outputDir);
         }));
 
