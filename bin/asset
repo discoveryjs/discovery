@@ -76,7 +76,7 @@ function getAssetList(view, baseURI, ext) {
 
 function getLibsList(view, baseURI, ext) {
     if (!view.libs) {
-        return null;
+        return [];
     }
 
     return Object.keys(view.libs).map(name => {

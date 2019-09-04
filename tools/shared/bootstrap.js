@@ -5,7 +5,7 @@ const utils = require('./utils');
 module.exports = fn => options => {
     const configFile = configUtils.resolveConfigFilename(options.configFile);
     const config = !configFile
-        ? utils.println('No config is used') || { name: 'Discovery', mode: 'modelfree' }
+        ? utils.println('No config is used') || { ...configUtils.normalize({}), name: 'Discovery', mode: 'modelfree', models: [] }
         : utils.process(`Load config from ${path.relative(process.cwd(), configFile).replace(/^(?=[^.\/])/, './')}`, () =>
             configUtils.load(configFile, {
                 model: options.model,
