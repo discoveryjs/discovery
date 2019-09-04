@@ -442,7 +442,7 @@ function renderTypeDetails(el, data, discovery) {
                 duplicateCount += count;
                 acc += count / output.count;
                 segments.push({
-                    name: escapeHtml(value),
+                    name: escapeHtml(String(value)),
                     count,
                     percent: fixedNum(100 * count / output.count, 1),
                     color: colors[i],
