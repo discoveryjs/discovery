@@ -126,7 +126,7 @@ function bundleFile(filename, options) {
 }
 
 function createModel(pathResolver, modelConfig, config, options, jsBundleOptions) {
-    const modelfreeMode = !options.models || !options.models.length;
+    const modelfreeMode = !config.models || !config.models.length;
     const favicon = '/favicon' + path.extname(modelConfig.favicon || config.favicon);
 
     ['model.js', 'model.css']
