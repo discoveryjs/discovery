@@ -1,11 +1,11 @@
-## next
+## 1.0.0-beta.17 (06-09-2019)
 
 - Config
-    - Extended `libs` option in model config to contain CSS files and available for model's `prepare` script
+    - Extended `libs` option in model config to contain CSS files and made it available for model's `prepare` script
 - Build
-    - Fixed no favicon when favicon is not set up in a config (use default instead)
-    - Tweaked relative path output in build log
     - Added `--single-file` option to produce a model build as a single file
+    - Fixed no favicon when favicon is not set up in a config (use default in this case)
+    - Tweaked relative path output in build log
 - Client
     - Fixed output of values that contain HTML in `signature` view
 
