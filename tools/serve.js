@@ -5,7 +5,7 @@ const utils = require('./shared/utils');
 const bootstrap = require('./shared/bootstrap');
 const gen = require('./shared/gen');
 const libs = require('./shared/libs.js');
-const { getCacheFilename } = require('../src');
+const getCacheFilename = require('./shared/get-cache-filename');
 
 const ROUTE_DATA = '/data.json';
 const ROUTE_RESET_DATA = '/drop-cache';

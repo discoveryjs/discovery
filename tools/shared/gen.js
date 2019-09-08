@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const mime = require('mime');
 const { fork } = require('child_process');
-const collectDataCommand = path.join(__dirname, '../../bin/collect-data');
+const dataCommand = path.join(__dirname, '../../bin/data');
 const assetCommand = path.join(__dirname, '../../bin/asset');
 
 function escapeValueForHtml(value) {
@@ -135,7 +135,7 @@ module.exports = {
         args.push('--model', slug);
 
         return new Promise((resolve, reject) => {
-            fork(collectDataCommand, args)
+            fork(dataCommand, args)
                 .on('message', resolve)
                 .on('close', code => {
                     if (code) {

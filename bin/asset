@@ -41,8 +41,8 @@ const command = clap.create('asset', '[config]')
 
             // otherwise write to stdout
             console.log(asset);
-        }, e => {
-            console.error(e);
+        }).catch(error => {
+            console.error(error);
             process.exit(2);
         });
     });

@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+const path = require('path');
+const fs = require('fs');
+const clap = require('clap');
+const getData = require('../tools/data');
+
+// define command
+const command = clap.create('collect-data', '[config] [model]')
+    .option('-c, --config <filename>', 'Specify path to config (JavaScript or JSON file)')
+    .option('-m, --model <name>', 'Specify the model id (slug)')
+    .option('--cache [dir]', 'Enable data caching and specify path to store cache files (using a working directory if dir is not set)',
+        (value = '') => path.resolve(process.cwd(), value)
+    )
+    .option('--rewrite-cache', 'Ignore existing cache')
+    .option('--pretty [indent]', 'Pretty print with optionally specified indentation (4 spaces by default)', (value = 4) => Number(value) || false, false)
+    .option('-o, --output <filename>', 'Output file',
+        (value = '') => path.resolve(process.cwd(), value)
+    )
+    .version(require('../package.json').version)
+    .action(function(args) {
+        const configFile = this.values.config || args[0];
+        const model = this.values.model || args[1];
+        const outputFile = this.values.output || null;
+        const cache = this.values.cache || false;
+        const rewriteCache = this.values.rewriteCache;
+        const pretty = this.values.pretty;
+
+        const options = {
+            configFile,
+            model,
+            cache,
+            rewriteCache,
+            pretty
+        };
+
+        getData(options).then(stringifiedData => {
+            if (outputFile) {
+                fs.writeFileSync(outputFile, stringifiedData, 'utf8');
+                return;
+            }
+
+            // send data to parent process if run as a child process
+            if (typeof process.send === 'function') {
+                process.send(stringifiedData);
+                return;
+            }
+
+            // otherwise write to stdout
+            console.log(stringifiedData);
+        }).catch(error => {
+            console.error(error);
+            process.exit(2);
+        });
+    });
+
+// run command
+try {
+    command.run();
+} catch (e) {
+    // output user frendly message if cli error
+    if (e instanceof clap.Error) {
+        console.error(e.message || e);
+        process.exit(2);
+    }
+
+    // otherwise re-throw exception
+    throw e;
+}
