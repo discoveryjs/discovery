@@ -1,5 +1,6 @@
 ## next
 
+- Removed `src/scan-fs.js` module since it extracted into a separate package – [@discoveryjs/scan-fs](https://github.com/discoveryjs/scan-fs)
 - Server
     - Fixed asset generation in model-free mode
 

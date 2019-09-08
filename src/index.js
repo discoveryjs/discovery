@@ -60,7 +60,6 @@ function collectData(modelConfig) {
 
 module.exports = {
     config: cfg,
-    scanFs: require('./scan-fs'),
     getCacheFilename,
     getData,
     collectData
