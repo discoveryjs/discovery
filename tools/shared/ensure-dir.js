@@ -14,7 +14,7 @@ module.exports = function ensureDir(filename) {
                 try {
                     fs.mkdirSync(curpath);
                 } catch (e) {
-                    console.error('error', e);
+                    console.error(e);
                 }
             }
         }

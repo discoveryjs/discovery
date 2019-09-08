@@ -65,7 +65,7 @@ for (let name in es6NodeModules) {
         '');
 
     exports[name] = {
-        filename: `/gen/${name}.js`,
+        filename: `${name}.js`,
         get source() {
             return es5toEs6(libConfig.name, filesContent, libConfig.imports);
         },

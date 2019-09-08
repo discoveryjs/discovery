@@ -231,7 +231,7 @@ module.exports = bootstrap(function createServer(options, config, configFile) {
         app.get('/gen/setup.js', generate('/gen/setup.js', null, config));
 
         for (let name in libs) {
-            app.get(libs[name].filename, function(req, res) {
+            app.get(`/gen/${libs[name].filename}`, function(req, res) {
                 res.type('.js');
                 res.send(libs[name].source);
             });

@@ -7,12 +7,12 @@
   "license": "MIT",
   "main": "./src/index.js",
   "browser": {
-    "/gen/jora.js": "./tmp/gen/jora.js",
-    "/gen/hitext": "./tmp/gen/hitext.js",
-    "/gen/hitext-prismjs": "./tmp/gen/hitext-prismjs.js",
-    "/gen/prismjs": "./tmp/gen/prismjs.js",
-    "/gen/highcharts": "./tmp/gen/highcharts.js",
-    "/gen/codemirror": "./tmp/gen/codemirror.js"
+    "/gen/jora.js": "./dist/gen/jora.js",
+    "/gen/hitext": "./dist/gen/hitext.js",
+    "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
+    "/gen/prismjs": "./dist/gen/prismjs.js",
+    "/gen/highcharts": "./dist/gen/highcharts.js",
+    "/gen/codemirror": "./dist/gen/codemirror.js"
   },
   "repository": "discoveryjs/discovery",
   "bin": {

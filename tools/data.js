@@ -3,7 +3,7 @@ const readFilePromise = require('util').promisify(fs.readFile);
 const writeFilePromise = require('util').promisify(fs.writeFile);
 const bootstrap = require('./shared/bootstrap');
 const getCacheFilename = require('./shared/get-cache-filename');
-const ensureDir = require('../src/ensure-dir');
+const ensureDir = require('./shared/ensure-dir');
 
 function collectData(modelConfig) {
     const startTime = Date.now();
