@@ -2,7 +2,7 @@
 
 const clap = require('clap');
 const path = require('path');
-const createServer = require('../tools/server');
+const createServer = require('../tools/serve');
 const DEFAULT_PORT = 8123;
 
 // define command
