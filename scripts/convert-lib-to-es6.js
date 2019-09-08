@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const es5toEs6 = require('./es5toEs6');
+const es5toEs6 = require('./utils/es5toEs6');
 const libFilename = path.join(__dirname, '../client/lib.js');
 const libBundleFilename = path.join(__dirname, '../dist/lib.umd.js');
 const libContent = fs.readFileSync(libFilename, 'utf8');

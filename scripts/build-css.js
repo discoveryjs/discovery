@@ -1,6 +1,9 @@
 const path = require('path');
 const fs = require('fs');
-const bundleCss = require('../tools/shared/bundle-css');
+const bundleCss = require('./utils/bundle-css');
+const inputFilename = path.join(__dirname, '../client/lib.css');
+const outputFilename = path.join(__dirname, '../dist/lib.css');
 
-bundleCss(path.join(__dirname, '../client/lib.css'))
-    .then(css => fs.writeFileSync(path.join(__dirname, '../dist/lib.css'), css, 'utf8'));
+bundleCss(inputFilename).then(content =>
+    fs.writeFileSync(outputFilename, content, 'utf8')
+);
