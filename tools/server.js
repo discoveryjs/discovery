@@ -176,8 +176,13 @@ function createModelRouter(modelConfig, config, options, routes = {}) {
     return router;
 }
 
-module.exports = bootstrap(function createServer(options, config) {
+module.exports = bootstrap(function createServer(options, config, configFile) {
     const app = express();
+
+    console.log(configFile
+        ? `Load config from ${configFile}`
+        : 'No config is used'
+    );
 
     // check up models
     if (!config.models || !config.models.length) {

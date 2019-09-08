@@ -90,14 +90,6 @@ function writeFile(dest, content) {
     );
 }
 
-function replaceFileContent(pathname, pattern, replace) {
-    fs.writeFileSync(
-        pathname,
-        fs.readFileSync(pathname, 'utf8').replace(pattern, replace),
-        'utf8'
-    );
-}
-
 function readScriptContentWithDataReplaced(pathname, dataFilePath) {
     return fs.readFileSync(pathname, 'utf8')
         .replace(
@@ -201,7 +193,7 @@ function createModel(pathResolver, modelConfig, config, options, jsBundleOptions
             );
         }))
         .then(() => utils.section('Clean up', () => {
-            rm(pathResolver('gen'))
+            rm(pathResolver('gen'));
 
             if (options.singleFile) {
                 [
@@ -248,11 +240,16 @@ function done(startTime) {
     console.log(`\nDONE 🎉  (in ${elapsedTime(startTime)} sec)`);
 }
 
-module.exports = bootstrap(async function(options, config) {
+module.exports = bootstrap(async function(options, config, configFile) {
     const outputDir = options.output;
     const tmpPath = createPathResolver(tmpdir);
     const jsBundleOptions = { noParse: [tmpPath('lib.js')] };
     const startTime = Date.now();
+
+    console.log(configFile
+        ? `Load config from ${configFile}`
+        : 'No config is used'
+    );
 
     // check up models
     if (!config.models || !config.models.length) {

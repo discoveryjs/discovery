@@ -20,7 +20,7 @@
     "discovery-build": "./bin/build"
   },
   "scripts": {
-    "lint": "eslint src tools client",
+    "lint": "eslint bin/* src tools scripts client",
     "build": "npm run build:esm && npm run build:css",
     "build-docs": "npm run build && node bin/build -o docs",
     "build:esm": "npm run build:umd && node scripts/lib-es5-to-es6",

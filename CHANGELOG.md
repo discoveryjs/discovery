@@ -1,3 +1,8 @@
+## next
+
+- Server
+    - Fixed asset generation in model-free mode
+
 ## 1.0.0-beta.17 (06-09-2019)
 
 - Config

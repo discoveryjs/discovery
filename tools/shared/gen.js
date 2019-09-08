@@ -51,15 +51,14 @@ function generateAsset(type) {
         const { slug } = modelConfig;
         const args = [];
 
-        if (!slug) {
-            return Promise.resolve('');
-        }
-
         if (options.configFile) {
             args.push(options.configFile);
         }
 
-        args.push('--model', slug);
+        if (slug) {
+            args.push('--model', slug);
+        }
+
         args.push('--type', type);
 
         return new Promise((resolve, reject) => {

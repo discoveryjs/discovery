@@ -1,17 +1,25 @@
 const path = require('path');
 const configUtils = require('../../src').config;
-const utils = require('./utils');
+
+function preprocessConfigFile(configFile) {
+    return configFile
+        ? path.relative(process.cwd(), configFile).replace(/^(?=[^.\/])/, './')
+        : null;
+}
 
 module.exports = fn => options => {
     const configFile = configUtils.resolveConfigFilename(options.configFile);
-    const config = !configFile
-        ? utils.println('No config is used') || { ...configUtils.normalize({}), name: 'Discovery', mode: 'modelfree', models: [] }
-        : utils.process(`Load config from ${path.relative(process.cwd(), configFile).replace(/^(?=[^.\/])/, './')}`, () =>
-            configUtils.load(configFile, {
-                model: options.model,
-                cachedir: options.cache
-            })
-        );
+    const config = configFile
+        ? configUtils.load(configFile, {
+            model: options.model,
+            cachedir: options.cache
+        })
+        : {
+            ...configUtils.normalize({}),
+            name: 'Discovery',
+            mode: 'modelfree',
+            models: []
+        };
 
-    fn(options, config);
+    return fn(options, config, preprocessConfigFile(configFile));
 };
