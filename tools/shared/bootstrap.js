@@ -1,5 +1,5 @@
 const path = require('path');
-const configUtils = require('../../src').config;
+const configUtils = require('./config');
 
 function preprocessConfigFile(configFile) {
     return configFile

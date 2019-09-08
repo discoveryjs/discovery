@@ -85,7 +85,7 @@ function normalize(config, options) {
 
     result.favicon = result.favicon
         ? path.resolve(basedir, result.favicon)
-        : path.join(__dirname, '../client/favicon.png');
+        : path.join(__dirname, '../../client/favicon.png');
 
     result.models = Object.keys(models).reduce((res, slug) => {
         if (!model || model === slug) {
