@@ -23,7 +23,7 @@
     "lint": "eslint bin/* src tools scripts client",
     "build": "npm run build:esm && npm run build:css",
     "build-docs": "npm run build && node bin/build -o docs",
-    "build:esm": "npm run build:umd && node scripts/lib-es5-to-es6",
+    "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
     "build:umd": "node scripts/build-client-libs && browserify client/lib.js -o dist/lib.umd.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ]",
     "build:css": "node scripts/build-css",
     "prepublishOnly": "npm run build"

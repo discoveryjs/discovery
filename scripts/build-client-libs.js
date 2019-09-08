@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const libs = require('../tools/shared/libs.js');
+const libs = require('../libs');
 const ensureDir = require('../src/ensure-dir');
 
 for (let name in libs) {

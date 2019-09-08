@@ -4,7 +4,7 @@ const express = require('express');
 const utils = require('./shared/utils');
 const bootstrap = require('./shared/bootstrap');
 const gen = require('./shared/gen');
-const libs = require('./shared/libs.js');
+const libs = require('../libs');
 const getCacheFilename = require('./shared/get-cache-filename');
 
 const ROUTE_DATA = '/data.json';

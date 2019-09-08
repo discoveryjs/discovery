@@ -1,4 +1,7 @@
-const makeLib = require('./make-lib');
+const fs = require('fs');
+const path = require('path');
+const resolve = require('resolve');
+const es5toEs6 = require('./scripts/es5toEs6');
 const es6NodeModules = {
     jora: {
         name: 'jora',
@@ -47,6 +50,27 @@ const es6NodeModules = {
     }
 };
 
+function nodeModelPath(name, relPath, basedir) {
+    return path.join(
+        path.dirname(resolve.sync(name + '/package.json', { basedir })),
+        relPath
+    );
+}
+
 for (let name in es6NodeModules) {
-    exports[name] = makeLib(name, es6NodeModules[name]);
+    const libConfig = es6NodeModules[name];
+    const filesContent = libConfig.files.reduce(
+        (res, relFilename) =>
+            res + fs.readFileSync(nodeModelPath(name, relFilename, __dirname), 'utf8'),
+        '');
+
+    exports[name] = {
+        filename: `/gen/${name}.js`,
+        get source() {
+            return es5toEs6(libConfig.name, filesContent, libConfig.imports);
+        },
+        get sourceCjs() {
+            return es5toEs6(libConfig.name, filesContent, libConfig.imports, true);
+        }
+    };
 }
