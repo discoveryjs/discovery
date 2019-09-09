@@ -2,10 +2,11 @@
   "name": "@discoveryjs/discovery",
   "version": "1.0.0-beta.17",
   "description": "Hackable JSON discovery tool",
-  "keywords": [],
   "author": "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)",
   "license": "MIT",
-  "main": "./src/index.js",
+  "repository": "discoveryjs/discovery",
+  "keywords": [],
+  "main": "./dist/lib.umd.js",
   "browser": {
     "/gen/jora.js": "./dist/gen/jora.js",
     "/gen/hitext": "./dist/gen/hitext.js",
@@ -14,15 +15,10 @@
     "/gen/highcharts": "./dist/gen/highcharts.js",
     "/gen/codemirror": "./dist/gen/codemirror.js"
   },
-  "repository": "discoveryjs/discovery",
-  "bin": {
-    "discovery": "./bin/serve",
-    "discovery-build": "./bin/build"
-  },
   "scripts": {
-    "lint": "eslint bin/* src tools scripts client",
+    "lint": "eslint scripts client",
     "build": "npm run build:esm && npm run build:css",
-    "build-docs": "npm run build && node bin/build -o docs",
+    "build-docs": "npm run build && discovery-build -o docs",
     "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
     "build:umd": "node scripts/build-client-libs && browserify client/lib.js -o dist/lib.umd.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ]",
     "build:css": "node scripts/build-css",
@@ -32,33 +28,27 @@
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "babelify": "^10.0.0",
-    "browserify": "^16.5.0",
-    "clap": "^1.2.3",
     "codemirror": "^5.48.4",
-    "css-tree": "^1.0.0-alpha.34",
-    "express": "^4.17.1",
     "highcharts": "^6.1.2",
     "hitext": "^1.0.0-alpha.2",
     "hitext-prismjs": "^1.0.2",
     "jora": "1.0.0-alpha.10",
-    "mime": "^2.4.4",
-    "prismjs": "^1.17.1",
-    "resolve": "^1.12.0"
+    "prismjs": "^1.17.1"
   },
   "devDependencies": {
-    "eslint": "^6.3.0"
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@discoveryjs/cli": "file:../discovery-cli",
+    "babelify": "^10.0.0",
+    "browserify": "^16.5.0",
+    "css-tree": "^1.0.0-alpha.34",
+    "eslint": "^6.3.0",
+    "mime": "^2.4.4",
+    "resolve": "^1.12.0"
   },
   "files": [
-    "bin",
     "client",
     "dist",
-    "src",
-    "tools",
-    "CHANGELOG.md",
-    "LICENSE",
-    "README.md"
+    "libs.js"
   ]
 }
