@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.18 (08-09-2019)
 
 - Removed `src/scan-fs.js` module since extracted into a separate package [@discoveryjs/scan-fs](https://github.com/discoveryjs/scan-fs)
 - Extracted CLI tools to separate package [@discoveryjs/cli](https://github.com/discoveryjs/discovery-cli)
