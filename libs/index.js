@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const resolve = require('resolve');
-const es5toEs6 = require('./scripts/utils/es5toEs6');
+const es5toEs6 = require('./es5toEs6');
 const es6NodeModules = {
     jora: {
         name: 'jora',

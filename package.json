@@ -16,7 +16,7 @@
     "/gen/codemirror": "./dist/gen/codemirror.js"
   },
   "scripts": {
-    "lint": "eslint scripts src",
+    "lint": "eslint libs scripts src",
     "build": "npm run build:esm && npm run build:css",
     "build-docs": "npm run build && discovery-build -o docs",
     "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
@@ -48,7 +48,7 @@
   },
   "files": [
     "dist",
-    "src",
-    "libs.js"
+    "libs",
+    "src"
   ]
 }

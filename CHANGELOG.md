@@ -1,3 +1,7 @@
+## next
+
+- Fixed missed a dependency and a module for libs
+
 ## 1.0.0-beta.18 (08-09-2019)
 
 - Removed `src/scan-fs.js` module since extracted into a separate package [@discoveryjs/scan-fs](https://github.com/discoveryjs/scan-fs)
