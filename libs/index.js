@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const resolve = require('resolve');
 const es5toEs6 = require('./es5toEs6');
 const es6NodeModules = {
     jora: {
@@ -50,9 +49,9 @@ const es6NodeModules = {
     }
 };
 
-function nodeModelPath(name, relPath, basedir) {
+function nodeModelPath(name, relPath) {
     return path.join(
-        path.dirname(resolve.sync(name + '/package.json', { basedir })),
+        path.dirname(require.resolve(name + '/package.json')),
         relPath
     );
 }
@@ -61,7 +60,7 @@ for (let name in es6NodeModules) {
     const libConfig = es6NodeModules[name];
     const filesContent = libConfig.files.reduce(
         (res, relFilename) =>
-            res + fs.readFileSync(nodeModelPath(name, relFilename, __dirname), 'utf8'),
+            res + fs.readFileSync(nodeModelPath(name, relFilename), 'utf8'),
         '');
 
     exports[name] = {
