@@ -1,6 +1,7 @@
-## next
+## 1.0.0-beta.20 (09-09-2019)
 
 - Moved wrapping static outside (to `@discoveryjs/cli`)
+- Removed unnecessary deps
 
 ## 1.0.0-beta.19 (08-09-2019)
 
