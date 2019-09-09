@@ -1,3 +1,7 @@
+## next
+
+- Moved wrapping static outside (to `@discoveryjs/cli`)
+
 ## 1.0.0-beta.19 (08-09-2019)
 
 - Fixed missed a dependency and a module for libs
