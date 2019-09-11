@@ -20,7 +20,7 @@ Hackable JSON discovery tool
 
 ## Examples
 
-- [CSS syntax reference](https://csstree.github.io/docs/new-syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
+- [CSS syntax reference](https://csstree.github.io/docs/syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
 - [CSSWG spec drafts index](https://csstree.github.io/csswg-drafts-index/) ([source](https://github.com/csstree/csswg-drafts-index))
 
 ## Install
