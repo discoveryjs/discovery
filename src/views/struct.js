@@ -365,11 +365,25 @@ export default function(discovery) {
             }, actions);
         }
     });
+    const signaturePopup = new discovery.view.Popup({
+        hoverPin: 'popup-hover',
+        hoverTriggers: '.view-struct .show-signature',
+        render: function(popupEl, triggerEl) {
+            const data = elementToData.get(triggerEl.parentNode);
+
+            discovery.view.render(popupEl, {
+                view: 'signature',
+                expanded: 2
+            }, data);
+        }
+    });
+
     const clickHandler = ({ target }) => {
         let cursor = target.closest(`
             .view-struct.struct-expand,
             .view-struct .struct-expand-value,
             .view-struct .struct-collapse-value,
+            .view-struct .show-signature,
             .view-struct .string-as-text-toggle,
             .view-struct .value-actions
         `);
@@ -405,6 +419,9 @@ export default function(discovery) {
             stringTextNode.nodeValue = cursor.parentNode.classList.toggle('string-value-as-text')
                 ? JSON.parse(`"${stringTextNode.nodeValue}"`)
                 : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
+        } else if (cursor.classList.contains('show-signature')) {
+            // signature
+            signaturePopup.show(cursor);
         } else if (cursor.classList.contains('value-actions')) {
             // actions
             valueActionsPopup.show(cursor);
@@ -413,20 +430,6 @@ export default function(discovery) {
 
     // single event handler for all `struct` view instances
     document.addEventListener('click', clickHandler, false);
-
-    // init signature popup
-    new discovery.view.Popup({
-        hoverPin: 'popup-hover',
-        hoverTriggers: '.view-struct .show-signature',
-        render: function(popupEl, triggerEl) {
-            const data = elementToData.get(triggerEl.parentNode);
-
-            discovery.view.render(popupEl, {
-                view: 'signature',
-                expanded: 2
-            }, data);
-        }
-    });
 
     discovery.view.define('struct', function(el, config, data) {
         const { expanded } = config; // FIXME: add limit option
