@@ -9,6 +9,16 @@ const defaultOptions = {
     render: undefined
 };
 
+function getOffsetParent(node) {
+    let offsetParent = node.offsetParent || documentElement;
+
+    while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent, 'position') == 'static') {
+        offsetParent = offsetParent.offsetParent;
+    }
+
+    return offsetParent || documentElement;
+}
+
 function getOffset(element) {
     let top = 0;
     let left = 0;
@@ -59,6 +69,52 @@ function getBoundingRect(element, relElement) {
         bottom: bottom + offset.top,
         width: right - left,
         height: bottom - top
+    };
+}
+
+function getTopLeftPoint(element, relElement) {
+    const offset = getOffset(relElement);
+    let left = 0;
+    let top = 0;
+
+    if (element && element.getBoundingClientRect) {
+        const box = element.getBoundingClientRect();
+
+        top = box.top;
+        left = box.left;
+    }
+
+    return {
+        top: top + offset.top,
+        left: left + offset.left
+    };
+}
+
+function getViewportRect(element, relElement) {
+    const topViewport = standartsMode ? document.documentElement : document.body;
+    const point = element === topViewport && !relElement ? getOffset() : getTopLeftPoint(element, relElement);
+    let top = point.top;
+    let left = point.left;
+    let width;
+    let height;
+
+    if (!element || element === window) {
+        width = window.innerWidth || 0;
+        height = window.innerHeight || 0;
+    } else {
+        top += element.clientTop;
+        left += element.clientLeft;
+        width = element.clientWidth;
+        height = element.clientHeight;
+    }
+
+    return {
+        top: top,
+        left: left,
+        right: left + width,
+        bottom: top + height,
+        width: width,
+        height: height
     };
 }
 
@@ -166,8 +222,10 @@ class Popup {
     }
 
     show(triggerEl, render = this.options.render) {
-        const box = getBoundingRect(triggerEl, document.body);
-        const viewport = document.body.getBoundingClientRect();
+        const hostEl = document.body;
+        const box = getBoundingRect(triggerEl, hostEl);
+        const offsetParent = getOffsetParent(hostEl.firstChild);
+        const viewport = getViewportRect(window, offsetParent);
         const availHeightTop = box.top - viewport.top - 3;
         const availHeightBottom = viewport.bottom - box.bottom - 3;
         const availWidthLeft = box.right - viewport.left - 3;
@@ -182,7 +240,7 @@ class Popup {
         } else {
             // show to bottom
             this.el.style.maxHeight = availHeightBottom + 'px';
-            this.el.style.top = box.bottom + 'px';
+            this.el.style.top = (box.bottom - viewport.top) + 'px';
             this.el.style.bottom = 'auto';
             this.el.dataset.vTo = 'bottom';
         }
@@ -195,7 +253,7 @@ class Popup {
             this.el.dataset.hTo = 'left';
         } else {
             // show to right
-            this.el.style.left = box.left + 'px';
+            this.el.style.left = (box.left - viewport.left) + 'px';
             this.el.style.right = 'auto';
             this.el.style.maxWidth = availWidthRight + 'px';
             this.el.dataset.hTo = 'right';
@@ -217,7 +275,7 @@ class Popup {
         this.lastTriggerEl = triggerEl;
 
         // always append since it can pop up by z-index
-        document.body.appendChild(this.el);
+        hostEl.appendChild(this.el);
 
         if (!this.visible) {
             openedPopups.push(this);
