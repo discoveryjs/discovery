@@ -13,11 +13,10 @@ const maxLinearStringLength = 50;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 const stringValueProto = createFragment(
     '"',
-    createElement('span', 'struct-collapse-value'),
-    createElement('span', 'value-actions'),
-    createElement('span', 'string-as-text-toggle'),
+    createElement('span', 'struct-action-button struct-collapse-value'),
+    createElement('span', 'struct-action-button value-actions'),
+    createElement('span', 'struct-action-button string-as-text-toggle'),
     createElement('span', 'string-length'),
-    createElement('br'),
     createElement('span', 'string-text-wrapper', [
         createElement('span', 'string-text')
     ]),
@@ -35,9 +34,9 @@ const objectKeyProtoEl = createElement('span', 'label', [
 
 function createActionButtons() {
     return [
-        createElement('span', 'struct-collapse-value'),
-        createElement('span', 'show-signature'),
-        createElement('span', 'value-actions')
+        createElement('span', 'struct-action-button struct-collapse-value'),
+        createElement('span', 'struct-action-button show-signature'),
+        createElement('span', 'struct-action-button value-actions')
     ];
 }
 

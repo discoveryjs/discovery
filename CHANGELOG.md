@@ -3,6 +3,7 @@
 - Fixed popup wrong position issues in some conditions (#16)
 - Exposed layout helpers as `utils`: `getOffsetParent`, `getPageOffset`, `getBoundingRect` and `getViewportRect`
 - Duplicated signature showing with click on button (better for mobile)
+- Tweaked action buttons style in `struct` view to work better for touch devices
 
 ## 1.0.0-beta.20 (09-09-2019)
 

@@ -32,10 +32,7 @@
     background-size: 1px calc(100% - 54px);
     background-position: 11px 28px;
 }
-.view-struct .struct-collapse-value,
-.view-struct .show-signature,
-.view-struct .string-as-text-toggle,
-.view-struct .value-actions {
+.view-struct .struct-action-button {
     margin-left: 2px;
     padding: 1px 4px;
     border: 1px solid #eee;
@@ -47,6 +44,17 @@
 }
 .view-struct .show-signature {
     cursor: default;
+}
+@media (hover:none), (hover:on-demand) { 
+    .view-struct .struct-action-button {
+        padding: 3px 20px 3px;
+        color: #333;
+        background: white;
+        border-color: #e0e0e0;
+    }
+    .view-struct .show-signature {
+        cursor: pointer;
+    }    
 }
 .discovery-view-popup .view-struct .show-signature { /* FIXME: temporary, until multiple popups support */
     display: none;
@@ -68,10 +76,7 @@
 }
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover,
-.view-struct .struct-collapse-value:hover,
-.view-struct .show-signature:hover,
-.view-struct .string-as-text-toggle:hover,
-.view-struct .value-actions:hover,
+.view-struct .struct-action-button:hover,
 .view-struct .discovery-view-popup-active {
     color: #333;
     background: #eee;
