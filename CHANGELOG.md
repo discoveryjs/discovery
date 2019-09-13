@@ -4,6 +4,7 @@
 - Exposed layout helpers as `utils`: `getOffsetParent`, `getPageOffset`, `getBoundingRect` and `getViewportRect`
 - Duplicated signature showing with click on button (better for mobile)
 - Tweaked action buttons style in `struct` view to work better for touch devices
+- Changed `struct` view to open a link in a new tab
 
 ## 1.0.0-beta.20 (09-09-2019)
 

@@ -87,7 +87,7 @@ function value2htmlString(value, linear) {
             return token(
                 'string',
                 !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
-                    ? `"<a href="${escapeHtml(value)}">${str.substr(1, str.length - 2)}</a>"`
+                    ? `"<a href="${escapeHtml(value)}" target="_blank">${str.substr(1, str.length - 2)}</a>"`
                     : str
             );
         }
