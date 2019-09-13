@@ -1,6 +1,7 @@
 ## next
 
 - Fixed popup wrong position issues in some conditions (#16)
+- Exposed layout helpers as `utils`: `getOffsetParent`, `getPageOffset`, `getBoundingRect` and `getViewportRect`
 
 ## 1.0.0-beta.20 (09-09-2019)
 

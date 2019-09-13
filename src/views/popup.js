@@ -1,6 +1,6 @@
 /* eslint-env browser */
-const { documentElement } = document;
-const standartsMode = document.compatMode === 'CSS1Compat';
+import { getOffsetParent, getBoundingRect, getViewportRect } from '../core/utils/layout.js';
+
 const openedPopups = [];
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 const defaultOptions = {
@@ -8,115 +8,6 @@ const defaultOptions = {
     hoverPin: false,
     render: undefined
 };
-
-function getOffsetParent(node) {
-    let offsetParent = node.offsetParent || documentElement;
-
-    while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent, 'position') == 'static') {
-        offsetParent = offsetParent.offsetParent;
-    }
-
-    return offsetParent || documentElement;
-}
-
-function getOffset(element) {
-    let top = 0;
-    let left = 0;
-
-    if (element && element.getBoundingClientRect) {
-        // offset relative to element
-        const relRect = element.getBoundingClientRect();
-
-        top = -relRect.top;
-        left = -relRect.left;
-    } else {
-        // offset relative to page
-        if (standartsMode) {
-            top = window.pageYOffset || documentElement.scrollTop;
-            left = window.pageXOffset || documentElement.scrollLeft;
-        } else {
-            // quirk mode
-            const { body } = document;
-
-            if (element !== body) {
-                top = body.scrollTop - body.clientTop;
-                left = body.scrollLeft - body.clientLeft;
-            }
-        }
-    }
-
-    return {
-        left,
-        top
-    };
-}
-
-function getBoundingRect(element, relElement) {
-    const offset = getOffset(relElement);
-    let top = 0;
-    let left = 0;
-    let right = 0;
-    let bottom = 0;
-
-    if (element && element.getBoundingClientRect) {
-        ({ top, left, right, bottom } = element.getBoundingClientRect());
-    }
-
-    return {
-        top: top + offset.top,
-        left: left + offset.left,
-        right: right + offset.left,
-        bottom: bottom + offset.top,
-        width: right - left,
-        height: bottom - top
-    };
-}
-
-function getTopLeftPoint(element, relElement) {
-    const offset = getOffset(relElement);
-    let left = 0;
-    let top = 0;
-
-    if (element && element.getBoundingClientRect) {
-        const box = element.getBoundingClientRect();
-
-        top = box.top;
-        left = box.left;
-    }
-
-    return {
-        top: top + offset.top,
-        left: left + offset.left
-    };
-}
-
-function getViewportRect(element, relElement) {
-    const topViewport = standartsMode ? document.documentElement : document.body;
-    const point = element === topViewport && !relElement ? getOffset() : getTopLeftPoint(element, relElement);
-    let top = point.top;
-    let left = point.left;
-    let width;
-    let height;
-
-    if (!element || element === window) {
-        width = window.innerWidth || 0;
-        height = window.innerHeight || 0;
-    } else {
-        top += element.clientTop;
-        left += element.clientLeft;
-        width = element.clientWidth;
-        height = element.clientHeight;
-    }
-
-    return {
-        top: top,
-        left: left,
-        right: left + width,
-        bottom: top + height,
-        width: width,
-        height: height
-    };
-}
 
 function findTargetRelatedPopup(popup, target) {
     if (popup.el.contains(target)) {
