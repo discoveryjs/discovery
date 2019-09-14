@@ -101,11 +101,11 @@ function value2htmlString(value, linear, options) {
             // since a value may come from any runtime
             switch (toString.call(value)) {
                 case '[object Array]': {
-                    const collapsedLimit = options.collapsedLimit === false ? value.length : options.collapsedLimit;
-                    const content = value.slice(0, collapsedLimit).map(val => value2htmlString(val, true, options));
+                    const limitCollapsed = options.limitCollapsed === false ? value.length : options.limitCollapsed;
+                    const content = value.slice(0, limitCollapsed).map(val => value2htmlString(val, true, options));
 
-                    if (value.length > collapsedLimit) {
-                        content.push(`${more(value.length - collapsedLimit)} `);
+                    if (value.length > limitCollapsed) {
+                        content.push(`${more(value.length - limitCollapsed)} `);
                     }
 
                     return `[${content.join(', ')}]`;
@@ -128,13 +128,13 @@ function value2htmlString(value, linear, options) {
                 return '{}';
             }
 
-            const collapsedLimit = options.collapsedLimit === false ? Infinity : options.collapsedLimit;
+            const limitCollapsed = options.limitCollapsed === false ? Infinity : options.limitCollapsed;
             const content = [];
             let count = 0;
 
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
-                    if (count < collapsedLimit) {
+                    if (count < limitCollapsed) {
                         content.push(`${token('property', key)}: ${value2htmlString(value[key], true, options)}`);
                     }
 
@@ -142,8 +142,8 @@ function value2htmlString(value, linear, options) {
                 }
             }
 
-            if (count > collapsedLimit) {
-                content.push(more(count - collapsedLimit));
+            if (count > limitCollapsed) {
+                content.push(more(count - limitCollapsed));
             }
 
             return content.length ? `{ ${content.join(', ')} }` : '{}';
@@ -446,13 +446,13 @@ export default function(discovery) {
     document.addEventListener('click', clickHandler, false);
 
     discovery.view.define('struct', function(el, config, data) {
-        const { expanded, limit, collapsedLimit } = config; // FIXME: add limit option
+        const { expanded, limit, limitCollapsed } = config; // FIXME: add limit option
         const expandable = isValueExpandable(data);
 
         structViewRoots.add(el);
         renderValue(el, data, {
             autoExpandLimit: expanded,
-            collapsedLimit: discovery.view.listLimit(collapsedLimit, defaultCollapsedItemsLimit),
+            limitCollapsed: discovery.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit)
         });
 
