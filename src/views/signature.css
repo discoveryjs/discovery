@@ -186,8 +186,9 @@
     font-size: 11px;
 }
 .signature-details .pie-stat .pie {
-    height: var(--size);
-    width: var(--size);
+    transform: rotate(-90deg);
+    height: var(--size, 100px);
+    width: var(--size, 100px);
     margin: 0 20px 0 10px;
     border-radius: 50%;
 }

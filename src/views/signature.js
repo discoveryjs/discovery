@@ -21,6 +21,41 @@ function fixedNum(num, prec) {
     return num.toFixed(prec).replace(/\.?0+$/, '');
 }
 
+function svgPieChart(slices) {
+    function getCoordinatesForPercent(percent) {
+        const x = Math.cos(2 * Math.PI * percent);
+        const y = Math.sin(2 * Math.PI * percent);
+        return [x, y];
+    }
+
+    let cumulativePercent = 0;
+
+    return [
+        '<svg viewBox="-1 -1 2 2" class="pie">',
+        ...slices.map(slice => {
+            // destructuring assignment sets the two variables at once
+            const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
+
+            // each slice starts where the last slice ended, so keep a cumulative percent
+            const [endX, endY] = getCoordinatesForPercent(cumulativePercent += slice.percent);
+
+            // if the slice is more than 50%, take the large arc (the long way around)
+            const largeArcFlag = slice.percent > .5 ? 1 : 0;
+
+            // create an array and join it just for code readability
+            const pathData = [
+                `M ${startX} ${startY}`, // Move
+                `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`, // Arc
+                'L 0 0' // Line
+            ].join(' ');
+
+            // create a <path> and append it to the <svg> element
+            return `<path d="${pathData}" fill="${slice.color}"/>`;
+        }),
+        '</svg>'
+    ].join('\n');
+}
+
 function collectObjectMap(value, expanded, objectStat) {
     for (let key in value) {
         if (!hasOwnProperty.call(value, key)) {
@@ -269,28 +304,27 @@ function renderTypeStat(el, { map, count }, discovery) {
     };
 
     const types = signatureTypeOrder.filter(type => type in map);
-    let acc = 0;
     Object.entries(typeCounts).sort(([,a], [,b]) => a - b).reverse().forEach(([name, val], idx) => {
-        acc += val / count;
         typeStat.push({
             name: escapeHtml(name),
             count: val,
-            percent: fixedNum(100 * val / count, 1),
-            color: colors[idx],
-            pie: colors[idx] + ' 0, ' + colors[idx] + ' ' + acc + 'turn'
+            percent: val / count,
+            percent100: fixedNum(100 * val / count, 1),
+            color: colors[idx]
         });
     });
 
     discovery.view.render(el, {
         view: 'block',
         when: 'typeStat.size() > 1',
+        data: 'typeStat',
         className: 'pie-stat',
         content: [
             {
                 view: 'block',
                 content: {
                     view: 'html',
-                    data: '"<div class=\\"pie\\" style=\\"--size: 100px; background: conic-gradient(' + typeStat.map(s => s.pie) + ')\\"></div>"'
+                    data: svgPieChart
                 }
             },
             {
@@ -299,11 +333,10 @@ function renderTypeStat(el, { map, count }, discovery) {
                     'html:"<span class=\\"list-header\\">Types usage:</span>"',
                     {
                         view: 'list',
-                        data: 'typeStat',
                         item: `html:
                             "<span class=\\"dot\\" style=\\"--size: 10px; background-color: " + color + "\\"></span> " +
                             "<span class=\\"caption\\">" + name + "</span>" +
-                            "<span class=\\"times\\"> × " + count + " (" + percent + "%)</span>"
+                            "<span class=\\"times\\"> × " + count + " (" + percent100 + "%)</span>"
                         `
                     }
                 ]
@@ -432,21 +465,20 @@ function renderTypeDetails(el, data, discovery) {
             output.duplicated &&
             data.name !== 'object' &&  // exclude object and array since we can't presentate those values in legend in short at the moment
             data.name !== 'array') {
+            const segments = [];
             const maxSegmentsCount = output.values.length === 10 ? 10 : Math.min(9, output.values.length);
             let duplicateCount = 0;
-            let segments = [];
 
-            for (let i = 0, acc = 0; i < maxSegmentsCount; i++) {
+            for (let i = 0; i < maxSegmentsCount; i++) {
                 const { count, value } = output.values[i];
 
                 duplicateCount += count;
-                acc += count / output.count;
                 segments.push({
                     name: escapeHtml(String(value)),
                     count,
-                    percent: fixedNum(100 * count / output.count, 1),
-                    color: colors[i],
-                    pie: colors[i] + ' 0, ' + colors[i] + ' ' + acc + 'turn'
+                    percent: count / output.count,
+                    percent100: fixedNum(100 * count / output.count, 1),
+                    color: colors[i]
                 });
             }
 
@@ -457,9 +489,9 @@ function renderTypeDetails(el, data, discovery) {
                     segments.push({
                         name: '...',
                         count,
-                        percent: fixedNum(100 * count / output.count, 1),
-                        color: colors[segments.length],
-                        pie: colors[segments.length] + ' 0, ' + colors[segments.length] + ' 1turn'
+                        percent: count / output.count,
+                        percent100: fixedNum(100 * count / output.count, 1),
+                        color: colors[segments.length]
                     });
                 }
 
@@ -472,7 +504,7 @@ function renderTypeDetails(el, data, discovery) {
                             view: 'block',
                             content: {
                                 view: 'html',
-                                data: '"<div class=\\"pie\\" style=\\"--size: 100px; background: conic-gradient(' + segments.map(s => s.pie) + ')\\"></div>"'
+                                data: svgPieChart
                             }
                         },
                         {
@@ -484,7 +516,7 @@ function renderTypeDetails(el, data, discovery) {
                                     item: `html:
                                         "<span class=\\"dot\\" style=\\"--size: 10px; background-color: " + color + "\\"></span> " +
                                         "<span class=\\"caption\\" title=\\"" + name + "\\">" + name + "</span>" +
-                                        "<span class=\\"times\\"> × " + count + " (" + percent + "%)</span>"
+                                        "<span class=\\"times\\"> × " + count + " (" + percent100 + "%)</span>"
                                     `
                                 }
                             ]
