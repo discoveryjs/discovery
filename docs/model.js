@@ -14534,7 +14534,7 @@ function (_Widget) {
 
 exports["default"] = App;
 
-},{"../core/router.js":12,"../core/utils/dom.js":16,"../views/index-complex.js":43,"../widget/index.js":69}],8:[function(require,module,exports){
+},{"../core/router.js":12,"../core/utils/dom.js":16,"../views/index-complex.js":44,"../widget/index.js":70}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15254,11 +15254,13 @@ var base64 = _interopRequireWildcard(require("./base64.js"));
 
 var _copyText = _interopRequireDefault(require("./copy-text.js"));
 
+var _defined = _interopRequireDefault(require("./defined.js"));
+
 var dom = _interopRequireWildcard(require("./dom.js"));
 
 var html = _interopRequireWildcard(require("./html.js"));
 
-var _defined = _interopRequireDefault(require("./defined.js"));
+var layout = _interopRequireWildcard(require("./layout.js"));
 
 var _safeFilterRx = _interopRequireDefault(require("./safe-filter-rx.js"));
 
@@ -15274,15 +15276,129 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var _default = _objectSpread({
   base64: base64,
-  copyText: _copyText["default"]
-}, dom, {}, html, {
-  defined: _defined["default"],
+  copyText: _copyText["default"],
+  defined: _defined["default"]
+}, dom, {}, html, {}, layout, {
   safeFilterRx: _safeFilterRx["default"]
 });
 
 exports["default"] = _default;
 
-},{"./base64.js":13,"./copy-text.js":14,"./defined.js":15,"./dom.js":16,"./html.js":17,"./safe-filter-rx.js":19}],19:[function(require,module,exports){
+},{"./base64.js":13,"./copy-text.js":14,"./defined.js":15,"./dom.js":16,"./html.js":17,"./layout.js":19,"./safe-filter-rx.js":20}],19:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getOffsetParent = getOffsetParent;
+exports.getPageOffset = getPageOffset;
+exports.getBoundingRect = getBoundingRect;
+exports.getViewportRect = getViewportRect;
+
+/* eslint-env browser */
+var _document = document,
+    documentElement = _document.documentElement;
+var standartsMode = document.compatMode === 'CSS1Compat';
+
+function getOffsetParent(node) {
+  var offsetParent = node.offsetParent || documentElement;
+
+  while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent, 'position') == 'static') {
+    offsetParent = offsetParent.offsetParent;
+  }
+
+  return offsetParent || documentElement;
+}
+
+function getPageOffset(element) {
+  var top = 0;
+  var left = 0;
+
+  if (element && element.getBoundingClientRect) {
+    // offset relative to element
+    var rect = element.getBoundingClientRect();
+    top = -rect.top;
+    left = -rect.left;
+  } else {
+    // offset relative to page
+    if (standartsMode) {
+      top = window.pageYOffset || documentElement.scrollTop;
+      left = window.pageXOffset || documentElement.scrollLeft;
+    } else {
+      // quirk mode
+      var _document2 = document,
+          body = _document2.body;
+
+      if (element !== body) {
+        top = body.scrollTop - body.clientTop;
+        left = body.scrollLeft - body.clientLeft;
+      }
+    }
+  }
+
+  return {
+    left: left,
+    top: top
+  };
+}
+
+function getBoundingRect(element, relElement) {
+  var offset = getPageOffset(relElement);
+  var top = 0;
+  var left = 0;
+  var right = 0;
+  var bottom = 0;
+
+  if (element && element.getBoundingClientRect) {
+    var _element$getBoundingC = element.getBoundingClientRect();
+
+    top = _element$getBoundingC.top;
+    left = _element$getBoundingC.left;
+    right = _element$getBoundingC.right;
+    bottom = _element$getBoundingC.bottom;
+  }
+
+  return {
+    top: top + offset.top,
+    left: left + offset.left,
+    right: right + offset.left,
+    bottom: bottom + offset.top,
+    width: right - left,
+    height: bottom - top
+  };
+}
+
+function getViewportRect(element, relElement) {
+  var topViewport = standartsMode ? document.documentElement : document.body;
+
+  var _ref = element === topViewport && !relElement ? getPageOffset() : getBoundingRect(element, relElement),
+      top = _ref.top,
+      left = _ref.left;
+
+  var width;
+  var height;
+
+  if (!element || element === window) {
+    width = window.innerWidth || 0;
+    height = window.innerHeight || 0;
+  } else {
+    top += element.clientTop;
+    left += element.clientLeft;
+    width = element.clientWidth;
+    height = element.clientHeight;
+  }
+
+  return {
+    top: top,
+    left: left,
+    right: left + width,
+    bottom: top + height,
+    width: width,
+    height: height
+  };
+}
+
+},{}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15301,7 +15417,7 @@ function safeFilterRx(pattern) {
   return new RegExp('((?:' + pattern.replace(/[\(\)\?\+\*\{\}\\]/g, '\\$&') + ')+)', flags);
 }
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15695,7 +15811,7 @@ function (_Dict) {
 
 exports["default"] = ViewRenderer;
 
-},{"./dict.js":8}],21:[function(require,module,exports){
+},{"./dict.js":8}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15751,7 +15867,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./app/index.js":7,"./core/router.js":12,"./core/utils/index.js":18,"./pages/index.js":23,"./views/index-complex.js":43,"./views/index.js":44,"./widget/index.js":69}],22:[function(require,module,exports){
+},{"./app/index.js":7,"./core/router.js":12,"./core/utils/index.js":18,"./pages/index.js":24,"./views/index-complex.js":44,"./views/index.js":45,"./widget/index.js":70}],23:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15778,7 +15894,7 @@ function _default(discovery) {
   });
 }
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15811,7 +15927,7 @@ var _report = _interopRequireDefault(require("./report.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./default.js":22,"./not-found.js":24,"./report.js":25}],24:[function(require,module,exports){
+},{"./default.js":23,"./not-found.js":25,"./report.js":26}],25:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15823,7 +15939,7 @@ function _default(discovery) {
   discovery.page.define('not-found', ['alert-warning:"Page \`" + name + "\` not found"']);
 }
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16306,7 +16422,7 @@ function _default(discovery) {
   });
 }
 
-},{"../core/utils/base64.js":13,"../core/utils/copy-text.js":14,"../core/utils/dom.js":16,"../core/utils/html.js":17}],26:[function(require,module,exports){
+},{"../core/utils/base64.js":13,"../core/utils/copy-text.js":14,"../core/utils/dom.js":16,"../core/utils/html.js":17}],27:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16327,7 +16443,7 @@ function _default(discovery) {
   discovery.view.define('alert-warning', render);
 }
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16373,7 +16489,7 @@ function _default(discovery) {
   });
 }
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16432,7 +16548,7 @@ function _default(discovery) {
   });
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16448,7 +16564,7 @@ function _default(discovery) {
   });
 }
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16497,7 +16613,7 @@ function _default(discovery) {
   });
 }
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16560,7 +16676,7 @@ function _default(discovery) {
   });
 }
 
-},{"/gen/highcharts.js":2}],32:[function(require,module,exports){
+},{"/gen/highcharts.js":2}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16626,7 +16742,7 @@ function _default(discovery) {
   });
 }
 
-},{"../core/utils/defined.js":15}],33:[function(require,module,exports){
+},{"../core/utils/defined.js":15}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16665,7 +16781,7 @@ function _default(discovery) {
   });
 }
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16699,7 +16815,7 @@ function _default(discovery) {
   });
 }
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16775,7 +16891,7 @@ function _default(discovery) {
   });
 }
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 var _codemirror = _interopRequireDefault(require("/gen/codemirror.js"));
@@ -17201,7 +17317,7 @@ _codemirror["default"].commands.autocomplete = _codemirror["default"].showHint;
 
 _codemirror["default"].defineOption('hintOptions', null);
 
-},{"/gen/codemirror.js":1}],37:[function(require,module,exports){
+},{"/gen/codemirror.js":1}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17395,7 +17511,7 @@ function _default(discovery) {
   });
 }
 
-},{"../core/emitter.js":9,"../core/utils/dom.js":16,"../core/utils/html.js":17,"./editors-hint.js":36,"/gen/codemirror.js":1}],38:[function(require,module,exports){
+},{"../core/emitter.js":9,"../core/utils/dom.js":16,"../core/utils/html.js":17,"./editors-hint.js":37,"/gen/codemirror.js":1}],39:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17449,7 +17565,7 @@ function _default(discovery) {
   });
 }
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17484,7 +17600,7 @@ function _default(discovery) {
   });
 }
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17500,7 +17616,7 @@ function _default(discovery) {
   });
 }
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17522,7 +17638,7 @@ function _default(discovery) {
   });
 }
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17556,7 +17672,7 @@ function _default(discovery) {
   });
 }
 
-},{"../core/utils/base64.js":13}],43:[function(require,module,exports){
+},{"../core/utils/base64.js":13}],44:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17581,7 +17697,7 @@ var _source = _interopRequireDefault(require("./source.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./chart.js":31,"./source.js":56}],44:[function(require,module,exports){
+},{"./chart.js":32,"./source.js":57}],45:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17894,7 +18010,7 @@ var _tree = _interopRequireDefault(require("./tree.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./alerts.js":26,"./auto-link.js":27,"./badges.js":28,"./block.js":29,"./button.js":30,"./checkbox.js":32,"./columns.js":33,"./content-filter.js":34,"./context.js":35,"./editors.js":37,"./expand.js":38,"./headers.js":39,"./hstack.js":40,"./html.js":41,"./image-preview.js":42,"./indicator.js":45,"./input.js":46,"./link.js":47,"./list-item.js":48,"./lists.js":49,"./menu-item.js":50,"./menu.js":51,"./popup.js":52,"./section.js":53,"./select.js":54,"./signature.js":55,"./struct.js":57,"./switch.js":58,"./tab.js":59,"./table-cell.js":60,"./table-row.js":61,"./table.js":62,"./tabs.js":63,"./text-match.js":64,"./text.js":65,"./toc-section.js":66,"./tree-leaf.js":67,"./tree.js":68}],45:[function(require,module,exports){
+},{"./alerts.js":27,"./auto-link.js":28,"./badges.js":29,"./block.js":30,"./button.js":31,"./checkbox.js":33,"./columns.js":34,"./content-filter.js":35,"./context.js":36,"./editors.js":38,"./expand.js":39,"./headers.js":40,"./hstack.js":41,"./html.js":42,"./image-preview.js":43,"./indicator.js":46,"./input.js":47,"./link.js":48,"./list-item.js":49,"./lists.js":50,"./menu-item.js":51,"./menu.js":52,"./popup.js":53,"./section.js":54,"./select.js":55,"./signature.js":56,"./struct.js":58,"./switch.js":59,"./tab.js":60,"./table-cell.js":61,"./table-row.js":62,"./table.js":63,"./tabs.js":64,"./text-match.js":65,"./text.js":66,"./toc-section.js":67,"./tree-leaf.js":68,"./tree.js":69}],46:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17926,7 +18042,7 @@ function _default(discovery) {
   });
 }
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17995,7 +18111,7 @@ function _default(discovery) {
   });
 }
 
-},{"../core/utils/defined.js":15,"../core/utils/safe-filter-rx.js":19}],47:[function(require,module,exports){
+},{"../core/utils/defined.js":15,"../core/utils/safe-filter-rx.js":20}],48:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18039,7 +18155,7 @@ function _default(discovery) {
   });
 }
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18057,7 +18173,7 @@ function _default(discovery) {
   });
 }
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18101,7 +18217,7 @@ function _default(discovery) {
   });
 }
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18140,7 +18256,7 @@ function _default(discovery) {
   });
 }
 
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18171,13 +18287,15 @@ function _default(discovery) {
   });
 }
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports["default"] = _default;
+
+var _layout = require("../core/utils/layout.js");
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -18191,10 +18309,6 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-/* eslint-env browser */
-var _document = document,
-    documentElement = _document.documentElement;
-var standartsMode = document.compatMode === 'CSS1Compat';
 var openedPopups = [];
 var hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 var defaultOptions = {
@@ -18202,64 +18316,6 @@ var defaultOptions = {
   hoverPin: false,
   render: undefined
 };
-
-function getOffset(element) {
-  var top = 0;
-  var left = 0;
-
-  if (element && element.getBoundingClientRect) {
-    // offset relative to element
-    var relRect = element.getBoundingClientRect();
-    top = -relRect.top;
-    left = -relRect.left;
-  } else {
-    // offset relative to page
-    if (standartsMode) {
-      top = window.pageYOffset || documentElement.scrollTop;
-      left = window.pageXOffset || documentElement.scrollLeft;
-    } else {
-      // quirk mode
-      var _document2 = document,
-          body = _document2.body;
-
-      if (element !== body) {
-        top = body.scrollTop - body.clientTop;
-        left = body.scrollLeft - body.clientLeft;
-      }
-    }
-  }
-
-  return {
-    left: left,
-    top: top
-  };
-}
-
-function getBoundingRect(element, relElement) {
-  var offset = getOffset(relElement);
-  var top = 0;
-  var left = 0;
-  var right = 0;
-  var bottom = 0;
-
-  if (element && element.getBoundingClientRect) {
-    var _element$getBoundingC = element.getBoundingClientRect();
-
-    top = _element$getBoundingC.top;
-    left = _element$getBoundingC.left;
-    right = _element$getBoundingC.right;
-    bottom = _element$getBoundingC.bottom;
-  }
-
-  return {
-    top: top + offset.top,
-    left: left + offset.left,
-    right: right + offset.left,
-    bottom: bottom + offset.top,
-    width: right - left,
-    height: bottom - top
-  };
-}
 
 function findTargetRelatedPopup(popup, target) {
   if (popup.el.contains(target)) {
@@ -18364,8 +18420,10 @@ function () {
     key: "show",
     value: function show(triggerEl) {
       var render = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.options.render;
-      var box = getBoundingRect(triggerEl, document.body);
-      var viewport = document.body.getBoundingClientRect();
+      var hostEl = document.body;
+      var box = (0, _layout.getBoundingRect)(triggerEl, hostEl);
+      var offsetParent = (0, _layout.getOffsetParent)(hostEl.firstChild);
+      var viewport = (0, _layout.getViewportRect)(window, offsetParent);
       var availHeightTop = box.top - viewport.top - 3;
       var availHeightBottom = viewport.bottom - box.bottom - 3;
       var availWidthLeft = box.right - viewport.left - 3;
@@ -18380,7 +18438,7 @@ function () {
       } else {
         // show to bottom
         this.el.style.maxHeight = availHeightBottom + 'px';
-        this.el.style.top = box.bottom + 'px';
+        this.el.style.top = box.bottom - viewport.top + 'px';
         this.el.style.bottom = 'auto';
         this.el.dataset.vTo = 'bottom';
       }
@@ -18393,7 +18451,7 @@ function () {
         this.el.dataset.hTo = 'left';
       } else {
         // show to right
-        this.el.style.left = box.left + 'px';
+        this.el.style.left = box.left - viewport.left + 'px';
         this.el.style.right = 'auto';
         this.el.style.maxWidth = availWidthRight + 'px';
         this.el.dataset.hTo = 'right';
@@ -18416,7 +18474,7 @@ function () {
       triggerEl.classList.add('discovery-view-popup-active');
       this.lastTriggerEl = triggerEl; // always append since it can pop up by z-index
 
-      document.body.appendChild(this.el);
+      hostEl.appendChild(this.el);
 
       if (!this.visible) {
         openedPopups.push(this);
@@ -18498,7 +18556,7 @@ function _default(discovery) {
 
 ;
 
-},{}],53:[function(require,module,exports){
+},{"../core/utils/layout.js":19}],54:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18518,7 +18576,7 @@ function _default(discovery) {
   });
 }
 
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18632,7 +18690,7 @@ function _default(discovery) {
   });
 }
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18650,6 +18708,8 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
@@ -18658,13 +18718,49 @@ function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = 
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 var colors = ['#7ede78', '#f5f061', '#f7b28a', '#af8af7', '#61a3f5', '#ef9898', '#80ccb4', '#b1ae8a', '#e290d3', '#91d9ea', '#bbb'];
 var signatureTypeOrder = ['null', 'undefined', 'string', 'number', 'bigint', 'boolean', 'symbol', 'function', 'array', 'object'];
 
 function fixedNum(num, prec) {
   return num.toFixed(prec).replace(/\.?0+$/, '');
+}
+
+function getCoordinatesForPercent(percent) {
+  var x = Math.cos(2 * Math.PI * percent);
+  var y = Math.sin(2 * Math.PI * percent);
+  return [x, y];
+} // based on https://medium.com/hackernoon/a-simple-pie-chart-in-svg-dbdd653b6936
+
+
+function svgPieChart(slices) {
+  var cumulativePercent = 0;
+  return ['<svg viewBox="-1 -1 2 2" class="pie">'].concat(_toConsumableArray(slices.map(function (slice) {
+    var _getCoordinatesForPer = getCoordinatesForPercent(cumulativePercent),
+        _getCoordinatesForPer2 = _slicedToArray(_getCoordinatesForPer, 2),
+        startX = _getCoordinatesForPer2[0],
+        startY = _getCoordinatesForPer2[1];
+
+    var _getCoordinatesForPer3 = getCoordinatesForPercent(cumulativePercent += slice.percent),
+        _getCoordinatesForPer4 = _slicedToArray(_getCoordinatesForPer3, 2),
+        endX = _getCoordinatesForPer4[0],
+        endY = _getCoordinatesForPer4[1]; // if the slice is more than 50%, take the large arc (the long way around)
+
+
+    var largeArcFlag = slice.percent > .5 ? 1 : 0;
+    var pathData = ["M ".concat(startX, " ").concat(startY), // Move
+    "A 1 1 0 ".concat(largeArcFlag, " 1 ").concat(endX, " ").concat(endY), // Arc
+    'L 0 0' // Line
+    ];
+    return "<path d=\"".concat(pathData, "\" fill=\"").concat(slice.color, "\"/>");
+  })), ['</svg>']).join('\n');
 }
 
 function collectObjectMap(value, expanded, objectStat) {
@@ -18884,7 +18980,8 @@ function renderPropertyDetails(el, data, discovery) {
     view: 'inline-list',
     when: 'path',
     className: 'path',
-    data: 'path'
+    data: 'path',
+    item: 'text:"." + $'
   }, {
     view: 'h1',
     className: 'property',
@@ -18893,7 +18990,7 @@ function renderPropertyDetails(el, data, discovery) {
       when: 'count != total',
       data: "\"<span class=\\\"usage-stat optional\\\">\" + (\n                        \"(in <span class=\\\"num\\\">\" + count + \"</span> of <span class=\\\"num\\\">\" + total + \"</span> objects, <span class=\\\"num\\\">\" + percent + \"</span>)\"\n                    ) + \"</span>\""
     }]
-  }], output, {});
+  }], output);
   renderTypeStat(el, {
     map: map,
     count: count
@@ -18905,14 +19002,9 @@ function renderTypeStat(el, _ref, discovery) {
       count = _ref.count;
   var typeCounts = getStatCounts(map);
   var typeStat = [];
-  var output = {
-    count: count,
-    typeStat: typeStat
-  };
   var types = signatureTypeOrder.filter(function (type) {
     return type in map;
   });
-  var acc = 0;
   Object.entries(typeCounts).sort(function (_ref2, _ref3) {
     var _ref4 = _slicedToArray(_ref2, 2),
         a = _ref4[1];
@@ -18926,36 +19018,33 @@ function renderTypeStat(el, _ref, discovery) {
         name = _ref7[0],
         val = _ref7[1];
 
-    acc += val / count;
     typeStat.push({
       name: (0, _html.escapeHtml)(name),
       count: val,
-      percent: fixedNum(100 * val / count, 1),
-      color: colors[idx],
-      pie: colors[idx] + ' 0, ' + colors[idx] + ' ' + acc + 'turn'
+      percent: val / count,
+      percent100: fixedNum(100 * val / count, 1),
+      color: colors[idx]
     });
   });
   discovery.view.render(el, {
     view: 'block',
     when: 'typeStat.size() > 1',
+    data: 'typeStat',
     className: 'pie-stat',
     content: [{
       view: 'block',
       content: {
         view: 'html',
-        data: '"<div class=\\"pie\\" style=\\"--size: 100px; background: conic-gradient(' + typeStat.map(function (s) {
-          return s.pie;
-        }) + ')\\"></div>"'
+        data: svgPieChart
       }
     }, {
       view: 'block',
       content: ['html:"<span class=\\"list-header\\">Types usage:</span>"', {
         view: 'list',
-        data: 'typeStat',
-        item: "html:\n                            \"<span class=\\\"dot\\\" style=\\\"--size: 10px; background-color: \" + color + \"\\\"></span> \" +\n                            \"<span class=\\\"caption\\\">\" + name + \"</span>\" +\n                            \"<span class=\\\"times\\\"> \xD7 \" + count + \" (\" + percent + \"%)</span>\"\n                        "
+        item: "html:\n                            \"<span class=\\\"dot\\\" style=\\\"--size: 10px; background-color: \" + color + \"\\\"></span> \" +\n                            \"<span class=\\\"caption\\\">\" + name + \"</span>\" +\n                            \"<span class=\\\"times\\\"> \xD7 \" + count + \" (\" + percent100 + \"%)</span>\"\n                        "
       }]
     }]
-  }, output, {});
+  }, typeStat);
   types.forEach(function (name) {
     renderTypeDetails(el, {
       name: name,
@@ -18968,7 +19057,7 @@ function renderTypeDetails(el, data, discovery) {
   var stat = data.stat[data.name];
   var total = getStatCount(data.stat);
   var renderSections = [];
-  var output = data;
+  var output;
 
   switch (data.name) {
     case 'number':
@@ -19067,22 +19156,21 @@ function renderTypeDetails(el, data, discovery) {
 
     if (output.values && output.values.length > 1 && output.duplicated && data.name !== 'object' && // exclude object and array since we can't presentate those values in legend in short at the moment
     data.name !== 'array') {
+      var segments = [];
       var maxSegmentsCount = output.values.length === 10 ? 10 : Math.min(9, output.values.length);
       var duplicateCount = 0;
-      var segments = [];
 
-      for (var i = 0, acc = 0; i < maxSegmentsCount; i++) {
+      for (var i = 0; i < maxSegmentsCount; i++) {
         var _output$values$i = output.values[i],
             _count2 = _output$values$i.count,
             value = _output$values$i.value;
         duplicateCount += _count2;
-        acc += _count2 / output.count;
         segments.push({
           name: (0, _html.escapeHtml)(String(value)),
           count: _count2,
-          percent: fixedNum(100 * _count2 / output.count, 1),
-          color: colors[i],
-          pie: colors[i] + ' 0, ' + colors[i] + ' ' + acc + 'turn'
+          percent: _count2 / output.count,
+          percent100: fixedNum(100 * _count2 / output.count, 1),
+          color: colors[i]
         });
       }
 
@@ -19093,9 +19181,9 @@ function renderTypeDetails(el, data, discovery) {
           segments.push({
             name: '...',
             count: _count3,
-            percent: fixedNum(100 * _count3 / output.count, 1),
-            color: colors[segments.length],
-            pie: colors[segments.length] + ' 0, ' + colors[segments.length] + ' 1turn'
+            percent: _count3 / output.count,
+            percent100: fixedNum(100 * _count3 / output.count, 1),
+            color: colors[segments.length]
           });
         }
 
@@ -19107,15 +19195,13 @@ function renderTypeDetails(el, data, discovery) {
             view: 'block',
             content: {
               view: 'html',
-              data: '"<div class=\\"pie\\" style=\\"--size: 100px; background: conic-gradient(' + segments.map(function (s) {
-                return s.pie;
-              }) + ')\\"></div>"'
+              data: svgPieChart
             }
           }, {
             view: 'block',
             content: ['html:"<span class=\\"list-header\\">Dominators:</span>"', {
               view: 'list',
-              item: "html:\n                                        \"<span class=\\\"dot\\\" style=\\\"--size: 10px; background-color: \" + color + \"\\\"></span> \" +\n                                        \"<span class=\\\"caption\\\" title=\\\"\" + name + \"\\\">\" + name + \"</span>\" +\n                                        \"<span class=\\\"times\\\"> \xD7 \" + count + \" (\" + percent + \"%)</span>\"\n                                    "
+              item: "html:\n                                        \"<span class=\\\"dot\\\" style=\\\"--size: 10px; background-color: \" + color + \"\\\"></span> \" +\n                                        \"<span class=\\\"caption\\\" title=\\\"\" + name + \"\\\">\" + name + \"</span>\" +\n                                        \"<span class=\\\"times\\\"> \xD7 \" + count + \" (\" + percent100 + \"%)</span>\"\n                                    "
             }]
           }]
         });
@@ -19172,17 +19258,18 @@ function renderTypeDetails(el, data, discovery) {
     view: 'inline-list',
     when: 'path',
     className: 'path',
-    data: 'path'
+    data: 'path',
+    item: 'text:"." + $'
   }, {
     view: 'h1',
     className: 'type',
     content: ['text:name', "html:\"<span class=\\\"usage-stat\\\">\" + (\n                    count = total\n                        ? \"only this type is used\"\n                        : \"used in <span class=\\\"num\\\">\" + count + \"</span> of <span class=\\\"num\\\">\" + total + \"</span> cases (<span class=\\\"num\\\">\" + percent + \"</span>)\"\n                ) + \"</span>\""]
-  }].concat(renderSections), _objectSpread({
+  }].concat(renderSections), _objectSpread({}, output, {
     name: data.name,
     path: data.path,
     total: total,
     percent: fixedNum(100 * output.count / total, 1) + '%'
-  }, output), {});
+  }), {});
 }
 
 function _default(discovery) {
@@ -19244,13 +19331,17 @@ function _default(discovery) {
     }
   });
   discovery.view.define('signature', function (el, config, data) {
-    var expanded = config.expanded;
+    var expanded = config.expanded,
+        path = config.path;
     var stat = collectStat(data, expanded);
-    renderStat(el, stat, elementToData);
+    var normPath = Array.isArray(path) ? path.map(function (value) {
+      return typeof value === 'number' ? "pick(".concat(value, ")") : value;
+    }) : undefined;
+    renderStat(el, stat, elementToData, normPath);
   });
 }
 
-},{"../core/utils/dom.js":16,"../core/utils/html.js":17}],56:[function(require,module,exports){
+},{"../core/utils/dom.js":16,"../core/utils/html.js":17}],57:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19361,7 +19452,7 @@ function _default(discovery) {
   });
 }
 
-},{"/gen/hitext-prismjs.js":3,"/gen/hitext.js":4}],57:[function(require,module,exports){
+},{"/gen/hitext-prismjs.js":3,"/gen/hitext.js":4}],58:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19385,6 +19476,12 @@ function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = 
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -19397,12 +19494,12 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
-var expandedItemsLimit = 50;
-var collapedItemsLimit = 4;
+var defaultExpandedItemsLimit = 50;
+var defaultCollapsedItemsLimit = 4;
 var maxStringLength = 150;
 var maxLinearStringLength = 50;
 var urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
-var stringValueProto = (0, _dom.createFragment)('"', (0, _dom.createElement)('span', 'struct-collapse-value'), (0, _dom.createElement)('span', 'value-actions'), (0, _dom.createElement)('span', 'string-as-text-toggle'), (0, _dom.createElement)('span', 'string-length'), (0, _dom.createElement)('br'), (0, _dom.createElement)('span', 'string-text-wrapper', [(0, _dom.createElement)('span', 'string-text')]), '"');
+var stringValueProto = (0, _dom.createFragment)('"', (0, _dom.createElement)('span', 'struct-action-button struct-collapse-value'), (0, _dom.createElement)('span', 'struct-action-button value-actions'), (0, _dom.createElement)('span', 'struct-action-button string-as-text-toggle'), (0, _dom.createElement)('span', 'string-length'), (0, _dom.createElement)('span', 'string-text-wrapper', [(0, _dom.createElement)('span', 'string-text')]), '"');
 
 var arrayValueProto = _dom.createFragment.apply(void 0, ['['].concat(_toConsumableArray(createActionButtons()), [']']));
 
@@ -19413,7 +19510,7 @@ var valueProtoEl = (0, _dom.createElement)('span', 'value');
 var objectKeyProtoEl = (0, _dom.createElement)('span', 'label', ['\xA0 \xA0 ', (0, _dom.createElement)('span', 'property'), ':\xA0']);
 
 function createActionButtons() {
-  return [(0, _dom.createElement)('span', 'struct-collapse-value'), (0, _dom.createElement)('span', 'show-signature'), (0, _dom.createElement)('span', 'value-actions')];
+  return [(0, _dom.createElement)('span', 'struct-action-button struct-collapse-value'), (0, _dom.createElement)('span', 'struct-action-button show-signature'), (0, _dom.createElement)('span', 'struct-action-button value-actions')];
 }
 
 function token(type, str) {
@@ -19424,7 +19521,7 @@ function more(num) {
   return token('more', "\u2026".concat(num, " more\u2026"));
 }
 
-function value2htmlString(value, linear) {
+function value2htmlString(value, linear, options) {
   switch (_typeof(value)) {
     case 'boolean':
     case 'undefined':
@@ -19460,7 +19557,7 @@ function value2htmlString(value, linear) {
 
         var _str = (0, _html.escapeHtml)(JSON.stringify(value));
 
-        return token('string', !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value) ? "\"<a href=\"".concat((0, _html.escapeHtml)(value), "\">").concat(_str.substr(1, _str.length - 2), "</a>\"") : _str);
+        return token('string', !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value) ? "\"<a href=\"".concat((0, _html.escapeHtml)(value), "\" target=\"_blank\">").concat(_str.substr(1, _str.length - 2), "</a>\"") : _str);
       }
 
     case 'object':
@@ -19474,12 +19571,14 @@ function value2htmlString(value, linear) {
         switch (toString.call(value)) {
           case '[object Array]':
             {
-              var _content = value.slice(0, collapedItemsLimit).map(function (val) {
-                return value2htmlString(val, true);
+              var _limitCollapsed = options.limitCollapsed === false ? value.length : options.limitCollapsed;
+
+              var _content = value.slice(0, _limitCollapsed).map(function (val) {
+                return value2htmlString(val, true, options);
               });
 
-              if (value.length > collapedItemsLimit) {
-                _content.push("".concat(more(value.length - collapedItemsLimit), " "));
+              if (value.length > _limitCollapsed) {
+                _content.push("".concat(more(value.length - _limitCollapsed), " "));
               }
 
               return "[".concat(_content.join(', '), "]");
@@ -19502,21 +19601,22 @@ function value2htmlString(value, linear) {
           return '{}';
         }
 
+        var limitCollapsed = options.limitCollapsed === false ? Infinity : options.limitCollapsed;
         var content = [];
         var count = 0;
 
         for (var _key in value) {
           if (hasOwnProperty.call(value, _key)) {
-            if (count < collapedItemsLimit) {
-              content.push("".concat(token('property', _key), ": ").concat(value2htmlString(value[_key], true)));
+            if (count < limitCollapsed) {
+              content.push("".concat(token('property', _key), ": ").concat(value2htmlString(value[_key], true, options)));
             }
 
             count++;
           }
         }
 
-        if (count > collapedItemsLimit) {
-          content.push(more(count - collapedItemsLimit));
+        if (count > limitCollapsed) {
+          content.push(more(count - limitCollapsed));
         }
 
         return content.length ? "{ ".concat(content.join(', '), " }") : '{}';
@@ -19556,24 +19656,19 @@ function appendText(el, text) {
 
 function _default(discovery) {
   function collapseValue(el) {
-    var data = elementToData.get(el);
+    var options = elementOptions.get(el);
+    var data = elementData.get(el);
     el.classList.add('struct-expand-value');
-    el.innerHTML = value2htmlString(data);
+    el.innerHTML = value2htmlString(data, false, options);
   }
 
-  function expandValue(el, expandLimit) {
-    var data = elementToData.get(el);
-    el.classList.remove('struct-expand-value'); // at this point we assume that a data is an array or an object,
-    // since only such type of data expandable
+  function expandValue(el, autoExpandLimit) {
+    var options = elementOptions.get(el);
+    var data = elementData.get(el);
+    el.classList.remove('struct-expand-value'); // at this point we assume that a data is a string, an array or an object,
+    // since only such types of data expandable
 
-    if (Array.isArray(data)) {
-      // array
-      el.innerHTML = '';
-      el.appendChild(arrayValueProto.cloneNode(true));
-      renderEntries(el, el.lastChild, Object.entries(data), function (entryEl, key, value) {
-        renderValue(entryEl, value, expandLimit);
-      });
-    } else if (typeof data === 'string') {
+    if (typeof data === 'string') {
       // string
       el.innerHTML = '';
       el.appendChild(stringValueProto.cloneNode(true));
@@ -19581,14 +19676,27 @@ function _default(discovery) {
       var text = JSON.stringify(data);
       appendText(stringValueEl.firstChild, text.slice(1, -1));
       appendText(stringValueEl.previousSibling, "length: ".concat(text.length, " chars"));
+    } else if (Array.isArray(data)) {
+      // array
+      el.innerHTML = '';
+      el.appendChild(arrayValueProto.cloneNode(true));
+      renderEntries(el, el.lastChild, Object.entries(data), function (entryEl, key, data) {
+        renderValue(entryEl, data, _objectSpread({}, options, {
+          autoExpandLimit: autoExpandLimit,
+          path: options.path.concat(Number(key))
+        }));
+      }, 0, options.limit);
     } else {
       // object
       el.innerHTML = '';
       el.appendChild(objectValueProto.cloneNode(true));
-      renderEntries(el, el.lastChild, Object.entries(data), function (entryEl, key, value) {
+      renderEntries(el, el.lastChild, Object.entries(data), function (entryEl, key, data) {
         renderObjectKey(entryEl, key);
-        renderValue(entryEl, value, expandLimit);
-      });
+        renderValue(entryEl, data, _objectSpread({}, options, {
+          autoExpandLimit: autoExpandLimit,
+          path: options.path.concat(key)
+        }));
+      }, 0, options.limit);
     }
   }
 
@@ -19598,8 +19706,8 @@ function _default(discovery) {
     container.appendChild(objectKeyEl);
   }
 
-  function renderValueLinks(container, value) {
-    var links = discovery.resolveValueLinks(value);
+  function renderValueLinks(container, data) {
+    var links = discovery.resolveValueLinks(data);
 
     if (Array.isArray(links)) {
       links.forEach(function (_ref) {
@@ -19613,33 +19721,40 @@ function _default(discovery) {
     }
   }
 
-  function renderValue(container, value, expandLimit) {
-    var expandable = isValueExpandable(value);
+  function renderValue(container, data, options) {
+    var expandable = isValueExpandable(data);
     var valueEl = valueProtoEl.cloneNode(true);
 
-    if (expandable && typeof value !== 'string' && expandLimit) {
+    if (expandable && typeof data !== 'string' && options.autoExpandLimit) {
       // expanded
-      elementToData.set(valueEl, value);
+      elementOptions.set(valueEl, options);
+      elementData.set(valueEl, data);
       container.classList.add('struct-expanded-value');
-      expandValue(valueEl, expandLimit - 1);
+      expandValue(valueEl, options.autoExpandLimit - 1);
     } else {
       // collapsed
       if (expandable) {
-        elementToData.set(valueEl, value);
+        elementOptions.set(valueEl, options);
+        elementData.set(valueEl, data);
         valueEl.classList.add('struct-expand-value');
       }
 
-      valueEl.innerHTML = value2htmlString(value);
+      valueEl.innerHTML = value2htmlString(data, false, options);
     }
 
-    renderValueLinks(container, value);
+    renderValueLinks(container, data);
     container.appendChild(valueEl);
   }
 
   function renderEntries(container, beforeEl, entries, renderEntryContent) {
     var offset = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
-    var limit = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : expandedItemsLimit;
+    var limit = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : defaultExpandedItemsLimit;
     var lastIndex = entries.length - offset - 1;
+
+    if (limit === false) {
+      limit = entries.length;
+    }
+
     entries.slice(offset, offset + limit).forEach(function (_ref2, index) {
       var _ref3 = _slicedToArray(_ref2, 2),
           key = _ref3[0],
@@ -19667,29 +19782,30 @@ function _default(discovery) {
     return ', ' + String(size.length).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
   }
 
-  var elementToData = new WeakMap();
+  var elementData = new WeakMap();
+  var elementOptions = new WeakMap();
   var structViewRoots = new WeakSet();
   var valueActionsPopup = new discovery.view.Popup({
     className: 'view-struct-actions-popup',
     render: function render(popupEl, triggerEl) {
-      var value = elementToData.get(triggerEl.parentNode);
+      var data = elementData.get(triggerEl.parentNode);
       var actions = [];
 
-      if (typeof value === 'string') {
+      if (typeof data === 'string') {
         actions = [{
           text: 'Copy as quoted string',
           action: function action() {
-            return (0, _copyText["default"])(JSON.stringify(value));
+            return (0, _copyText["default"])(JSON.stringify(data));
           }
         }, {
           text: 'Copy as unquoted string',
           action: function action() {
-            return (0, _copyText["default"])(JSON.stringify(value).slice(1, -1));
+            return (0, _copyText["default"])(JSON.stringify(data).slice(1, -1));
           }
         }, {
           text: 'Copy a value (unescaped)',
           action: function action() {
-            return (0, _copyText["default"])(value);
+            return (0, _copyText["default"])(data);
           }
         }];
       } else {
@@ -19697,7 +19813,7 @@ function _default(discovery) {
         var stringifiedJson;
 
         try {
-          stringifiedJson = JSON.stringify(value);
+          stringifiedJson = JSON.stringify(data);
         } catch (e) {
           error = 'Can\'t be copied: ' + e.message;
         }
@@ -19707,7 +19823,7 @@ function _default(discovery) {
           error: error,
           disabled: Boolean(error),
           action: function action() {
-            return (0, _copyText["default"])(JSON.stringify(value, null, 4));
+            return (0, _copyText["default"])(JSON.stringify(data, null, 4));
           }
         }, {
           text: "Copy as JSON (compact".concat(formatSize(stringifiedJson), ")"),
@@ -19734,10 +19850,23 @@ function _default(discovery) {
       }, actions);
     }
   });
+  var signaturePopup = new discovery.view.Popup({
+    hoverPin: 'popup-hover',
+    hoverTriggers: '.view-struct .show-signature',
+    render: function render(popupEl, triggerEl) {
+      var options = elementOptions.get(triggerEl.parentNode);
+      var data = elementData.get(triggerEl.parentNode);
+      discovery.view.render(popupEl, {
+        view: 'signature',
+        expanded: 2,
+        path: options.path
+      }, data);
+    }
+  });
 
   var clickHandler = function clickHandler(_ref4) {
     var target = _ref4.target;
-    var cursor = target.closest("\n            .view-struct.struct-expand,\n            .view-struct .struct-expand-value,\n            .view-struct .struct-collapse-value,\n            .view-struct .string-as-text-toggle,\n            .view-struct .value-actions\n        ");
+    var cursor = target.closest("\n            .view-struct.struct-expand,\n            .view-struct .struct-expand-value,\n            .view-struct .struct-collapse-value,\n            .view-struct .show-signature,\n            .view-struct .string-as-text-toggle,\n            .view-struct .value-actions\n        ");
 
     if (!cursor) {
       return;
@@ -19767,6 +19896,9 @@ function _default(discovery) {
     } else if (cursor.classList.contains('string-as-text-toggle')) {
       var stringTextNode = cursor.parentNode.querySelector('.string-text').firstChild;
       stringTextNode.nodeValue = cursor.parentNode.classList.toggle('string-value-as-text') ? JSON.parse("\"".concat(stringTextNode.nodeValue, "\"")) : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
+    } else if (cursor.classList.contains('show-signature')) {
+      // signature
+      signaturePopup.show(cursor);
     } else if (cursor.classList.contains('value-actions')) {
       // actions
       valueActionsPopup.show(cursor);
@@ -19774,25 +19906,20 @@ function _default(discovery) {
   }; // single event handler for all `struct` view instances
 
 
-  document.addEventListener('click', clickHandler, false); // init signature popup
-
-  new discovery.view.Popup({
-    hoverPin: 'popup-hover',
-    hoverTriggers: '.view-struct .show-signature',
-    render: function render(popupEl, triggerEl) {
-      var data = elementToData.get(triggerEl.parentNode);
-      discovery.view.render(popupEl, {
-        view: 'signature',
-        expanded: 2
-      }, data);
-    }
-  });
+  document.addEventListener('click', clickHandler, false);
   discovery.view.define('struct', function (el, config, data) {
-    var expanded = config.expanded; // FIXME: add limit option
+    var expanded = config.expanded,
+        limit = config.limit,
+        limitCollapsed = config.limitCollapsed; // FIXME: add limit option
 
     var expandable = isValueExpandable(data);
     structViewRoots.add(el);
-    renderValue(el, data, expanded);
+    renderValue(el, data, {
+      autoExpandLimit: expanded,
+      limitCollapsed: discovery.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
+      limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit),
+      path: []
+    });
 
     if (expandable && !expanded) {
       el.classList.add('struct-expand');
@@ -19804,7 +19931,7 @@ function _default(discovery) {
   };
 }
 
-},{"../core/utils/copy-text.js":14,"../core/utils/dom.js":16,"../core/utils/html.js":17}],58:[function(require,module,exports){
+},{"../core/utils/copy-text.js":14,"../core/utils/dom.js":16,"../core/utils/html.js":17}],59:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19839,7 +19966,7 @@ function _default(discovery) {
   });
 }
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19874,7 +20001,7 @@ function _default(discovery) {
   });
 }
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19983,7 +20110,7 @@ function _default(discovery) {
   });
 }
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20014,7 +20141,7 @@ function _default(discovery) {
   });
 }
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20125,7 +20252,7 @@ function _default(discovery) {
   });
 }
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20250,7 +20377,7 @@ function _default(discovery) {
   });
 }
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20284,7 +20411,7 @@ function _default(discovery) {
   });
 }
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20301,7 +20428,7 @@ function _default(discovery) {
   });
 }
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20328,7 +20455,7 @@ function _default(discovery) {
   });
 }
 
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20444,7 +20571,7 @@ function _default(discovery) {
   });
 }
 
-},{"../core/utils/dom.js":16}],68:[function(require,module,exports){
+},{"../core/utils/dom.js":16}],69:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20578,7 +20705,7 @@ function _default(discovery) {
   });
 }
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21213,7 +21340,7 @@ function (_Emitter) {
 
 exports["default"] = Widget;
 
-},{"../core/emitter.js":9,"../core/page.js":10,"../core/preset.js":11,"../core/utils/dom.js":16,"../core/view.js":20,"../pages/index.js":23,"../views/index.js":44,"/gen/jora.js":5}]},{},[21])(21)
+},{"../core/emitter.js":9,"../core/page.js":10,"../core/preset.js":11,"../core/utils/dom.js":16,"../core/view.js":21,"../pages/index.js":24,"../views/index.js":45,"/gen/jora.js":5}]},{},[22])(22)
 });
 
 },{}],2:[function(require,module,exports){
