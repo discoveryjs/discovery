@@ -1,6 +1,6 @@
 {
   "name": "@discoveryjs/discovery",
-  "version": "1.0.0-beta.20",
+  "version": "1.0.0-beta.21",
   "description": "Hackable JSON discovery tool",
   "author": "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)",
   "license": "MIT",
@@ -38,7 +38,7 @@
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
-    "@discoveryjs/cli": "^1.0.0",
+    "@discoveryjs/cli": "^1.1.0",
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "eslint": "^6.3.0"
