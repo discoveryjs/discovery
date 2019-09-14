@@ -6,8 +6,8 @@ import copyText from '../core/utils/copy-text.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
-const expandedItemsLimit = 50;
-const collapedItemsLimit = 4;
+const defaultExpandedItemsLimit = 50;
+const defaultCollapsedItemsLimit = 4;
 const maxStringLength = 150;
 const maxLinearStringLength = 50;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
@@ -48,7 +48,7 @@ function more(num) {
     return token('more', `…${num} more…`);
 }
 
-function value2htmlString(value, linear) {
+function value2htmlString(value, linear, options) {
     switch (typeof value) {
         case 'boolean':
         case 'undefined':
@@ -101,10 +101,11 @@ function value2htmlString(value, linear) {
             // since a value may come from any runtime
             switch (toString.call(value)) {
                 case '[object Array]': {
-                    const content = value.slice(0, collapedItemsLimit).map(val => value2htmlString(val, true));
+                    const collapsedLimit = options.collapsedLimit === false ? value.length : options.collapsedLimit;
+                    const content = value.slice(0, collapsedLimit).map(val => value2htmlString(val, true, options));
 
-                    if (value.length > collapedItemsLimit) {
-                        content.push(`${more(value.length - collapedItemsLimit)} `);
+                    if (value.length > collapsedLimit) {
+                        content.push(`${more(value.length - collapsedLimit)} `);
                     }
 
                     return `[${content.join(', ')}]`;
@@ -127,21 +128,22 @@ function value2htmlString(value, linear) {
                 return '{}';
             }
 
+            const collapsedLimit = options.collapsedLimit === false ? Infinity : options.collapsedLimit;
             const content = [];
             let count = 0;
 
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
-                    if (count < collapedItemsLimit) {
-                        content.push(`${token('property', key)}: ${value2htmlString(value[key], true)}`);
+                    if (count < collapsedLimit) {
+                        content.push(`${token('property', key)}: ${value2htmlString(value[key], true, options)}`);
                     }
 
                     count++;
                 }
             }
 
-            if (count > collapedItemsLimit) {
-                content.push(more(count - collapedItemsLimit));
+            if (count > collapsedLimit) {
+                content.push(more(count - collapsedLimit));
             }
 
             return content.length ? `{ ${content.join(', ')} }` : '{}';
@@ -181,28 +183,26 @@ function appendText(el, text) {
 
 export default function(discovery) {
     function collapseValue(el) {
-        const data = elementToData.get(el);
+        const options = elementOptions.get(el);
+        const data = elementData.get(el);
 
         el.classList.add('struct-expand-value');
-        el.innerHTML = value2htmlString(data);
+        el.innerHTML = value2htmlString(data, false, options);
     }
 
-    function expandValue(el, expandLimit) {
-        const data = elementToData.get(el);
+    function expandValue(el, autoExpandLimit) {
+        const options = elementOptions.get(el);
+        const data = elementData.get(el);
+        const newOptions = options.autoExpandLimit === autoExpandLimit ? options : {
+            ...options,
+            autoExpandLimit
+        };
 
         el.classList.remove('struct-expand-value');
 
-        // at this point we assume that a data is an array or an object,
-        // since only such type of data expandable
-        if (Array.isArray(data)) {
-            // array
-            el.innerHTML = '';
-            el.appendChild(arrayValueProto.cloneNode(true));
-
-            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
-                renderValue(entryEl, value, expandLimit);
-            });
-        } else if (typeof data === 'string') {
+        // at this point we assume that a data is a string, an array or an object,
+        // since only such types of data expandable
+        if (typeof data === 'string') {
             // string
             el.innerHTML = '';
             el.appendChild(stringValueProto.cloneNode(true));
@@ -211,15 +211,23 @@ export default function(discovery) {
             const text = JSON.stringify(data);
             appendText(stringValueEl.firstChild, text.slice(1, -1));
             appendText(stringValueEl.previousSibling, `length: ${text.length} chars`);
+        } else if (Array.isArray(data)) {
+            // array
+            el.innerHTML = '';
+            el.appendChild(arrayValueProto.cloneNode(true));
+
+            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, data) => {
+                renderValue(entryEl, data, newOptions);
+            }, 0, options.limit);
         } else {
             // object
             el.innerHTML = '';
             el.appendChild(objectValueProto.cloneNode(true));
 
-            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, value) => {
+            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, data) => {
                 renderObjectKey(entryEl, key);
-                renderValue(entryEl, value, expandLimit);
-            });
+                renderValue(entryEl, data, newOptions);
+            }, 0, options.limit);
         }
     }
 
@@ -230,8 +238,8 @@ export default function(discovery) {
         container.appendChild(objectKeyEl);
     }
 
-    function renderValueLinks(container, value) {
-        let links = discovery.resolveValueLinks(value);
+    function renderValueLinks(container, data) {
+        let links = discovery.resolveValueLinks(data);
 
         if (Array.isArray(links)) {
             links.forEach(({ type, href }) =>
@@ -240,31 +248,37 @@ export default function(discovery) {
         }
     }
 
-    function renderValue(container, value, expandLimit) {
-        const expandable = isValueExpandable(value);
+    function renderValue(container, data, options) {
+        const expandable = isValueExpandable(data);
         const valueEl = valueProtoEl.cloneNode(true);
 
-        if (expandable && typeof value !== 'string' && expandLimit) {
+        if (expandable && typeof data !== 'string' && options.autoExpandLimit) {
             // expanded
-            elementToData.set(valueEl, value);
+            elementOptions.set(valueEl, options);
+            elementData.set(valueEl, data);
             container.classList.add('struct-expanded-value');
-            expandValue(valueEl, expandLimit - 1);
+            expandValue(valueEl, options.autoExpandLimit - 1);
         } else {
             // collapsed
             if (expandable) {
-                elementToData.set(valueEl, value);
+                elementOptions.set(valueEl, options);
+                elementData.set(valueEl, data);
                 valueEl.classList.add('struct-expand-value');
             }
 
-            valueEl.innerHTML = value2htmlString(value);
+            valueEl.innerHTML = value2htmlString(data, false, options);
         }
 
-        renderValueLinks(container, value);
+        renderValueLinks(container, data);
         container.appendChild(valueEl);
     }
 
-    function renderEntries(container, beforeEl, entries, renderEntryContent, offset = 0, limit = expandedItemsLimit) {
+    function renderEntries(container, beforeEl, entries, renderEntryContent, offset = 0, limit = defaultExpandedItemsLimit) {
         const lastIndex = entries.length - offset - 1;
+
+        if (limit === false) {
+            limit = entries.length;
+        }
 
         entries
             .slice(offset, offset + limit)
@@ -297,27 +311,28 @@ export default function(discovery) {
         return ', ' + String(size.length).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
     }
 
-    const elementToData = new WeakMap();
+    const elementData = new WeakMap();
+    const elementOptions = new WeakMap();
     const structViewRoots = new WeakSet();
     const valueActionsPopup = new discovery.view.Popup({
         className: 'view-struct-actions-popup',
         render: (popupEl, triggerEl) => {
-            const value = elementToData.get(triggerEl.parentNode);
+            const data = elementData.get(triggerEl.parentNode);
             let actions = [];
 
-            if (typeof value === 'string') {
+            if (typeof data === 'string') {
                 actions = [
                     {
                         text: 'Copy as quoted string',
-                        action: () => copyText(JSON.stringify(value))
+                        action: () => copyText(JSON.stringify(data))
                     },
                     {
                         text: 'Copy as unquoted string',
-                        action: () => copyText(JSON.stringify(value).slice(1, -1))
+                        action: () => copyText(JSON.stringify(data).slice(1, -1))
                     },
                     {
                         text: 'Copy a value (unescaped)',
-                        action: () => copyText(value)
+                        action: () => copyText(data)
                     }
                 ];
             } else {
@@ -325,7 +340,7 @@ export default function(discovery) {
                 let stringifiedJson;
 
                 try {
-                    stringifiedJson = JSON.stringify(value);
+                    stringifiedJson = JSON.stringify(data);
                 } catch (e) {
                     error = 'Can\'t be copied: ' + e.message;
                 }
@@ -335,7 +350,7 @@ export default function(discovery) {
                         text: 'Copy as JSON (formatted)',
                         error,
                         disabled: Boolean(error),
-                        action: () => copyText(JSON.stringify(value, null, 4))
+                        action: () => copyText(JSON.stringify(data, null, 4))
                     },
                     {
                         text: `Copy as JSON (compact${formatSize(stringifiedJson)})`,
@@ -368,7 +383,7 @@ export default function(discovery) {
         hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
         render: function(popupEl, triggerEl) {
-            const data = elementToData.get(triggerEl.parentNode);
+            const data = elementData.get(triggerEl.parentNode);
 
             discovery.view.render(popupEl, {
                 view: 'signature',
@@ -431,11 +446,15 @@ export default function(discovery) {
     document.addEventListener('click', clickHandler, false);
 
     discovery.view.define('struct', function(el, config, data) {
-        const { expanded } = config; // FIXME: add limit option
+        const { expanded, limit, collapsedLimit } = config; // FIXME: add limit option
         const expandable = isValueExpandable(data);
 
         structViewRoots.add(el);
-        renderValue(el, data, expanded);
+        renderValue(el, data, {
+            autoExpandLimit: expanded,
+            collapsedLimit: discovery.view.listLimit(collapsedLimit, defaultCollapsedItemsLimit),
+            limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit)
+        });
 
         if (expandable && !expanded) {
             el.classList.add('struct-expand');
