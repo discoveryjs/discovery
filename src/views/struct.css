@@ -33,6 +33,7 @@
     background-position: 11px 28px;
 }
 .view-struct .struct-action-button {
+    vertical-align: middle;
     margin-left: 2px;
     padding: 1px 4px;
     border: 1px solid #eee;

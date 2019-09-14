@@ -94,20 +94,8 @@
     top: -4px;
     margin-bottom: -2px;
     font-size: 12px;
-    color: #888;
+    color: #bd6476;
     opacity: .8;
-}
-.signature-details .path::before {
-    content: "@.";
-    color: #bd6476;
-}
-.signature-details .path > .view-list-item {
-    color: #bd6476;
-}
-.signature-details .path > .view-list-item:not(:first-child)::before {
-    content: ".";
-    color: #888;
-    padding: 0 1px 0 2px;
 }
 
 .signature-details .view-h1 {

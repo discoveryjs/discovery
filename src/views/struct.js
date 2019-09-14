@@ -193,10 +193,6 @@ export default function(discovery) {
     function expandValue(el, autoExpandLimit) {
         const options = elementOptions.get(el);
         const data = elementData.get(el);
-        const newOptions = options.autoExpandLimit === autoExpandLimit ? options : {
-            ...options,
-            autoExpandLimit
-        };
 
         el.classList.remove('struct-expand-value');
 
@@ -217,7 +213,11 @@ export default function(discovery) {
             el.appendChild(arrayValueProto.cloneNode(true));
 
             renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, data) => {
-                renderValue(entryEl, data, newOptions);
+                renderValue(entryEl, data, {
+                    ...options,
+                    autoExpandLimit,
+                    path: options.path.concat(Number(key))
+                });
             }, 0, options.limit);
         } else {
             // object
@@ -226,7 +226,11 @@ export default function(discovery) {
 
             renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, data) => {
                 renderObjectKey(entryEl, key);
-                renderValue(entryEl, data, newOptions);
+                renderValue(entryEl, data, {
+                    ...options,
+                    autoExpandLimit,
+                    path: options.path.concat(key)
+                });
             }, 0, options.limit);
         }
     }
@@ -383,11 +387,13 @@ export default function(discovery) {
         hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
         render: function(popupEl, triggerEl) {
+            const options = elementOptions.get(triggerEl.parentNode);
             const data = elementData.get(triggerEl.parentNode);
 
             discovery.view.render(popupEl, {
                 view: 'signature',
-                expanded: 2
+                expanded: 2,
+                path: options.path
             }, data);
         }
     });
@@ -453,7 +459,8 @@ export default function(discovery) {
         renderValue(el, data, {
             autoExpandLimit: expanded,
             limitCollapsed: discovery.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
-            limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit)
+            limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit),
+            path: []
         });
 
         if (expandable && !expanded) {

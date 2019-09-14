@@ -7,6 +7,7 @@
 - Changed `struct` view to open a link in a new tab
 - Added `limit` and `limitCollapsed` options support for `struct` view
 - Fixed pie chart in `signature` view popups to work in all browsers (#17)
+- Fixed `struct` view signature popup to show a path from a struct's data root
 
 ## 1.0.0-beta.20 (09-09-2019)
 

@@ -21,35 +21,30 @@ function fixedNum(num, prec) {
     return num.toFixed(prec).replace(/\.?0+$/, '');
 }
 
-function svgPieChart(slices) {
-    function getCoordinatesForPercent(percent) {
-        const x = Math.cos(2 * Math.PI * percent);
-        const y = Math.sin(2 * Math.PI * percent);
-        return [x, y];
-    }
+function getCoordinatesForPercent(percent) {
+    const x = Math.cos(2 * Math.PI * percent);
+    const y = Math.sin(2 * Math.PI * percent);
+    return [x, y];
+}
 
+// based on https://medium.com/hackernoon/a-simple-pie-chart-in-svg-dbdd653b6936
+function svgPieChart(slices) {
     let cumulativePercent = 0;
 
     return [
         '<svg viewBox="-1 -1 2 2" class="pie">',
         ...slices.map(slice => {
-            // destructuring assignment sets the two variables at once
             const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-
-            // each slice starts where the last slice ended, so keep a cumulative percent
             const [endX, endY] = getCoordinatesForPercent(cumulativePercent += slice.percent);
 
             // if the slice is more than 50%, take the large arc (the long way around)
             const largeArcFlag = slice.percent > .5 ? 1 : 0;
-
-            // create an array and join it just for code readability
             const pathData = [
                 `M ${startX} ${startY}`, // Move
                 `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`, // Arc
                 'L 0 0' // Line
-            ].join(' ');
+            ];
 
-            // create a <path> and append it to the <svg> element
             return `<path d="${pathData}" fill="${slice.color}"/>`;
         }),
         '</svg>'
@@ -271,7 +266,8 @@ function renderPropertyDetails(el, data, discovery) {
             view: 'inline-list',
             when: 'path',
             className: 'path',
-            data: 'path'
+            data: 'path',
+            item: 'text:"." + $'
         },
         {
             view: 'h1',
@@ -287,7 +283,7 @@ function renderPropertyDetails(el, data, discovery) {
                 }
             ]
         }
-    ], output, {});
+    ], output);
 
     renderTypeStat(el, {
         map,
@@ -298,12 +294,8 @@ function renderPropertyDetails(el, data, discovery) {
 function renderTypeStat(el, { map, count }, discovery) {
     const typeCounts = getStatCounts(map);
     const typeStat = [];
-    const output = {
-        count,
-        typeStat
-    };
-
     const types = signatureTypeOrder.filter(type => type in map);
+
     Object.entries(typeCounts).sort(([,a], [,b]) => a - b).reverse().forEach(([name, val], idx) => {
         typeStat.push({
             name: escapeHtml(name),
@@ -342,7 +334,7 @@ function renderTypeStat(el, { map, count }, discovery) {
                 ]
             }
         ]
-    }, output, {});
+    }, typeStat);
 
     types.forEach((name) => {
         renderTypeDetails(el, { name, stat: map }, discovery);
@@ -353,7 +345,7 @@ function renderTypeDetails(el, data, discovery) {
     const stat = data.stat[data.name];
     const total = getStatCount(data.stat);
     const renderSections = [];
-    let output = data;
+    let output;
 
     switch (data.name) {
         case 'number': {
@@ -581,7 +573,8 @@ function renderTypeDetails(el, data, discovery) {
             view: 'inline-list',
             when: 'path',
             className: 'path',
-            data: 'path'
+            data: 'path',
+            item: 'text:"." + $'
         },
         {
             view: 'h1',
@@ -597,11 +590,11 @@ function renderTypeDetails(el, data, discovery) {
         },
         ...renderSections
     ], {
+        ...output,
         name: data.name,
         path: data.path,
         total,
-        percent: fixedNum(100 * output.count / total, 1) + '%',
-        ...output
+        percent: fixedNum(100 * output.count / total, 1) + '%'
     }, {});
 }
 
@@ -664,9 +657,12 @@ export default function(discovery) {
     });
 
     discovery.view.define('signature', function(el, config, data) {
-        const { expanded } = config;
+        const { expanded, path } = config;
         const stat = collectStat(data, expanded);
+        const normPath = Array.isArray(path)
+            ? path.map(value => typeof value === 'number' ? `pick(${value})` : value)
+            : undefined;
 
-        renderStat(el, stat, elementToData);
+        renderStat(el, stat, elementToData, normPath);
     });
 }
