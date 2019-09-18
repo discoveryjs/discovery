@@ -11,17 +11,22 @@ Hackable JSON discovery tool
 
 > Documentation in progress...
 
+## Articles
+
+- [Discovery.js tutorials: quick start](https://dev.to/rdvornov/discovery-js-tutorials-quick-start-m3k)
+- [JsonDiscovery: Changing a way we’re viewing JSON in a browser](https://blog.usejournal.com/changing-a-way-were-viewing-json-in-a-browser-51eda9103fa2)
+
+## Examples
+
+- [CSS syntax reference](https://csstree.github.io/docs/syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
+- [CSSWG spec drafts index](https://csstree.github.io/csswg-drafts-index/) ([source](https://github.com/csstree/csswg-drafts-index))
+
 ## Related projects
 
 - [Discovery CLI](https://github.com/discoveryjs/discovery-cli) – CLI tools to serve & build projects based on Discovery.js
 - [JsonDiscovery](https://github.com/discoveryjs/browser-extension-json-discovery) – Chrome extension built on Discovery which allows you to discover a JSON documents and make reports on the fly
 - [Jora](https://github.com/discoveryjs/jora) – data query language
 - [Jora CLI](https://github.com/discoveryjs/jora-cli) – a tool to process JSON data using Jora in command line interface
-
-## Examples
-
-- [CSS syntax reference](https://csstree.github.io/docs/syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
-- [CSSWG spec drafts index](https://csstree.github.io/csswg-drafts-index/) ([source](https://github.com/csstree/csswg-drafts-index))
 
 ## Install
 
