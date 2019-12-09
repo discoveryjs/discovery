@@ -24,7 +24,7 @@ Hackable JSON discovery tool
 ## Related projects
 
 - [Discovery CLI](https://github.com/discoveryjs/discovery-cli) – CLI tools to serve & build projects based on Discovery.js
-- [JsonDiscovery](https://github.com/discoveryjs/browser-extension-json-discovery) – Chrome extension built on Discovery which allows you to discover a JSON documents and make reports on the fly
+- [JsonDiscovery](https://github.com/discoveryjs/browser-extension-json-discovery) – Chrome/Firefox browser extension built on Discovery which allows to discover a JSON document and make reports
 - [Jora](https://github.com/discoveryjs/jora) – data query language
 - [Jora CLI](https://github.com/discoveryjs/jora-cli) – a tool to process JSON data using Jora in command line interface
 
