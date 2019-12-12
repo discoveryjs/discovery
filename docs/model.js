@@ -11120,7 +11120,7 @@ d.hoverPoint.series)===c)c.onMouseOut();e&&d.legend.colorizeItem(c,a);c.isDirty=
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Highcharts;
 },{}],3:[function(require,module,exports){
-var ref = require('/gen/prismjs.js');
+var Prism = require('/gen/prismjs.js');
 var global = {Prism};
 var module = undefined;
 var hitextPrismjs;
@@ -13432,7 +13432,7 @@ var _ = {
 	Token: Token
 };
 
-_self.Prism = _;
+
 
 function Token(type, content, alias, matchedStr, greedy) {
 	this.type = type;
@@ -13502,7 +13502,7 @@ if (!_self.document) {
 }
 
 //Get current script and highlight
-var script = document.currentScript || [].slice.call(document.getElementsByTagName("script")).pop();
+var script = false;
 
 if (script) {
 	_.filename = script.src;
@@ -18759,7 +18759,7 @@ function svgPieChart(slices) {
     "A 1 1 0 ".concat(largeArcFlag, " 1 ").concat(endX, " ").concat(endY), // Arc
     'L 0 0' // Line
     ];
-    return "<path d=\"".concat(pathData, "\" fill=\"").concat(slice.color, "\"/>");
+    return "<path d=\"".concat(pathData.join(' '), "\" fill=\"").concat(slice.color, "\"/>");
   })), ['</svg>']).join('\n');
 }
 
