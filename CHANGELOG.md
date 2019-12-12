@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.23 (12-12-2019)
 
 - Fixed build due to lib imports processing bug
 
