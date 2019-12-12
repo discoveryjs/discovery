@@ -1,4 +1,4 @@
-## 1.0.0-beta.22 (12-12-2019)
+## next
 
 - Fixed SVG path data in pie charts in signature view (#25)
 
