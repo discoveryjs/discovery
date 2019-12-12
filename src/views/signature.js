@@ -45,7 +45,7 @@ function svgPieChart(slices) {
                 'L 0 0' // Line
             ];
 
-            return `<path d="${pathData}" fill="${slice.color}"/>`;
+            return `<path d="${pathData.join(' ')}" fill="${slice.color}"/>`;
         }),
         '</svg>'
     ].join('\n');

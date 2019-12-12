@@ -1,3 +1,7 @@
+## 1.0.0-beta.22 (12-12-2019)
+
+- Fixed SVG path data in pie charts in signature view (#25)
+
 ## 1.0.0-beta.21 (15-09-2019)
 
 - Fixed popup wrong position issues in some conditions (#16)
