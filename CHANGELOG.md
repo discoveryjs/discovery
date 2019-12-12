@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.22 (13-12-2019)
 
 - Fixed SVG path data in pie charts in signature view (#25)
 - Disabled `Prism` auto mode, which may break environment when Discovery is embeded (#24)
