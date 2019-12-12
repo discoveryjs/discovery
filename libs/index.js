@@ -30,7 +30,14 @@ const es6NodeModules = {
             'components/prism-twig.js',
             'components/prism-yaml.js',
             'components/prism-stylus.js'
-        ]
+        ],
+        patch(content) {
+            return content
+                // prevent global polution
+                .replace(/_self.Prism = _;/, '')
+                // prevent auto-highlighting
+                .replace(/document.currentScript.+;/, 'false;');
+        }
     },
     hitext: {
         name: 'hitext',
@@ -58,10 +65,14 @@ function nodeModelPath(name, relPath) {
 
 for (let name in es6NodeModules) {
     const libConfig = es6NodeModules[name];
-    const filesContent = libConfig.files.reduce(
+    let filesContent = libConfig.files.reduce(
         (res, relFilename) =>
             res + fs.readFileSync(nodeModelPath(name, relFilename), 'utf8'),
         '');
+
+    if (typeof libConfig.patch === 'function') {
+        filesContent = libConfig.patch(filesContent);
+    }
 
     exports[name] = {
         filename: `${name}.js`,
