@@ -1,6 +1,7 @@
 ## next
 
 - Fixed event handlers conflict across Discovery instances
+- Fixed `popup` view styles when Discovery's container is not a document body
 
 ## 1.0.0-beta.23 (12-12-2019)
 
