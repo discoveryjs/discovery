@@ -7,6 +7,7 @@
 - Changed `PageRenderer#render()` method to return `{ pageEl, renderState }` object instead of just `newPageEl`
 - Added optional parameter for `Widget` constructor to specify default page layout, i.e. `new Widget(container, defaultPage, options)`
 - Added `extensions` and `compact` options to `Widget`/`App` constructor, i.e. `new Widget(el, null, { extensions, compact })`
+- Renamed `dist` files: `lib.*` -> `discovery.*`
 
 ## 1.0.0-beta.23 (12-12-2019)
 
