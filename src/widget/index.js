@@ -78,6 +78,17 @@ function apply(fn, host) {
     }
 }
 
+function genUniqueId(len = 16) {
+    const base36 = val => Math.round(val).toString(36);
+    let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
+
+    while (uid.length < len) {
+        uid += base36(new Date * Math.random());
+    }
+
+    return uid.substr(0, len);
+}
+
 function equal(a, b) {
     if (a === b) {
         return true;
@@ -131,6 +142,7 @@ export default class Widget extends Emitter {
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
         this.scheduledRenderPage = null;
 
+        this.instanceId = genUniqueId();
         this.badges = [];
         this.dom = {};
         this.queryExtensions = {
@@ -323,6 +335,7 @@ export default class Widget extends Emitter {
             this.dom.container = containerEl;
 
             containerEl.classList.add('discovery');
+            containerEl.dataset.discoveryInstanceId = this.instanceId;
 
             containerEl.appendChild(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar')
@@ -343,6 +356,22 @@ export default class Widget extends Emitter {
                 this.dom[key] = null;
             }
         }
+    }
+
+    addGlobalEventListener(eventName, handler, options) {
+        const instanceId = this.instanceId;
+        const handlerWrapper = function(event) {
+            const root = event.target !== document
+                ? event.target.closest('[data-discovery-instance-id]')
+                : null;
+
+            if (root && root.dataset.discoveryInstanceId === instanceId) {
+                handler.call(this, event);
+            }
+        };
+
+        document.addEventListener(eventName, handlerWrapper, options);
+        return () => document.removeEventListener(eventName, handlerWrapper, options);
     }
 
     addBadge(caption, action, visible) {
