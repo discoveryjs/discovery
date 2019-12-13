@@ -3,6 +3,10 @@
 - Fixed event handlers conflict across Discovery instances
 - Fixed `popup` view styles when Discovery's container is not a document body
 - Added wrapping for a string value that outputs as a plain text in `struct` view
+- Changed `App#render()` and `Widget#render()` methods to return a render state promise
+- Changed `PageRenderer#render()` method to return `{ pageEl, renderState }` object instead of just `newPageEl`
+- Added optional parameter for `Widget` constructor to specify default page layout, i.e. `new Widget(container, defaultPage, options)`
+- Added `extensions` and `compact` options to `Widget`/`App` constructor, i.e. `new Widget(el, null, { extensions, compact })`
 
 ## 1.0.0-beta.23 (12-12-2019)
 

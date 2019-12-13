@@ -7,7 +7,7 @@ import { createElement } from '../core/utils/dom.js';
 
 export default class App extends Widget {
     constructor(container, options = {}) {
-        super(container, options);
+        super(container, null, options);
 
         this.mode = options.mode;
 
@@ -149,8 +149,7 @@ export default class App extends Widget {
     }
 
     renderPage() {
-        super.renderPage();
-
         document.title = this.getRenderContext().name || document.title;
+        return super.renderPage();
     }
 }

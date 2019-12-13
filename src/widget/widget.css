@@ -13,6 +13,10 @@
     z-index: 10;
 }
 
+.discovery-content .page {
+    padding-top: 15px;
+}
+
 .discovery-sidebar {
     overflow: auto;
     width: 350px;
@@ -90,4 +94,9 @@
 .discovery[data-dzen] .discovery-sidebar,
 .discovery[data-dzen] .discovery-content-badges {
     display: none;
+}
+
+.discovery[data-compact] .discovery-content,
+.discovery[data-compact] .page {
+    padding: 0;
 }

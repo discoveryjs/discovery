@@ -21,6 +21,14 @@ function defaultDecodeParams(value) {
     return value;
 }
 
+function setDatasetValue(el, key, value) {
+    if (value) {
+        el.dataset[key] = true;
+    } else {
+        delete el.dataset[key];
+    }
+}
+
 function getPageMethod(instance, pageId, name, fallback) {
     const page = instance.page.get(pageId);
 
@@ -123,7 +131,7 @@ function fuzzyStringCmp(a, b) {
 }
 
 export default class Widget extends Emitter {
-    constructor(container, options) {
+    constructor(container, defaultPage, options) {
         super();
 
         this.options = options || {};
@@ -153,6 +161,15 @@ export default class Widget extends Emitter {
 
         this.apply(views);
         this.apply(pages);
+
+        if (defaultPage) {
+            this.page.define('default', defaultPage);
+        }
+
+        if (this.options.extensions) {
+            this.apply(this.options.extensions);
+        }
+
         this.setContainer(container);
     }
 
@@ -549,19 +566,19 @@ export default class Widget extends Emitter {
             renderScheduler.get(this).delete('page');
         }
 
-        this.dom.pageContent = this.page.render(
+        const { pageEl, renderState } = this.page.render(
             this.dom.pageContent,
             this.pageId,
             this.data,
             this.getRenderContext()
         );
 
+        this.dom.pageContent = pageEl;
         this.badges.forEach(badge => badge.el.hidden = !badge.visible(this));
 
-        if (this.pageParams.dzen) {
-            this.dom.container.dataset.dzen = true;
-        } else {
-            delete this.dom.container.dataset.dzen;
-        }
+        setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
+        setDatasetValue(this.dom.container, 'compact', this.options.compact);
+
+        return renderState;
     }
 }

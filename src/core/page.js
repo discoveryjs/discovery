@@ -71,10 +71,11 @@ export default class PageRenderer extends Dict {
             parentEl.scrollTop = 0;
         }
 
-        Promise.resolve(rendered).then(() =>
-            console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
-        );
-
-        return newPageEl;
+        return {
+            pageEl: newPageEl,
+            renderState: Promise.resolve(rendered).then(() =>
+                console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
+            )
+        };
     }
 }
