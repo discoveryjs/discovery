@@ -133,7 +133,7 @@
 }
 .view-struct .string-value-as-text .string-text {
     display: block;
-    white-space: pre;
+    white-space: pre-wrap;
     box-shadow: 0 0 0 3px #f4f4f4;
     background: #f4f4f4;
     color: #666;
