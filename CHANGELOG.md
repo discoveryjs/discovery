@@ -1,6 +1,7 @@
 ## next
 
 - Fixed missed `dist` files in a package
+- Added minification for JavaScript on build
 
 ## 1.0.0-beta.24 (13-12-2019)
 
