@@ -14362,7 +14362,7 @@ function (_Widget) {
 
     _classCallCheck(this, App);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(App).call(this, container, options));
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(App).call(this, container, null, options));
     _this.mode = options.mode;
 
     _this.apply(complexViews);
@@ -14523,9 +14523,8 @@ function (_Widget) {
   }, {
     key: "renderPage",
     value: function renderPage() {
-      _get(_getPrototypeOf(App.prototype), "renderPage", this).call(this);
-
       document.title = this.getRenderContext().name || document.title;
+      return _get(_getPrototypeOf(App.prototype), "renderPage", this).call(this);
     }
   }]);
 
@@ -14836,10 +14835,12 @@ function (_Dict) {
         parentEl.scrollTop = 0;
       }
 
-      Promise.resolve(rendered).then(function () {
-        return console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms');
-      });
-      return newPageEl;
+      return {
+        pageEl: newPageEl,
+        renderState: Promise.resolve(rendered).then(function () {
+          return console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms');
+        })
+      };
     }
   }]);
 
@@ -18333,225 +18334,224 @@ function hideIfEventOutside(event) {
   });
 }
 
-var Popup =
-/*#__PURE__*/
-function () {
-  function Popup(options) {
-    var _this = this;
+function _default(discovery) {
+  discovery.view.Popup =
+  /*#__PURE__*/
+  function () {
+    function Popup(options) {
+      var _this = this;
 
-    _classCallCheck(this, Popup);
+      _classCallCheck(this, Popup);
 
-    this.options = _objectSpread({}, defaultOptions, {}, options);
-    this.el = document.createElement('div');
-    this.el.className = 'discovery-view-popup';
-    this.hide = this.hide.bind(this);
-    this.hideTimer;
-    this.lastTriggerEl = null;
-    this.lastHoverTriggerEl = null;
-    this.hoverPinned = false;
+      this.options = _objectSpread({}, defaultOptions, {}, options);
+      this.el = document.createElement('div');
+      this.el.classList.add('discovery-view-popup', discovery.isolateStyleMarker);
+      this.el.dataset.discoveryInstanceId = discovery.instanceId;
+      this.hide = this.hide.bind(this);
+      this.hideTimer;
+      this.lastTriggerEl = null;
+      this.lastHoverTriggerEl = null;
+      this.hoverPinned = false;
 
-    if (this.options.className) {
-      this.el.classList.add(this.options.className);
-    }
+      if (this.options.className) {
+        this.el.classList.add(this.options.className);
+      }
 
-    if (!hoverPinModes.includes(this.options.hoverPin)) {
-      console.warn("Bad value for `Popup#options.hoverPin` (should be ".concat(hoverPinModes.join(', '), "):"), this.options.hoverPin);
-      this.options.hoverPin = false;
-    }
+      if (!hoverPinModes.includes(this.options.hoverPin)) {
+        console.warn("Bad value for `Popup#options.hoverPin` (should be ".concat(hoverPinModes.join(', '), "):"), this.options.hoverPin);
+        this.options.hoverPin = false;
+      }
 
-    if (this.options.hoverTriggers) {
-      this.el.classList.add('show-on-hover');
-      this.el.dataset.pinMode = this.options.hoverPin || 'none';
-      document.addEventListener('mouseenter', function (_ref) {
-        var target = _ref.target;
+      if (this.options.hoverTriggers) {
+        this.el.classList.add('show-on-hover');
+        this.el.dataset.pinMode = this.options.hoverPin || 'none';
+        discovery.addGlobalEventListener('mouseenter', function (_ref) {
+          var target = _ref.target;
 
-        if (target === document) {
-          return;
-        }
+          if (target === document) {
+            return;
+          }
 
-        var targetRelatedPopup = findTargetRelatedPopup(_this, target);
-        var triggerEl = targetRelatedPopup ? targetRelatedPopup.el : target.closest(_this.options.hoverTriggers);
+          var targetRelatedPopup = findTargetRelatedPopup(_this, target);
+          var triggerEl = targetRelatedPopup ? targetRelatedPopup.el : target.closest(_this.options.hoverTriggers);
 
-        if (triggerEl) {
-          _this.hideTimer = clearTimeout(_this.hideTimer);
+          if (triggerEl) {
+            _this.hideTimer = clearTimeout(_this.hideTimer);
 
-          if (triggerEl !== _this.lastHoverTriggerEl) {
-            // change hover pinned only when trigger is not a popup in pinned mode
-            if (!targetRelatedPopup || !targetRelatedPopup.hoverPinned) {
-              _this.lastHoverTriggerEl = triggerEl;
-            } // show only if event target isn't a popup
+            if (triggerEl !== _this.lastHoverTriggerEl) {
+              // change hover pinned only when trigger is not a popup in pinned mode
+              if (!targetRelatedPopup || !targetRelatedPopup.hoverPinned) {
+                _this.lastHoverTriggerEl = triggerEl;
+              } // show only if event target isn't a popup
 
 
-            if (!targetRelatedPopup) {
-              _this.hoverPinned = false;
+              if (!targetRelatedPopup) {
+                _this.hoverPinned = false;
 
-              _this.el.classList.remove('pinned');
+                _this.el.classList.remove('pinned');
 
-              _this.show(triggerEl);
+                _this.show(triggerEl);
+              }
             }
           }
-        }
-      }, true);
-      document.addEventListener('mouseleave', function (_ref2) {
-        var target = _ref2.target;
+        }, true);
+        discovery.addGlobalEventListener('mouseleave', function (_ref2) {
+          var target = _ref2.target;
 
-        if (_this.lastHoverTriggerEl && _this.lastHoverTriggerEl === target) {
-          _this.lastHoverTriggerEl = null;
-          _this.hideTimer = setTimeout(_this.hide, 100);
-        }
-      }, true);
-
-      if (this.options.hoverPin === 'trigger-click') {
-        document.addEventListener('click', function (event) {
-          if (_this.lastHoverTriggerEl && _this.lastTriggerEl.contains(event.target)) {
+          if (_this.lastHoverTriggerEl && _this.lastHoverTriggerEl === target) {
             _this.lastHoverTriggerEl = null;
-            _this.hoverPinned = true;
-
-            _this.el.classList.add('pinned');
-
-            event.stopPropagation();
+            _this.hideTimer = setTimeout(_this.hide, 100);
           }
         }, true);
-      }
-    }
-  }
 
-  _createClass(Popup, [{
-    key: "show",
-    value: function show(triggerEl) {
-      var render = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.options.render;
-      var hostEl = document.body;
-      var box = (0, _layout.getBoundingRect)(triggerEl, hostEl);
-      var offsetParent = (0, _layout.getOffsetParent)(hostEl.firstChild);
-      var viewport = (0, _layout.getViewportRect)(window, offsetParent);
-      var availHeightTop = box.top - viewport.top - 3;
-      var availHeightBottom = viewport.bottom - box.bottom - 3;
-      var availWidthLeft = box.right - viewport.left - 3;
-      var availWidthRight = viewport.right - box.left - 3;
+        if (this.options.hoverPin === 'trigger-click') {
+          discovery.addGlobalEventListener('click', function (event) {
+            if (_this.lastHoverTriggerEl && _this.lastTriggerEl.contains(event.target)) {
+              _this.lastHoverTriggerEl = null;
+              _this.hoverPinned = true;
 
-      if (availHeightTop > availHeightBottom) {
-        // show to top
-        this.el.style.maxHeight = availHeightTop + 'px';
-        this.el.style.top = 'auto';
-        this.el.style.bottom = viewport.bottom - box.top + 'px';
-        this.el.dataset.vTo = 'top';
-      } else {
-        // show to bottom
-        this.el.style.maxHeight = availHeightBottom + 'px';
-        this.el.style.top = box.bottom - viewport.top + 'px';
-        this.el.style.bottom = 'auto';
-        this.el.dataset.vTo = 'bottom';
-      }
+              _this.el.classList.add('pinned');
 
-      if (availWidthLeft > availWidthRight) {
-        // show to left
-        this.el.style.left = 'auto';
-        this.el.style.right = viewport.right - box.right + 'px';
-        this.el.style.maxWidth = availWidthLeft + 'px';
-        this.el.dataset.hTo = 'left';
-      } else {
-        // show to right
-        this.el.style.left = box.left - viewport.left + 'px';
-        this.el.style.right = 'auto';
-        this.el.style.maxWidth = availWidthRight + 'px';
-        this.el.dataset.hTo = 'right';
-      }
-
-      this.hideTimer = clearTimeout(this.hideTimer);
-      this.relatedPopups.forEach(function (related) {
-        return related.hide();
-      });
-
-      if (typeof render === 'function') {
-        this.el.innerHTML = '';
-        render(this.el, triggerEl, this.hide);
-      }
-
-      if (this.lastTriggerEl) {
-        this.lastTriggerEl.classList.remove('discovery-view-popup-active');
-      }
-
-      triggerEl.classList.add('discovery-view-popup-active');
-      this.lastTriggerEl = triggerEl; // always append since it can pop up by z-index
-
-      hostEl.appendChild(this.el);
-
-      if (!this.visible) {
-        openedPopups.push(this);
-        window.addEventListener('resize', this.hide);
-
-        if (openedPopups.length === 1) {
-          document.addEventListener('scroll', hideIfEventOutside, true);
-          document.addEventListener('click', hideIfEventOutside, true);
+              event.stopPropagation();
+            }
+          }, true);
         }
       }
     }
-  }, {
-    key: "hide",
-    value: function hide() {
-      this.hideTimer = clearTimeout(this.hideTimer);
 
-      if (this.visible) {
-        // hide related popups first
+    _createClass(Popup, [{
+      key: "show",
+      value: function show(triggerEl) {
+        var render = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.options.render;
+        var hostEl = document.body;
+        var box = (0, _layout.getBoundingRect)(triggerEl, hostEl);
+        var offsetParent = (0, _layout.getOffsetParent)(hostEl.firstChild);
+        var viewport = (0, _layout.getViewportRect)(window, offsetParent);
+        var availHeightTop = box.top - viewport.top - 3;
+        var availHeightBottom = viewport.bottom - box.bottom - 3;
+        var availWidthLeft = box.right - viewport.left - 3;
+        var availWidthRight = viewport.right - box.left - 3;
+
+        if (availHeightTop > availHeightBottom) {
+          // show to top
+          this.el.style.maxHeight = availHeightTop + 'px';
+          this.el.style.top = 'auto';
+          this.el.style.bottom = viewport.bottom - box.top + 'px';
+          this.el.dataset.vTo = 'top';
+        } else {
+          // show to bottom
+          this.el.style.maxHeight = availHeightBottom + 'px';
+          this.el.style.top = box.bottom - viewport.top + 'px';
+          this.el.style.bottom = 'auto';
+          this.el.dataset.vTo = 'bottom';
+        }
+
+        if (availWidthLeft > availWidthRight) {
+          // show to left
+          this.el.style.left = 'auto';
+          this.el.style.right = viewport.right - box.right + 'px';
+          this.el.style.maxWidth = availWidthLeft + 'px';
+          this.el.dataset.hTo = 'left';
+        } else {
+          // show to right
+          this.el.style.left = box.left - viewport.left + 'px';
+          this.el.style.right = 'auto';
+          this.el.style.maxWidth = availWidthRight + 'px';
+          this.el.dataset.hTo = 'right';
+        }
+
+        this.hideTimer = clearTimeout(this.hideTimer);
         this.relatedPopups.forEach(function (related) {
           return related.hide();
-        }); // hide popup itself
+        });
 
-        openedPopups.splice(openedPopups.indexOf(this), 1);
-        this.el.remove();
+        if (typeof render === 'function') {
+          this.el.innerHTML = '';
+          render(this.el, triggerEl, this.hide);
+        }
 
         if (this.lastTriggerEl) {
           this.lastTriggerEl.classList.remove('discovery-view-popup-active');
-          this.lastTriggerEl = null;
         }
 
-        window.removeEventListener('resize', this.hide);
+        triggerEl.classList.add('discovery-view-popup-active');
+        this.lastTriggerEl = triggerEl; // always append since it can pop up by z-index
 
-        if (openedPopups.length === 0) {
-          document.removeEventListener('scroll', hideIfEventOutside, true);
-          document.removeEventListener('click', hideIfEventOutside, true);
+        hostEl.appendChild(this.el);
+
+        if (!this.visible) {
+          openedPopups.push(this);
+          window.addEventListener('resize', this.hide);
+
+          if (openedPopups.length === 1) {
+            document.addEventListener('scroll', hideIfEventOutside, true);
+            document.addEventListener('click', hideIfEventOutside, true);
+          }
         }
       }
-    }
-  }, {
-    key: "hideIfEventOutside",
-    value: function hideIfEventOutside(_ref3) {
-      var target = _ref3.target;
+    }, {
+      key: "hide",
+      value: function hide() {
+        this.hideTimer = clearTimeout(this.hideTimer);
 
-      // event inside a trigger element
-      if (this.lastTriggerEl && this.lastTriggerEl.contains(target)) {
-        return;
-      } // event inside a popup or its related popups
+        if (this.visible) {
+          // hide related popups first
+          this.relatedPopups.forEach(function (related) {
+            return related.hide();
+          }); // hide popup itself
+
+          openedPopups.splice(openedPopups.indexOf(this), 1);
+          this.el.remove();
+
+          if (this.lastTriggerEl) {
+            this.lastTriggerEl.classList.remove('discovery-view-popup-active');
+            this.lastTriggerEl = null;
+          }
+
+          window.removeEventListener('resize', this.hide);
+
+          if (openedPopups.length === 0) {
+            document.removeEventListener('scroll', hideIfEventOutside, true);
+            document.removeEventListener('click', hideIfEventOutside, true);
+          }
+        }
+      }
+    }, {
+      key: "hideIfEventOutside",
+      value: function hideIfEventOutside(_ref3) {
+        var target = _ref3.target;
+
+        // event inside a trigger element
+        if (this.lastTriggerEl && this.lastTriggerEl.contains(target)) {
+          return;
+        } // event inside a popup or its related popups
 
 
-      if (findTargetRelatedPopup(this, target)) {
-        return;
-      } // otherwise hide a popup
+        if (findTargetRelatedPopup(this, target)) {
+          return;
+        } // otherwise hide a popup
 
 
-      this.hide();
-    }
-  }, {
-    key: "relatedPopups",
-    get: function get() {
-      var _this2 = this;
+        this.hide();
+      }
+    }, {
+      key: "relatedPopups",
+      get: function get() {
+        var _this2 = this;
 
-      return openedPopups.filter(function (related) {
-        return _this2.el.contains(related.lastTriggerEl);
-      });
-    }
-  }, {
-    key: "visible",
-    get: function get() {
-      return openedPopups.includes(this);
-    }
-  }]);
+        return openedPopups.filter(function (related) {
+          return _this2.el.contains(related.lastTriggerEl);
+        });
+      }
+    }, {
+      key: "visible",
+      get: function get() {
+        return openedPopups.includes(this);
+      }
+    }]);
 
-  return Popup;
-}();
-
-function _default(discovery) {
-  discovery.view.Popup = Popup;
+    return Popup;
+  }();
 }
 
 ;
@@ -19906,7 +19906,7 @@ function _default(discovery) {
   }; // single event handler for all `struct` view instances
 
 
-  document.addEventListener('click', clickHandler, false);
+  discovery.addGlobalEventListener('click', clickHandler, false);
   discovery.view.define('struct', function (el, config, data) {
     var expanded = config.expanded,
         limit = config.limit,
@@ -20488,7 +20488,7 @@ function _default(discovery) {
   }; // single event handler for all `tree-leaf` view instances
 
 
-  document.addEventListener('click', clickHandler, false);
+  discovery.addGlobalEventListener('click', clickHandler, false);
   discovery.view.define('tree-leaf', function (el, config, data, context) {
     var _this = this;
 
@@ -20786,6 +20786,14 @@ function defaultDecodeParams(value) {
   return value;
 }
 
+function setDatasetValue(el, key, value) {
+  if (value) {
+    el.dataset[key] = true;
+  } else {
+    delete el.dataset[key];
+  }
+}
+
 function getPageMethod(instance, pageId, name, fallback) {
   var page = instance.page.get(pageId);
   return page && typeof page.options[name] === 'function' ? page.options[name] : fallback;
@@ -20844,6 +20852,22 @@ function _apply(fn, host) {
   }
 }
 
+function genUniqueId() {
+  var len = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 16;
+
+  var base36 = function base36(val) {
+    return Math.round(val).toString(36);
+  };
+
+  var uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
+
+  while (uid.length < len) {
+    uid += base36(new Date() * Math.random());
+  }
+
+  return uid.substr(0, len);
+}
+
 function equal(a, b) {
   if (a === b) {
     return true;
@@ -20881,7 +20905,7 @@ var Widget =
 function (_Emitter) {
   _inherits(Widget, _Emitter);
 
-  function Widget(container, options) {
+  function Widget(container, defaultPage, options) {
     var _this;
 
     _classCallCheck(this, Widget);
@@ -20909,6 +20933,8 @@ function (_Emitter) {
     _this.pageParams = {};
     _this.pageHash = _this.encodePageHash(_this.pageId, _this.pageRef, _this.pageParams);
     _this.scheduledRenderPage = null;
+    _this.instanceId = genUniqueId();
+    _this.isolateStyleMarker = 'style-boundary-Hs94Xo_O';
     _this.badges = [];
     _this.dom = {};
     _this.queryExtensions = {
@@ -20925,6 +20951,14 @@ function (_Emitter) {
     _this.apply(views);
 
     _this.apply(pages);
+
+    if (defaultPage) {
+      _this.page.define('default', defaultPage);
+    }
+
+    if (_this.options.extensions) {
+      _this.apply(_this.options.extensions);
+    }
 
     _this.setContainer(container);
 
@@ -21127,7 +21161,8 @@ function (_Emitter) {
 
       if (containerEl) {
         this.dom.container = containerEl;
-        containerEl.classList.add('discovery');
+        containerEl.classList.add('discovery', this.isolateStyleMarker);
+        containerEl.dataset.discoveryInstanceId = this.instanceId;
         containerEl.appendChild(this.dom.sidebar = (0, _dom.createElement)('nav', 'discovery-sidebar'));
         containerEl.appendChild((0, _dom.createElement)('main', 'discovery-content', [this.dom.badges = (0, _dom.createElement)('div', 'discovery-content-badges'), this.dom.pageContent = (0, _dom.createElement)('article')]));
         this.badges.forEach(function (badge) {
@@ -21138,6 +21173,24 @@ function (_Emitter) {
           this.dom[key] = null;
         }
       }
+    }
+  }, {
+    key: "addGlobalEventListener",
+    value: function addGlobalEventListener(eventName, handler, options) {
+      var instanceId = this.instanceId;
+
+      var handlerWrapper = function handlerWrapper(event) {
+        var root = event.target !== document ? event.target.closest('[data-discovery-instance-id]') : null;
+
+        if (root && root.dataset.discoveryInstanceId === instanceId) {
+          handler.call(this, event);
+        }
+      };
+
+      document.addEventListener(eventName, handlerWrapper, options);
+      return function () {
+        return document.removeEventListener(eventName, handlerWrapper, options);
+      };
     }
   }, {
     key: "addBadge",
@@ -21322,16 +21375,17 @@ function (_Emitter) {
         renderScheduler.get(this)["delete"]('page');
       }
 
-      this.dom.pageContent = this.page.render(this.dom.pageContent, this.pageId, this.data, this.getRenderContext());
+      var _this$page$render = this.page.render(this.dom.pageContent, this.pageId, this.data, this.getRenderContext()),
+          pageEl = _this$page$render.pageEl,
+          renderState = _this$page$render.renderState;
+
+      this.dom.pageContent = pageEl;
       this.badges.forEach(function (badge) {
         return badge.el.hidden = !badge.visible(_this7);
       });
-
-      if (this.pageParams.dzen) {
-        this.dom.container.dataset.dzen = true;
-      } else {
-        delete this.dom.container.dataset.dzen;
-      }
+      setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
+      setDatasetValue(this.dom.container, 'compact', this.options.compact);
+      return renderState;
     }
   }]);
 
