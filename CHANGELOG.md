@@ -1,3 +1,7 @@
+## next
+
+- Fixed missed `dist` files in a package
+
 ## 1.0.0-beta.24 (13-12-2019)
 
 - Fixed event handlers conflict across Discovery instances

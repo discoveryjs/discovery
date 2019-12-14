@@ -1,7 +1,7 @@
 *
-!lib.js
-!lib.min.js
-!lib.*.js
-!lib.*.min.js
-!lib.css
-!lib.min.css
+!discovery.js
+!discovery.min.js
+!discovery.*.js
+!discovery.*.min.js
+!discovery.css
+!discovery.min.css
