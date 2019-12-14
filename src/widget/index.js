@@ -151,6 +151,7 @@ export default class Widget extends Emitter {
         this.scheduledRenderPage = null;
 
         this.instanceId = genUniqueId();
+        this.isolateStyleMarker = 'style-boundary-Hs94Xo_O';
         this.badges = [];
         this.dom = {};
         this.queryExtensions = {
@@ -351,7 +352,7 @@ export default class Widget extends Emitter {
         if (containerEl) {
             this.dom.container = containerEl;
 
-            containerEl.classList.add('discovery');
+            containerEl.classList.add('discovery', this.isolateStyleMarker);
             containerEl.dataset.discoveryInstanceId = this.instanceId;
 
             containerEl.appendChild(

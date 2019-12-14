@@ -8,6 +8,7 @@
 - Added optional parameter for `Widget` constructor to specify default page layout, i.e. `new Widget(container, defaultPage, options)`
 - Added `extensions` and `compact` options to `Widget`/`App` constructor, i.e. `new Widget(el, null, { extensions, compact })`
 - Renamed `dist` files: `lib.*` -> `discovery.*`
+- Improved build by CSS styles basic isolation, to reduce impact on host environment when integrate into
 
 ## 1.0.0-beta.23 (12-12-2019)
 
