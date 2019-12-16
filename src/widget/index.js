@@ -80,12 +80,6 @@ function extractValueLinkResolver(host, pageId) {
     }
 }
 
-function apply(fn, host) {
-    if (typeof fn === 'function') {
-        fn.call(window, host);
-    }
-}
-
 function genUniqueId(len = 16) {
     const base36 = val => Math.round(val).toString(36);
     let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
@@ -176,9 +170,9 @@ export default class Widget extends Emitter {
 
     apply(extensions) {
         if (Array.isArray(extensions)) {
-            extensions.forEach(extension => apply(extension, this));
+            extensions.forEach(extension => this.apply(extension));
         } else if (typeof extensions === 'function') {
-            apply(extensions, this);
+            extensions.call(window, this);
         } else if (extensions) {
             this.apply(Object.values(extensions));
         } else {

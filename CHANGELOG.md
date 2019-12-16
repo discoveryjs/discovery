@@ -1,3 +1,7 @@
+## next
+
+- Impoved `Widget#apply()` to recursevey call the method to each element when value is an array
+
 ## 1.0.0-beta.25 (13-12-2019)
 
 - Fixed missed `dist` files in a package
