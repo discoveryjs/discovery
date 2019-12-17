@@ -1,52 +1,52 @@
 {
-  "name": "@discoveryjs/discovery",
-  "version": "1.0.0-beta.25",
-  "description": "Hackable JSON discovery tool",
-  "author": "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)",
-  "license": "MIT",
-  "repository": "discoveryjs/discovery",
-  "keywords": [],
-  "main": "dist/discovery.umd.js",
-  "unpkg": "dist/discovery.umd.js",
-  "jsdelivr": "dist/discovery.umd.js",
-  "browser": {
-    "/gen/jora.js": "./dist/gen/jora.js",
-    "/gen/hitext": "./dist/gen/hitext.js",
-    "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
-    "/gen/prismjs": "./dist/gen/prismjs.js",
-    "/gen/codemirror": "./dist/gen/codemirror.js"
-  },
-  "scripts": {
-    "lint": "eslint libs scripts src",
-    "build": "npm run build:esm && npm run build:css",
-    "build-docs": "npm run build && discovery-build -o docs",
-    "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
-    "build:umd": "node scripts/build-client-libs && browserify src/lib.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ] | terser --compress --mangle -o dist/discovery.umd.js",
-    "build:css": "node scripts/build-css",
-    "prepublishOnly": "npm run build"
-  },
-  "engines": {
-    "node": ">=8.0.0"
-  },
-  "dependencies": {
-    "codemirror": "^5.48.4",
-    "hitext": "^1.0.0-alpha.2",
-    "hitext-prismjs": "^1.0.2",
-    "jora": "1.0.0-alpha.10",
-    "prismjs": "^1.17.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@discoveryjs/cli": "^1.3.0",
-    "babelify": "^10.0.0",
-    "browserify": "^16.5.0",
-    "eslint": "^6.3.0",
-    "terser": "^4.4.2"
-  },
-  "files": [
-    "dist",
-    "libs",
-    "src"
-  ]
+    "name": "@discoveryjs/discovery",
+    "version": "1.0.0-beta.25",
+    "description": "Hackable JSON discovery tool",
+    "author": "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)",
+    "license": "MIT",
+    "repository": "discoveryjs/discovery",
+    "keywords": [],
+    "main": "dist/discovery.umd.js",
+    "unpkg": "dist/discovery.umd.js",
+    "jsdelivr": "dist/discovery.umd.js",
+    "browser": {
+        "/gen/jora.js": "./dist/gen/jora.js",
+        "/gen/hitext": "./dist/gen/hitext.js",
+        "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
+        "/gen/prismjs": "./dist/gen/prismjs.js",
+        "/gen/codemirror": "./dist/gen/codemirror.js"
+    },
+    "scripts": {
+        "lint": "eslint libs scripts src",
+        "build": "npm run build:esm && npm run build:css",
+        "build-docs": "npm run build && discovery-build -o docs",
+        "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
+        "build:umd": "node scripts/build-client-libs && browserify src/lib.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ] | terser --compress --mangle -o dist/discovery.umd.js",
+        "build:css": "node scripts/build-css",
+        "prepublishOnly": "npm run build"
+    },
+    "engines": {
+        "node": ">=8.0.0"
+    },
+    "dependencies": {
+        "codemirror": "^5.48.4",
+        "hitext": "^1.0.0-alpha.2",
+        "hitext-prismjs": "^1.0.2",
+        "jora": "1.0.0-alpha.10",
+        "prismjs": "^1.17.1"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.5.5",
+        "@babel/preset-env": "^7.5.5",
+        "@discoveryjs/cli": "^1.3.0",
+        "babelify": "^10.0.0",
+        "browserify": "^16.5.0",
+        "eslint": "^6.3.0",
+        "terser": "^4.4.2"
+    },
+    "files": [
+        "dist",
+        "libs",
+        "src"
+    ]
 }
