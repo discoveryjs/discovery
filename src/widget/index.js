@@ -328,7 +328,7 @@ export default class Widget extends Emitter {
         return {
             name: 'jora',
             version: jora.version,
-            link: 'https://github.com/lahmatiy/jora'
+            link: 'https://github.com/discoveryjs/jora'
         };
     }
 
