@@ -1,7 +1,8 @@
-## next
+## 1.0.0-beta.26 (17-12-2019)
 
 - Impoved `Widget#apply()` to recursevey call the method to each element when value is an array
-- Dropped Hightcharts from project (`chart` view), use [`@discoveryjs/view-plugin-highcharts`](https://github.com/discoveryjs/view-plugin-highcharts) instead
+- Extracted `chart` view (with Hightcharts as backend) to a separate [repo](https://github.com/discoveryjs/view-plugin-highcharts) and npm package, use [`@discoveryjs/view-plugin-highcharts`](https://github.com/discoveryjs/view-plugin-highcharts) instead
+- Bumped jora to [1.0.0-alpha.11](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-alpha.11)
 
 ## 1.0.0-beta.25 (13-12-2019)
 
