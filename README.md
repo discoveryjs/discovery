@@ -28,6 +28,10 @@ Hackable JSON discovery tool
 - [Jora](https://github.com/discoveryjs/jora) – data query language
 - [Jora CLI](https://github.com/discoveryjs/jora-cli) – a tool to process JSON data using Jora in command line interface
 
+## Plugins
+
+- [@discoveryjs/view-plugin-highcharts](https://github.com/discoveryjs/view-plugin-highcharts) – [Highcharts](https://github.com/highcharts/highcharts) plugin
+
 ## Install
 
 ```

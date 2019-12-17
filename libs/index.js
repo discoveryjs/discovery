@@ -15,12 +15,6 @@ const es6NodeModules = {
             'mode/javascript/javascript.js'
         ]
     },
-    highcharts: {
-        name: 'Highcharts',
-        files: [
-            'js/highcharts.js'
-        ]
-    },
     prismjs: {
         name: 'Prism',
         files: [

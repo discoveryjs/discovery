@@ -1,6 +1,7 @@
 ## next
 
 - Impoved `Widget#apply()` to recursevey call the method to each element when value is an array
+- Dropped Hightcharts from project (`chart` view), use [`@discoveryjs/view-plugin-highcharts`](https://github.com/discoveryjs/view-plugin-highcharts) instead
 
 ## 1.0.0-beta.25 (13-12-2019)
 
