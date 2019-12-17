@@ -14,7 +14,6 @@
     "/gen/hitext": "./dist/gen/hitext.js",
     "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
     "/gen/prismjs": "./dist/gen/prismjs.js",
-    "/gen/highcharts": "./dist/gen/highcharts.js",
     "/gen/codemirror": "./dist/gen/codemirror.js"
   },
   "scripts": {
@@ -31,7 +30,6 @@
   },
   "dependencies": {
     "codemirror": "^5.48.4",
-    "highcharts": "^6.1.2",
     "hitext": "^1.0.0-alpha.2",
     "hitext-prismjs": "^1.0.2",
     "jora": "1.0.0-alpha.10",
