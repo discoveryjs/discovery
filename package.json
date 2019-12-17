@@ -32,7 +32,7 @@
         "codemirror": "^5.48.4",
         "hitext": "^1.0.0-alpha.2",
         "hitext-prismjs": "^1.0.2",
-        "jora": "1.0.0-alpha.10",
+        "jora": "1.0.0-alpha.11",
         "prismjs": "^1.17.1"
     },
     "devDependencies": {
