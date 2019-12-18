@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.27 (18-12-2019)
 
 - Fixed style isolation of signature popup
 - Fixed editors extra large height in quirk mode
