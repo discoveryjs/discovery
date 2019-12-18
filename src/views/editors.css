@@ -15,6 +15,7 @@
 }
 .discovery-editor .CodeMirror-scroll {
     min-height: 6.5em;
+    height: auto;
     overflow-y: visible !important;
     cursor: text;
 }
