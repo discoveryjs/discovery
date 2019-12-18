@@ -1,3 +1,7 @@
+## next
+
+- Fixed style isolation of signature popup
+
 ## 1.0.0-beta.26 (17-12-2019)
 
 - Impoved `Widget#apply()` to recursevey call the method to each element when value is an array
