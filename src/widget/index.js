@@ -53,7 +53,8 @@ function extractValueLinkResolver(host, pageId) {
                     return {
                         type: pageId,
                         text: entity.name,
-                        href: host.encodePageHash(pageId, entity[ref])
+                        href: host.encodePageHash(pageId, entity[ref]),
+                        entity: entity.entity
                     };
                 }
             };
@@ -70,7 +71,8 @@ function extractValueLinkResolver(host, pageId) {
                     return {
                         type: pageId,
                         text: typeof link === 'string' ? link : pageId,
-                        href: host.encodePageHash(pageId, link)
+                        href: host.encodePageHash(pageId, link),
+                        entity: entity.entity
                     };
                 }
             };

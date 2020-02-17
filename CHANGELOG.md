@@ -1,5 +1,6 @@
 ## next 
 
+- Added an entity reference to resolved link info
 - Fixed showing label when `tree` view is empty 
 - Tweaked `tree` view padding in sidebar
 - Bumped jora to [1.0.0-alpha.13](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-alpha.13)
