@@ -5,3 +5,7 @@
     font-size: 13px;
     line-height: 24px;
 }
+.view-tree:empty::before {
+    content: attr(emptyText);
+    color: #888;
+}
