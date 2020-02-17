@@ -1,4 +1,4 @@
-## next 
+## 1.0.0-beta.28 (17-02-2020)
 
 - Added encoding/decoding for `pageId` and `pageRef` in page hash
 - Added an entity reference to resolved link info
