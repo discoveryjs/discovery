@@ -49,6 +49,9 @@
 .discovery-sidebar .view-content-filter > .content > .view-list {
     padding: 8px 0 8px 12px;
 }
+.discovery-sidebar .view-content-filter > .content > .view-tree {
+    padding: 4px 0 8px 8px;
+}
 .discovery-sidebar .view-list-item:first-child .view-toc-section {
     margin-top: -8px;
 }

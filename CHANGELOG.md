@@ -1,6 +1,7 @@
 ## next 
 
 - Fixed showing label when `tree` view is empty 
+- Tweaked `tree` view padding in sidebar
 - Bumped jora to [1.0.0-alpha.13](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-alpha.13)
 
 ## 1.0.0-beta.27 (18-12-2019)
