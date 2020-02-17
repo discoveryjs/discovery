@@ -491,15 +491,17 @@ export default class Widget extends Emitter {
         const encodedParams = encodeParams(pageParams || {});
 
         return `#${
-            pageId !== this.defaultPageId ? pageId : ''}${
-            (typeof pageRef === 'string' && pageRef) || typeof pageRef === 'number' ? ':' + pageRef : ''}${
+            pageId !== this.defaultPageId ? escape(pageId) : ''
+        }${
+            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + escape(pageRef) : ''
+        }${
             encodedParams ? '&' + encodedParams : ''
         }`;
     }
 
     decodePageHash(hash) {
         const parts = hash.substr(1).split('&');
-        const [pageId, pageRef] = (parts.shift() || '').split(':');
+        const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
         const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
             map[key] = value || true;

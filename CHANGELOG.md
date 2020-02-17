@@ -1,5 +1,6 @@
 ## next 
 
+- Added encoding/decoding for `pageId` and `pageRef` in page hash
 - Added an entity reference to resolved link info
 - Fixed showing label when `tree` view is empty 
 - Tweaked `tree` view padding in sidebar
