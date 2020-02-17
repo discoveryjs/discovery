@@ -1,3 +1,7 @@
+## next 
+
+- Bumped jora to [1.0.0-alpha.13](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-alpha.13)
+
 ## 1.0.0-beta.27 (18-12-2019)
 
 - Fixed style isolation of signature popup
