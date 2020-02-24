@@ -1,3 +1,7 @@
+## next
+
+- Fixed `tree` view to apply nested `itemConfig` when `limitLines` is used
+
 ## 1.0.0-beta.28 (17-02-2020)
 
 - Added encoding/decoding for `pageId` and `pageRef` in page hash

@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 export default function(discovery) {
-    function renderTreeLines(container, renderElStack, leafBaseConfig, data, context, offset, limit) {
+    function renderTreeLines(container, renderStack, data, context, offset, limit) {
         if (limit === false) {
             limit = data.length;
         }
@@ -10,11 +10,14 @@ export default function(discovery) {
             .slice(offset, offset + limit)
             .reduce(
                 (pipeline, entry) => pipeline.then(() => {
-                    const targetContainer = renderElStack[0];
+                    const {
+                        container: targetContainer,
+                        itemConfig
+                    } = renderStack;
 
                     return discovery.view
                         .render(targetContainer, {
-                            ...leafBaseConfig,
+                            ...itemConfig,
                             expanded: entry.expanded,
                             last: entry.last,
                             hasChildren: entry.hasChildren,
@@ -25,10 +28,15 @@ export default function(discovery) {
                                 const container = targetContainer.lastChild.querySelector('.view-tree-leaf-children');
 
                                 container.classList.add('incomplete');
-                                renderElStack.unshift(container);
+                                renderStack = {
+                                    container,
+                                    itemConfig: discovery.view.composeConfig(itemConfig, itemConfig.itemConfig),
+                                    prev: renderStack
+                                };
                             } else {
                                 while (entry.shift--) {
-                                    renderElStack.shift().classList.remove('incomplete');
+                                    renderStack.container.classList.remove('incomplete');
+                                    renderStack = renderStack.prev;
                                 }
                             }
                         });
@@ -42,7 +50,7 @@ export default function(discovery) {
                     data.length,
                     offset + limit,
                     limit,
-                    (offset, limit) => renderTreeLines(container, renderElStack, leafBaseConfig, data, context, offset, limit)
+                    (offset, limit) => renderTreeLines(container, renderStack, data, context, offset, limit)
                 )
             );
     }
@@ -107,15 +115,18 @@ export default function(discovery) {
 
             if (limitLines) {
                 const lines = buildTreeLines(data, context, children, expanded);
-                const leafBaseConfig = this.composeConfig({
-                    view: 'tree-leaf',
-                    itemConfig,
-                    content: item,
-                    collapsible,
-                    onToggle
-                }, itemConfig);
+                const renderStack = {
+                    container: el,
+                    itemConfig: this.composeConfig({
+                        view: 'tree-leaf',
+                        itemConfig,
+                        content: item,
+                        collapsible,
+                        onToggle
+                    }, itemConfig)
+                };
 
-                renderTreeLines(el, [el], leafBaseConfig, lines, context, 0, limitLines);
+                renderTreeLines(el, renderStack, lines, context, 0, limitLines);
             } else {
                 this.renderList(el, this.composeConfig({
                     view: 'tree-leaf',
