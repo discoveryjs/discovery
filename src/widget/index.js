@@ -147,7 +147,7 @@ export default class Widget extends Emitter {
         this.scheduledRenderPage = null;
 
         this.instanceId = genUniqueId();
-        this.isolateStyleMarker = 'style-boundary-Hs94Xo_O';
+        this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
         this.badges = [];
         this.dom = {};
         this.queryExtensions = {
