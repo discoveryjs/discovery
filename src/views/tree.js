@@ -97,7 +97,7 @@ export default function(discovery) {
     }
 
     discovery.view.define('tree', function render(el, config, data, context) {
-        const { children, item = 'text', itemConfig, collapsible, emptyText, onToggle } = config;
+        const { children = 'children', item = 'text', itemConfig, collapsible, emptyText, onToggle } = config;
         let { expanded, limit, limitLines = true } = config;
 
         if (emptyText !== false && emptyText !== '') {

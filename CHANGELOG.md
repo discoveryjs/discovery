@@ -1,6 +1,7 @@
 ## next
 
 - Fixed `tree` view to apply nested `itemConfig` when `limitLines` is used
+- Added `'children'` as default query for children in `tree` view
 
 ## 1.0.0-beta.28 (17-02-2020)
 
