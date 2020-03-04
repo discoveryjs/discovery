@@ -1,3 +1,7 @@
+## next
+
+- Added missed escaping for brackets in `safeFilterRx`
+
 ## 1.0.0-beta.29 (24-02-2020)
 
 - Fixed `tree` view to apply nested `itemConfig` when `limitLines` is used

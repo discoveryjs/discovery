@@ -5,5 +5,5 @@ export default function safeFilterRx(pattern, flags = 'i') {
         return new RegExp('((?:' + pattern + ')+)', flags);
     } catch (e) {}
 
-    return new RegExp('((?:' + pattern.replace(/[\(\)\?\+\*\{\}\\]/g, '\\$&') + ')+)', flags);
+    return new RegExp('((?:' + pattern.replace(/[\[\]\(\)\?\+\*\{\}\\]/g, '\\$&') + ')+)', flags);
 }
