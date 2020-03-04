@@ -185,6 +185,10 @@ class Widget {
         hintsEl.className = 'CodeMirror-hints ' + completion.cm.options.theme;
         (completion.options.container || document.body).appendChild(hintsEl);
 
+        if (completion.options.isolateStyleMarker) {
+            hintsEl.classList.add(completion.options.isolateStyleMarker);
+        }
+
         this.items = data.list.map((cur, idx) => {
             const el = hintsEl.appendChild(document.createElement('li'));
 
@@ -234,7 +238,6 @@ class Widget {
         });
 
         CodeMirror.signal(data, 'select', data.list[this.selectedHint], this.items[this.selectedHint]);
-        return true;
     }
 
     close() {
@@ -246,10 +249,9 @@ class Widget {
         this.completion.cm.removeKeyMap(this.keyMap);
         this.hintsEl.remove();
 
-        const cm = this.completion.cm;
         if (this.completion.options.closeOnUnfocus) {
-            cm.off('blur', this.onBlur);
-            cm.off('focus', this.onFocus);
+            this.completion.cm.off('blur', this.onBlur);
+            this.completion.cm.off('focus', this.onFocus);
         }
 
         document.removeEventListener('scroll', this.onScroll, true);

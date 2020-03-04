@@ -41,7 +41,8 @@ class Editor extends Emitter {
             hintOptions: autocomplete && {
                 hint: autocomplete,
                 completeSingle: false,
-                closeOnUnfocus: true
+                closeOnUnfocus: true,
+                isolateStyleMarker: this.getIsolateStyleMarker()
             }
         });
 
@@ -82,6 +83,8 @@ class Editor extends Emitter {
     focus() {
         this.cm.focus();
     }
+
+    getIsolateStyleMarker() {}
 }
 
 class QueryEditor extends Editor {
@@ -120,7 +123,15 @@ class ViewEditor extends Editor {
 
 export default function(discovery) {
     Object.assign(discovery.view, {
-        QueryEditor,
-        ViewEditor
+        QueryEditor: class extends QueryEditor {
+            getIsolateStyleMarker() {
+                return discovery.isolateStyleMarker;
+            }
+        },
+        ViewEditor: class extends ViewEditor {
+            getIsolateStyleMarker() {
+                return discovery.isolateStyleMarker;
+            }
+        }
     });
 }

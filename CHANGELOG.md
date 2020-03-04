@@ -1,6 +1,7 @@
 ## next
 
 - Added missed escaping for brackets in `safeFilterRx`
+- Added missed style isolate marker for editors hints popup
 
 ## 1.0.0-beta.29 (24-02-2020)
 
