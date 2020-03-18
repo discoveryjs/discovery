@@ -125,8 +125,8 @@ export default class App extends Widget {
             .catch(e => {
                 this.dom.loadingOverlay.classList.add('error');
                 this.dom.loadingOverlay.innerHTML =
-                    '<pre>Data loading error:<br>' + String(e).replace(/^Error:\s*Error:/, 'Error:') + '</pre>' +
-                    '<button onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>';
+                    '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' +
+                    '<pre><div class="view-alert view-alert-danger">Data loading error</div><div class="view-alert view-alert-danger">' + String(e).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
                 console.error('[Discovery] Data load error:', e);
             });
     }
