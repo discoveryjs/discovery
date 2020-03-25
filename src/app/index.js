@@ -4,6 +4,7 @@ import Widget from '../widget/index.js';
 import * as complexViews from '../views/index-complex.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
+import { escapeHtml } from '../core/utils/html.js';
 
 export default class App extends Widget {
     constructor(container, options = {}) {
@@ -126,7 +127,7 @@ export default class App extends Widget {
                 this.dom.loadingOverlay.classList.add('error');
                 this.dom.loadingOverlay.innerHTML =
                     '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' +
-                    '<pre><div class="view-alert view-alert-danger">Data loading error</div><div class="view-alert view-alert-danger">' + String(e).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
+                    '<pre><div class="view-alert view-alert-danger">Data loading error</div><div class="view-alert view-alert-danger">' + escapeHtml(String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
                 console.error('[Discovery] Data load error:', e);
             });
     }
