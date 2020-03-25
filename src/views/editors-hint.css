@@ -1,4 +1,5 @@
-.CodeMirror-hints {
+/* isolate-style-root: discovery-view-editor-hints-popup */
+.discovery-view-editor-hints-popup {
     position: absolute;
     z-index: 10;
     overflow: hidden;
@@ -23,7 +24,7 @@
     line-height: 18px;
 }
 
-.CodeMirror-hint {
+.discovery-view-editor-hint {
     display: flex;
     align-items: baseline;
     margin: 0;
@@ -32,17 +33,17 @@
     color: black;
     cursor: pointer;
 }
-.CodeMirror-hint:hover {
+.discovery-view-editor-hint:hover {
     background-color: #f0f0f0;
 }
 
-.CodeMirror-hint .name {
+.discovery-view-editor-hint .name {
     flex: 1;
 }
-.CodeMirror-hint .match {
+.discovery-view-editor-hint .match {
     color: #06C;
 }
-.CodeMirror-hint .type {
+.discovery-view-editor-hint .type {
     color: #ccc;
     font-family: Tahoma;
     font-style: italic;
@@ -50,11 +51,11 @@
     padding: 0 .5ex 0 2ex;
 }
 
-.CodeMirror-hint.active {
+.discovery-view-editor-hint.active {
     background: rgba(0, 170, 255, .2);
 }
 
-.CodeMirror-cursor .context-hint {
+/* .CodeMirror-cursor .context-hint {
     display: none;
     position: absolute;
     margin-bottom: 1px;
@@ -71,4 +72,4 @@
 }
 .CodeMirror-focused .CodeMirror-cursor .context-hint {
     display: block;
-}
+} */

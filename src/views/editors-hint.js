@@ -7,8 +7,9 @@
 
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 
-const HINT_ELEMENT_CLASS = 'CodeMirror-hint';
-const ACTIVE_HINT_ELEMENT_CLASS = 'active';
+const POPUP_CLASS = 'discovery-view-editor-hints-popup';
+const HINT_CLASS = 'discovery-view-editor-hint';
+const ACTIVE_HINT_CLASS = 'active';
 const requestAnimationFrame = window.requestAnimationFrame || (fn => setTimeout(fn, 1000 / 60));
 const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
@@ -176,26 +177,27 @@ class Widget {
     constructor(completion, data) {
         const cm = completion.cm;
         const hintsEl = this.hintsEl = document.createElement('ul');
+        const hintsElClassNames = [
+            POPUP_CLASS,
+            completion.cm.options.theme,
+            completion.options.isolateStyleMarker
+        ].filter(Boolean);
 
         this.completion = completion;
         this.data = data;
         this.picked = false;
         this.selectedHint = data.selectedHint || 0;
 
-        hintsEl.className = 'CodeMirror-hints ' + completion.cm.options.theme;
+        hintsElClassNames.forEach(className => hintsEl.classList.add(className));
         (completion.options.container || document.body).appendChild(hintsEl);
-
-        if (completion.options.isolateStyleMarker) {
-            hintsEl.classList.add(completion.options.isolateStyleMarker);
-        }
 
         this.items = data.list.map((cur, idx) => {
             const el = hintsEl.appendChild(document.createElement('li'));
 
-            el.className = HINT_ELEMENT_CLASS;
+            el.className = HINT_CLASS;
 
             if (idx === this.selectedHint) {
-                el.classList.add(ACTIVE_HINT_ELEMENT_CLASS);
+                el.classList.add(ACTIVE_HINT_CLASS);
             }
 
             if (cur.render) {
@@ -284,10 +286,10 @@ class Widget {
         }
 
         if (prev) {
-            prev.classList.remove(ACTIVE_HINT_ELEMENT_CLASS);
+            prev.classList.remove(ACTIVE_HINT_CLASS);
         }
 
-        next.classList.add(ACTIVE_HINT_ELEMENT_CLASS);
+        next.classList.add(ACTIVE_HINT_CLASS);
 
         if (next.offsetTop < this.hintsEl.scrollTop) {
             this.hintsEl.scrollTop = next.offsetTop - 3;
