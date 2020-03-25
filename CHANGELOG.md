@@ -1,7 +1,10 @@
-## next
+## 1.0.0-beta.30 (25-03-2020)
 
 - Added missed escaping for brackets in `safeFilterRx`
-- Added missed style isolate marker for editors hints popup
+- Fixed style isolation for editors hints popup
+- Improved overall CSS style isolation
+- Added `dist/discovery.raw.css` to package, a file with no style isolation
+- Improved error output on loading overlay
 
 ## 1.0.0-beta.29 (24-02-2020)
 
