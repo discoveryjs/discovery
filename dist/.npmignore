@@ -1,7 +1,5 @@
 *
 !discovery.js
-!discovery.min.js
 !discovery.*.js
-!discovery.*.min.js
 !discovery.css
-!discovery.min.css
+!discovery.*.css
