@@ -684,13 +684,21 @@ export default function(discovery) {
                     if (map.dictMode) {
                         map.dictMode = null;
                     } else {
-                        map.dictMode = {
+                        const dictMode = map.dictMode = {
                             keys: new Set(),
                             count: 0,
                             map: Object.create(null)
                         };
+                        map.forEach((_, value) => {
+                            for (const key in value) {
+                                if (hasOwnProperty.call(value, key)) {
+                                    dictMode.keys.add(key);
+                                    dictMode.count++;
+                                    collectStat(value[key], 1, dictMode.map);
+                                }
+                            }
+                        });
                     }
-                    map.forEach((_, value) => collectObjectMap(value, 1, map));
                     break;
 
                 default:
