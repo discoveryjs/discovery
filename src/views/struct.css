@@ -43,7 +43,21 @@
     background: #fcfcfc;
     cursor: pointer;
 }
-.view-struct .show-signature {
+.view-struct.struct-expand:hover,
+.view-struct .struct-expand-value:hover,
+.view-struct .struct-action-button:hover,
+.view-struct .discovery-view-popup-active {
+    color: #333;
+    background: #eee;
+    border-color: #d0d0d0;
+}
+.view-struct .sort-keys > .struct-action-button[data-action="toggle-sort-keys"],
+.view-struct .string-value-as-text > .struct-action-button[data-action="toggle-string-mode"] {
+    color: #686;
+    background: #e5f7e5;
+    border-color: #d0e0d0;
+}
+.view-struct .struct-action-button[data-action="show-signature"] {
     cursor: default;
 }
 @media (hover:none), (hover:on-demand) { 
@@ -53,36 +67,29 @@
         background: white;
         border-color: #e0e0e0;
     }
-    .view-struct .show-signature {
+    .view-struct .struct-action-button[data-action="show-signature"] {
         cursor: pointer;
     }    
 }
-.discovery-view-popup .view-struct .show-signature { /* FIXME: temporary, until multiple popups support */
+.discovery-view-popup .view-struct .struct-action-button[data-action="show-signature"] { /* FIXME: temporary, until multiple popups support */
     display: none;
 }
-.view-struct .struct-collapse-value::before {
+.view-struct .struct-action-button[data-action="collapse"]::before {
     content: "–";
 }
-.view-struct .show-signature::before {
+.view-struct .struct-action-button[data-action="show-signature"]::before {
     content: "𝕊";
 }
-.view-struct .string-as-text-toggle::before {
-    content: "as text";
-}
-.view-struct .string-value-as-text .string-as-text-toggle::before {
-    content: "as value";
-}
-.view-struct .value-actions::before {
+.view-struct .struct-action-button[data-action="value-actions"]::before {
     content: "ƒ";
 }
-.view-struct.struct-expand:hover,
-.view-struct .struct-expand-value:hover,
-.view-struct .struct-action-button:hover,
-.view-struct .discovery-view-popup-active {
-    color: #333;
-    background: #eee;
-    border-color: #d0d0d0;
+.view-struct .struct-action-button[data-action="toggle-sort-keys"]::before {
+    content: "keys ↓";
 }
+.view-struct .struct-action-button[data-action="toggle-string-mode"]::before {
+    content: "as text";
+}
+
 .view-struct .entry-line {
     white-space: nowrap;
     padding-left: 4ch;

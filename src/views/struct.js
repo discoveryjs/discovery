@@ -11,19 +11,68 @@ const defaultCollapsedItemsLimit = 4;
 const maxStringLength = 150;
 const maxLinearStringLength = 50;
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
+
+const valueButtons = {
+    get collapse() {
+        return createElement('span', {
+            class: 'struct-action-button struct-collapse-value',
+            'data-action': 'collapse'
+        });
+    },
+    get signature() {
+        return createElement('span', {
+            class: 'struct-action-button show-signature',
+            'data-action': 'show-signature'
+        });
+    },
+    get actions() {
+        return createElement('span', {
+            class: 'struct-action-button',
+            title: 'Value actions',
+            'data-action': 'value-actions'
+        });
+    },
+    get stringMode() {
+        return createElement('span', {
+            class: 'struct-action-button',
+            title: 'Toggle string show mode',
+            'data-action': 'toggle-string-mode'
+        });
+    },
+    get sortKeys() {
+        return createElement('span', {
+            class: 'struct-action-button',
+            title: 'Toggle key sorting',
+            'data-action': 'toggle-sort-keys'
+        });
+    }
+};
 const stringValueProto = createFragment(
     '"',
-    createElement('span', 'struct-action-button struct-collapse-value'),
-    createElement('span', 'struct-action-button value-actions'),
-    createElement('span', 'struct-action-button string-as-text-toggle'),
+    valueButtons.collapse,
+    valueButtons.actions,
+    valueButtons.stringMode,
     createElement('span', 'string-length'),
     createElement('span', 'string-text-wrapper', [
         createElement('span', 'string-text')
     ]),
     '"'
 );
-const arrayValueProto = createFragment('[', ...createActionButtons(), ']');
-const objectValueProto = createFragment('{', ...createActionButtons(), '}');
+const arrayValueProto = createFragment(
+    '[',
+    valueButtons.collapse,
+    valueButtons.signature,
+    valueButtons.actions,
+    ']'
+);
+const objectValueProto = createFragment(
+    '{',
+    valueButtons.collapse,
+    valueButtons.signature,
+    valueButtons.actions,
+    valueButtons.sortKeys,
+    '}'
+);
 const entryProtoEl = createElement('div', 'entry-line');
 const valueProtoEl = createElement('span', 'value');
 const objectKeyProtoEl = createElement('span', 'label', [
@@ -31,14 +80,6 @@ const objectKeyProtoEl = createElement('span', 'label', [
     createElement('span', 'property'),
     ':\xA0'
 ]);
-
-function createActionButtons() {
-    return [
-        createElement('span', 'struct-action-button struct-collapse-value'),
-        createElement('span', 'struct-action-button show-signature'),
-        createElement('span', 'struct-action-button value-actions')
-    ];
-}
 
 function token(type, str) {
     return `<span class="${type}">${str}</span>`;
@@ -190,7 +231,7 @@ export default function(discovery) {
         el.innerHTML = value2htmlString(data, false, options);
     }
 
-    function expandValue(el, autoExpandLimit) {
+    function expandValue(el, autoExpandLimit, sort) {
         const options = elementOptions.get(el);
         const data = elementData.get(el);
 
@@ -224,7 +265,13 @@ export default function(discovery) {
             el.innerHTML = '';
             el.appendChild(objectValueProto.cloneNode(true));
 
-            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, data) => {
+            const entries = Object.entries(data);
+
+            if (sort) {
+                entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+            }
+
+            renderEntries(el, el.lastChild, entries, (entryEl, key, data) => {
                 renderObjectKey(entryEl, key);
                 renderValue(entryEl, data, {
                     ...options,
@@ -399,52 +446,68 @@ export default function(discovery) {
     });
 
     const clickHandler = ({ target }) => {
+        let action = 'expand';
         let cursor = target.closest(`
             .view-struct.struct-expand,
             .view-struct .struct-expand-value,
-            .view-struct .struct-collapse-value,
-            .view-struct .show-signature,
-            .view-struct .string-as-text-toggle,
-            .view-struct .value-actions
+            .view-struct .struct-action-button
         `);
 
         if (!cursor) {
             return;
         }
 
-        if (cursor.classList.contains('struct-expand')) {
-            // root element
-            cursor.classList.remove('struct-expand');
-            expandValue(cursor.lastChild, 0);
-        } else if (cursor.classList.contains('struct-expand-value')) {
-            // expander
-            expandValue(cursor, 0);
-            cursor.parentNode.classList.add('struct-expanded-value');
+        if (cursor.dataset.action) {
+            action = cursor.dataset.action;
+        }
 
-            if (structViewRoots.has(cursor.parentNode)) {
-                cursor.parentNode.classList.remove('struct-expand');
-            }
-        } else if (cursor.classList.contains('struct-collapse-value')) {
-            // collapser
-            cursor = cursor.parentNode;
-            collapseValue(cursor);
-            cursor.parentNode.classList.remove('struct-expanded-value');
+        switch (action) {
+            case 'expand':
+                if (cursor.classList.contains('struct-expand')) {
+                    // expand root element
+                    cursor = cursor.lastChild;
+                }
 
-            if (structViewRoots.has(cursor.parentNode)) {
-                cursor.parentNode.classList.add('struct-expand');
-            }
-        } else if (cursor.classList.contains('string-as-text-toggle')) {
-            const stringTextNode = cursor.parentNode.querySelector('.string-text').firstChild;
+                // expand value
+                expandValue(cursor, 0);
+                cursor.parentNode.classList.add('struct-expanded-value');
 
-            stringTextNode.nodeValue = cursor.parentNode.classList.toggle('string-value-as-text')
-                ? JSON.parse(`"${stringTextNode.nodeValue}"`)
-                : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
-        } else if (cursor.classList.contains('show-signature')) {
-            // signature
-            signaturePopup.show(cursor);
-        } else if (cursor.classList.contains('value-actions')) {
-            // actions
-            valueActionsPopup.show(cursor);
+                if (structViewRoots.has(cursor.parentNode)) {
+                    cursor.parentNode.classList.remove('struct-expand');
+                }
+                break;
+
+            case 'collapse':
+                cursor = cursor.parentNode;
+                collapseValue(cursor);
+                cursor.parentNode.classList.remove('struct-expanded-value');
+
+                if (structViewRoots.has(cursor.parentNode)) {
+                    cursor.parentNode.classList.add('struct-expand');
+                }
+                break;
+
+            case 'show-signature':
+                signaturePopup.show(cursor);
+                break;
+
+            case 'value-actions':
+                valueActionsPopup.show(cursor);
+                break;
+
+            case 'toggle-sort-keys':
+                expandValue(cursor.parentNode, 0, cursor.parentNode.classList.toggle('sort-keys'));
+                break;
+
+            case 'toggle-string-mode':
+                cursor = cursor.parentNode;
+
+                const stringTextNode = cursor.querySelector('.string-text').firstChild;
+
+                stringTextNode.nodeValue = cursor.classList.toggle('string-value-as-text')
+                    ? JSON.parse(`"${stringTextNode.nodeValue}"`)
+                    : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
+                break;
         }
     };
 
