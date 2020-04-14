@@ -1,3 +1,7 @@
+## next
+
+- Added `whenData` common option to view config
+
 ## 1.0.0-beta.30 (25-03-2020)
 
 - Added missed escaping for brackets in `safeFilterRx`

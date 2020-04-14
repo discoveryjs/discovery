@@ -31,6 +31,14 @@ function createDefaultConfigErrorView(view) {
     };
 };
 
+function condition(type, host, config, data, context) {
+    if (type in config === false) {
+        return true;
+    }
+
+    return host.queryBool(config[type] === true ? '' : config[type], data, context);
+}
+
 function renderDom(renderer, placeholder, config, data, context) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
@@ -126,7 +134,7 @@ function render(container, config, data, context) {
         container = document.createDocumentFragment();
     }
 
-    if ('when' in config === false || this.host.queryBool(config.when, data, context)) {
+    if ('when' in config === false || condition('when', this.host, config, data, context)) {
         // immediately append a view insert point (a placeholder)
         const placeholder = container.appendChild(document.createComment(''));
 
@@ -138,7 +146,11 @@ function render(container, config, data, context) {
                     ? this.host.query(config.data, data, context)
                     : data
             )
-            .then(data => renderDom(renderer, placeholder, config, data, context))
+            .then(data =>
+                condition('whenData', this.host, config, data, context)
+                    ? renderDom(renderer, placeholder, config, data, context)
+                    : placeholder.remove()
+            )
             .catch(e => {
                 renderDom(this.get('alert-danger'), placeholder, {}, e);
                 console.error(e);
