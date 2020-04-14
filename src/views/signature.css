@@ -44,7 +44,7 @@
     content: "–";
 }
 .view-signature [data-action="dict-mode"]::before {
-    content: "dict mode";
+    content: "dict";
 }
 .view-signature [data-action="sort-keys"]::before {
     content: "keys ↓";

@@ -183,9 +183,9 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
 
                 case 'object': {
                     const values = stat[type];
-                    const { properties, dictMode, sortKeys } = stat[type];
+                    const { properties, dictMode, sortKeys } = values;
 
-                    if (properties === null && dictMode === null) {
+                    if (properties === null) {
                         elementToData.set(el.appendChild(createElement('span', 'expand', '{…}')), {
                             type: 'expand',
                             path,
@@ -195,25 +195,39 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
                         break;
                     }
 
-                    const valuesCount = values.size;
-                    const entries = dictMode ? [['[key]', dictMode]] : [...properties.entries()];
-                    const propertyOffset = offset + '    ';
-
-                    if (entries.length === 0) {
+                    if (properties.size === 0) {
                         el.appendChild(createElement('span', 'object', '{}'));
                         break;
                     }
 
+                    const valuesCount = values.size;
+                    const entries = dictMode ? [['[key]', dictMode]] : [...properties.entries()];
+                    const propertyOffset = offset + '    ';
                     const contentEl = el.appendChild(createElement('span', 'object', [
                         '{',
-                        createElement('span', { 'data-action': 'collapse' }),
-                        createElement('span', { 'data-action': 'dict-mode', 'data-enabled': dictMode !== null })
+                        createElement('span', {
+                            'data-action': 'collapse'
+                        })
                     ]));
 
-                    if (dictMode === null) {
+                    if (properties.size > 1) {
                         contentEl.appendChild(
-                            createElement('span', { 'data-action': 'sort-keys', 'data-enabled': sortKeys })
+                            createElement('span', {
+                                title: 'Toggle dictionary mode (collapse all the values in a single signature)',
+                                'data-action': 'dict-mode',
+                                'data-enabled': dictMode !== null
+                            })
                         );
+
+                        if (entries.some(([key], idx) => idx !== 0 && key < entries[idx - 1][0])) {
+                            contentEl.appendChild(
+                                createElement('span', {
+                                    title: 'Toggle keys sorting',
+                                    'data-action': 'sort-keys',
+                                    'data-enabled': sortKeys
+                                })
+                            );
+                        }
                     }
 
                     elementToData.set(contentEl, {
@@ -668,10 +682,8 @@ export default function(discovery) {
 
                 case 'dict-mode':
                     if (map.dictMode) {
-                        map.properties = new Map();
                         map.dictMode = null;
                     } else {
-                        map.properties = null;
                         map.dictMode = {
                             keys: new Set(),
                             count: 0,
@@ -679,7 +691,6 @@ export default function(discovery) {
                         };
                     }
                     map.forEach((_, value) => collectObjectMap(value, 1, map));
-                    console.log('dict-mode', map.dictMode);
                     break;
 
                 default:
