@@ -195,6 +195,7 @@ export default class Widget extends Emitter {
     }
 
     setData(data, context = {}) {
+        const startTime = Date.now();
         const setDataPromise = Promise
             .resolve(this.prepare(data, value => data = value))
             .then(() => {  // TODO: use prepare ret
@@ -209,6 +210,7 @@ export default class Widget extends Emitter {
                 this.context = context;
 
                 this.emit('data');
+                console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
             });
 
         // mark as last setData promise
