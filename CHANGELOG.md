@@ -1,6 +1,8 @@
 ## next
 
 - Added `whenData` common option to view config
+- Added "sort keys" and "dict mode" actions for objects in `signature` view
+- Fixed edge cases for value stat output in `signature` view
 
 ## 1.0.0-beta.30 (25-03-2020)
 

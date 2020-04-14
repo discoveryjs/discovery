@@ -24,20 +24,31 @@
     color: #333;
     cursor: pointer;
 }
-.view-signature .collapse {
+.view-signature [data-action] {
     margin-left: 2px;
     padding: 1px 4px;
-    border: 1px solid #eee;
-    border-radius: 3px;
     font-size: 8px;
     color: #ddd;
     background: #fcfcfc;
+    border: 1px solid #eee;
+    border-radius: 3px;
     cursor: pointer;
 }
-.view-signature .collapse::before {
+.view-signature [data-action][data-enabled=true] {
+    color: #666;
+    background: #f0f0f0;
+    border-color: #e0e0e0;
+}
+.view-signature [data-action="collapse"]::before {
     content: "–";
 }
-.view-signature .collapse:hover {
+.view-signature [data-action="dict-mode"]::before {
+    content: "dict mode";
+}
+.view-signature [data-action="sort-keys"]::before {
+    content: "keys ↓";
+}
+.view-signature [data-action]:hover {
     color: #333;
     background: #eee;
     border-color: #d0d0d0;

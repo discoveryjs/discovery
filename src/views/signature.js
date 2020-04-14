@@ -64,14 +64,19 @@ function collectObjectMap(value, expanded, objectStat) {
 
         let propMap;
 
-        if (key in objectStat.properties) {
-            propMap = objectStat.properties[key];
+        if (objectStat.dictMode) {
+            propMap = objectStat.dictMode;
+            propMap.count++;
+            propMap.keys.add(key);
+        } else if (objectStat.properties.has(key)) {
+            propMap = objectStat.properties.get(key);
             propMap.count++;
         } else {
-            propMap = objectStat.properties[key] = {
+            propMap = {
                 count: 1,
                 map: Object.create(null)
             };
+            objectStat.properties.set(key, propMap);
         }
 
         collectStat(value[key], expanded - 1, propMap.map);
@@ -79,12 +84,11 @@ function collectObjectMap(value, expanded, objectStat) {
 }
 
 function collectStat(value, expanded, stat = Object.create(null)) {
-    const type =
-        value === null
-            ? 'null'
-            : Array.isArray(value)
-                ? 'array'
-                : typeof value;
+    const type = value === null
+        ? 'null'
+        : Array.isArray(value)
+            ? 'array'
+            : typeof value;
 
     switch (type) {
         default:
@@ -99,7 +103,9 @@ function collectStat(value, expanded, stat = Object.create(null)) {
             if ('object' in stat === false) {
                 stat.object = new Map();
                 stat.object.count = 0;
-                stat.object.properties = Object.create(null);
+                stat.object.properties = new Map();
+                stat.object.dictMode = null;
+                stat.object.sortKeys = false;
             }
 
             stat.object.count++;
@@ -177,9 +183,9 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
 
                 case 'object': {
                     const values = stat[type];
-                    const { properties } = stat[type];
+                    const { properties, dictMode, sortKeys } = stat[type];
 
-                    if (properties === null) {
+                    if (properties === null && dictMode === null) {
                         elementToData.set(el.appendChild(createElement('span', 'expand', '{…}')), {
                             type: 'expand',
                             path,
@@ -190,14 +196,28 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
                     }
 
                     const valuesCount = values.size;
+                    const entries = dictMode ? [['[key]', dictMode]] : [...properties.entries()];
                     const propertyOffset = offset + '    ';
+
+                    if (entries.length === 0) {
+                        el.appendChild(createElement('span', 'object', '{}'));
+                        break;
+                    }
+
                     const contentEl = el.appendChild(createElement('span', 'object', [
                         '{',
-                        createElement('span', 'collapse')
+                        createElement('span', { 'data-action': 'collapse' }),
+                        createElement('span', { 'data-action': 'dict-mode', 'data-enabled': dictMode !== null })
                     ]));
 
+                    if (dictMode === null) {
+                        contentEl.appendChild(
+                            createElement('span', { 'data-action': 'sort-keys', 'data-enabled': sortKeys })
+                        );
+                    }
+
                     elementToData.set(contentEl, {
-                        type: 'collapse',
+                        type: 'shape',
                         path,
                         map: stat[type],
                         offset
@@ -207,9 +227,12 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
                         contentEl.appendChild(createElement('span', 'count')).dataset.value = String(valuesCount);
                     }
 
-                    for (let name in properties) {
+                    if (sortKeys) {
+                        entries.sort(([a], [b]) => a < b ? -1 : (a > b ? 1 : 0));
+                    }
+
+                    for (const [name, { count, map }] of entries) {
                         const propertyEl = createElement('span', 'property', [name]); // NOTE: name w/o brackets inserted as HTML
-                        const { count, map } = properties[name];
 
                         elementToData.set(propertyEl, {
                             type: 'property',
@@ -222,7 +245,7 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
                         contentEl.appendChild(createText(`\n${propertyOffset}`));
                         contentEl.appendChild(propertyEl);
 
-                        if (count !== valuesCount) {
+                        if (count !== valuesCount && dictMode === null) {
                             propertyEl.appendChild(createElement('span', 'optional', '?'));
                         }
 
@@ -251,8 +274,8 @@ function renderStat(el, stat, elementToData, path = [], offset = '') {
 }
 
 function renderPropertyDetails(el, data, discovery) {
-    const { count, map } = data.stat.object.properties[data.name];
-    const total = data.stat.object.count;
+    const { count, map } = data.stat.object.dictMode || data.stat.object.properties.get(data.name);
+    const total = (data.stat.object.dictMode || data.stat.object).count;
     const output = {
         name: data.name,
         path: data.path,
@@ -336,9 +359,9 @@ function renderTypeStat(el, { map, count }, discovery) {
         ]
     }, typeStat);
 
-    types.forEach((name) => {
-        renderTypeDetails(el, { name, stat: map }, discovery);
-    });
+    types.forEach(name =>
+        renderTypeDetails(el, { name, stat: map }, discovery)
+    );
 }
 
 function renderTypeDetails(el, data, discovery) {
@@ -379,6 +402,7 @@ function renderTypeDetails(el, data, discovery) {
             });
 
             output = {
+                type: data.name,
                 count,
                 distinct: stat.size,
                 duplicated,
@@ -389,15 +413,17 @@ function renderTypeDetails(el, data, discovery) {
                 values: values.sort((a, b) => b.count - a.count || a.value - b.value)
             };
 
-            renderSections.push({
-                view: 'block',
-                className: 'overview-stat',
-                content: `html:
-                    "range: (min) <span class=\\"num\\">" + min + "</span> ... " +
-                    "<span class=\\"num\\">" + max + "</span> (max), " +
-                    "avg: <span class=\\"num\\">" + avg + "</span>"
-                `
-            });
+            if (output.distinct > 1) {
+                renderSections.push({
+                    view: 'block',
+                    className: 'overview-stat',
+                    content: `html:
+                        "range: (min) <span class=\\"num\\">" + min + "</span> ... " +
+                        "<span class=\\"num\\">" + max + "</span> (max), " +
+                        "avg: <span class=\\"num\\">" + avg + "</span>"
+                    `
+                });
+            }
 
             break;
         }
@@ -421,6 +447,7 @@ function renderTypeDetails(el, data, discovery) {
             });
 
             output = {
+                type: data.name,
                 count,
                 distinct: stat.size,
                 duplicated,
@@ -438,11 +465,13 @@ function renderTypeDetails(el, data, discovery) {
             view: 'block',
             className: 'overview-stat',
             content: [
-                'html:"<span class=\\"num\\">" + count + "</span> values, "',
+                'html:"<span class=\\"num\\">" + count + "</span> " + (count > 1 ? "values, " : "value")',
                 {
                     view: 'switch',
+                    when: 'count > 1',
                     content: [
-                        { when: 'count = distinct', content: 'text:"all unique, no duplicates"' },
+                        { when: 'distinct = 1', content: 'text:"a single unique value:"' },
+                        { when: 'distinct = count', content: 'text:"all unique, no duplicates"' },
                         { content: [
                             'html:"<span class=\\"num\\">" + distinct + "</span> unique, "',
                             'html:duplicated = distinct ? "all occur more than once" : "<span class=\\"num\\">" + duplicated + "</span> occur more than once"'
@@ -452,8 +481,7 @@ function renderTypeDetails(el, data, discovery) {
             ]
         });
 
-        if (output.values &&
-            output.values.length > 1 &&
+        if (output.values.length > 1 &&
             output.duplicated &&
             data.name !== 'object' &&  // exclude object and array since we can't presentate those values in legend in short at the moment
             data.name !== 'array') {
@@ -518,28 +546,37 @@ function renderTypeDetails(el, data, discovery) {
             }
         }
 
-        if (data.name === 'number' || data.name === 'string') {
-            renderSections.push({
-                view: 'content-filter',
-                name: 'filter',
-                content: {
-                    view: 'menu',
-                    data: 'values.[no #.filter or value~=#.filter].sort(<value>)',
-                    item: [
-                        {
-                            view: 'block',
-                            className: 'caption',
-                            content: 'text-match:{ text: value, match: #.filter }'
-                        },
-                        {
-                            view: 'block',
-                            when: 'count > 1',
-                            className: 'count',
-                            content: 'text:" × " + count'
-                        }
-                    ]
-                }
-            });
+        if (output.values.length > 1) {
+            if (data.name === 'number' || data.name === 'string') {
+                renderSections.push({
+                    view: 'content-filter',
+                    name: 'filter',
+                    content: {
+                        view: 'menu',
+                        data: 'values.[no #.filter or value~=#.filter].sort(<value>)',
+                        item: [
+                            {
+                                view: 'block',
+                                className: 'caption',
+                                content: 'text-match:{ text: value, match: #.filter }'
+                            },
+                            {
+                                view: 'block',
+                                when: 'count > 1',
+                                className: 'count',
+                                content: 'text:" × " + count'
+                            }
+                        ]
+                    }
+                });
+            }
+        } else {
+            if (data.name === 'number' || data.name === 'string' || data.name === 'boolean') {
+                renderSections.push({
+                    view: 'struct',
+                    data: 'values.pick().value'
+                });
+            }
         }
 
         if (data.name === 'object') {
@@ -601,30 +638,57 @@ function renderTypeDetails(el, data, discovery) {
 export default function(discovery) {
     const elementToData = new WeakMap();
     const clickHandler = ({ target }) => {
+        let action = 'expand';
         let activeEl = target.closest(`
             .view-signature .expand,
-            .view-signature .collapse
+            .view-signature [data-action]
         `);
 
         if (!activeEl) {
             return;
         }
 
-        if (activeEl.classList.contains('collapse')) {
+        if (activeEl.dataset.action) {
+            action = activeEl.dataset.action;
             activeEl = activeEl.parentNode;
         }
 
         const data = elementToData.get(activeEl);
 
+        console.log(activeEl, data);
+
         if (data) {
             const { path, map, offset } = data;
             const fragment = createFragment();
 
-            if (map.properties === null) {
-                map.properties = Object.create(null);
-                map.forEach((_, value) => collectObjectMap(value, 1, map));
-            } else {
-                map.properties = null;
+            switch (action) {
+                case 'sort-keys':
+                    map.sortKeys = !map.sortKeys;
+                    break;
+
+                case 'dict-mode':
+                    if (map.dictMode) {
+                        map.properties = new Map();
+                        map.dictMode = null;
+                    } else {
+                        map.properties = null;
+                        map.dictMode = {
+                            keys: new Set(),
+                            count: 0,
+                            map: Object.create(null)
+                        };
+                    }
+                    map.forEach((_, value) => collectObjectMap(value, 1, map));
+                    console.log('dict-mode', map.dictMode);
+                    break;
+
+                default:
+                    if (map.properties === null) {
+                        map.properties = new Map();
+                        map.forEach((_, value) => collectObjectMap(value, 1, map));
+                    } else {
+                        map.properties = null;
+                    }
             }
 
             renderStat(fragment, { object: map }, elementToData, path, offset);
