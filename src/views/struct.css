@@ -122,6 +122,7 @@
     color: #527a00;
     text-decoration-color: currentColor;
 }
+.view-struct .value-size,
 .view-struct .string-length {
     padding-left: 6px;
     color: #ccc;

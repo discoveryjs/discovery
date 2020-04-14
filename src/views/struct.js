@@ -63,6 +63,7 @@ const arrayValueProto = createFragment(
     valueButtons.collapse,
     valueButtons.signature,
     valueButtons.actions,
+    createElement('span', 'value-size'),
     ']'
 );
 const objectValueProto = createFragment(
@@ -71,6 +72,7 @@ const objectValueProto = createFragment(
     valueButtons.signature,
     valueButtons.actions,
     valueButtons.sortKeys,
+    createElement('span', 'value-size'),
     '}'
 );
 const entryProtoEl = createElement('div', 'entry-line');
@@ -250,11 +252,14 @@ export default function(discovery) {
             appendText(stringValueEl.previousSibling, `length: ${text.length} chars`);
         } else if (Array.isArray(data)) {
             // array
+            const entries = Object.entries(data);
+
             el.innerHTML = '';
             el.appendChild(arrayValueProto.cloneNode(true));
 
-            renderEntries(el, el.lastChild, Object.entries(data), (entryEl, key, data) => {
-                renderValue(entryEl, data, {
+            renderValueSize(el, entries, 'elements');
+            renderEntries(el, el.lastChild, entries, (entryEl, key, value) => {
+                renderValue(entryEl, value, {
                     ...options,
                     autoExpandLimit,
                     path: options.path.concat(Number(key))
@@ -262,23 +267,37 @@ export default function(discovery) {
             }, 0, options.limit);
         } else {
             // object
+            const entries = Object.entries(data);
+
             el.innerHTML = '';
             el.appendChild(objectValueProto.cloneNode(true));
 
-            const entries = Object.entries(data);
-
-            if (sort) {
-                entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-            }
-
-            renderEntries(el, el.lastChild, entries, (entryEl, key, data) => {
+            renderValueSize(el, entries, 'entries');
+            renderSorting(el, entries, sort);
+            renderEntries(el, el.lastChild, entries, (entryEl, key, value) => {
                 renderObjectKey(entryEl, key);
-                renderValue(entryEl, data, {
+                renderValue(entryEl, value, {
                     ...options,
                     autoExpandLimit,
                     path: options.path.concat(key)
                 });
             }, 0, options.limit);
+        }
+    }
+
+    function renderValueSize(el, entries, unit) {
+        if (entries.length > 1) {
+            appendText(el.lastElementChild, entries.length + ' ' + unit);
+        }
+    }
+
+    function renderSorting(el, entries, sort) {
+        let sorted = entries.length <= 1 || entries.every(([key], idx) => idx === 0 || key > entries[idx - 1][0]);
+
+        if (sorted) {
+            el.querySelector('[data-action="toggle-sort-keys"]').remove();
+        } else if (sort) {
+            entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
         }
     }
 

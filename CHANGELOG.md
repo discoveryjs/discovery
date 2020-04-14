@@ -1,6 +1,7 @@
 ## next
 
 - Added `whenData` common option to view config
+- Added object/array size hint in `struct` view
 - Added "sort keys" toggle for objects in `struct` view
 - Added "sort keys" and "dict mode" actions for objects in `signature` view
 - Fixed edge cases for value stat output in `signature` view
