@@ -6,6 +6,7 @@
 - Added "sort keys" and "dict mode" actions for objects in `signature` view
 - Fixed edge cases for value stat output in `signature` view
 - Changed `utils.createElement()` to ignore attributes with not own keys or `undefined` value
+- Fixed scrolling issue for `tabs` view when used in sidebar
 
 ## 1.0.0-beta.30 (25-03-2020)
 
