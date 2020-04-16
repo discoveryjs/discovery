@@ -10,10 +10,16 @@ export function createElement(tag, attrs, children) {
     }
 
     for (let attrName in attrs) {
-        if (attrName.startsWith('on')) {
-            el.addEventListener(attrName.substr(2), attrs[attrName]);
-        } else {
-            el.setAttribute(attrName, attrs[attrName]);
+        if (hasOwnProperty.call(attrs, attrName)) {
+            if (attrs[attrName] === undefined) {
+                continue;
+            }
+
+            if (attrName.startsWith('on')) {
+                el.addEventListener(attrName.substr(2), attrs[attrName]);
+            } else {
+                el.setAttribute(attrName, attrs[attrName]);
+            }
         }
     }
 
