@@ -50,7 +50,7 @@ function valueDescriptor(value) {
         return `Object (${keys.length ? `${keys.length} ${keys.length > 1 ? 'keys' : 'key'}` : 'empty'})`;
     }
 
-    return `Scalar (${value === 'null' ? 'null' : typeof value})`;
+    return `Scalar (${value === null ? 'null' : typeof value})`;
 }
 
 function encodeSearchParamPair(name, value) {
@@ -144,7 +144,7 @@ export default function(discovery) {
 
     function createPresetTab(name, content) {
         return createElement('div', {
-            class: 'tab',
+            class: 'report-editor-tab',
             onclick: () => updateParams({
                 view: content // JSON.stringify(content, null, 4)
             })
@@ -189,7 +189,7 @@ export default function(discovery) {
                 viewDateTimeEl = createElement('span')
             ])
         ]),
-        createElement('div', 'data-query-view-options', [
+        createElement('div', 'report-actions', [
             noeditToggleEl = createElement('button', {
                 class: 'edit-mode',
                 title: 'Toggle edit mode',
@@ -286,21 +286,21 @@ export default function(discovery) {
         viewLiveEditEl.checked && updateParams({ view: value }, true)
     );
     const viewEditorButtonsEl = createElement('div', 'buttons');
-    const viewEditorFormEl = createElement('div', 'view-editor-form', [
-        createElement('div', 'tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
+    const viewEditorFormEl = createElement('div', 'form view-editor-form', [
+        createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
             createElement('div', {
-                class: 'tab',
+                class: 'report-editor-tab',
                 'data-mode': viewMode.toLowerCase(),
                 onclick: () => updateParams({
                     view: viewMode === 'Default' ? undefined : defaultViewSource
                 }, true)
             }, viewMode)
         )),
-        /* availablePresetListEl = */createElement('div', 'tabs presets', viewPresets.map(({ name, content }) =>
+        /* availablePresetListEl = */createElement('div', 'report-editor-tabs presets', viewPresets.map(({ name, content }) =>
             createPresetTab(name, content)
         )),
         viewSetupEl = createElement('div', {
-            class: 'view-editor',
+            class: 'view-editor-form-content',
             hidden: true
         }, [
             createElement('button', {
@@ -323,9 +323,9 @@ export default function(discovery) {
             }),
             viewEditor.el,
             createElement('div', 'editor-toolbar', [
-                createElement('div', 'editor-toolbar-view-dict', [
+                createElement('div', 'view-editor-view-list', [
                     createText('Available views: '),
-                    availableViewListEl = createElement('span', 'editor-toolbar-view-list')
+                    availableViewListEl = createElement('span')
                 ]),
                 createElement('label', null, [
                     viewLiveEditEl = createElement('input', {
@@ -360,7 +360,7 @@ export default function(discovery) {
     // sync view list
     const updateAvailableViewList = () =>
         availableViewListEl.innerHTML = discovery.view.names
-            .map(name => `<span class="view">${name}</span>`)
+            .map(name => `<span class="item">${name}</span>`)
             .join(', ');
 
     updateAvailableViewList();
@@ -375,7 +375,7 @@ export default function(discovery) {
     //
     // Report form & content
     //
-    const reportEditFormEl = createElement('div', { class: 'report-editor', hidden: true }, [
+    const reportEditorEl = createElement('div', { class: 'report-editor', hidden: true }, [
         queryEditorFormEl,
         queryEditorResultEl,
         viewEditorFormEl
@@ -395,7 +395,7 @@ export default function(discovery) {
         let results = null;
 
         // process noedit setting
-        reportEditFormEl.hidden = context.params.noedit;
+        reportEditorEl.hidden = context.params.noedit;
         noeditToggleEl.classList.toggle('disabled', context.params.noedit);
 
         // update report title
@@ -421,7 +421,7 @@ export default function(discovery) {
                 reportContentEl.hidden = false;
             } catch (e) {
                 lastQuery = {};
-                queryEditorResultEl.innerHTML = '<div class="error">' + escapeHtml(e.message) + '</div>';
+                queryEditorResultEl.innerHTML = '<div class="report-error query-error">' + escapeHtml(e.message) + '</div>';
                 viewEditorFormEl.hidden = true;
                 reportContentEl.hidden = true;
                 return;
@@ -464,7 +464,7 @@ export default function(discovery) {
                 discovery.view.render(reportContentEl, view, results, context);
             } catch (e) {
                 discovery.view.render(reportContentEl, el => {
-                    el.className = 'view-build-error';
+                    el.className = 'report-error render-error';
                     el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
                     console.error(e);
                 });
@@ -482,7 +482,7 @@ export default function(discovery) {
         init(el) {
             [
                 headerEl,
-                reportEditFormEl,
+                reportEditorEl,
                 reportContentEl
             ].forEach(child => {
                 el.appendChild(child);

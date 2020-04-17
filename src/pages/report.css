@@ -1,84 +1,18 @@
-.discovery[data-dzen] .page-report > :not(.report-content),
-.discovery[data-dzen] .page-report .view-editor-form {
-    display: none;
-}
+@import url('./report-header.css');
+@import url('./report-editor-common.css');
+@import url('./report-editor-query.css');
+@import url('./report-editor-view.css');
+
 .page-report {
     padding-top: 0;
 }
-.page-report .editor-toolbar {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-}
-.page-report .editor-toolbar label {
-    padding: 4px;
-    margin: 0 1ex;
-    white-space: nowrap;
-}
-.page-report .editor-toolbar .syntax-hint {
-    padding-left: 10px;
-    flex: 1;
-    color: #aaa;
-    font-size: 12px;
-}
-.page-report .report-editor textarea {
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 9em;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 12px;
-    line-height: 18px; 
-    border-color: #aaa;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
-    resize: vertical;
-}
-.page-report .report-editor textarea:focus {
-    border-color: #0af;
-    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
-    outline: 0;
-}
-.page-report .data-query-result {
-    margin: 1em 0 1em -40px;
-    overflow: hidden;
-}
-.page-report .view-editor-form {
-    margin: 0 -40px 12px;
-}
-.page-report .view-editor-form .tabs {
-    overflow: hidden;
-    display: inline-block;
-    vertical-align: top;
-}
-.page-report .view-editor-form .tabs.presets {
-    margin-left: 3ex;
-}
-.page-report .data-query-result::before,
-.page-report .view-editor-form .tabs::before {
-    padding: 3px 4px;
-    width: 40px;
-    text-align: right;
-    box-sizing: border-box;
-    font-size: 11px;
-    color: #aaa;
-}
-.page-report .data-query-result::before {
-    float: left;
-    content: 'Data:';
-}
-.page-report .view-editor-form .tabs.view-mode::before {
-    display: inline-block;
-    content: 'View:';
-}
-.page-report .view-editor-form .tabs.presets::before {
-    content: 'View presets:'
-}
-.page-report .data-query-result > * {
-    overflow: hidden;
-}
-.page-report .data-query-result .error,
-.page-report .report-content > .view-build-error:only-child {
+
+/********************************
+* Error
+********************************/
+
+.page-report > .report-editor .report-error,
+.page-report > .report-content > .report-error {
     display: block;
     overflow: hidden;
     border-left: 3px solid #f33;
@@ -89,177 +23,15 @@
     font-family: Consolas, Monaco, monospace;
     font-size: 11px;
 }
-.page-report .data-query-result .error::before,
-.page-report .report-content > .view-build-error:only-child::before {
+.page-report > .report-editor .report-error::before,
+.page-report > .report-content > .report-error::before {
     display: block;
     margin-bottom: .5em;
-    content: 'Query error';
     font-size: 16px;
 }
-.page-report .report-content > .view-build-error:only-child::before {
-    content: 'View build error';
+.page-report > .report-editor .query-error::before {
+    content: 'Query error';
 }
-.page-report .view-editor-form .tab {
-    display: inline-block;
-    margin: 0 1px 1px 0;
-    padding: 2px 12px;
-    background: #f4f4f4;
-    font-size: 12px;
-    cursor: pointer;
-}
-.page-report .view-editor-form .tab:first-child {
-    border-top-left-radius: 4px;
-}
-.page-report .view-editor-form .presets .tab:first-child {
-    border-bottom-left-radius: 4px;
-}
-.page-report .view-editor-form .tab.active:first-child {
-    border-bottom-left-radius: 4px;
-    padding-bottom: 2px;
-    margin-bottom: 1px;
-}
-.page-report .view-editor-form .tab:last-child {
-    border-top-right-radius: 4px;
-}
-.page-report .view-editor-form .tab:last-child:not(.active) {
-    border-bottom-right-radius: 4px;
-}
-.page-report .view-editor-form .tab.active {
-    padding-bottom: 3px;
-    margin-bottom: 0;
-    background: #e8f5fd;
-    cursor: default;
-}
-.page-report .view-editor-form .tab:not(.active):hover {
-    background: #e4e4e4;
-}
-.page-report .view-editor {
-    padding: 8px 40px;
-    margin-bottom: 1px;
-    background: #e8f5fd;
-    border-radius: 0 4px 4px 4px;
-}
-.page-report .view-editor .formatting {
-    position: absolute;
-    left: 5px;
-    width: 30px;
-    height: 30px;
-    font-size: 0;
-    background-image: url('./report-formatting.svg');
-    background-repeat: no-repeat;
-    background-size: 20px;
-    background-position: center;
-    border-color: #b9d0df;
-}
-
-.page-report .report-header {
-    display: flex;
-    flex-direction: row;
-    margin: 22px 0 25px;
-    line-height: 1.2;
-}
-.discovery[data-dzen] .page-report .report-header {
-    display: flex;
-    margin-right: 10px;
-}
-.page-report .report-header-text {
-    flex: 1;
-    position: relative;
-    font-size: 220%;
-}
-.page-report .report-header-text::before {
-    content: attr(data-title);
-}
-.page-report .report-header-text input {
-    font: inherit;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    margin: -1px;
-    padding: 0;
-    opacity: .0001;
-    border: 1px solid #aaa;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
-}
-.page-report .report-header-text input:hover,
-.page-report .report-header-text input:focus {
-    opacity: 1;
-}
-.page-report .report-header-text input:focus {
-    border-color: #0af;
-    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
-    outline: 0;
-}
-.discovery[data-dzen] .page-report .report-header-text input {
-    display: none;
-}
-.page-report .report-header-text .timestamp {
-    display: block;
-    font-size: 10px;
-    color: #ccc;
-    margin-top: 4px;
-}
-.page-report .data-query-view-options {
-    margin-left: 10px;
-    margin-top: -3px;
-}
-.page-report .data-query-view-options button {
-    width: 42px;
-    height: 42px;
-    background: center no-repeat;
-    border-radius: 5px;
-    border: none;
-    text-indent: -500px;
-    overflow: hidden;
-    cursor: pointer;
-    opacity: .5;
-    outline: none;
-}
-.page-report .data-query-view-options button.discovery-view-popup-active,
-.page-report .data-query-view-options button:hover,
-.page-report .data-query-view-options button:focus {
-    background-color: #f8f8f8;
-    opacity: 1;
-}
-.page-report .data-query-view-options .toggle-fullscreen {
-    background-image: url(./report-fullscreen.svg);
-    background-size: 25px;
-}
-.page-report .data-query-view-options .edit-mode {
-    background-image: url(./report-edit.svg);
-    background-size: 20px;
-}
-.page-report .data-query-view-options .edit-mode:not(.disabled) {
-    opacity: 1;
-}
-.page-report .data-query-view-options .edit-mode.disabled {
-    filter: grayscale();
-}
-.discovery[data-dzen] .page-report .data-query-view-options .edit-mode {
-    display: none;
-}
-.page-report .data-query-view-options .share {
-    background-image: url(./report-share.svg);
-    background-size: 25px;
-}
-.discovery[data-dzen] .page-report .data-query-view-options button:last-child {
-    margin-right: -10px;
-}
-.discovery[data-dzen] .page-report .data-query-view-options .read-write-mode {
-    display: none;
-}
-.discovery[data-dzen] .page-report .data-query-view-options .toggle-fullscreen {
-    background-image: url(./report-cancel-fullscreen.svg);
-}
-.page-report .editor-toolbar-view-dict {
-    padding-left: 10px;
-    padding-right: 25px;
-    font-size: 12px;
-    color: #aaa;
-}
-.page-report .editor-toolbar-view-dict .editor-toolbar-view-list .view {
-    color: #75a3bf;
-    white-space: nowrap;
+.page-report > .report-content > .render-error::before {
+    content: 'Render error';
 }

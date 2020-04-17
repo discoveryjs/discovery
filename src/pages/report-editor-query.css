@@ -1,0 +1,8 @@
+.page-report > .report-editor .data-query-result {
+    margin: 1em 0 1em -40px;
+    overflow: hidden;
+}
+.page-report > .report-editor .data-query-result::before {
+    float: left;
+    content: 'Data:';
+}
