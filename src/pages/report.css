@@ -1,7 +1,7 @@
-@import url('./report-header.css');
-@import url('./report-editor-common.css');
-@import url('./report-editor-query.css');
-@import url('./report-editor-view.css');
+@import url('./report/header.css');
+@import url('./report/editor-common.css');
+@import url('./report/editor-query.css');
+@import url('./report/editor-view.css');
 
 .page-report {
     padding-top: 0;

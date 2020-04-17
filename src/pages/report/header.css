@@ -73,11 +73,11 @@
     opacity: 1;
 }
 .page-report > .report-header button.toggle-fullscreen {
-    background-image: url(./report-fullscreen.svg);
+    background-image: url(./img/fullscreen-on.svg);
     background-size: 25px;
 }
 .page-report > .report-header button.edit-mode {
-    background-image: url(./report-edit.svg);
+    background-image: url(./img/edit.svg);
     background-size: 20px;
 }
 .page-report > .report-header button.edit-mode:not(.disabled) {
@@ -87,7 +87,7 @@
     filter: grayscale();
 }
 .page-report > .report-header button.share {
-    background-image: url(./report-share.svg);
+    background-image: url(./img/share.svg);
     background-size: 25px;
 }
 
@@ -96,7 +96,7 @@
 ********************************/
 
 .discovery[data-dzen] .page-report > .report-header button.toggle-fullscreen {
-    background-image: url(./report-cancel-fullscreen.svg);
+    background-image: url(./img/fullscreen-off.svg);
 }
 .discovery[data-dzen] .page-report > .report-header button.edit-mode,
 .discovery[data-dzen] .page-report > .report-header .report-header-text input {
