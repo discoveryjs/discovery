@@ -4,6 +4,7 @@ import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
+import TypeResolver from '../core/type-resolver.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
@@ -35,51 +36,6 @@ function getPageMethod(instance, pageId, name, fallback) {
     return page && typeof page.options[name] === 'function'
         ? page.options[name]
         : fallback;
-}
-
-function extractValueLinkResolver(host, pageId) {
-    const { resolveLink } = host.page.get(pageId).options;
-
-    if (!resolveLink) {
-        return;
-    }
-
-    switch (typeof resolveLink) {
-        case 'string':
-            const [type, ref = 'id'] = resolveLink.split(':');
-
-            return (entity) => {
-                if (entity && entity.type === type) {
-                    return {
-                        type: pageId,
-                        text: entity.name,
-                        href: host.encodePageHash(pageId, entity[ref]),
-                        entity: entity.entity
-                    };
-                }
-            };
-
-        case 'function':
-            return (entity, value, data, context) => {
-                if (!value) {
-                    return;
-                }
-
-                const link = resolveLink(entity, value, data, context);
-
-                if (link) {
-                    return {
-                        type: pageId,
-                        text: typeof link === 'string' ? link : pageId,
-                        href: host.encodePageHash(pageId, link),
-                        entity: entity.entity
-                    };
-                }
-            };
-
-        default:
-            console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, resolveLink);
-    }
 }
 
 function genUniqueId(len = 16) {
@@ -126,6 +82,79 @@ function fuzzyStringCmp(a, b) {
     return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
 }
 
+function createDataExtensionApi(instance) {
+    const entityResolvers = new TypeResolver();
+    // const linkResolvers = new X(instance.pageLinkResolvers, entityResolvers);
+    const annotations = [];
+    const queryExtensions = {
+        query: (...args) => instance.query(...args),
+        pageLink: (pageRef, pageId, pageParams) =>
+            instance.encodePageHash(pageId, pageRef, pageParams),
+        autolink(current, type) {
+            if (current && typeof current.autolink === 'function') {
+                return current.autolink();
+            }
+
+            const descriptor = entityResolvers.resolve(current, type);
+
+            if (descriptor && typeof descriptor.link === 'function') {
+                return descriptor.link(current);
+            }
+        }
+    };
+
+    return {
+        apply() {
+            Object.assign(instance, {
+                entityResolvers,
+                annotations,
+                queryExtensions
+            });
+        },
+        methods: {
+            addEntityResolver(name, values, options) {
+                const resolver = entityResolvers.define(name, values, options);
+                const pageId = options && options.page;
+
+                if (options && options.page) {
+                    if (!instance.page.isDefined(options.page)) {
+                        console.error(`[Discovery] Page reference "${options.page}" doesn't exist`);
+                        return;
+                    }
+
+                    annotations.push({
+                        place: 'before',
+                        type: 'link',
+                        className: 'view-struct-auto-link',
+                        data: (value, context) => {
+                            const entity = resolver(value);
+
+                            if (entity && entity.value !== context.host) {
+                                return {
+                                    text: pageId,
+                                    href: instance.encodePageHash(pageId, entity.id)
+                                };
+                            }
+                        }
+                    });
+                }
+                // annotations.push({
+                //     place: 'before',
+                //     type: 'icon',
+                //     data: value =>
+                //         typeof value === 'string' ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cGF0aCBkPSJNODQuNyAzOS4xbC0zNy4zIDY0LjRjLTMuMSA1LjQtNy40IDEwLTEyLjYgMTMuNEwyNCAxMjRsLjgtMTIuOWMuNC02LjIgMi4yLTEyLjIgNS4zLTE3LjZsMzcuMy02NC40IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTYwLjQgNDQuMWMtLjUgMC0xLS4xLTEuNS0uNC0xLjQtLjgtMS45LTIuNy0xLjEtNC4xbDctMTJjLjgtMS40IDIuNy0xLjkgNC4xLTEuMXMxLjkgMi43IDEuMSA0LjFsLTcgMTJjLS42LjktMS42IDEuNS0yLjYgMS41ek03Ny43IDU0LjFjLS41IDAtMS0uMS0xLjUtLjQtMS40LS44LTEuOS0yLjctMS4xLTQuMWw3LTEyYy44LTEuNCAyLjctMS45IDQuMS0xLjEgMS40LjggMS45IDIuNyAxLjEgNC4xbC03IDEyYy0uNi45LTEuNiAxLjUtMi42IDEuNXoiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNNDcuMiA5NC44Yy0uNSAwLTEtLjEtMS41LS40LTEuNC0uOC0xLjktMi43LTEuMS00LjFsMjUtNDMuNGMuOC0xLjQgMi42LTEuOCA0LjEtMS4xbDUuNiAyLjctMjkuNCA0NC45Yy0uNiAxLTEuNyAxLjQtMi43IDEuNHoiIGZpbGw9IiNmY2NhM2QiLz48cGF0aCBmaWxsPSIjODg4IiBzdHJva2U9IiM4ODgiIHN0cm9rZS13aWR0aD0iLjUiIGQ9Ik0yNCAxMjdjLS41IDAtMS0uMS0xLjUtLjQtMS0uNi0xLjYtMS42LTEuNS0yLjhsLjgtMTIuOWMuNC02LjYgMi40LTEzLjIgNS43LTE4LjlsMzAuMy01Mi40Yy44LTEuNCAyLjctMS45IDQuMS0xLjEgMS40LjggMS45IDIuNyAxLjEgNC4xTDMyLjcgOTVjLTIuOSA0LjktNC41IDEwLjYtNC45IDE2LjNsLS40IDYuOSA1LjgtMy44QzM4IDExMS4zIDQyIDEwNyA0NC45IDEwMmwzMC4zLTUyLjRjLjgtMS40IDIuNy0xLjkgNC4xLTEuMSAxLjQuOCAxLjkgMi43IDEuMSA0LjFMNTAgMTA1Yy0zLjMgNS44LTggMTAuNy0xMy41IDE0LjRsLTEwLjggNy4xYy0uNS4zLTEuMS41LTEuNy41ek04OSAxMjdINDljLTEuNyAwLTMtMS4zLTMtM3MxLjMtMyAzLTNoNDBjMS43IDAgMyAxLjMgMyAzcy0xLjMgMy0zIDN6Ii8+PGNpcmNsZSBmaWxsPSIjODg4IiBzdHJva2U9IiM4ODgiIHN0cm9rZS13aWR0aD0iLjUiIGN4PSIxMDQiIGN5PSIxMjQiIHI9IjMiLz48cGF0aCBkPSJNODcuNyAzNi43Yy0uNSAwLTEtLjEtMS41LS40LTEuNC0uOC0xLjktMi43LTEuMS00LjEuOS0xLjYgMS4yLTMuNS43LTUuM3MtMS42LTMuMy0zLjMtNC4yYy0xLjYtLjktMy41LTEuMi01LjMtLjdzLTMuMyAxLjYtNC4zIDMuM2MtLjggMS40LTIuNyAxLjktNC4xIDEuMXMtMS45LTIuNy0xLjEtNC4xYzMuNi02LjIgMTEuNi04LjMgMTcuOC00LjggMyAxLjcgNS4yIDQuNSA2LjEgNy45cy40IDYuOS0xLjMgOS45Yy0uNi45LTEuNiAxLjQtMi42IDEuNHoiIGZpbGw9IiNmZjU1NzYiLz48cGF0aCBkPSJNODcuNyAzMy43YzIuOC00LjggMS4xLTEwLjktMy43LTEzLjctNC44LTIuOC0xMC45LTEuMS0xMy43IDMuN2wtMy43IDYuNSAxNy4zIDEwIDMuOC02LjV6IiBmaWxsPSIjZmY1NTc2Ii8+PHBhdGggZD0iTTgzLjkgNDMuMmMtLjUgMC0xLS4xLTEuNS0uNGwtMTcuMy0xMGMtLjctLjQtMS4yLTEuMS0xLjQtMS44LS4yLS44LS4xLTEuNi4zLTIuM2wzLjctNi41YzMuNi02LjIgMTEuNi04LjMgMTcuOC00LjggMyAxLjcgNS4yIDQuNSA2LjEgNy45cy40IDYuOS0xLjMgOS45bC0zLjcgNi41Yy0uNC43LTEuMSAxLjItMS44IDEuNC0uNC4xLS42LjEtLjkuMXpNNzAuNyAyOS4xbDEyLjEgNyAyLjItMy45Yy45LTEuNiAxLjItMy41LjctNS4zcy0xLjYtMy4zLTMuMy00LjJjLTMuMy0xLjktNy42LS44LTkuNiAyLjZsLTIuMSAzLjh6IiBmaWxsPSIjZmY1NTc2Ii8+PHBhdGggZD0iTTgzLjkgNDMuMmMtLjUgMC0xLS4xLTEuNS0uNC0xLjQtLjgtMS45LTIuNy0xLjEtNC4xbDMuNy02LjVjMS0xLjggMS4yLTQgLjUtNi0uNi0xLjYuMi0zLjMgMS44LTMuOSAxLjYtLjYgMy4zLjIgMy45IDEuOCAxLjQgMy43IDEgNy43LS45IDExLjFsLTMuNyA2LjVjLS42IDEtMS42IDEuNS0yLjcgMS41eiIgZmlsbD0iI2QzMmY1NiIvPjwvc3ZnPg==' : ''
+                // });
+            },
+            addValueAnnotation(config) {
+                annotations.push(config);
+            },
+            addQueryHelpers(helpers) {
+                Object.assign(queryExtensions, helpers);
+            }
+        }
+    };
+}
+
 export default class Widget extends Emitter {
     constructor(container, defaultPage, options) {
         super();
@@ -134,10 +163,16 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
-        this.page.on('define', name => this.addValueLinkResolver(extractValueLinkResolver(this, name)));
+
+        this.prepare = data => data;
         this.entityResolvers = [];
         this.linkResolvers = [];
-        this.prepare = data => data;
+        this.annotations = [];
+        this.queryExtensions = {
+            query: (...args) => this.query(...args),
+            pageLink: (pageRef, pageId, pageParams) =>
+                this.encodePageHash(pageId, pageRef, pageParams)
+        };
 
         this.defaultPageId = this.options.defaultPageId || 'default';
         this.pageId = this.defaultPageId;
@@ -150,11 +185,6 @@ export default class Widget extends Emitter {
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
         this.badges = [];
         this.dom = {};
-        this.queryExtensions = {
-            query: (...args) => this.query(...args),
-            pageLink: (pageRef, pageId, pageParams) =>
-                this.encodePageHash(pageId, pageRef, pageParams)
-        };
 
         this.apply(views);
         this.apply(pages);
@@ -196,8 +226,10 @@ export default class Widget extends Emitter {
 
     setData(data, context = {}) {
         const startTime = Date.now();
+        const dataExtension = createDataExtensionApi(this);
+        this._extensitionApi = dataExtension.methods; // TODO: remove
         const setDataPromise = Promise
-            .resolve(this.prepare(data, value => data = value))
+            .resolve(this.prepare(data, dataExtension.methods) || data)
             .then(() => {  // TODO: use prepare ret
                 const lastPromise = lastSetDataPromise.get(this);
 
@@ -208,6 +240,7 @@ export default class Widget extends Emitter {
 
                 this.data = data;
                 this.context = context;
+                dataExtension.apply(this);
 
                 this.emit('data');
                 console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
@@ -225,8 +258,9 @@ export default class Widget extends Emitter {
         return setDataPromise;
     }
 
-    addEntityResolver(fn) {
-        this.entityResolvers.push(fn);
+    // TODO: remove
+    addEntityResolver() {
+        console.error('[Discovery] Widget#addEntityResolver() is removed, use extenstion API in prepare instead, i.e. setPrepare((data, { addEntityResolver }) => ...)');
     }
 
     resolveEntity(value) {
@@ -336,8 +370,10 @@ export default class Widget extends Emitter {
         };
     }
 
+    // TODO: remove
     addQueryHelpers(extensions) {
-        Object.assign(this.queryExtensions, extensions);
+        console.warn('[Discovery] Widget#addQueryHelpers() is deprecated, use extenstion API in prepare instead');
+        this._extensitionApi.addQueryHelpers(extensions);
     }
 
     //
@@ -345,19 +381,27 @@ export default class Widget extends Emitter {
     //
 
     setContainer(container) {
-        const containerEl = container || null;
+        const newContainerEl = container || null;
+        const oldDomRefs = this.dom;
 
-        if (containerEl) {
-            this.dom.container = containerEl;
+        if (this.dom.container === newContainerEl) {
+            return;
+        }
 
-            containerEl.classList.add('discovery', this.isolateStyleMarker);
-            containerEl.dataset.discoveryInstanceId = this.instanceId;
+        // reset old refs
+        this.dom = {};
 
-            containerEl.appendChild(
+        if (newContainerEl !== null) {
+            this.dom.container = newContainerEl;
+
+            newContainerEl.classList.add('discovery', this.isolateStyleMarker);
+            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
+
+            newContainerEl.appendChild(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar')
             );
 
-            containerEl.appendChild(
+            newContainerEl.appendChild(
                 createElement('main', 'discovery-content', [
                     this.dom.badges = createElement('div', 'discovery-content-badges'),
                     this.dom.pageContent = createElement('article')
@@ -367,11 +411,9 @@ export default class Widget extends Emitter {
             this.badges.forEach(badge =>
                 this.dom.badges.appendChild(badge.el)
             );
-        } else {
-            for (let key in this.dom) {
-                this.dom[key] = null;
-            }
         }
+
+        this.emit('container-changed', this.dom, oldDomRefs);
     }
 
     addGlobalEventListener(eventName, handler, options) {

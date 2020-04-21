@@ -15,6 +15,8 @@ export default class Dictionary extends Emitter {
         entries.get(this)[key] = value;
 
         this.emit('define', key, value);
+
+        return value;
     }
 
     isDefined(key) {
@@ -26,6 +28,12 @@ export default class Dictionary extends Emitter {
     }
 
     get names() {
-        return Object.keys(entries.get(this)).sort();
+        return Object.keys(entries.get(this));
+    }
+    get values() {
+        return Object.values(entries.get(this));
+    }
+    get entries() {
+        return Object.entries(entries.get(this));
     }
 }

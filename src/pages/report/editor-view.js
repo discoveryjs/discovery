@@ -133,7 +133,7 @@ export default function(discovery, updateParams) {
 
     // sync view list
     const updateAvailableViewList = () =>
-        availableViewListEl.innerHTML = discovery.view.names
+        availableViewListEl.innerHTML = discovery.view.names.sort()
             .map(name => `<span class="item">${name}</span>`)
             .join(', ');
 

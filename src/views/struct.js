@@ -203,12 +203,12 @@ function isValueExpandable(value) {
         return value.length > 0;
     }
 
-    // a string
+    // string
     if (typeof value === 'string' && (value.length > maxStringLength || /[\r\n\f\t]/.test(value))) {
         return true;
     }
 
-    // a plain object
+    // plain object
     if (value && toString.call(value) === '[object Object]') {
         for (const key in value) {
             if (hasOwnProperty.call(value, key)) {
@@ -224,6 +224,112 @@ function appendText(el, text) {
     el.appendChild(document.createTextNode(text));
 }
 
+function formatSize(size) {
+    if (!size) {
+        return '';
+    }
+
+    return ', ' + String(size.length).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
+}
+
+function renderValueSize(el, entries, unit) {
+    if (entries.length > 1) {
+        appendText(el.lastElementChild, entries.length + ' ' + unit);
+    }
+}
+
+function renderSorting(el, entries, sort) {
+    let sorted = entries.length <= 1 || entries.every(([key], idx) => idx === 0 || key > entries[idx - 1][0]);
+
+    if (sorted) {
+        el.querySelector('[data-action="toggle-sort-keys"]').remove();
+    } else if (sort) {
+        entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+    }
+}
+
+function renderObjectKey(container, name) {
+    const objectKeyEl = objectKeyProtoEl.cloneNode(true);
+
+    appendText(objectKeyEl.firstElementChild, name);
+    container.appendChild(objectKeyEl);
+}
+
+function renderAnnotations(annotations) {
+    const startTime = Date.now();
+    const errors = [];
+    let i = 0;
+
+    for (; i < annotations.length; i++) {
+        if (i % 20 === 0 && Date.now() - startTime > 10) {
+            break;
+        }
+
+        const { el, data, annotation } = annotations[i];
+        const { place, type = 'text', className } = annotation;
+        const elClassName = [
+            'value-annotation',
+            place === 'before' ? 'before' : 'after',
+            type,
+            className || ''
+        ].join(' ');
+        let annotationEl;
+
+        try {
+            switch (type) {
+                case 'text':
+                    annotationEl = createElement('span', {
+                        class: elClassName
+                    }, [data]);
+                    break;
+
+                case 'link':
+                    annotationEl = createElement('a', {
+                        class: elClassName,
+                        href: typeof data === 'string' ? data : data.href,
+                        target: data.external ? '_blank' : undefined
+                    }, [typeof data === 'string' ? data : data.text]);
+                    break;
+
+                case 'icon': {
+                    const iconSrc = typeof data === 'string' ? data : data.src;
+                    annotationEl = createElement(data.href ? 'a' : 'span', {
+                        class: elClassName,
+                        title: data.title || undefined,
+                        href: data.href || undefined,
+                        target: data.external ? '_blank' : undefined
+                    });
+
+                    if (iconSrc) {
+                        annotationEl.style.setProperty('--annotation-image', `url("${iconSrc}")`);
+                    }
+                    break;
+                }
+
+                default:
+                    console.warn('[Discovery] Bad annotation type `' + type + '`');
+                    continue;
+            }
+
+            if (place === 'before') {
+                el.before(annotationEl);
+            } else {
+                el.parentNode.append(annotationEl);
+            }
+        } catch (e) {
+            errors.push(e);
+        }
+    }
+
+    annotations.splice(0, i);
+
+    if (errors.length) {
+        console.groupCollapsed(`[Discovery] ${errors.length} errors in struct view during annotations render`);
+        errors.forEach(e => console.error(e));
+        console.groupEnd();
+    }
+}
+
 export default function(discovery) {
     function collapseValue(el) {
         const options = elementOptions.get(el);
@@ -234,7 +340,6 @@ export default function(discovery) {
     }
 
     function expandValue(el, autoExpandLimit, sort) {
-        const options = elementOptions.get(el);
         const data = elementData.get(el);
 
         el.classList.remove('struct-expand-value');
@@ -243,69 +348,56 @@ export default function(discovery) {
         // since only such types of data expandable
         if (typeof data === 'string') {
             // string
-            el.innerHTML = '';
-            el.appendChild(stringValueProto.cloneNode(true));
-
-            const stringValueEl = el.lastChild.previousSibling;
+            const valueEl = stringValueProto.cloneNode(true);
+            const stringValueEl = valueEl.lastChild.previousSibling;
             const text = JSON.stringify(data);
+
             appendText(stringValueEl.firstChild, text.slice(1, -1));
             appendText(stringValueEl.previousSibling, `length: ${text.length} chars`);
+
+            el.innerHTML = '';
+            el.appendChild(valueEl);
         } else if (Array.isArray(data)) {
             // array
+            const context = elementContext.get(el);
+            const options = elementOptions.get(el);
             const entries = Object.entries(data);
+            const valueEl  = arrayValueProto.cloneNode(true);
+
+            renderValueSize(valueEl, entries, 'elements');
+            renderEntries(valueEl, valueEl.lastChild, entries, (entryEl, _, value, index) => {
+                renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
+                    parent: context,
+                    host: data,
+                    key: index,
+                    index
+                }));
+            }, 0, options.limit);
 
             el.innerHTML = '';
-            el.appendChild(arrayValueProto.cloneNode(true));
-
-            renderValueSize(el, entries, 'elements');
-            renderEntries(el, el.lastChild, entries, (entryEl, key, value) => {
-                renderValue(entryEl, value, {
-                    ...options,
-                    autoExpandLimit,
-                    path: options.path.concat(Number(key))
-                });
-            }, 0, options.limit);
+            el.appendChild(valueEl);
         } else {
             // object
+            const context = elementContext.get(el);
+            const options = elementOptions.get(el);
             const entries = Object.entries(data);
+            const valueEl = objectValueProto.cloneNode(true);
+
+            renderValueSize(valueEl, entries, 'entries');
+            renderSorting(valueEl, entries, sort);
+            renderEntries(valueEl, valueEl.lastChild, entries, (entryEl, key, value, index) => {
+                renderObjectKey(entryEl, key);
+                renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
+                    parent: context,
+                    host: data,
+                    key,
+                    index
+                }));
+            }, 0, options.limit);
 
             el.innerHTML = '';
-            el.appendChild(objectValueProto.cloneNode(true));
-
-            renderValueSize(el, entries, 'entries');
-            renderSorting(el, entries, sort);
-            renderEntries(el, el.lastChild, entries, (entryEl, key, value) => {
-                renderObjectKey(entryEl, key);
-                renderValue(entryEl, value, {
-                    ...options,
-                    autoExpandLimit,
-                    path: options.path.concat(key)
-                });
-            }, 0, options.limit);
+            el.appendChild(valueEl);
         }
-    }
-
-    function renderValueSize(el, entries, unit) {
-        if (entries.length > 1) {
-            appendText(el.lastElementChild, entries.length + ' ' + unit);
-        }
-    }
-
-    function renderSorting(el, entries, sort) {
-        let sorted = entries.length <= 1 || entries.every(([key], idx) => idx === 0 || key > entries[idx - 1][0]);
-
-        if (sorted) {
-            el.querySelector('[data-action="toggle-sort-keys"]').remove();
-        } else if (sort) {
-            entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-        }
-    }
-
-    function renderObjectKey(container, name) {
-        const objectKeyEl = objectKeyProtoEl.cloneNode(true);
-
-        appendText(objectKeyEl.firstElementChild, name);
-        container.appendChild(objectKeyEl);
     }
 
     function renderValueLinks(container, data) {
@@ -318,33 +410,35 @@ export default function(discovery) {
         }
     }
 
-    function renderValue(container, data, options) {
-        const expandable = isValueExpandable(data);
+    function renderValue(container, value, autoExpandLimit, options, context) {
+        const expandable = isValueExpandable(value);
         const valueEl = valueProtoEl.cloneNode(true);
 
-        if (expandable && typeof data !== 'string' && options.autoExpandLimit) {
+        elementData.set(valueEl, value);
+        elementContext.set(valueEl, context);
+        elementOptions.set(valueEl, options);
+
+        if (expandable && typeof value !== 'string' && autoExpandLimit) {
             // expanded
-            elementOptions.set(valueEl, options);
-            elementData.set(valueEl, data);
             container.classList.add('struct-expanded-value');
-            expandValue(valueEl, options.autoExpandLimit - 1);
+            expandValue(valueEl, autoExpandLimit - 1);
         } else {
             // collapsed
             if (expandable) {
-                elementOptions.set(valueEl, options);
-                elementData.set(valueEl, data);
                 valueEl.classList.add('struct-expand-value');
             }
 
-            valueEl.innerHTML = value2htmlString(data, false, options);
+            valueEl.innerHTML = value2htmlString(value, false, options);
         }
 
-        renderValueLinks(container, data);
+        renderValueLinks(container, value);
+        applyAnnotations(valueEl, value, options, context);
         container.appendChild(valueEl);
     }
 
     function renderEntries(container, beforeEl, entries, renderEntryContent, offset = 0, limit = defaultExpandedItemsLimit) {
         const lastIndex = entries.length - offset - 1;
+        const buffer = document.createDocumentFragment();
 
         if (limit === false) {
             limit = entries.length;
@@ -355,13 +449,15 @@ export default function(discovery) {
             .forEach(([key, value], index) => {
                 const el = entryProtoEl.cloneNode(true);
 
-                renderEntryContent(el, key, value);
+                renderEntryContent(el, key, value, offset + index);
                 if (index !== lastIndex) {
                     appendText(el, ',');
                 }
 
-                container.insertBefore(el, beforeEl);
+                buffer.appendChild(el);
             });
+
+        container.insertBefore(buffer, beforeEl);
 
         discovery.view.maybeMoreButtons(
             container,
@@ -373,17 +469,42 @@ export default function(discovery) {
         );
     }
 
-    function formatSize(size) {
-        if (!size) {
-            return '';
+    function applyAnnotations(el, value, options, context) {
+        for (const annotation of options.annotations) {
+            try {
+                const data = discovery.query(annotation.data, value, context);
+
+                if (data) {
+                    annotationsToRender.push({ el, data, annotation });
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
-        return ', ' + String(size.length).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
+        scheduleApplyAnnotations();
+    }
+
+    function scheduleApplyAnnotations() {
+        if (annotationsTimer === null && annotationsToRender.length) {
+            annotationsTimer = Promise.resolve().then(() => {
+                annotationsTimer = null;
+                renderAnnotations(annotationsToRender);
+
+                if (annotationsToRender.length) {
+                    scheduleApplyAnnotations();
+                }
+            }, 0);
+        }
     }
 
     const elementData = new WeakMap();
+    const elementContext = new WeakMap();
     const elementOptions = new WeakMap();
     const structViewRoots = new WeakSet();
+    const annotationsToRender = [];
+    let annotationsTimer = null;
+
     const valueActionsPopup = new discovery.view.Popup({
         className: 'view-struct-actions-popup',
         render: (popupEl, triggerEl) => {
@@ -453,13 +574,20 @@ export default function(discovery) {
         hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
         render: function(popupEl, triggerEl) {
-            const options = elementOptions.get(triggerEl.parentNode);
-            const data = elementData.get(triggerEl.parentNode);
+            const el = triggerEl.parentNode;
+            const path = [];
+            const data = elementData.get(el);
+            let context = elementContext.get(el);
+
+            while (context !== null) {
+                path.unshift(context.key);
+                context = context.parent;
+            }
 
             discovery.view.render(popupEl, {
                 view: 'signature',
                 expanded: 2,
-                path: options.path
+                path
             }, data);
         }
     });
@@ -489,6 +617,7 @@ export default function(discovery) {
 
                 // expand value
                 expandValue(cursor, 0);
+                scheduleApplyAnnotations();
                 cursor.parentNode.classList.add('struct-expanded-value');
 
                 if (structViewRoots.has(cursor.parentNode)) {
@@ -499,6 +628,7 @@ export default function(discovery) {
             case 'collapse':
                 cursor = cursor.parentNode;
                 collapseValue(cursor);
+                scheduleApplyAnnotations();
                 cursor.parentNode.classList.remove('struct-expanded-value');
 
                 if (structViewRoots.has(cursor.parentNode)) {
@@ -516,6 +646,7 @@ export default function(discovery) {
 
             case 'toggle-sort-keys':
                 expandValue(cursor.parentNode, 0, cursor.parentNode.classList.toggle('sort-keys'));
+                scheduleApplyAnnotations();
                 break;
 
             case 'toggle-string-mode':
@@ -534,16 +665,17 @@ export default function(discovery) {
     discovery.addGlobalEventListener('click', clickHandler, false);
 
     discovery.view.define('struct', function(el, config, data) {
-        const { expanded, limit, limitCollapsed } = config; // FIXME: add limit option
+        const { expanded, limit, limitCollapsed, annotations } = config; // FIXME: add limit option
         const expandable = isValueExpandable(data);
-
-        structViewRoots.add(el);
-        renderValue(el, data, {
-            autoExpandLimit: expanded,
+        const options = {
             limitCollapsed: discovery.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit),
-            path: []
-        });
+            annotations: discovery.annotations.concat(annotations || [])
+        };
+
+        structViewRoots.add(el);
+        renderValue(el, data, expanded, options, null);
+        scheduleApplyAnnotations();
 
         if (expandable && !expanded) {
             el.classList.add('struct-expand');
