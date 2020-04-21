@@ -2,13 +2,13 @@
 * Tabs
 ********************************/
 
-.page-report > .report-editor .report-editor-tabs {
+.page-report > .report-block > .report-block-editor .report-editor-tabs {
     overflow: hidden;
     display: inline-block;
     vertical-align: top;
 }
-.page-report > .report-editor .data-query-result::before,
-.page-report > .report-editor .report-editor-tabs::before {
+.page-report > .report-block > .report-block-content::before,
+.page-report > .report-block > .report-block-editor .report-editor-tabs::before {
     padding: 3px 4px;
     width: 40px;
     text-align: right;
@@ -16,7 +16,7 @@
     font-size: 11px;
     color: #aaa;
 }
-.page-report > .report-editor .report-editor-tab {
+.page-report > .report-block > .report-block-editor .report-editor-tab {
     display: inline-block;
     margin: 0 1px 1px 0;
     padding: 2px 12px;
@@ -24,27 +24,27 @@
     font-size: 12px;
     cursor: pointer;
 }
-.page-report > .report-editor .report-editor-tab.active {
+.page-report > .report-block > .report-block-editor .report-editor-tab.active {
     padding-bottom: 3px;
     margin-bottom: 0;
     background: #e8f5fd;
     cursor: default;
 }
-.page-report > .report-editor .report-editor-tab:not(.active):hover {
+.page-report > .report-block > .report-block-editor .report-editor-tab:not(.active):hover {
     background: #e4e4e4;
 }
-.page-report > .report-editor .report-editor-tab:first-child {
+.page-report > .report-block > .report-block-editor .report-editor-tab:first-child {
     border-top-left-radius: 4px;
 }
-.page-report > .report-editor .report-editor-tab.active:first-child {
+.page-report > .report-block > .report-block-editor .report-editor-tab.active:first-child {
     border-bottom-left-radius: 4px;
     padding-bottom: 2px;
     margin-bottom: 1px;
 }
-.page-report > .report-editor .report-editor-tab:last-child {
+.page-report > .report-block > .report-block-editor .report-editor-tab:last-child {
     border-top-right-radius: 4px;
 }
-.page-report > .report-editor .report-editor-tab:not(.active):last-child {
+.page-report > .report-block > .report-block-editor .report-editor-tab:not(.active):last-child {
     border-bottom-right-radius: 4px;
 }
 
@@ -52,24 +52,24 @@
 * Editor
 ********************************/
 
-.page-report > .report-editor .editor-toolbar {
+.page-report > .report-block > .report-block-editor .editor-toolbar {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
 }
-.page-report > .report-editor .editor-toolbar label {
+.page-report > .report-block > .report-block-editor .editor-toolbar label {
     padding: 4px;
     margin: 0 1ex;
     white-space: nowrap;
 }
-.page-report > .report-editor .editor-toolbar .syntax-hint {
+.page-report > .report-block > .report-block-editor .editor-toolbar .syntax-hint {
     padding-left: 10px;
     flex: 1;
     color: #aaa;
     font-size: 12px;
 }
 
-.page-report > .report-editor textarea {
+.page-report > .report-block > .report-block-editor textarea {
     padding: 8px;
     width: 100%;
     box-sizing: border-box;
@@ -82,7 +82,7 @@
     box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
     resize: vertical;
 }
-.page-report > .report-editor textarea:focus {
+.page-report > .report-block > .report-block-editor textarea:focus {
     border-color: #0af;
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
     outline: 0;

@@ -35,99 +35,82 @@ function toFormattedViewSource(value) {
         );
 }
 
-function createPresetTab(name, content, updateParams) {
+function createPresetTab(name, content, updateContent) {
     return createElement('div', {
         class: 'report-editor-tab',
-        onclick: () => updateParams({
-            view: content // JSON.stringify(content, null, 4)
-        })
+        onclick: () => updateContent(content) // JSON.stringify(content, null, 4)
     }, name || 'Untitled preset');
 }
 
-export default function(discovery, updateParams) {
-    let lastView = {};
+function createEditor(container, discovery) {
+    let updateContent = () => {};
     const viewPresets = Array.isArray(discovery.options.viewPresets)
         ? defaultViewPresets.concat(discovery.options.viewPresets)
         : defaultViewPresets;
 
-    let viewSetupEl;
-    let availableViewListEl;
-    // let availablePresetListEl;
-    let viewModeTabsEls;
-    let viewLiveEditEl;
+    const availableViewListEl = createElement('span');
+    const viewLiveEditEl = createElement('input', {
+        class: 'live-update',
+        type: 'checkbox',
+        checked: true,
+        onchange: (e) => {
+            if (e.target.checked) {
+                updateContent(viewEditor.getValue());
+            }
+        }
+    });
     const viewEditor = new discovery.view.ViewEditor(discovery).on('change', value =>
-        viewLiveEditEl.checked && updateParams({ view: value }, true)
+        viewLiveEditEl.checked && updateContent(value)
     );
     const viewEditorButtonsEl = createElement('div', 'buttons');
-    const viewEditorFormEl = createElement('div', 'form view-editor-form', [
-        createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
-            createElement('div', {
-                class: 'report-editor-tab',
-                'data-mode': viewMode.toLowerCase(),
-                onclick: () => updateParams({
-                    view: viewMode === 'Default' ? undefined : defaultViewSource
-                }, true)
-            }, viewMode)
-        )),
-        /* availablePresetListEl = */createElement('div', 'report-editor-tabs presets', viewPresets.map(({ name, content }) =>
-            createPresetTab(name, content, updateParams)
-        )),
-        viewSetupEl = createElement('div', {
-            class: 'view-editor-form-content',
-            hidden: true
-        }, [
-            createElement('button', {
-                class: 'view-button formatting',
-                title: 'Prettify (input should be a JSON)',
-                onclick() {
-                    viewEditor.focus();
+    const viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
+        createElement('div', {
+            class: 'report-editor-tab',
+            'data-mode': viewMode.toLowerCase(),
+            onclick: () => updateContent(viewMode === 'Default' ? undefined : defaultViewSource)
+        }, viewMode)
+    );
+    const viewPresetsEls = viewPresets.map(({ name, content }) =>
+        createPresetTab(name, content, (...args) => updateContent(...args))
+    );
+    const viewSetupEl = createElement('div', {
+        class: 'view-editor-form-content',
+        hidden: true
+    }, [
+        createElement('button', {
+            class: 'view-button formatting',
+            title: 'Prettify (input should be a JSON)',
+            onclick() {
+                viewEditor.focus();
 
-                    try {
-                        const currentText = viewEditor.getValue().trim();
-                        const json = new Function('return 0,' + currentText)();
+                try {
+                    const currentText = viewEditor.getValue().trim();
+                    const json = new Function('return 0,' + currentText)();
 
-                        updateParams({
-                            view: toFormattedViewSource(json)
-                        });
-                    } catch (e) {
-                        console.error('[Discovery] Prettify failed', e);
-                    }
+                    updateContent(toFormattedViewSource(json));
+                } catch (e) {
+                    console.error('[Discovery] Prettify failed', e);
                 }
-            }),
-            viewEditor.el,
-            createElement('div', 'editor-toolbar', [
-                createElement('div', 'view-editor-view-list', [
-                    createText('Available views: '),
-                    availableViewListEl = createElement('span')
-                ]),
-                createElement('label', null, [
-                    viewLiveEditEl = createElement('input', {
-                        class: 'live-update',
-                        type: 'checkbox',
-                        checked: true,
-                        onchange: (e) => {
-                            if (e.target.checked) {
-                                updateParams({ view: viewEditor.getValue() }, true);
-                            }
-                        }
-                    }),
-                    ' build on input'
-                ]),
-                viewEditorButtonsEl
-            ])
+            }
+        }),
+        viewEditor.el,
+        createElement('div', 'editor-toolbar', [
+            createElement('div', 'view-editor-view-list', [createText('Available views: '), availableViewListEl]),
+            createElement('label', null, [viewLiveEditEl, ' build on input']),
+            viewEditorButtonsEl
         ])
     ]);
+
+    container.appendChild(createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls));
+    container.appendChild(createElement('div', 'report-editor-tabs presets', viewPresetsEls));
+    container.appendChild(viewSetupEl);
 
     // FIXME: temporary until full migration on discovery render
     discovery.view.render(viewEditorButtonsEl, {
         view: 'button-primary',
         content: 'text:"Build"',
         onClick: () => {
-            lastView = {};
-            updateParams({
-                view: viewEditor.getValue()
-            }, true);
-            discovery.scheduleRender('page'); // force render
+            updateContent(viewEditor.getValue(), true);
         }
     });
 
@@ -140,52 +123,55 @@ export default function(discovery, updateParams) {
     updateAvailableViewList();
     discovery.view.on('define', updateAvailableViewList);
 
-    // sync view list
-    // const updateAvailablePresetList = (name, preset) =>
-    //     availablePresetListEl.appendChild(createPresetTab(name, preset.config, updateParams));
+    return (content, _data, _context, _updateContent, viewMode) => {
+        updateContent = _updateContent;
 
-    // discovery.preset.on('define', updateAvailablePresetList);
-
-    return {
-        el: viewEditorFormEl,
-        render(data, context, reportContentEl) {
-            const viewMode = typeof context.params.view === 'string' ? 'custom' : 'default';
-            let pageView = context.params.view;
-            let view = null;
-
-            // update editors
-            viewEditor.setValue(pageView);
-
-            // update view form
-            viewSetupEl.hidden = viewMode !== 'custom';
-            viewModeTabsEls.forEach(el =>
-                el.classList.toggle('active', el.dataset.mode === viewMode)
-            );
-
-            // build a view
-            if (!pageView && viewMode === 'default') {
-                pageView = defaultViewSource;
-            }
-
-            if (lastView.data !== data || lastView.view !== pageView) {
-                reportContentEl.innerHTML = '';
-
-                try {
-                    view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
-                    discovery.view.render(reportContentEl, view, data, context);
-                } catch (e) {
-                    discovery.view.render(reportContentEl, el => {
-                        el.className = 'report-error render-error';
-                        el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
-                        console.error(e);
-                    });
-                }
-
-                lastView = {
-                    data: data,
-                    view: pageView
-                };
-            }
+        // update editor content
+        if (viewMode === 'custom') {
+            viewEditor.setValue(content);
         }
+
+        // update view form
+        viewSetupEl.hidden = viewMode !== 'custom';
+        viewModeTabsEls.forEach(el =>
+            el.classList.toggle('active', el.dataset.mode === viewMode)
+        );
+    };
+}
+
+export default function(dom, discovery) {
+    let editor = null;
+
+    return function(source, data, context, updateContent) {
+        const viewMode = typeof source === 'string' ? 'custom' : 'default';
+        const noedit = context.params.noedit;
+
+        // build a view
+        if (!source && viewMode === 'default') {
+            source = defaultViewSource;
+        }
+
+        if (!noedit) {
+            if (editor === null) {
+                editor = createEditor(dom.editorEl, discovery);
+            }
+
+            editor(source, data, context, updateContent, viewMode);
+        }
+
+        let config;
+
+        try {
+            config = Function('return ' + (source ? '0,' + source : 'null'))();
+        } catch (e) {
+            console.error(e);
+            config = el => {
+                el.className = 'report-error render-error';
+                el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
+            };
+        }
+
+        dom.contentEl.innerHTML = '';
+        discovery.view.render(dom.contentEl, config, data, context);
     };
 }

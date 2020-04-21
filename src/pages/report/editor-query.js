@@ -17,101 +17,95 @@ function valueDescriptor(value) {
     return `Scalar (${value === null ? 'null' : typeof value})`;
 }
 
-export default function(discovery, updateParams) {
-    let expandQueryResults = false;
-    let lastQuery = {};
+function createEditor(container, discovery) {
+    const ctx = {
+        data: null,
+        context: null,
+        updateContent: () => {},
+        liveEdit: true
+    };
 
-    let queryEditorLiveEditEl;
-    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, discovery.data, discovery.context);
-    const queryEditor = new discovery.view.QueryEditor(getQuerySuggestions).on('change', value =>
-        queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
-    );
     const queryEngineInfo = discovery.getQueryEngineInfo();
-    const queryEditorButtonsEl = createElement('div', 'buttons');
-    const queryEditorResultEl = createElement('div', 'data-query-result');
-    const queryEditorFormEl = createElement('div', 'form query-editor-form', [
-        createElement('div', 'query-editor', [
-            queryEditor.el,
-            createElement('div', 'editor-toolbar', [
-                createElement('span', 'syntax-hint',
-                    `Use <a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
-                        queryEngineInfo.name
-                    }</a> ${queryEngineInfo.version || ''} syntax for queries`
-                ),
-                createElement('label', null, [
-                    queryEditorLiveEditEl = createElement('input', {
-                        class: 'live-update',
-                        type: 'checkbox',
-                        checked: true,
-                        onchange: (e) => {
-                            if (e.target.checked) {
-                                updateParams({
-                                    query: queryEditor.getValue()
-                                }, true);
-                            }
-                        }
-                    }),
-                    ' process on input'
-                ]),
-                queryEditorButtonsEl
-            ])
-        ]),
-        queryEditorResultEl
-    ]);
-    // FIXME: temporary until full migration on discovery render
-    discovery.view.render(queryEditorButtonsEl, {
-        view: 'button-primary',
-        content: 'text:"Process"',
-        onClick: () => {
-            lastQuery = {};
-            updateParams({
-                query: queryEditor.getValue()
-            }, true);
-            discovery.scheduleRender('page'); // force render
+    const buttonsEl = createElement('div', 'buttons');
+    const liveEditEl = createElement('input', {
+        class: 'live-update',
+        type: 'checkbox',
+        checked: ctx.liveEdit,
+        onchange: ({ target }) => {
+            ctx.liveEdit = target.checked;
+
+            if (ctx.liveEdit) {
+                ctx.updateContent(editor.getValue());
+            }
         }
     });
 
-    return {
-        el: queryEditorFormEl,
-        perform(data, context) {
-            let pageQuery = context.params.query;
-            let queryTime;
-            let results;
+    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, ctx.data, ctx.context);
+    const editor = new discovery.view.QueryEditor(getQuerySuggestions)
+        .on('change', value => ctx.liveEdit && ctx.updateContent(value));
 
-            queryEditor.setValue(pageQuery);
+    container.appendChild(editor.el);
+    container.appendChild(createElement('div', 'editor-toolbar', [
+        createElement('span', 'syntax-hint',
+            `Use <a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
+                queryEngineInfo.name
+            }</a> ${queryEngineInfo.version || ''} syntax for queries`
+        ),
+        createElement('label', null, [liveEditEl, ' process on input']),
+        buttonsEl
+    ]));
 
-            // perform data query
-            if (lastQuery.query === pageQuery && lastQuery.data === data && lastQuery.context === context) {
-                results = lastQuery.results;
-            } else {
-                try {
-                    queryTime = Date.now();
-                    results = discovery.query(pageQuery, data, context);
-                    queryTime = Date.now() - queryTime;
-                } catch (error) {
-                    lastQuery = {};
-                    queryEditorResultEl.innerHTML = '<div class="report-error query-error">' + escapeHtml(error.message) + '</div>';
-                    return { error };
-                }
+    // FIXME: temporary until full migration on discovery render
+    discovery.view.render(buttonsEl, {
+        view: 'button-primary',
+        content: 'text:"Process"',
+        onClick: () => {
+            ctx.updateContent(editor.getValue(), true);
+        }
+    });
 
-                lastQuery = {
-                    data,
-                    query: pageQuery,
-                    context,
-                    results
-                };
+    return (content, data, context, updateContent) => {
+        Object.assign(ctx, { data, context, updateContent });
+        editor.setValue(content);
+    };
+}
 
-                queryEditorResultEl.innerHTML = '';
-                discovery.view.render(queryEditorResultEl, {
-                    view: 'expand',
-                    title: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
-                    expanded: expandQueryResults,
-                    onToggle: state => expandQueryResults = state,
-                    content: { view: 'struct', expanded: 1 }
-                }, results);
+export default function(dom, discovery) {
+    let expandQueryResults = false;
+    let editor = null;
+
+    return function(query, data, context, updateContent) {
+        const noedit = context.params.noedit;
+        let queryTime;
+        let results;
+
+        if (!noedit) {
+            if (editor === null) {
+                editor = createEditor(dom.editorEl, discovery);
             }
 
-            return { data: results };
+            editor(query, data, context, updateContent);
         }
+
+        // perform data query
+        try {
+            queryTime = Date.now();
+            results = discovery.query(query, data, context);
+            queryTime = Date.now() - queryTime;
+        } catch (error) {
+            dom.contentEl.innerHTML = '<div class="report-error query-error">' + escapeHtml(error.message) + '</div>';
+            return { error };
+        }
+
+        dom.contentEl.innerHTML = '';
+        discovery.view.render(dom.contentEl, {
+            view: 'expand',
+            title: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
+            expanded: expandQueryResults,
+            onToggle: state => expandQueryResults = state,
+            content: { view: 'struct', expanded: 1 }
+        }, results);
+
+        return { data: results };
     };
 }

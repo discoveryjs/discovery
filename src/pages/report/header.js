@@ -69,7 +69,7 @@ export default function(discovery, updateParams) {
                 title: 'Share ...',
                 onclick: ({ target }) => {
                     target.blur();
-                    shareOptionsPopup.show(target);
+                    shareOptionsPopup.toggle(target);
                 }
             }),
             createElement('button', {

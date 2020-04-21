@@ -1,30 +1,30 @@
-.page-report > .report-editor .view-editor-form {
-    margin: 0 -40px 12px;
+.page-report > .report-block.view > .report-block-editor {
+    margin: 0 -40px 12px 0;
 }
 
-.page-report > .report-editor .report-editor-tabs.view-mode::before {
+.page-report > .report-block.view > .report-block-editor .report-editor-tabs.view-mode::before {
     display: inline-block;
     content: 'View:';
 }
-.page-report > .report-editor .report-editor-tabs.presets {
+.page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets {
     margin-left: 3ex;
 }
-.page-report > .report-editor .report-editor-tabs.presets::before {
+.page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets::before {
     content: 'View presets:'
 }
-.page-report > .report-editor .report-editor-tabs.presets .tab:first-child {
+.page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets .tab:first-child {
     border-bottom-left-radius: 4px;
 }
 
-.page-report > .report-editor .view-editor-form-content {
-    padding: 8px 40px;
+.page-report > .report-block.view > .report-block-editor .view-editor-form-content {
+    padding: 8px 40px 8px 0;
     margin-bottom: 1px;
     background: #e8f5fd;
     border-radius: 0 4px 4px 4px;
 }
-.page-report > .report-editor .view-editor-form-content .formatting {
+.page-report > .report-block.view > .report-block-editor .formatting {
     position: absolute;
-    left: 5px;
+    right: 5px;
     width: 30px;
     height: 30px;
     font-size: 0;
@@ -35,17 +35,17 @@
     border-color: #b9d0df;
 }
 
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list {
+.page-report > .report-block.view > .report-block-editor .view-editor-view-list {
     padding-left: 10px;
     padding-right: 25px;
     font-size: 12px;
     color: #aaa;
 }
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item {
+.page-report > .report-block.view > .report-block-editor .view-editor-view-list .item {
     color: #75a3bf;
     white-space: nowrap;
 }
 
-.discovery[data-dzen] .page-report > .report-editor {
+.discovery[data-dzen] .page-report > .report-block.view > .report-block-editor {
     display: none;
 }

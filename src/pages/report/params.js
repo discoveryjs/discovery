@@ -1,5 +1,8 @@
 import * as base64 from '../../core/utils/base64.js';
 
+const knownEncodeParams = new Set(['query', 'view', 'pipeline', 'title', 'dzen', 'noedit']);
+const knownDecodeParams = new Set(['q', 'v', 'p', 'title', 'dzen', 'noedit']);
+
 function encodeSearchParamPair(name, value) {
     return encodeURIComponent(name) + '=' + encodeURIComponent(value);
 }
@@ -9,8 +12,16 @@ function ensureString(value, fallback) {
 }
 
 export function encodeParams(params) {
-    const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
-    const { query, view, title, dzen, noedit, extra } = typeof params === 'string' ? { query: params } : params;
+    const {
+        query,  // backward compatibility
+        view,   // backward compatibility
+        pipeline: rawPipeline,
+        title,
+        dzen,
+        noedit,
+        extra
+    } = typeof params === 'string' ? { query: params } : params;
+    const pipeline = [];
     const parts = [];
 
     if (dzen) {
@@ -25,38 +36,72 @@ export function encodeParams(params) {
         parts.push(encodeSearchParamPair('title', title));
     }
 
+    // backward compatibility
     if (query) {
-        parts.push(encodeSearchParamPair('q', base64.encode(query)));
+        pipeline.push(['query', query]);
     }
 
-    if (typeof view === 'string') {
-        parts.push(view ? encodeSearchParamPair('v', base64.encode(view)) : 'v');
+    // backward compatibility
+    if (typeof view === 'string' || query) {
+        pipeline.push(view ? ['view', view] : ['view']);
     }
 
-    Object.keys(extra || {}).sort().forEach(name => {
-        if (!specialParams.includes(name)) {
-            parts.push(encodeSearchParamPair(name, extra[name]));
+    if (Array.isArray(rawPipeline)) {
+        pipeline.push(...rawPipeline);
+    }
+
+    if (pipeline.length > 0 || Array.isArray(rawPipeline)) {
+        const pipelineJson = JSON.stringify(pipeline);
+        console.log(pipelineJson);
+        if (pipelineJson !== '[["query",""],["view",null]]') {
+            parts.push(encodeSearchParamPair('p', base64.encode(pipelineJson)));
         }
-    });
+    }
+
+    if (extra) {
+        Object.keys(extra).sort().forEach(name => {
+            if (!knownEncodeParams.has(name)) {
+                parts.push(encodeSearchParamPair(name, extra[name]));
+            }
+        });
+    }
 
     return parts.join('&');
 }
 
 export function decodeParams(params) {
-    const specialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
+    const query = base64.decode(ensureString(params.q, '')); // backward compatibility
+    const view = 'v' in params ? base64.decode(ensureString(params.v, '')) : undefined; // backward compatibility
+    const rawPipeline = JSON.parse(base64.decode(ensureString(params.p, '')) || '[]');
+    const pipeline = Array.isArray(rawPipeline) ? rawPipeline : [];
     const decodedParams = {
         title: params.title || '',
-        query: base64.decode(ensureString(params.q, '')),
-        view: 'v' in params ? base64.decode(ensureString(params.v, '')) : undefined,
+        pipeline,
         dzen: 'dzen' in params,
         noedit: 'noedit' in params
     };
 
+    // backward compatibility
+    if (view) {
+        pipeline.unshift(['view', view]);
+    }
+
+    // backward compatibility
+    if (query) {
+        pipeline.unshift(['query', query]);
+    }
+
+    if (pipeline.length === 0 && !params.p) {
+        pipeline.push(['query', ''], ['view', null]);
+    }
+
     Object.keys(params).forEach(name => {
-        if (!specialParams.includes(name)) {
+        if (!knownDecodeParams.has(name)) {
             decodedParams[name] = params[name];
         }
     });
+
+    console.log('decoded', decodedParams);
 
     return decodedParams;
 }
