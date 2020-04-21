@@ -18,7 +18,7 @@ export default function(discovery) {
         if (content) {
             discovery.view.render(el, content, data, context);
         } else {
-            el.innerText = text || 'Untitled item';
+            el.innerText = typeof data === 'string' ? data : text || 'Untitled item';
         }
     });
 }
