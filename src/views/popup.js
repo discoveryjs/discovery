@@ -114,6 +114,14 @@ export default function(discovery) {
             return openedPopups.includes(this);
         }
 
+        toggle(...args) {
+            if (this.visible) {
+                this.hide();
+            } else {
+                this.show(...args);
+            }
+        }
+
         show(triggerEl, render = this.options.render) {
             const hostEl = document.body;
             const box = getBoundingRect(triggerEl, hostEl);
