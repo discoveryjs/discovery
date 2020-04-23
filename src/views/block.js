@@ -10,6 +10,6 @@ export default function(discovery) {
                 onChange
             });
 
-        discovery.view.render(el, blockContent, data, context);
+        return discovery.view.render(el, blockContent, data, context);
     });
 }
