@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.31 (23-04-2020)
 
 - Added `checkbox-list` view
 - Added `whenData` common option to view config
