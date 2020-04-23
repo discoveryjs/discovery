@@ -11,6 +11,7 @@
 - Extended `badge` to take data as item text when it's a string
 - Extended `block` view to pass `onInit` and `onChange` handlers if any to its content
 - Extended `checkbox`, `input`, `select` and `tabs` views to pass `data` and `context` to `onInit` and `onChange` handler beside value and name
+- Changed `table` view to not render a row when data is falsy
 - Changed `utils.createElement()` to ignore attributes with not own keys or `undefined` value
 - Fixed edge cases for value stat output in `signature` view
 - Fixed scrolling issue for `tabs` view when used in sidebar
