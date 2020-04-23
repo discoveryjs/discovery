@@ -37,13 +37,13 @@ export default function(discovery) {
                 lastInput = newInput;
 
                 if (typeof onChange === 'function') {
-                    onChange(factory(newInput), name);
+                    onChange(factory(newInput), name, data, context);
                 }
             }
         });
 
         if (typeof onInit === 'function') {
-            onInit(factory(inputEl.value.trim()), name);
+            onInit(factory(inputEl.value.trim()), name, data, context);
         }
     });
 }

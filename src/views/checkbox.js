@@ -18,7 +18,7 @@ export default function(discovery) {
         });
         inputEl.addEventListener('change', () => {
             if (typeof onChange === 'function') {
-                onChange(inputEl.checked, name);
+                onChange(inputEl.checked, name, data, context);
 
                 if (renderContent !== null) {
                     renderContent();
@@ -27,7 +27,7 @@ export default function(discovery) {
         });
 
         if (typeof onInit === 'function') {
-            onInit(inputEl.checked, name);
+            onInit(inputEl.checked, name, data, context);
         }
 
         if (content) {

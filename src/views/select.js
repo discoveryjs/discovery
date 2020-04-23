@@ -75,7 +75,7 @@ export default function(discovery) {
                                 renderCaption();
 
                                 if (typeof onChange === 'function') {
-                                    onChange(data.value, name);
+                                    onChange(data.value, name, data, context);
                                 }
                             }
                         }
@@ -87,7 +87,7 @@ export default function(discovery) {
         });
 
         if (typeof onInit === 'function') {
-            onInit(currentValue, name);
+            onInit(currentValue, name, data, context);
         }
 
         renderCaption();
