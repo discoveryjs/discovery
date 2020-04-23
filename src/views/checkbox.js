@@ -36,10 +36,10 @@ export default function(discovery) {
                 const localContext = name ? { ...context, [name]: inputEl.checked } : context;
 
                 contentEl.innerHTML = '';
-                discovery.view.render(contentEl, content, data, localContext);
+                return discovery.view.render(contentEl, content, data, localContext);
             };
 
-            renderContent();
+            return renderContent();
         }
     }, {
         tag: 'label'

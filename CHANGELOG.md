@@ -1,5 +1,6 @@
 ## next
 
+- Added `checkbox-list` view
 - Added `whenData` common option to view config
 - Added `Popup#toggle()` method
 - Added object/array size hint in `struct` view
