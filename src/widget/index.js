@@ -112,7 +112,7 @@ function createDataExtensionApi(instance) {
             });
         },
         methods: {
-            addEntityResolver(name, values, options) {
+            defineType(name, values, options) {
                 const resolver = entityResolvers.define(name, values, options);
                 const pageId = options && options.page;
 
@@ -138,12 +138,6 @@ function createDataExtensionApi(instance) {
                         }
                     });
                 }
-                // annotations.push({
-                //     place: 'before',
-                //     type: 'icon',
-                //     data: value =>
-                //         typeof value === 'string' ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cGF0aCBkPSJNODQuNyAzOS4xbC0zNy4zIDY0LjRjLTMuMSA1LjQtNy40IDEwLTEyLjYgMTMuNEwyNCAxMjRsLjgtMTIuOWMuNC02LjIgMi4yLTEyLjIgNS4zLTE3LjZsMzcuMy02NC40IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTYwLjQgNDQuMWMtLjUgMC0xLS4xLTEuNS0uNC0xLjQtLjgtMS45LTIuNy0xLjEtNC4xbDctMTJjLjgtMS40IDIuNy0xLjkgNC4xLTEuMXMxLjkgMi43IDEuMSA0LjFsLTcgMTJjLS42LjktMS42IDEuNS0yLjYgMS41ek03Ny43IDU0LjFjLS41IDAtMS0uMS0xLjUtLjQtMS40LS44LTEuOS0yLjctMS4xLTQuMWw3LTEyYy44LTEuNCAyLjctMS45IDQuMS0xLjEgMS40LjggMS45IDIuNyAxLjEgNC4xbC03IDEyYy0uNi45LTEuNiAxLjUtMi42IDEuNXoiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNNDcuMiA5NC44Yy0uNSAwLTEtLjEtMS41LS40LTEuNC0uOC0xLjktMi43LTEuMS00LjFsMjUtNDMuNGMuOC0xLjQgMi42LTEuOCA0LjEtMS4xbDUuNiAyLjctMjkuNCA0NC45Yy0uNiAxLTEuNyAxLjQtMi43IDEuNHoiIGZpbGw9IiNmY2NhM2QiLz48cGF0aCBmaWxsPSIjODg4IiBzdHJva2U9IiM4ODgiIHN0cm9rZS13aWR0aD0iLjUiIGQ9Ik0yNCAxMjdjLS41IDAtMS0uMS0xLjUtLjQtMS0uNi0xLjYtMS42LTEuNS0yLjhsLjgtMTIuOWMuNC02LjYgMi40LTEzLjIgNS43LTE4LjlsMzAuMy01Mi40Yy44LTEuNCAyLjctMS45IDQuMS0xLjEgMS40LjggMS45IDIuNyAxLjEgNC4xTDMyLjcgOTVjLTIuOSA0LjktNC41IDEwLjYtNC45IDE2LjNsLS40IDYuOSA1LjgtMy44QzM4IDExMS4zIDQyIDEwNyA0NC45IDEwMmwzMC4zLTUyLjRjLjgtMS40IDIuNy0xLjkgNC4xLTEuMSAxLjQuOCAxLjkgMi43IDEuMSA0LjFMNTAgMTA1Yy0zLjMgNS44LTggMTAuNy0xMy41IDE0LjRsLTEwLjggNy4xYy0uNS4zLTEuMS41LTEuNy41ek04OSAxMjdINDljLTEuNyAwLTMtMS4zLTMtM3MxLjMtMyAzLTNoNDBjMS43IDAgMyAxLjMgMyAzcy0xLjMgMy0zIDN6Ii8+PGNpcmNsZSBmaWxsPSIjODg4IiBzdHJva2U9IiM4ODgiIHN0cm9rZS13aWR0aD0iLjUiIGN4PSIxMDQiIGN5PSIxMjQiIHI9IjMiLz48cGF0aCBkPSJNODcuNyAzNi43Yy0uNSAwLTEtLjEtMS41LS40LTEuNC0uOC0xLjktMi43LTEuMS00LjEuOS0xLjYgMS4yLTMuNS43LTUuM3MtMS42LTMuMy0zLjMtNC4yYy0xLjYtLjktMy41LTEuMi01LjMtLjdzLTMuMyAxLjYtNC4zIDMuM2MtLjggMS40LTIuNyAxLjktNC4xIDEuMXMtMS45LTIuNy0xLjEtNC4xYzMuNi02LjIgMTEuNi04LjMgMTcuOC00LjggMyAxLjcgNS4yIDQuNSA2LjEgNy45cy40IDYuOS0xLjMgOS45Yy0uNi45LTEuNiAxLjQtMi42IDEuNHoiIGZpbGw9IiNmZjU1NzYiLz48cGF0aCBkPSJNODcuNyAzMy43YzIuOC00LjggMS4xLTEwLjktMy43LTEzLjctNC44LTIuOC0xMC45LTEuMS0xMy43IDMuN2wtMy43IDYuNSAxNy4zIDEwIDMuOC02LjV6IiBmaWxsPSIjZmY1NTc2Ii8+PHBhdGggZD0iTTgzLjkgNDMuMmMtLjUgMC0xLS4xLTEuNS0uNGwtMTcuMy0xMGMtLjctLjQtMS4yLTEuMS0xLjQtMS44LS4yLS44LS4xLTEuNi4zLTIuM2wzLjctNi41YzMuNi02LjIgMTEuNi04LjMgMTcuOC00LjggMyAxLjcgNS4yIDQuNSA2LjEgNy45cy40IDYuOS0xLjMgOS45bC0zLjcgNi41Yy0uNC43LTEuMSAxLjItMS44IDEuNC0uNC4xLS42LjEtLjkuMXpNNzAuNyAyOS4xbDEyLjEgNyAyLjItMy45Yy45LTEuNiAxLjItMy41LjctNS4zcy0xLjYtMy4zLTMuMy00LjJjLTMuMy0xLjktNy42LS44LTkuNiAyLjZsLTIuMSAzLjh6IiBmaWxsPSIjZmY1NTc2Ii8+PHBhdGggZD0iTTgzLjkgNDMuMmMtLjUgMC0xLS4xLTEuNS0uNC0xLjQtLjgtMS45LTIuNy0xLjEtNC4xbDMuNy02LjVjMS0xLjggMS4yLTQgLjUtNi0uNi0xLjYuMi0zLjMgMS44LTMuOSAxLjYtLjYgMy4zLjIgMy45IDEuOCAxLjQgMy43IDEgNy43LS45IDExLjFsLTMuNyA2LjVjLS42IDEtMS42IDEuNS0yLjcgMS41eiIgZmlsbD0iI2QzMmY1NiIvPjwvc3ZnPg==' : ''
-                // });
             },
             addValueAnnotation(config) {
                 annotations.push(config);
@@ -260,7 +254,7 @@ export default class Widget extends Emitter {
 
     // TODO: remove
     addEntityResolver() {
-        console.error('[Discovery] Widget#addEntityResolver() is removed, use extenstion API in prepare instead, i.e. setPrepare((data, { addEntityResolver }) => ...)');
+        console.error('[Discovery] Widget#addEntityResolver() is removed, use extenstion API in prepare instead, i.e. setPrepare((data, { defineType }) => ...)');
     }
 
     resolveEntity(value) {
