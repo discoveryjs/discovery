@@ -1,5 +1,7 @@
 .page-report > .report-editor .data-query-result {
     margin: 1em 0 1em -40px;
+}
+.page-report > .report-editor .data-query-result > * {
     overflow: hidden;
 }
 .page-report > .report-editor .data-query-result::before {

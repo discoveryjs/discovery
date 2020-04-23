@@ -1,13 +1,19 @@
-## next
+## 1.0.0-beta.31 (23-04-2020)
 
+- Added `checkbox-list` view
 - Added `whenData` common option to view config
 - Added `Popup#toggle()` method
-- Extended `menu-item` to take data as item text when it's a string
 - Added object/array size hint in `struct` view
 - Added "sort keys" toggle for objects in `struct` view
 - Added "sort keys" and "dict mode" actions for objects in `signature` view
-- Fixed edge cases for value stat output in `signature` view
+- Extended `badge` and `pill-badge` views to use number and boolean data as text
+- Extended `menu-item` to take data as item text when it's a string
+- Extended `badge` to take data as item text when it's a string
+- Extended `block` view to pass `onInit` and `onChange` handlers if any to its content
+- Extended `checkbox`, `input`, `select` and `tabs` views to pass `data` and `context` to `onInit` and `onChange` handler beside value and name
+- Changed `table` view to not render a row when data is falsy
 - Changed `utils.createElement()` to ignore attributes with not own keys or `undefined` value
+- Fixed edge cases for value stat output in `signature` view
 - Fixed scrolling issue for `tabs` view when used in sidebar
 
 ## 1.0.0-beta.30 (25-03-2020)

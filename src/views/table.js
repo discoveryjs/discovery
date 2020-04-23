@@ -23,8 +23,8 @@ export default function(discovery) {
         let colsMap = cols && typeof cols === 'object' ? cols : {};
         let scalarCol = false;
 
-        if (!Array.isArray(data) && data) {
-            data = [data];
+        if (!Array.isArray(data)) {
+            data = data ? [data] : [];
         }
 
         const headEl = el.appendChild(document.createElement('thead'));
