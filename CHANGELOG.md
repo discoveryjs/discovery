@@ -2,12 +2,13 @@
 
 - Added `whenData` common option to view config
 - Added `Popup#toggle()` method
-- Extended `menu-item` to take data as item text when it's a string
 - Added object/array size hint in `struct` view
 - Added "sort keys" toggle for objects in `struct` view
 - Added "sort keys" and "dict mode" actions for objects in `signature` view
-- Fixed edge cases for value stat output in `signature` view
+- Extended `menu-item` to take data as item text when it's a string
+- Changed `block` view to pass `onInit` and `onChange` handlers if any to its content
 - Changed `utils.createElement()` to ignore attributes with not own keys or `undefined` value
+- Fixed edge cases for value stat output in `signature` view
 - Fixed scrolling issue for `tabs` view when used in sidebar
 
 ## 1.0.0-beta.30 (25-03-2020)
