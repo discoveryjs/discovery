@@ -107,3 +107,20 @@
 .discovery[data-compact] .page {
     padding: 0;
 }
+
+.view-stack-trace {
+    pointer-events: none;
+    transition: all 25ms 5ms;
+    z-index: 1001;
+    max-width: 650px !important;
+}
+.view-stack-trace .stack-view-chain {
+    padding: 4px;
+}
+.view-stack-trace .stack-view-chain .view-list-item:not(:last-child) {
+    color: #aaa;
+}
+.view-stack-trace .stack-view-chain .view-list-item:not(:first-child)::before {
+    content: '\a0→\a0';
+    color: #888;
+}
