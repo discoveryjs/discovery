@@ -5,7 +5,9 @@
 - Added object/array size hint in `struct` view
 - Added "sort keys" toggle for objects in `struct` view
 - Added "sort keys" and "dict mode" actions for objects in `signature` view
+- Extended `badge` and `pill-badge` views to use number and boolean data as text
 - Extended `menu-item` to take data as item text when it's a string
+- Extended `badge` to take data as item text when it's a string
 - Extended `block` view to pass `onInit` and `onChange` handlers if any to its content
 - Extended `checkbox`, `input`, `select` and `tabs` views to pass `data` and `context` to `onInit` and `onChange` handler beside value and name
 - Changed `utils.createElement()` to ignore attributes with not own keys or `undefined` value
