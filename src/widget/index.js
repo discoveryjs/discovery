@@ -7,6 +7,7 @@ import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+import attachViewInspector from './view-inspector.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
 const lastSetDataPromise = new WeakMap();
@@ -367,6 +368,8 @@ export default class Widget extends Emitter {
             this.badges.forEach(badge =>
                 this.dom.badges.appendChild(badge.el)
             );
+
+            attachViewInspector(this);
         } else {
             for (let key in this.dom) {
                 this.dom[key] = null;

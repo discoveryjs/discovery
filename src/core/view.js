@@ -3,6 +3,7 @@
 import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
+const viewEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
 
 function createDefaultConfigErrorView(view) {
     return  {
@@ -71,6 +72,23 @@ function renderDom(renderer, placeholder, config, data, context) {
                         );
                     }
                 }
+            }
+
+            if (el.nodeType === 1) {
+                viewEls.set(el, {
+                    nodes: [el],
+                    config,
+                    data,
+                    context
+                });
+            } else {
+                const nodes = [...el.children];
+                nodes.forEach(childEl => viewEls.set(childEl, {
+                    nodes,
+                    config,
+                    data,
+                    context
+                }));
             }
 
             placeholder.parentNode.replaceChild(el, placeholder);
@@ -334,5 +352,39 @@ export default class ViewRenderer extends Dict {
         moreButton.innerHTML = caption;
 
         container.appendChild(moreButton);
+    }
+
+    getViewStackTrace(el) {
+        const { container } = this.host.dom;
+
+        if (!container || el instanceof Node === false || !container.contains(el)) {
+            return null;
+        }
+
+        const stack = [];
+        let cursor = el;
+
+        while (cursor !== container) {
+            if (viewEls.has(cursor)) {
+                stack.push(viewEls.get(cursor));
+            }
+
+            cursor = cursor.parentNode;
+        }
+
+        // const nodes = container.querySelectorAll('*');
+
+        // for (const node of nodes) {
+        //     if (x.has(node)) {
+        //         node.style.outline = '1px solid red';
+        //     }
+        // }
+
+        if (stack.length === 0) {
+            return null;
+        }
+
+        return stack.reverse();
+
     }
 }
