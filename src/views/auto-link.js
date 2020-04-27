@@ -9,7 +9,6 @@ export default function(discovery) {
         }
 
         const links = discovery.resolveValueLinks(data);
-        console.log(links);
         const preprocessHref = typeof href === 'function' ? href : value => value;
         const processedHref = links
             ? preprocessHref(links[0].href, data, context)
