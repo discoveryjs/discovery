@@ -230,15 +230,22 @@ export default class Widget extends Emitter {
         const startTime = Date.now();
         const dataExtension = createDataExtensionApi(this);
         this._extensitionApi = dataExtension.methods; // TODO: remove
-        const setDataPromise = Promise
-            .resolve(this.prepare(data, dataExtension.methods) || data)
-            .then(() => {  // TODO: use prepare ret
-                const lastPromise = lastSetDataPromise.get(this);
+        const checkIsNotPrevented = () => {
+            const lastPromise = lastSetDataPromise.get(this);
 
-                // prevent race conditions, perform only this promise was last one
-                if (lastPromise !== setDataPromise) {
-                    throw new Error('Prevented by another setData()');
-                }
+            // prevent race conditions, perform only if this promise is last one
+            if (lastPromise !== setDataPromise) {
+                throw new Error('Prevented by another setData()');
+            }
+        };
+        const setDataPromise = Promise.resolve(data)
+            .then((data) => {
+                checkIsNotPrevented();
+
+                return this.prepare(data, dataExtension.methods) || data;
+            })
+            .then((data) => {
+                checkIsNotPrevented();
 
                 this.data = data;
                 this.context = context;
