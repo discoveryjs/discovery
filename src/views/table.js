@@ -91,5 +91,7 @@ export default function(discovery) {
             view: 'table-row',
             cols
         }, rowConfig), data, context, 0, discovery.view.listLimit(limit, 25), moreEl);
+    }, {
+        tag: 'table'
     });
 }
