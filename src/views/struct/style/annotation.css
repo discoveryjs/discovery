@@ -1,0 +1,48 @@
+.view-struct .value-annotation.before {
+    display: inline-block;
+    font-size: 11px;
+    color: #dea92c;
+}
+.view-struct .value-annotation.before + .value {
+    margin-left: 2px;
+}
+.view-struct .value-annotation.after {
+    display: inline-block;
+    margin-left: 2ex;
+    /* color: #dea92c; */
+    color: #aaa;
+    background: linear-gradient(to right, white, transparent);
+    padding: 0 4px;
+    border-left: 1px solid;
+    font-size: 10px;
+    line-height: 14px;
+    border-radius: 4px;
+}
+.view-struct .value-annotation + .value-annotation {
+    margin-left: 2px;
+}
+.view-struct .value-annotation.icon::before {
+    content: '';
+    display: inline-block;
+    vertical-align: text-bottom;
+    height: 16px;
+    width: 16px;
+    background: var(--annotation-image, ) 50% center no-repeat;
+    background-size: 16px;
+}
+.view-struct .value-annotation.icon.has-text::before {
+    margin-right: 4px;
+}
+.view-struct .value-annotation.view-struct-auto-link {
+    display: inline-block;
+    vertical-align: middle;
+    background: #dfeffb;
+    font-size: 10px;
+    padding: 1px 4px 1px;
+    line-height: 14px;
+    text-decoration: none;
+    color: #888;
+    margin-right: 2px;
+    border-radius: 3px;
+    user-select: none;
+}
