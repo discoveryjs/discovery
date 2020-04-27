@@ -139,7 +139,15 @@ function createDataExtensionApi(instance) {
                     });
                 }
             },
-            addValueAnnotation(config) {
+            addValueAnnotation(config, debug = false) {
+                if (typeof config === 'string') {
+                    config = { data: config };
+                }
+
+                if (debug) {
+                    config = { ...config, debug: Boolean(debug) };
+                }
+
                 annotations.push(config);
             },
             addQueryHelpers(helpers) {
