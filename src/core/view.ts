@@ -48,7 +48,7 @@ function condition(type, host, config, data, context) {
     return host.queryBool(config[type] === true ? '' : config[type], data, context);
 }
 
-function renderDom(renderer, placeholder, config, data, context) {
+function renderDom(renderer, placeholder, config, data, context?) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
@@ -161,7 +161,7 @@ function render(container, config, data, context) {
                     : placeholder.remove()
             )
             .catch(e => {
-                renderDom(this.get('alert-danger'), placeholder, {}, e, {});
+                renderDom(this.get('alert-danger'), placeholder, {}, e);
                 console.error(e);
             });
     } else {
@@ -254,7 +254,7 @@ export default class ViewRenderer extends Dict {
         return config || extension;
     }
 
-    render(container, config, data, context) {
+    render(container, config, data, context?) {
         return render.call(
             this,
             container,

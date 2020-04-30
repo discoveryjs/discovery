@@ -143,7 +143,7 @@ export default class Widget extends Emitter implements Discovery {
     page: PageRenderer;
     entityResolvers: Array<any>;
     linkResolvers: Array<any>;
-    prepare: (any) => any;
+    prepare: (data: any, cb: any) => any;
     defaultPageId: string;
     pageId: string;
     pageRef: string | null;
@@ -228,7 +228,7 @@ export default class Widget extends Emitter implements Discovery {
     setData(data, context = {}) {
         const startTime = Date.now();
         const setDataPromise = Promise
-            .resolve(this.prepare(data))
+            .resolve(this.prepare(data, value => data = value))
             .then(() => {  // TODO: use prepare ret
                 const lastPromise = lastSetDataPromise.get(this);
 
@@ -537,10 +537,10 @@ export default class Widget extends Emitter implements Discovery {
         const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
         const searchParams = Array.prototype.slice.call(new URLSearchParams(parts.join('&')));
-        const pageParams = decodeParams(searchParams).reduce((map, [key, value]) => {
+        const pageParams = decodeParams(searchParams.reduce((map, [key, value]) => {
             map[key] = value || true;
             return map;
-        }, {});
+        }, {}));
 
         return {
             pageId: pageId || this.defaultPageId,

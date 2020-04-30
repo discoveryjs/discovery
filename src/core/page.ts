@@ -65,7 +65,7 @@ export default class PageRenderer extends Dict {
             rendered = page.render(newPageEl, data, context);
         } catch (e) {
             // FIXME: Should not to use a view (alert-danger) since it may to be undefined. Replace render with onError hook?
-            rendered = this.view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)', {});
+            rendered = this.view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
             console.error(e);
         }
 
