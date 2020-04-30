@@ -1,8 +1,11 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import type { ViewRenderer } from './view.js'
 
 export default class PresetRenderer extends Dict {
+    view: ViewRenderer;
+
     constructor(view) {
         super();
 

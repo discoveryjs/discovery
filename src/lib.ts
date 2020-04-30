@@ -6,6 +6,10 @@ import * as pages from './pages/index.js';
 import router from './core/router.js';
 import utils from './core/utils/index.js';
 
+export interface Discovery {
+
+}
+
 export {
     Widget,
     App,

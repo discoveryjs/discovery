@@ -6,8 +6,15 @@ import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 
+interface AppOptions {
+    mode?: string;
+    cache?: boolean;
+}
+
 export default class App extends Widget {
-    constructor(container, options = {}) {
+    mode: string;
+
+    constructor(container, options: AppOptions = {}) {
         super(container, null, options);
 
         this.mode = options.mode;
@@ -71,7 +78,7 @@ export default class App extends Widget {
         return setDataPromise;
     }
 
-    loadDataFromEvent(event) {
+    loadDataFromEvent(event: any) {
         const source = event.dataTransfer || event.target;
         const file = source && source.files && source.files[0];
 
@@ -83,7 +90,7 @@ export default class App extends Widget {
         }
 
         const reader = new FileReader();
-        reader.onload = event => {
+        reader.onload = (event: any) => {
             const data = JSON.parse(event.target.result);
 
             this.setData(data, {

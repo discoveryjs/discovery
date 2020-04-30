@@ -11,7 +11,7 @@ export default class Dictionary extends Emitter {
         entries.set(this, Object.create(null));
     }
 
-    define(key, value) {
+    define(key: any, value: any, options?: any) {
         entries.get(this)[key] = value;
 
         this.emit('define', key, value);

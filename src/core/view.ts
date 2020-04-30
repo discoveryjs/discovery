@@ -1,10 +1,17 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import type { Discovery } from '../lib';
 
 const STUB_OBJECT = Object.freeze({});
 
-function createDefaultConfigErrorView(view) {
+interface ErrorRenderer {
+    name: string
+    options: Object
+    render: (el: HTMLElement, config: any) => Promise<any> | null
+};
+
+function createDefaultConfigErrorView(view): ErrorRenderer {
     return  {
         name: 'config-error',
         render: function(el, config) {
@@ -26,6 +33,8 @@ function createDefaultConfigErrorView(view) {
                         });
                 });
             }
+
+            return null;
         },
         options: STUB_OBJECT
     };
@@ -152,7 +161,7 @@ function render(container, config, data, context) {
                     : placeholder.remove()
             )
             .catch(e => {
-                renderDom(this.get('alert-danger'), placeholder, {}, e);
+                renderDom(this.get('alert-danger'), placeholder, {}, e, {});
                 console.error(e);
             });
     } else {
@@ -161,6 +170,9 @@ function render(container, config, data, context) {
 }
 
 export default class ViewRenderer extends Dict {
+    host: Discovery;
+    defaultConfigErrorRenderer: ErrorRenderer;
+
     constructor(host) {
         super();
 
@@ -265,13 +277,15 @@ export default class ViewRenderer extends Dict {
     }
 
     renderList(container, itemConfig, data, context, offset = 0, limit = false, moreContainer) {
+        let add = 0;
+
         if (limit === false) {
-            limit = data.length;
+            add = data.length;
         }
 
         const result = Promise.all(
             data
-                .slice(offset, offset + limit)
+                .slice(offset, offset + add)
                 .map((value, sliceIndex, slice) =>
                     this.render(container, itemConfig, value, {
                         ...context,
@@ -287,7 +301,7 @@ export default class ViewRenderer extends Dict {
             moreContainer || container,
             null,
             data.length,
-            offset + limit,
+            offset + add,
             limit,
             (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, moreContainer)
         );
@@ -336,3 +350,5 @@ export default class ViewRenderer extends Dict {
         container.appendChild(moreButton);
     }
 }
+
+export type { ViewRenderer };

@@ -1,4 +1,6 @@
 export default class Emitter {
+    listeners: Object;
+
     constructor() {
         this.listeners = Object.create(null);
     }

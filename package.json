@@ -18,10 +18,11 @@
     },
     "scripts": {
         "lint": "eslint libs scripts src",
-        "build": "npm run build:esm && npm run build:css",
+        "tsc": "rimraf build && cpx 'src/**/*.css' dist && tsc || true",
+        "build": "npm run tsc && npm run build:esm && npm run build:css",
         "build-docs": "npm run build && discovery-build -o docs",
         "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
-        "build:umd": "node scripts/build-client-libs && browserify src/lib.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ] | terser --compress --mangle -o dist/discovery.umd.js",
+        "build:umd": "node scripts/build-client-libs && browserify output/lib.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ] | terser --compress --mangle -o dist/discovery.umd.js",
         "build:css": "node scripts/build-css",
         "prepublishOnly": "npm run build"
     },
@@ -41,12 +42,14 @@
         "@discoveryjs/cli": "^1.5.0",
         "babelify": "^10.0.0",
         "browserify": "^16.5.0",
+        "cpx": "^1.5.0",
         "eslint": "^6.8.0",
-        "terser": "^4.6.7"
+        "rimraf": "^3.0.2",
+        "terser": "^4.6.7",
+        "typescript": "^3.8.3"
     },
     "files": [
         "dist",
-        "libs",
-        "src"
+        "libs"
     ]
 }

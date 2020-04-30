@@ -2,6 +2,8 @@
 
 import Dict from './dict.js';
 
+import type { ViewRenderer } from './view.js';
+
 const BUILDIN_NOT_FOUND = {
     name: 'not-found',
     render: (el, { name }) => {
@@ -11,6 +13,10 @@ const BUILDIN_NOT_FOUND = {
 };
 
 export default class PageRenderer extends Dict {
+    view: ViewRenderer;
+    lastPage: string
+    lastPageId: string;
+
     constructor(view) {
         super();
 
@@ -19,7 +25,7 @@ export default class PageRenderer extends Dict {
         this.lastPageId = null;
     }
 
-    define(name, render, options) {
+    define(name, render, options?) {
         super.define(name, Object.freeze({
             name,
             render: typeof render === 'function'
@@ -59,7 +65,7 @@ export default class PageRenderer extends Dict {
             rendered = page.render(newPageEl, data, context);
         } catch (e) {
             // FIXME: Should not to use a view (alert-danger) since it may to be undefined. Replace render with onError hook?
-            rendered = this.view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
+            rendered = this.view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)', {});
             console.error(e);
         }
 

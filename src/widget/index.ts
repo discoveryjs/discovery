@@ -7,7 +7,10 @@ import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+// @ts-ignore
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
+
+import type { Discovery } from '../lib';
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
@@ -87,7 +90,7 @@ function genUniqueId(len = 16) {
     let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
 
     while (uid.length < len) {
-        uid += base36(new Date * Math.random());
+        uid += base36((new Date).getTime() * Math.random());
     }
 
     return uid.substr(0, len);
@@ -99,16 +102,16 @@ function equal(a, b) {
     }
 
     for (let key in a) {
-        if (hasOwnProperty.call(a, key)) {
-            if (!hasOwnProperty.call(b, key) || a[key] !== b[key]) {
+        if (Object.hasOwnProperty.call(a, key)) {
+            if (!Object.hasOwnProperty.call(b, key) || a[key] !== b[key]) {
                 return false;
             }
         }
     }
 
     for (let key in b) {
-        if (hasOwnProperty.call(b, key)) {
-            if (!hasOwnProperty.call(a, key) || a[key] !== b[key]) {
+        if (Object.hasOwnProperty.call(b, key)) {
+            if (!Object.hasOwnProperty.call(a, key) || a[key] !== b[key]) {
                 return false;
             }
         }
@@ -126,7 +129,35 @@ function fuzzyStringCmp(a, b) {
     return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
 }
 
-export default class Widget extends Emitter {
+interface WidgetOptions {
+    defaultPageId: string
+    isolateStyleMarker: string
+    compact: boolean
+    extensions: () => {}
+}
+
+export default class Widget extends Emitter implements Discovery {
+    options: WidgetOptions;
+    view: ViewRenderer;
+    preset: PresetRenderer;
+    page: PageRenderer;
+    entityResolvers: Array<any>;
+    linkResolvers: Array<any>;
+    prepare: (any) => any;
+    defaultPageId: string;
+    pageId: string;
+    pageRef: string | null;
+    pageParams: any;
+    pageHash: string;
+    scheduledRenderPage: boolean | null;
+    instanceId: string;
+    isolateStyleMarker: string;
+    badges: Array<any>;
+    dom: any;
+    queryExtensions: any;
+    data: any;
+    context: any;
+
     constructor(container, defaultPage, options) {
         super();
 
@@ -151,7 +182,7 @@ export default class Widget extends Emitter {
         this.badges = [];
         this.dom = {};
         this.queryExtensions = {
-            query: (...args) => this.query(...args),
+            query: (query, data, context) => this.query(query, data, context),
             pageLink: (pageRef, pageId, pageParams) =>
                 this.encodePageHash(pageId, pageRef, pageParams)
         };
@@ -197,7 +228,7 @@ export default class Widget extends Emitter {
     setData(data, context = {}) {
         const startTime = Date.now();
         const setDataPromise = Promise
-            .resolve(this.prepare(data, value => data = value))
+            .resolve(this.prepare(data))
             .then(() => {  // TODO: use prepare ret
                 const lastPromise = lastSetDataPromise.get(this);
 
@@ -281,9 +312,9 @@ export default class Widget extends Emitter {
         }
     }
 
-    queryBool(...args) {
+    queryBool(query, data, context) {
         try {
-            return jora.buildin.bool(this.query(...args));
+            return jora.buildin.bool(this.query(query, data, context));
         } catch (e) {
             return false;
         }
@@ -488,7 +519,7 @@ export default class Widget extends Emitter {
     // Page
     //
 
-    encodePageHash(pageId, pageRef, pageParams) {
+    encodePageHash(pageId: string, pageRef: string, pageParams) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
         const encodedParams = encodeParams(pageParams || {});
 
@@ -505,10 +536,11 @@ export default class Widget extends Emitter {
         const parts = hash.substr(1).split('&');
         const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
+        const searchParams = Array.prototype.slice.call(new URLSearchParams(parts.join('&')));
+        const pageParams = decodeParams(searchParams).reduce((map, [key, value]) => {
             map[key] = value || true;
             return map;
-        }, {}));
+        }, {});
 
         return {
             pageId: pageId || this.defaultPageId,
@@ -523,7 +555,7 @@ export default class Widget extends Emitter {
         return page && name in page.options ? page.options[name] : fallback;
     }
 
-    setPage(pageId, pageRef, pageParams, replace = false) {
+    setPage(pageId, pageRef?, pageParams?, replace = false) {
         return this.setPageHash(
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
