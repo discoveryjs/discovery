@@ -276,16 +276,14 @@ export default class ViewRenderer extends Dict {
         return Math.max(parseInt(value, 10), 0) || defaultValue;
     }
 
-    renderList(container, itemConfig, data, context, offset = 0, limit = false, moreContainer) {
-        let add = 0;
-
+    renderList(container, itemConfig, data, context, offset = 0, limit: number | boolean = false, moreContainer) {
         if (limit === false) {
-            add = data.length;
+            limit = data.length;
         }
 
         const result = Promise.all(
             data
-                .slice(offset, offset + add)
+                .slice(offset, offset + Number(limit))
                 .map((value, sliceIndex, slice) =>
                     this.render(container, itemConfig, value, {
                         ...context,
@@ -301,7 +299,7 @@ export default class ViewRenderer extends Dict {
             moreContainer || container,
             null,
             data.length,
-            offset + add,
+            offset + Number(limit),
             limit,
             (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, moreContainer)
         );
