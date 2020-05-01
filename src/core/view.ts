@@ -158,7 +158,7 @@ function render(
             } else if (config.view.startsWith('preset/')) {
                 const presetName = config.view.substr(7);
 
-                if (this.host.preset.isDefined(presetName)) {
+                if (this.host.preset.has(presetName)) {
                     renderer = {
                         name: false,
                         options: { tag: false },
@@ -233,7 +233,7 @@ export default class ViewRenderer extends Dict<View> {
     }
 
     define(name: string, render: viewDefineConfig, options?: ViewOptions): void {
-        super.define(name, Object.freeze({
+        super.set(name, Object.freeze({
             name,
             options: Object.freeze({ ...options }),
             render: typeof render === 'function'
@@ -242,7 +242,7 @@ export default class ViewRenderer extends Dict<View> {
         }));
     }
 
-    normalizeConfig(config: viewConfig): ViewConfig | ViewConfig[] {
+    normalizeConfig(config: viewConfig): ViewConfig | ViewConfig[] | null {
         if (!config) {
             return null;
         }

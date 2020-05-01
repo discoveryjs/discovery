@@ -22,7 +22,7 @@ export default class PresetRenderer extends Dict<Preset> {
         // FIXME: add check that config is serializable object
         config = JSON.parse(JSON.stringify(config));
 
-        super.define(name, Object.freeze({
+        super.set(name, Object.freeze({
             name,
             config,
             render: (el, _, data, context) => this.view.render(el, config, data, context)

@@ -9,9 +9,9 @@ interface Page {
     render: (el: HTMLElement, data?, context?) => any;
 }
 interface PageOptions {
-    reuseEl: boolean;
-    init: any;
-    keepScrollOffset: boolean;
+    reuseEl?: boolean;
+    init?: any;
+    keepScrollOffset?: boolean;
 }
 interface RenderState {
     pageEl: HTMLElement;
@@ -40,7 +40,7 @@ export default class PageRenderer extends Dict<Page> {
     }
 
     define(name: string, render: viewDefineConfig, options?: PageOptions) {
-        super.define(name, Object.freeze(<Page>{
+        super.set(name, Object.freeze({
             name,
             options: Object.freeze({ ...options }),
             render: typeof render === 'function'
@@ -59,7 +59,7 @@ export default class PageRenderer extends Dict<Page> {
             data = { name };
         }
 
-        const { reuseEl, init, keepScrollOffset = true } = page.options || {};
+        const { reuseEl, init, keepScrollOffset = true } = page.options;
         const pageChanged = this.lastPage !== name;
         const pageRef = context && context.id;
         const pageRefChanged = this.lastPageId !== pageRef;
