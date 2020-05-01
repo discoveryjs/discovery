@@ -1,6 +1,12 @@
 /* eslint-env browser */
 
-export function createElement(tag, attrs, children) {
+type Attrs = {
+    [key in keyof AddEventListenerOptions]: (evt: Event) => void;
+} | {
+    [key: string]: string
+};
+
+export function createElement(tag: string, attrs?: string | Attrs, children?: Node[] | string[] | string) {
     const el = document.createElement(tag);
 
     if (typeof attrs === 'string') {
@@ -10,7 +16,7 @@ export function createElement(tag, attrs, children) {
     }
 
     for (let attrName in attrs) {
-        if (hasOwnProperty.call(attrs, attrName)) {
+        if (Object.hasOwnProperty.call(attrs, attrName)) {
             if (attrs[attrName] === undefined) {
                 continue;
             }
@@ -34,11 +40,11 @@ export function createElement(tag, attrs, children) {
     return el;
 }
 
-export function createText(text) {
+export function createText(text: string) {
     return document.createTextNode(String(text));
 }
 
-export function createFragment(...children) {
+export function createFragment(...children: Node[]) {
     const fragment = document.createDocumentFragment();
 
     children.forEach(child =>

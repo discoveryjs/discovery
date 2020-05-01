@@ -2,17 +2,17 @@
 const { documentElement } = document;
 const standartsMode = document.compatMode === 'CSS1Compat';
 
-export function getOffsetParent(node) {
-    let offsetParent = node.offsetParent || documentElement;
+export function getOffsetParent(node: HTMLElement): Element {
+    let offsetParent = node.offsetParent as HTMLElement || documentElement;
 
     while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent).position === 'static') {
-        offsetParent = offsetParent.offsetParent;
+        offsetParent = offsetParent.offsetParent as HTMLElement;
     }
 
     return offsetParent || documentElement;
 }
 
-export function getPageOffset(element?) {
+export function getPageOffset(element?: HTMLElement) {
     let top = 0;
     let left = 0;
 
@@ -44,7 +44,7 @@ export function getPageOffset(element?) {
     };
 }
 
-export function getBoundingRect(element, relElement) {
+export function getBoundingRect(element: HTMLElement, relElement: HTMLElement) {
     const offset = getPageOffset(relElement);
     let top = 0;
     let left = 0;
@@ -65,15 +65,15 @@ export function getBoundingRect(element, relElement) {
     };
 }
 
-export function getViewportRect(element, relElement) {
+export function getViewportRect(element: HTMLElement, relElement: HTMLElement) {
     const topViewport = standartsMode ? document.documentElement : document.body;
     let { top, left } = element === topViewport && !relElement
         ? getPageOffset()
         : getBoundingRect(element, relElement);
-    let width;
-    let height;
+    let width: number;
+    let height: number;
 
-    if (!element || element === window) {
+    if (!element || element instanceof Window) {
         width = window.innerWidth || 0;
         height = window.innerHeight || 0;
     } else {

@@ -12,6 +12,7 @@ interface PageOptions {
     reuseEl?: boolean;
     init?: any;
     keepScrollOffset?: boolean;
+    resolveLink?: string | any
 }
 interface RenderState {
     pageEl: HTMLElement;
