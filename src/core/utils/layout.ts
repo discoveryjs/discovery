@@ -5,14 +5,14 @@ const standartsMode = document.compatMode === 'CSS1Compat';
 export function getOffsetParent(node) {
     let offsetParent = node.offsetParent || documentElement;
 
-    while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent, 'position') == 'static') {
+    while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent).position === 'static') {
         offsetParent = offsetParent.offsetParent;
     }
 
     return offsetParent || documentElement;
 }
 
-export function getPageOffset(element) {
+export function getPageOffset(element?) {
     let top = 0;
     let left = 0;
 
