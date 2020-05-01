@@ -10,8 +10,6 @@ import { createElement } from '../core/utils/dom.js';
 // @ts-ignore
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
-import type { Discovery } from '../lib';
-
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
@@ -20,27 +18,27 @@ function defaultEncodeParams(params) {
     return new URLSearchParams(params).toString();
 }
 
-function defaultDecodeParams(value) {
+function defaultDecodeParams(value: string) {
     return value;
 }
 
-function setDatasetValue(el, key, value) {
+function setDatasetValue(el: HTMLElement, key: string, value: any) {
     if (value) {
-        el.dataset[key] = true;
+        el.dataset[key] = 'true';
     } else {
         delete el.dataset[key];
     }
 }
 
-function getPageMethod(instance, pageId, name, fallback) {
-    const page = instance.page.get(pageId);
+function getPageMethod(host: Widget, pageId: string, name: string, fallback: (...args: any[]) => any) {
+    const page = host.page.get(pageId);
 
     return page && typeof page.options[name] === 'function'
         ? page.options[name]
         : fallback;
 }
 
-function extractValueLinkResolver(host, pageId) {
+function extractValueLinkResolver(host: Widget, pageId: string): LinkResolver {
     const { resolveLink } = host.page.get(pageId).options;
 
     if (!resolveLink) {
@@ -86,11 +84,11 @@ function extractValueLinkResolver(host, pageId) {
 }
 
 function genUniqueId(len = 16) {
-    const base36 = val => Math.round(val).toString(36);
+    const base36 = (val: number) => Math.round(val).toString(36);
     let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
 
     while (uid.length < len) {
-        uid += base36((new Date).getTime() * Math.random());
+        uid += base36(Date.now() * Math.random());
     }
 
     return uid.substr(0, len);
@@ -120,23 +118,47 @@ function equal(a, b) {
     return true;
 }
 
-function fuzzyStringCmp(a, b) {
-    const startChar = a[0];
-    const lastChar = a[a.length - 1];
-    const start = startChar === '"' || startChar === "'" ? 1 : 0;
-    const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-
-    return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
+function isQuoteChar(str: string, index: number) {
+    const code = str.charCodeAt(index);
+    return code === 34 /* " */ || code === 39 /* ' */;
 }
 
+function fuzzyStringCmp(a: string, b: string) {
+    const start = isQuoteChar(a, 0) ? 1 : 0;
+    const end = isQuoteChar(a, a.length - 1) ? 1 : 0;
+
+    return b.toLowerCase().indexOf(
+        a.toLowerCase().substring(start, a.length - end),
+        isQuoteChar(b, 0) ? 1 : 0
+    ) !== -1;
+}
+
+type extensionFn = (host: Widget) => void;
+type extension = extension[] | extensionFn | { [key: string]: extension };
+type EntityResolver = (value: any) => Entity;
+type LinkResolver =
+    ((entity: Entity) => EntityLink) |
+    ((entity: Entity, value: any, data?, context?) => EntityLink);
+interface Entity {
+    type: string;
+    id: any;
+    name: any;
+    entity: any;
+}
+interface EntityLink {
+    type: string;
+    text: string;
+    href: string;
+    entity: any;
+}
 interface WidgetOptions {
-    defaultPageId: string
-    isolateStyleMarker: string
-    compact: boolean
-    extensions: () => {}
+    defaultPageId: string;
+    isolateStyleMarker: string;
+    compact: boolean;
+    extensions: extension
 }
 
-export default class Widget extends Emitter implements Discovery {
+export default class Widget extends Emitter {
     options: WidgetOptions;
     view: ViewRenderer;
     preset: PresetRenderer;
@@ -201,15 +223,15 @@ export default class Widget extends Emitter implements Discovery {
         this.setContainer(container);
     }
 
-    apply(extensions) {
-        if (Array.isArray(extensions)) {
-            extensions.forEach(extension => this.apply(extension));
-        } else if (typeof extensions === 'function') {
-            extensions.call(window, this);
-        } else if (extensions) {
-            this.apply(Object.values(extensions));
+    apply(extension: extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(item => this.apply(item));
+        } else if (typeof extension === 'function') {
+            extension.call(window, this);
+        } else if (extension) {
+            this.apply(Object.values(extension));
         } else {
-            console.error('Bad type of extension:', extensions);
+            console.error('Bad type of extension:', extension);
         }
     }
 
@@ -225,7 +247,7 @@ export default class Widget extends Emitter implements Discovery {
         this.prepare = fn;
     }
 
-    setData(data, context = {}) {
+    setData(data: any, context: any = {}) {
         const startTime = Date.now();
         const setDataPromise = Promise
             .resolve(this.prepare(data, value => data = value))
@@ -256,11 +278,11 @@ export default class Widget extends Emitter implements Discovery {
         return setDataPromise;
     }
 
-    addEntityResolver(fn) {
+    addEntityResolver(fn: EntityResolver) {
         this.entityResolvers.push(fn);
     }
 
-    resolveEntity(value) {
+    resolveEntity(value: any) {
         for (let i = 0; i < this.entityResolvers.length; i++) {
             const entity = this.entityResolvers[i](value);
 
@@ -270,13 +292,13 @@ export default class Widget extends Emitter implements Discovery {
         }
     }
 
-    addValueLinkResolver(resolver) {
+    addValueLinkResolver(resolver: LinkResolver) {
         if (typeof resolver === 'function') {
             this.linkResolvers.push(resolver);
         }
     }
 
-    resolveValueLinks(value) {
+    resolveValueLinks(value: any): EntityLink[] | null {
         const result = [];
         const type = typeof value;
 
@@ -320,7 +342,7 @@ export default class Widget extends Emitter implements Discovery {
         }
     }
 
-    querySuggestions(query, offset, data, context) {
+    querySuggestions(query, offset: number, data, context) {
         const typeOrder = ['property', 'value', 'method'];
         let suggestions;
 
@@ -355,7 +377,6 @@ export default class Widget extends Emitter implements Discovery {
             }
         } catch (e) {
             console.error(e);
-            return;
         }
     }
 
@@ -367,7 +388,7 @@ export default class Widget extends Emitter implements Discovery {
         };
     }
 
-    addQueryHelpers(extensions) {
+    addQueryHelpers(extensions: { [key: string]: Function }) {
         Object.assign(this.queryExtensions, extensions);
     }
 
@@ -375,7 +396,7 @@ export default class Widget extends Emitter implements Discovery {
     // UI
     //
 
-    setContainer(container) {
+    setContainer(container: HTMLElement | null) {
         const containerEl = container || null;
 
         if (containerEl) {
@@ -450,7 +471,7 @@ export default class Widget extends Emitter implements Discovery {
     // Render common
     //
 
-    scheduleRender(subject) {
+    scheduleRender(subject: "page" | "sidebar") {
         if (!renderScheduler.has(this)) {
             const subjects = new Set();
 
@@ -471,7 +492,7 @@ export default class Widget extends Emitter implements Discovery {
         renderScheduler.get(this).add(subject);
     }
 
-    cancelScheduledRender(subject) {
+    cancelScheduledRender(subject: "page" | "sidebar") {
         const sheduledRenders = renderScheduler.get(this);
 
         if (sheduledRenders) {
@@ -498,11 +519,9 @@ export default class Widget extends Emitter implements Discovery {
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('sidebar');
-        }
+        this.cancelScheduledRender('sidebar');
 
-        if (this.view.isDefined('sidebar')) {
+        if (this.view.has('sidebar')) {
             const renderStartTime = Date.now();
 
             this.dom.sidebar.innerHTML = '';
@@ -519,7 +538,7 @@ export default class Widget extends Emitter implements Discovery {
     // Page
     //
 
-    encodePageHash(pageId: string, pageRef: string, pageParams) {
+    encodePageHash(pageId: string, pageRef: string, pageParams?) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
         const encodedParams = encodeParams(pageParams || {});
 
@@ -532,7 +551,7 @@ export default class Widget extends Emitter implements Discovery {
         }`;
     }
 
-    decodePageHash(hash) {
+    decodePageHash(hash: string) {
         const parts = hash.substr(1).split('&');
         const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
@@ -549,13 +568,13 @@ export default class Widget extends Emitter implements Discovery {
         };
     }
 
-    getPageOption(name, fallback) {
+    getPageOption(name, fallback: any) {
         const page = this.page.get(this.pageId);
 
         return page && name in page.options ? page.options[name] : fallback;
     }
 
-    setPage(pageId, pageRef?, pageParams?, replace = false) {
+    setPage(pageId: string, pageRef?: string, pageParams?, replace = false) {
         return this.setPageHash(
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
@@ -569,7 +588,7 @@ export default class Widget extends Emitter implements Discovery {
         );
     }
 
-    setPageHash(hash, replace = false) {
+    setPageHash(hash: string, replace = false) {
         if (hash !== this.pageHash) {
             const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
             const changed =
@@ -595,9 +614,7 @@ export default class Widget extends Emitter implements Discovery {
 
     renderPage() {
         // cancel scheduled renderPage
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('page');
-        }
+        this.cancelScheduledRender('page');
 
         const { pageEl, renderState } = this.page.render(
             this.dom.pageContent,
