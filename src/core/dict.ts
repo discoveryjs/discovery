@@ -4,28 +4,28 @@ import Emitter from './emitter.js';
 
 const entries = new WeakMap();
 
-export default class Dictionary extends Emitter {
+export default class Dictionary<T> extends Emitter {
     constructor() {
         super();
 
-        entries.set(this, Object.create(null));
+        entries.set(this, <{ [key: string]: T }>Object.create(null));
     }
 
-    define(key: any, value: any, options?: any) {
+    define(key: string, value: T): void {
         entries.get(this)[key] = value;
 
         this.emit('define', key, value);
     }
 
-    isDefined(key) {
+    isDefined(key: string): boolean {
         return key in entries.get(this);
     }
 
-    get(key) {
+    get(key: string): T {
         return entries.get(this)[key];
     }
 
-    get names() {
+    get names(): string[] {
         return Object.keys(entries.get(this)).sort();
     }
 }

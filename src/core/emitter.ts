@@ -1,11 +1,18 @@
+interface Handler {
+    callback: () => any;
+    next: Handler;
+}
+
 export default class Emitter {
-    listeners: Object;
+    listeners: {
+        [event: string]: Handler;
+    };
 
     constructor() {
         this.listeners = Object.create(null);
     }
 
-    on(event, callback) {
+    on(event: string, callback: (...args: any) => any): this {
         this.listeners[event] = {
             callback,
             next: this.listeners[event] || null
@@ -14,14 +21,14 @@ export default class Emitter {
         return this;
     }
 
-    once(event, callback) {
+    once(event: string, callback: (...args: any) => any): this {
         return this.on(event, function wrapper(...args) {
             callback.apply(this, args);
             this.off(event, wrapper);
         });
     }
 
-    off(event, callback) {
+    off(event: string, callback: (...args: any) => any): this {
         let cursor = this.listeners[event];
         let prev = null;
 
@@ -48,7 +55,7 @@ export default class Emitter {
         return this;
     }
 
-    emit(event, ...args) {
+    emit(event: string, ...args: any[]): boolean {
         let cursor = this.listeners[event];
         let hadListeners = false;
 
