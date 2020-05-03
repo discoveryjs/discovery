@@ -28,20 +28,19 @@ function configArrayGetter(type, config, property) {
 }
 
 export default class TypeResolver extends Dict {
-    define(type, values, config) {
+    define(type, config) {
         if (this.isDefined(type)) {
             throw new Error(`[Discovery] Type resolver ${type} is already defined`);
         }
 
         config = config || {};
 
-        const index = new Map();
         const getId = configGetter(type, config, 'id', value => value.id);
         const getName = configGetter(type, config, 'name', getId);
         const indexKeys = configArrayGetter(type, config, 'indexKeys');
         const lookupKeys = configArrayGetter(type, config, 'lookupKeys');
-
-        for (const value of values) {
+        const index = new Map();
+        const mark = value => {
             const descriptor = Object.freeze({
                 type,
                 id: getId(value),
@@ -52,9 +51,8 @@ export default class TypeResolver extends Dict {
             for (const key of indexKeys) {
                 index.set(key(value), descriptor);
             }
-        }
-
-        return super.define(type, value => {
+        };
+        const resolver = value => {
             for (const key of lookupKeys) {
                 const descriptor = index.get(key(value));
 
@@ -64,7 +62,18 @@ export default class TypeResolver extends Dict {
             }
 
             return null;
-        });
+        };
+
+        resolver.markOne = value => mark(value) || resolver;
+        resolver.mark = values => {
+            for (const value of values) {
+                mark(value);
+            }
+
+            return resolver;
+        };
+
+        return super.define(type, resolver);
     }
 
     resolve(value, type) {
@@ -72,7 +81,7 @@ export default class TypeResolver extends Dict {
             return this.get(type)(value);
         }
 
-        for (const resolve of this.values()) {
+        for (const resolve of this.values) {
             const descriptor = resolve(value);
 
             if (descriptor) {

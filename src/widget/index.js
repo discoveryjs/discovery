@@ -85,6 +85,7 @@ function fuzzyStringCmp(a, b) {
 function createDataExtensionApi(instance) {
     const entityResolvers = new TypeResolver();
     // const linkResolvers = new X(instance.pageLinkResolvers, entityResolvers);
+    const linkResolvers = [];
     const annotations = [];
     const queryExtensions = {
         query: (...args) => instance.query(...args),
@@ -102,54 +103,81 @@ function createDataExtensionApi(instance) {
             }
         }
     };
+    const addValueAnnotation = (query, options = false) => {
+        if (typeof options === 'boolean') {
+            options = {
+                debug: options
+            };
+        }
+
+        annotations.push({
+            query,
+            ...options
+        });
+    };
 
     return {
         apply() {
             Object.assign(instance, {
                 entityResolvers,
+                linkResolvers,
                 annotations,
                 queryExtensions
             });
         },
         methods: {
-            defineType(name, values, options) {
-                const resolver = entityResolvers.define(name, values, options);
+            defineType(name, options) {
+                const resolver = entityResolvers.define(name, options);
                 const pageId = options && options.page;
 
-                if (options && options.page) {
+                if (pageId) {
                     if (!instance.page.isDefined(options.page)) {
                         console.error(`[Discovery] Page reference "${options.page}" doesn't exist`);
                         return;
                     }
 
-                    annotations.push({
-                        place: 'before',
-                        type: 'link',
-                        className: 'view-struct-auto-link',
-                        data: (value, context) => {
-                            const entity = resolver(value);
+                    linkResolvers.push(value => {
+                        const entity = resolver(value);
 
-                            if (entity && entity.value !== context.host) {
-                                return {
-                                    text: pageId,
-                                    href: instance.encodePageHash(pageId, entity.id)
-                                };
-                            }
+                        if (entity) {
+                            return {
+                                type: pageId,
+                                text: entity.name,
+                                href: instance.encodePageHash(pageId, entity.id),
+                                entity: entity.entity
+                            };
+                        }
+                    });
+
+                    addValueAnnotation((value, context) => {
+                        const entity = resolver(value);
+
+                        if (entity && entity.value !== context.host) {
+                            return {
+                                place: 'before',
+                                className: 'value-marker',
+                                text: pageId,
+                                href: instance.encodePageHash(pageId, entity.id)
+                            };
+                        }
+                    });
+                } else {
+                    addValueAnnotation((value, context) => {
+                        const entity = resolver(value);
+
+                        if (entity && entity.value !== context.host) {
+                            return {
+                                place: 'before',
+                                className: 'value-marker',
+                                text: name
+                            };
                         }
                     });
                 }
-            },
-            addValueAnnotation(config, debug = false) {
-                if (typeof config === 'string') {
-                    config = { data: config };
-                }
 
-                if (debug) {
-                    config = { ...config, debug: Boolean(debug) };
-                }
-
-                annotations.push(config);
+                return resolver;
             },
+            addValueAnnotation,
             addQueryHelpers(helpers) {
                 Object.assign(queryExtensions, helpers);
             }
@@ -272,16 +300,6 @@ export default class Widget extends Emitter {
         console.error('[Discovery] Widget#addEntityResolver() is removed, use extenstion API in prepare instead, i.e. setPrepare((data, { defineType }) => ...)');
     }
 
-    resolveEntity(value) {
-        for (let i = 0; i < this.entityResolvers.length; i++) {
-            const entity = this.entityResolvers[i](value);
-
-            if (entity) {
-                return entity;
-            }
-        }
-    }
-
     addValueLinkResolver(resolver) {
         if (typeof resolver === 'function') {
             this.linkResolvers.push(resolver);
@@ -293,10 +311,8 @@ export default class Widget extends Emitter {
         const type = typeof value;
 
         if (value && (type === 'object' || type === 'string')) {
-            const entity = this.resolveEntity(value);
-
-            for (let i = 0; i < this.linkResolvers.length; i++) {
-                const link = this.linkResolvers[i](entity, value, this.data, this.context);
+            for (const resolver of this.linkResolvers) {
+                const link = resolver(value);
 
                 if (link) {
                     result.push(link);

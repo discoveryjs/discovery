@@ -10,9 +10,10 @@ export default function renderAnnotations(annotations) {
             break;
         }
 
-        const { el, data, annotation } = annotations[i];
-        const { place, type = 'text', className } = annotation || {};
+        const { el, data } = annotations[i];
         const {
+            place,
+            className,
             text = typeof data !== 'object' ? String(data) : '',
             title,
             icon,
@@ -23,7 +24,6 @@ export default function renderAnnotations(annotations) {
         const elClassName = [
             'value-annotation',
             place === 'before' ? 'before' : 'after',
-            type,
             hasText ? 'has-text' : '',
             className || ''
         ].join(' ');

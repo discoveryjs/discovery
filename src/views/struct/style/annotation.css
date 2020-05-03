@@ -4,7 +4,7 @@
     color: #dea92c;
 }
 .view-struct .value-annotation.before + .value {
-    margin-left: 2px;
+    margin-left: 4px;
 }
 .view-struct .value-annotation.after {
     display: inline-block;
@@ -33,16 +33,22 @@
 .view-struct .value-annotation.icon.has-text::before {
     margin-right: 4px;
 }
-.view-struct .value-annotation.view-struct-auto-link {
+.view-struct .value-annotation.value-marker {
     display: inline-block;
     vertical-align: middle;
-    background: #dfeffb;
-    font-size: 10px;
     padding: 1px 4px 1px;
-    line-height: 14px;
     text-decoration: none;
-    color: #888;
-    margin-right: 2px;
+    background: #f0f0f0;
+    color: #999;
+    font-size: 10px;
+    line-height: 14px;
     border-radius: 3px;
     user-select: none;
+}
+.view-struct .value-annotation.value-marker[href] {
+    background: #dfeffb;
+}
+.view-struct .value-annotation.value-marker[href]:hover {
+    text-decoration: underline;
+    color: #89a0bd;
 }

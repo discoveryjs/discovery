@@ -205,7 +205,7 @@ export default function(discovery) {
     function applyAnnotations(el, value, options, context) {
         for (const annotation of options.annotations) {
             try {
-                const { data: query, debug } = annotation;
+                const { query, debug } = annotation;
                 const data = discovery.query(query, value, context);
 
                 if (debug) {
@@ -213,7 +213,7 @@ export default function(discovery) {
                 }
 
                 if (data) {
-                    annotationsToRender.push({ el, data, annotation });
+                    annotationsToRender.push({ el, data });
                 }
             } catch (e) {
                 console.error(e);
