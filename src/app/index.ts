@@ -1,12 +1,13 @@
 /* eslint-env browser */
 
 import Widget from '../widget/index.js';
+import type { WidgetOptions } from '../widget/index.js';
 import * as complexViews from '../views/index-complex.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 
-interface AppOptions {
+interface AppOptions extends WidgetOptions {
     mode?: string;
     cache?: boolean;
 }

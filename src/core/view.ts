@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
-import type { Discovery } from '../lib';
+import type Widget from '../widget/index.js';
 
 const STUB_OBJECT = Object.freeze({});
 
@@ -222,10 +222,10 @@ function render(
 }
 
 export default class ViewRenderer extends Dict<View> {
-    host: Discovery;
+    host: Widget;
     defaultConfigErrorRenderer: View;
 
-    constructor(host) {
+    constructor(host: Widget) {
         super();
 
         this.host = host;

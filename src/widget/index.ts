@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import Emitter from '../core/emitter.js';
-import ViewRenderer from '../core/view.js';
+import ViewRenderer, { viewConfig } from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
@@ -9,6 +9,7 @@ import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 // @ts-ignore
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
+import { genUniqueId, equal, fuzzyStringCmp } from './utils.js';
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
@@ -83,62 +84,12 @@ function extractValueLinkResolver(host: Widget, pageId: string): LinkResolver {
     }
 }
 
-function genUniqueId(len = 16) {
-    const base36 = (val: number) => Math.round(val).toString(36);
-    let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
-
-    while (uid.length < len) {
-        uid += base36(Date.now() * Math.random());
-    }
-
-    return uid.substr(0, len);
-}
-
-function equal(a, b) {
-    if (a === b) {
-        return true;
-    }
-
-    for (let key in a) {
-        if (Object.hasOwnProperty.call(a, key)) {
-            if (!Object.hasOwnProperty.call(b, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    for (let key in b) {
-        if (Object.hasOwnProperty.call(b, key)) {
-            if (!Object.hasOwnProperty.call(a, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-function isQuoteChar(str: string, index: number) {
-    const code = str.charCodeAt(index);
-    return code === 34 /* " */ || code === 39 /* ' */;
-}
-
-function fuzzyStringCmp(a: string, b: string) {
-    const start = isQuoteChar(a, 0) ? 1 : 0;
-    const end = isQuoteChar(a, a.length - 1) ? 1 : 0;
-
-    return b.toLowerCase().indexOf(
-        a.toLowerCase().substring(start, a.length - end),
-        isQuoteChar(b, 0) ? 1 : 0
-    ) !== -1;
-}
-
 type extensionFn = (host: Widget) => void;
 type extension = extension[] | extensionFn | { [key: string]: extension };
 type EntityResolver = (value: any) => Entity;
 type LinkResolver =
     ((entity: Entity) => EntityLink) |
-    ((entity: Entity, value: any, data?, context?) => EntityLink);
+    ((entity: Entity, value: any, data?: any, context?: any) => EntityLink);
 interface Entity {
     type: string;
     id: any;
@@ -151,36 +102,39 @@ interface EntityLink {
     href: string;
     entity: any;
 }
-interface WidgetOptions {
-    defaultPageId: string;
-    isolateStyleMarker: string;
-    compact: boolean;
-    extensions: extension
+export interface WidgetOptions {
+    defaultPageId?: string;
+    isolateStyleMarker?: string;
+    compact?: boolean;
+    extensions?: extension;
 }
+interface Badge {
+    el: HTMLElement;
+    visible: (host: Widget) => boolean;
+};
 
 export default class Widget extends Emitter {
     options: WidgetOptions;
     view: ViewRenderer;
     preset: PresetRenderer;
     page: PageRenderer;
-    entityResolvers: Array<any>;
-    linkResolvers: Array<any>;
+    entityResolvers: EntityResolver[];
+    linkResolvers: LinkResolver[];
     prepare: (data: any, cb: any) => any;
     defaultPageId: string;
     pageId: string;
     pageRef: string | null;
-    pageParams: any;
+    pageParams: Record<string, any>;
     pageHash: string;
-    scheduledRenderPage: boolean | null;
     instanceId: string;
     isolateStyleMarker: string;
-    badges: Array<any>;
-    dom: any;
-    queryExtensions: any;
+    badges: Badge[];
+    dom: Record<string, HTMLElement>;
+    queryExtensions: Record<string, Function>;
     data: any;
     context: any;
 
-    constructor(container, defaultPage, options) {
+    constructor(container: HTMLElement, defaultPage?: viewConfig, options?: WidgetOptions) {
         super();
 
         this.options = options || {};
@@ -197,7 +151,6 @@ export default class Widget extends Emitter {
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
-        this.scheduledRenderPage = null;
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
@@ -401,18 +354,18 @@ export default class Widget extends Emitter {
 
         if (containerEl) {
             this.dom.container = containerEl;
+            this.dom.badges = createElement('div', 'discovery-content-badges'),
+            this.dom.pageContent = createElement('article')
+            this.dom.sidebar = createElement('nav', 'discovery-sidebar');
 
             containerEl.classList.add('discovery', this.isolateStyleMarker);
             containerEl.dataset.discoveryInstanceId = this.instanceId;
 
-            containerEl.appendChild(
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar')
-            );
-
+            containerEl.appendChild(this.dom.sidebar);
             containerEl.appendChild(
                 createElement('main', 'discovery-content', [
-                    this.dom.badges = createElement('div', 'discovery-content-badges'),
-                    this.dom.pageContent = createElement('article')
+                    this.dom.badges,
+                    this.dom.pageContent
                 ])
             );
 
@@ -426,11 +379,15 @@ export default class Widget extends Emitter {
         }
     }
 
-    addGlobalEventListener(eventName, handler, options) {
+    addGlobalEventListener(
+        eventName: keyof HTMLElementEventMap,
+        handler: (event: Event) => void,
+        options?: AddEventListenerOptions
+    ) {
         const instanceId = this.instanceId;
-        const handlerWrapper = function(event) {
-            const root = event.target !== document
-                ? event.target.closest('[data-discovery-instance-id]')
+        const handlerWrapper = function(event: Event) {
+            const root: HTMLElement = event.target !== document
+                ? (event.target as HTMLElement).closest('[data-discovery-instance-id]')
                 : null;
 
             if (root && root.dataset.discoveryInstanceId === instanceId) {
@@ -442,7 +399,11 @@ export default class Widget extends Emitter {
         return () => document.removeEventListener(eventName, handlerWrapper, options);
     }
 
-    addBadge(caption, action, visible) {
+    addBadge(
+        caption: string | ((el: HTMLElement) => void),
+        action: (this: HTMLElement, event?: Event) => void,
+        visible?: (host: this) => boolean
+    ): Badge {
         const badge = {
             el: document.createElement('div'),
             visible: typeof visible === 'function' ? visible : () => true
@@ -538,7 +499,7 @@ export default class Widget extends Emitter {
     // Page
     //
 
-    encodePageHash(pageId: string, pageRef: string, pageParams?) {
+    encodePageHash(pageId: string, pageRef: string, pageParams?: Object) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
         const encodedParams = encodeParams(pageParams || {});
 
@@ -568,20 +529,20 @@ export default class Widget extends Emitter {
         };
     }
 
-    getPageOption(name, fallback: any) {
+    getPageOption(name: string, fallback: any) {
         const page = this.page.get(this.pageId);
 
         return page && name in page.options ? page.options[name] : fallback;
     }
 
-    setPage(pageId: string, pageRef?: string, pageParams?, replace = false) {
+    setPage(pageId: string, pageRef?: string, pageParams?: Object, replace = false) {
         return this.setPageHash(
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
         );
     }
 
-    setPageParams(pageParams, replace = false) {
+    setPageParams(pageParams: Object, replace = false) {
         return this.setPageHash(
             this.encodePageHash(this.pageId, this.pageRef, pageParams),
             replace

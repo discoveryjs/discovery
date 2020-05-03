@@ -2,30 +2,28 @@
 
 import Emitter from './emitter.js';
 
-const entries = new WeakMap();
-
 export default class Dictionary<T> extends Emitter {
+    private entries: Map<string, T>;
+
     constructor() {
         super();
-
-        entries.set(this, <{ [key: string]: T }>Object.create(null));
+        this.entries = new Map();
     }
 
     protected set(key: string, value: T): void {
-        entries.get(this)[key] = value;
-
+        this.entries[key] = value;
         this.emit('define', key, value);
     }
 
     get(key: string): T {
-        return entries.get(this)[key];
+        return this.entries[key];
     }
 
     has(key: string): boolean {
-        return key in entries.get(this);
+        return key in this.entries;
     }
 
     get names(): string[] {
-        return Object.keys(entries.get(this)).sort();
+        return Object.keys(this.entries).sort();
     }
 }

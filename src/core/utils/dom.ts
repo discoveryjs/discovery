@@ -6,7 +6,7 @@ type Attrs = {
     [key: string]: string
 };
 
-export function createElement(tag: string, attrs?: string | Attrs, children?: Node[] | string[] | string) {
+export function createElement(tag: string, attrs?: Attrs | string, children?: (Node | string)[] | string) {
     const el = document.createElement(tag);
 
     if (typeof attrs === 'string') {
@@ -44,7 +44,7 @@ export function createText(text: string) {
     return document.createTextNode(String(text));
 }
 
-export function createFragment(...children: Node[]) {
+export function createFragment(...children: (Node | string)[]) {
     const fragment = document.createDocumentFragment();
 
     children.forEach(child =>
