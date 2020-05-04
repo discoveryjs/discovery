@@ -25,14 +25,17 @@ export default class Dictionary extends Emitter {
     get(key) {
         return entries.get(this).get(key);
     }
-
     get names() {
         return [...entries.get(this).keys()];
     }
+
+    get keys() {
+        return entries.get(this).keys();
+    }
     get values() {
-        return [...entries.get(this).values()];
+        return entries.get(this).values();
     }
     get entries() {
-        return [...entries.get(this).entries()];
+        return entries.get(this).entries();
     }
 }

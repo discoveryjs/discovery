@@ -40,28 +40,39 @@ export default class TypeResolver extends Dict {
         const indexKeys = configArrayGetter(type, config, 'indexKeys');
         const lookupKeys = configArrayGetter(type, config, 'lookupKeys');
         const index = new Map();
+        const descriptors = new Map();
         const mark = value => {
-            const descriptor = Object.freeze({
-                type,
-                id: getId(value),
-                name: getName(value),
-                value
-            });
-
             for (const key of indexKeys) {
-                index.set(key(value), descriptor);
+                index.set(key(value), value);
             }
         };
         const resolver = value => {
-            for (const key of lookupKeys) {
-                const descriptor = index.get(key(value));
+            if (descriptors.has(value)) {
+                return descriptors.get(value);
+            }
 
-                if (descriptor) {
-                    return descriptor;
+            let descriptor = null;
+
+            for (const key of lookupKeys) {
+                const indexKey = key(value);
+
+                if (index.has(indexKey)) {
+                    const resolvedValue = index.get(indexKey);
+
+                    descriptor = Object.freeze({
+                        type,
+                        id: getId(resolvedValue),
+                        name: getName(resolvedValue),
+                        value: resolvedValue
+                    });
+
+                    break;
                 }
             }
 
-            return null;
+            descriptors.set(value, descriptor);
+
+            return descriptor;
         };
 
         resolver.markOne = value => mark(value) || resolver;
