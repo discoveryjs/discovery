@@ -49,7 +49,8 @@ export default function(discovery) {
 
         contentStartMarker = el.appendChild(document.createComment('context view content start'));
         contentEndMarker = el.appendChild(document.createComment('context view content end'));
-        awaitRender.then(() => {
+
+        return awaitRender.then(() => {
             inited = true;
             renderContent();
         });

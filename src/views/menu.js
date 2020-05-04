@@ -2,18 +2,35 @@
 
 export default function(discovery) {
     discovery.view.define('menu', function(el, config, data, context) {
-        const { item, itemConfig, limit, emptyText, onClick } = config;
+        const { name = 'filter', item, itemConfig, limit, emptyText, onClick, onInit, onChange } = config;
 
         if (emptyText !== false && emptyText !== '') {
             el.setAttribute('emptyText', emptyText || 'No items');
         }
 
         if (Array.isArray(data)) {
-            discovery.view.renderList(el, this.composeConfig({
+            const composedItemConfig = this.composeConfig({
                 view: 'menu-item',
                 content: item,
-                onClick
-            }, itemConfig), data, context, 0, discovery.view.listLimit(limit, 25));
+                onClick: typeof onClick === 'function'
+                    ? onClick
+                    : typeof onChange === 'function'
+                        ? (data) => onChange(data, name)
+                        : undefined
+            }, itemConfig);
+
+            return discovery.view.renderList(
+                el,
+                composedItemConfig,
+                data,
+                context,
+                0,
+                discovery.view.listLimit(limit, 25)
+            ).then(() => {
+                if (typeof onInit === 'function') {
+                    onInit(discovery.query('.[selected].pick()', data, context), name);
+                }
+            });
         }
     });
 }

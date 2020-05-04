@@ -95,9 +95,26 @@ function render(container, config, data, context) {
 
         case 'string':
             if (config.view === 'render') {
+                const {
+                    config: configQuery = '',
+                    context: contextQuery = ''
+                } = config;
+
                 renderer = {
-                    render: (el, _, config, context) =>
-                        this.render(el, config, data, context),
+                    render: (el, _, _data) => {
+                        const _config = configQuery !== '' ? this.host.query(configQuery, data, context) : _data;
+                        const _context = this.host.query(contextQuery, context, data);
+                        // config only   -> _config=query(data) _data=data
+                        // data only     -> _config=query(data) _data=query(data)
+                        // config & data -> _config=query(data) _data=query(data)
+
+                        return this.render(
+                            el,
+                            _config,
+                            _data !== _config ? _data : data,
+                            _context
+                        );
+                    },
                     name: false,
                     options: { tag: false }
                 };

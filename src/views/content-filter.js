@@ -2,9 +2,9 @@
 
 export default function(discovery) {
     discovery.view.define('content-filter', function(el, config, data, context) {
-        const { name = 'filter', type = 'regexp', placeholder, content } = config;
+        const { name = 'filter', type = 'regexp', placeholder, content, onInit, onChange } = config;
 
-        discovery.view.render(el, {
+        return discovery.view.render(el, {
             view: 'context',
             modifiers: {
                 view: 'input',
@@ -15,7 +15,9 @@ export default function(discovery) {
             content: {
                 view: 'block',
                 className: 'content',
-                content
+                content,
+                onInit,
+                onChange
             }
         }, data, context);
     });

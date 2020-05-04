@@ -3,6 +3,7 @@
 import { escapeHtml } from '../core/utils/html.js';
 import { createElement, createFragment } from '../core/utils/dom.js';
 import copyText from '../core/utils/copy-text.js';
+import usage from './struct.usage.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
@@ -548,6 +549,8 @@ export default function(discovery) {
         if (expandable && !expanded) {
             el.classList.add('struct-expand');
         }
+    }, {
+        usage
     });
 
     // FIXME: this function never call
