@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+import usage from './button.usage.js';
+
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content, disabled = false, onClick } = config;
@@ -20,8 +22,8 @@ export default function(discovery) {
         }
     }
 
-    discovery.view.define('button', render, { tag: 'button' });
-    discovery.view.define('button-primary', render, { tag: 'button' });
-    discovery.view.define('button-danger', render, { tag: 'button' });
-    discovery.view.define('button-warning', render, { tag: 'button' });
+    discovery.view.define('button', render, { tag: 'button', usage });
+    discovery.view.define('button-primary', render, { tag: 'button', usage });
+    discovery.view.define('button-danger', render, { tag: 'button', usage });
+    discovery.view.define('button-warning', render, { tag: 'button', usage });
 }
