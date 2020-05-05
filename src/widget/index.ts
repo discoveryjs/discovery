@@ -1,13 +1,15 @@
 /* eslint-env browser */
 
 import Emitter from '../core/emitter.js';
-import ViewRenderer from '../core/view.js';
+import ViewRenderer, { viewConfig } from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+// @ts-ignore
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
+import { genUniqueId, equal, fuzzyStringCmp } from './utils.js';
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
@@ -17,27 +19,27 @@ function defaultEncodeParams(params) {
     return new URLSearchParams(params).toString();
 }
 
-function defaultDecodeParams(value) {
+function defaultDecodeParams(value: string) {
     return value;
 }
 
-function setDatasetValue(el, key, value) {
+function setDatasetValue(el: HTMLElement, key: string, value: any) {
     if (value) {
-        el.dataset[key] = true;
+        el.dataset[key] = 'true';
     } else {
         delete el.dataset[key];
     }
 }
 
-function getPageMethod(instance, pageId, name, fallback) {
-    const page = instance.page.get(pageId);
+function getPageMethod(host: Widget, pageId: string, name: string, fallback: (...args: any[]) => any) {
+    const page = host.page.get(pageId);
 
     return page && typeof page.options[name] === 'function'
         ? page.options[name]
         : fallback;
 }
 
-function extractValueLinkResolver(host, pageId) {
+function extractValueLinkResolver(host: Widget, pageId: string): LinkResolver {
     const { resolveLink } = host.page.get(pageId).options;
 
     if (!resolveLink) {
@@ -82,52 +84,57 @@ function extractValueLinkResolver(host, pageId) {
     }
 }
 
-function genUniqueId(len = 16) {
-    const base36 = val => Math.round(val).toString(36);
-    let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
-
-    while (uid.length < len) {
-        uid += base36(new Date * Math.random());
-    }
-
-    return uid.substr(0, len);
+type extensionFn = (host: Widget) => void;
+type extension = extension[] | extensionFn | { [key: string]: extension };
+type EntityResolver = (value: any) => Entity;
+type LinkResolver =
+    ((entity: Entity) => EntityLink) |
+    ((entity: Entity, value: any, data?: any, context?: any) => EntityLink);
+interface Entity {
+    type: string;
+    id: any;
+    name: any;
+    entity: any;
 }
-
-function equal(a, b) {
-    if (a === b) {
-        return true;
-    }
-
-    for (let key in a) {
-        if (hasOwnProperty.call(a, key)) {
-            if (!hasOwnProperty.call(b, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    for (let key in b) {
-        if (hasOwnProperty.call(b, key)) {
-            if (!hasOwnProperty.call(a, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    return true;
+interface EntityLink {
+    type: string;
+    text: string;
+    href: string;
+    entity: any;
 }
-
-function fuzzyStringCmp(a, b) {
-    const startChar = a[0];
-    const lastChar = a[a.length - 1];
-    const start = startChar === '"' || startChar === "'" ? 1 : 0;
-    const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-
-    return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
+export interface WidgetOptions {
+    defaultPageId?: string;
+    isolateStyleMarker?: string;
+    compact?: boolean;
+    extensions?: extension;
 }
+interface Badge {
+    el: HTMLElement;
+    visible: (host: Widget) => boolean;
+};
 
 export default class Widget extends Emitter {
-    constructor(container, defaultPage, options) {
+    options: WidgetOptions;
+    view: ViewRenderer;
+    preset: PresetRenderer;
+    page: PageRenderer;
+    entityResolvers: EntityResolver[];
+    linkResolvers: LinkResolver[];
+    prepare: (data: any, cb: any) => any;
+    defaultPageId: string;
+    pageId: string;
+    pageRef: string | null;
+    pageParams: Record<string, any>;
+    pageHash: string;
+    instanceId: string;
+    isolateStyleMarker: string;
+    badges: Badge[];
+    dom: Record<string, HTMLElement>;
+    queryExtensions: Record<string, Function>;
+    data: any;
+    context: any;
+
+    constructor(container: HTMLElement, defaultPage?: viewConfig, options?: WidgetOptions) {
         super();
 
         this.options = options || {};
@@ -144,14 +151,13 @@ export default class Widget extends Emitter {
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
-        this.scheduledRenderPage = null;
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
         this.badges = [];
         this.dom = {};
         this.queryExtensions = {
-            query: (...args) => this.query(...args),
+            query: (query, data, context) => this.query(query, data, context),
             pageLink: (pageRef, pageId, pageParams) =>
                 this.encodePageHash(pageId, pageRef, pageParams)
         };
@@ -170,15 +176,15 @@ export default class Widget extends Emitter {
         this.setContainer(container);
     }
 
-    apply(extensions) {
-        if (Array.isArray(extensions)) {
-            extensions.forEach(extension => this.apply(extension));
-        } else if (typeof extensions === 'function') {
-            extensions.call(window, this);
-        } else if (extensions) {
-            this.apply(Object.values(extensions));
+    apply(extension: extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(item => this.apply(item));
+        } else if (typeof extension === 'function') {
+            extension.call(window, this);
+        } else if (extension) {
+            this.apply(Object.values(extension));
         } else {
-            console.error('Bad type of extension:', extensions);
+            console.error('Bad type of extension:', extension);
         }
     }
 
@@ -194,7 +200,7 @@ export default class Widget extends Emitter {
         this.prepare = fn;
     }
 
-    setData(data, context = {}) {
+    setData(data: any, context: any = {}) {
         const startTime = Date.now();
         const setDataPromise = Promise
             .resolve(this.prepare(data, value => data = value))
@@ -225,11 +231,11 @@ export default class Widget extends Emitter {
         return setDataPromise;
     }
 
-    addEntityResolver(fn) {
+    addEntityResolver(fn: EntityResolver) {
         this.entityResolvers.push(fn);
     }
 
-    resolveEntity(value) {
+    resolveEntity(value: any) {
         for (let i = 0; i < this.entityResolvers.length; i++) {
             const entity = this.entityResolvers[i](value);
 
@@ -239,13 +245,13 @@ export default class Widget extends Emitter {
         }
     }
 
-    addValueLinkResolver(resolver) {
+    addValueLinkResolver(resolver: LinkResolver) {
         if (typeof resolver === 'function') {
             this.linkResolvers.push(resolver);
         }
     }
 
-    resolveValueLinks(value) {
+    resolveValueLinks(value: any): EntityLink[] | null {
         const result = [];
         const type = typeof value;
 
@@ -281,15 +287,15 @@ export default class Widget extends Emitter {
         }
     }
 
-    queryBool(...args) {
+    queryBool(query, data, context) {
         try {
-            return jora.buildin.bool(this.query(...args));
+            return jora.buildin.bool(this.query(query, data, context));
         } catch (e) {
             return false;
         }
     }
 
-    querySuggestions(query, offset, data, context) {
+    querySuggestions(query, offset: number, data, context) {
         const typeOrder = ['property', 'value', 'method'];
         let suggestions;
 
@@ -324,7 +330,6 @@ export default class Widget extends Emitter {
             }
         } catch (e) {
             console.error(e);
-            return;
         }
     }
 
@@ -336,7 +341,7 @@ export default class Widget extends Emitter {
         };
     }
 
-    addQueryHelpers(extensions) {
+    addQueryHelpers(extensions: { [key: string]: Function }) {
         Object.assign(this.queryExtensions, extensions);
     }
 
@@ -344,23 +349,23 @@ export default class Widget extends Emitter {
     // UI
     //
 
-    setContainer(container) {
+    setContainer(container: HTMLElement | null) {
         const containerEl = container || null;
 
         if (containerEl) {
             this.dom.container = containerEl;
+            this.dom.badges = createElement('div', 'discovery-content-badges'),
+            this.dom.pageContent = createElement('article')
+            this.dom.sidebar = createElement('nav', 'discovery-sidebar');
 
             containerEl.classList.add('discovery', this.isolateStyleMarker);
             containerEl.dataset.discoveryInstanceId = this.instanceId;
 
-            containerEl.appendChild(
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar')
-            );
-
+            containerEl.appendChild(this.dom.sidebar);
             containerEl.appendChild(
                 createElement('main', 'discovery-content', [
-                    this.dom.badges = createElement('div', 'discovery-content-badges'),
-                    this.dom.pageContent = createElement('article')
+                    this.dom.badges,
+                    this.dom.pageContent
                 ])
             );
 
@@ -374,11 +379,15 @@ export default class Widget extends Emitter {
         }
     }
 
-    addGlobalEventListener(eventName, handler, options) {
+    addGlobalEventListener(
+        eventName: keyof HTMLElementEventMap,
+        handler: (event: Event) => void,
+        options?: AddEventListenerOptions
+    ) {
         const instanceId = this.instanceId;
-        const handlerWrapper = function(event) {
-            const root = event.target !== document
-                ? event.target.closest('[data-discovery-instance-id]')
+        const handlerWrapper = function(event: Event) {
+            const root: HTMLElement = event.target !== document
+                ? (event.target as HTMLElement).closest('[data-discovery-instance-id]')
                 : null;
 
             if (root && root.dataset.discoveryInstanceId === instanceId) {
@@ -390,7 +399,11 @@ export default class Widget extends Emitter {
         return () => document.removeEventListener(eventName, handlerWrapper, options);
     }
 
-    addBadge(caption, action, visible) {
+    addBadge(
+        caption: string | ((el: HTMLElement) => void),
+        action: (this: HTMLElement, event?: Event) => void,
+        visible?: (host: this) => boolean
+    ): Badge {
         const badge = {
             el: document.createElement('div'),
             visible: typeof visible === 'function' ? visible : () => true
@@ -419,7 +432,7 @@ export default class Widget extends Emitter {
     // Render common
     //
 
-    scheduleRender(subject) {
+    scheduleRender(subject: "page" | "sidebar") {
         if (!renderScheduler.has(this)) {
             const subjects = new Set();
 
@@ -440,7 +453,7 @@ export default class Widget extends Emitter {
         renderScheduler.get(this).add(subject);
     }
 
-    cancelScheduledRender(subject) {
+    cancelScheduledRender(subject: "page" | "sidebar") {
         const sheduledRenders = renderScheduler.get(this);
 
         if (sheduledRenders) {
@@ -467,11 +480,9 @@ export default class Widget extends Emitter {
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('sidebar');
-        }
+        this.cancelScheduledRender('sidebar');
 
-        if (this.view.isDefined('sidebar')) {
+        if (this.view.has('sidebar')) {
             const renderStartTime = Date.now();
 
             this.dom.sidebar.innerHTML = '';
@@ -488,7 +499,7 @@ export default class Widget extends Emitter {
     // Page
     //
 
-    encodePageHash(pageId, pageRef, pageParams) {
+    encodePageHash(pageId: string, pageRef: string, pageParams?: Object) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
         const encodedParams = encodeParams(pageParams || {});
 
@@ -501,11 +512,12 @@ export default class Widget extends Emitter {
         }`;
     }
 
-    decodePageHash(hash) {
+    decodePageHash(hash: string) {
         const parts = hash.substr(1).split('&');
         const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
+        const searchParams = Array.prototype.slice.call(new URLSearchParams(parts.join('&')));
+        const pageParams = decodeParams(searchParams.reduce((map, [key, value]) => {
             map[key] = value || true;
             return map;
         }, {}));
@@ -517,27 +529,27 @@ export default class Widget extends Emitter {
         };
     }
 
-    getPageOption(name, fallback) {
+    getPageOption(name: string, fallback: any) {
         const page = this.page.get(this.pageId);
 
         return page && name in page.options ? page.options[name] : fallback;
     }
 
-    setPage(pageId, pageRef, pageParams, replace = false) {
+    setPage(pageId: string, pageRef?: string, pageParams?: Object, replace = false) {
         return this.setPageHash(
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
         );
     }
 
-    setPageParams(pageParams, replace = false) {
+    setPageParams(pageParams: Object, replace = false) {
         return this.setPageHash(
             this.encodePageHash(this.pageId, this.pageRef, pageParams),
             replace
         );
     }
 
-    setPageHash(hash, replace = false) {
+    setPageHash(hash: string, replace = false) {
         if (hash !== this.pageHash) {
             const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
             const changed =
@@ -563,9 +575,7 @@ export default class Widget extends Emitter {
 
     renderPage() {
         // cancel scheduled renderPage
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('page');
-        }
+        this.cancelScheduledRender('page');
 
         const { pageEl, renderState } = this.page.render(
             this.dom.pageContent,

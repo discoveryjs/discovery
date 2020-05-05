@@ -1,17 +1,51 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import type Widget from '../widget/index.js';
 
 const STUB_OBJECT = Object.freeze({});
 
-function createDefaultConfigErrorView(view) {
+export type { View as Renderer, ViewRenderer, viewDefineConfig, viewConfig };
+
+type viewRenderFn = (el: HTMLElement | DocumentFragment, config: viewConfig, data?: any, context?: any) => Promise<any> | undefined;
+type viewDefineConfig = viewRenderFn | viewConfig;
+type viewConfig = ViewConfig | string | viewConfig[];
+type queryFn = (data: any, context: any) => any;
+type query = string | queryFn | any;
+type classNameFn = (data: any, context: any) => string | false | null | undefined;
+
+interface ViewOptions {
+    tag?: string | false | null;
+}
+interface View {
+    name: string;
+    options: ViewOptions;
+    render: viewRenderFn;
+}
+interface ViewConfig {
+    view: string | viewRenderFn;
+    when?: query;
+    data?: query;
+    whenData?: query;
+    className?: string | classNameFn | (string | classNameFn)[];
+    [key: string]: any;
+}
+interface ErrorData {
+    config: any;
+    reason: string;
+}
+
+function createDefaultConfigErrorView(view: ViewRenderer): View {
     return  {
         name: 'config-error',
-        render: function(el, config) {
-            el.className = 'buildin-view-config-error';
-            el.textContent = config.reason;
+        options: STUB_OBJECT,
+        render: function(el: HTMLElement, _, data: ErrorData) {
+            const { config, reason } = data;
 
-            if ('config' in config) {
+            el.className = 'buildin-view-config-error';
+            el.textContent = reason;
+
+            if (config) {
                 const configEl = el.appendChild(document.createElement('span'));
                 configEl.className = 'show-config';
                 configEl.textContent = 'show config...';
@@ -19,19 +53,26 @@ function createDefaultConfigErrorView(view) {
                     configEl.remove();
 
                     const buffer = document.createDocumentFragment();
-                    view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
+                    view.render(buffer, { view: 'struct', expanded: 1 }, config)
                         .then(() => {
                             el.appendChild(buffer);
                             el.classList.add('expanded');
                         });
                 });
             }
-        },
-        options: STUB_OBJECT
+
+            return null;
+        }
     };
 };
 
-function condition(type, host, config, data, context) {
+function condition(
+    type: string,
+    host,
+    config: ViewConfig,
+    data?: any,
+    context?: any
+) {
     if (type in config === false) {
         return true;
     }
@@ -39,16 +80,22 @@ function condition(type, host, config, data, context) {
     return host.queryBool(config[type] === true ? '' : config[type], data, context);
 }
 
-function renderDom(renderer, placeholder, config, data, context) {
-    const { tag } = renderer.options;
+function renderDom(
+    renderer: View,
+    placeholder: Node,
+    config: ViewConfig,
+    data?: any,
+    context?: any
+): Promise<void> {
+    const { tag = 'div' } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
-        : document.createElement(tag || 'div');
+        : document.createElement(tag);
 
     return Promise
         .resolve(renderer.render(el, config, data, context))
         .then(function() {
-            if (el.classList) {
+            if (el instanceof HTMLElement) {
                 if (renderer.name) {
                     el.classList.add(`view-${renderer.name}`);
                 }
@@ -67,7 +114,7 @@ function renderDom(renderer, placeholder, config, data, context) {
                         el.classList.add(
                             ...classNames
                                 .map(item => typeof item === 'function' ? item(data, context) : item)
-                                .filter(Boolean)
+                                .filter(Boolean as any as <T>(x: T | false) => x is T)
                         );
                     }
                 }
@@ -77,9 +124,16 @@ function renderDom(renderer, placeholder, config, data, context) {
         });
 }
 
-function render(container, config, data, context) {
+function render(
+    container: HTMLElement | DocumentFragment,
+    config: ViewConfig | ViewConfig[],
+    data: any,
+    context: any
+): Promise<void> {
     if (Array.isArray(config)) {
-        return Promise.all(config.map(config => render.call(this, container, config, data, context)));
+        return Promise
+            .allSettled(config.map(config => render.call(this, container, config, data, context)))
+            .then();
     }
 
     let renderer = null;
@@ -96,19 +150,19 @@ function render(container, config, data, context) {
         case 'string':
             if (config.view === 'render') {
                 renderer = {
-                    render: (el, _, config, context) =>
-                        this.render(el, config, data, context),
                     name: false,
-                    options: { tag: false }
+                    options: { tag: false },
+                    render: (el, _, config, context) =>
+                        this.render(el, config, data, context)
                 };
             } else if (config.view.startsWith('preset/')) {
                 const presetName = config.view.substr(7);
 
-                if (this.host.preset.isDefined(presetName)) {
+                if (this.host.preset.has(presetName)) {
                     renderer = {
-                        render: this.host.preset.get(presetName).render,
                         name: false,
-                        options: { tag: false }
+                        options: { tag: false },
+                        render: this.host.preset.get(presetName).render
                     };
                 } else {
                     return this.host.preset.render(container, presetName, data, context);
@@ -127,16 +181,23 @@ function render(container, config, data, context) {
         console.error(errorMsg, config);
 
         renderer = this.get('config-error') || this.defaultConfigErrorRenderer;
-        config = { reason: errorMsg, config };
+        config = {
+            view: 'config-error',
+            data: {
+                reason: errorMsg,
+                config
+            }
+        };
     }
 
     if (!container) {
         container = document.createDocumentFragment();
     }
 
-    if ('when' in config === false || condition('when', this.host, config, data, context)) {
+    if (condition('when', this.host, config, data, context)) {
         // immediately append a view insert point (a placeholder)
         const placeholder = container.appendChild(document.createComment(''));
+        const _config = config; // FIXME: TypeScript raises errors otherwise
 
         // resolve data and render a view when ready
         return Promise
@@ -147,12 +208,12 @@ function render(container, config, data, context) {
                     : data
             )
             .then(data =>
-                condition('whenData', this.host, config, data, context)
-                    ? renderDom(renderer, placeholder, config, data, context)
+                condition('whenData', this.host, _config, data, context)
+                    ? renderDom(renderer, placeholder, _config, data, context)
                     : placeholder.remove()
             )
             .catch(e => {
-                renderDom(this.get('alert-danger'), placeholder, {}, e);
+                renderDom(this.get('alert-danger'), placeholder, { view: '' }, e);
                 console.error(e);
             });
     } else {
@@ -160,25 +221,28 @@ function render(container, config, data, context) {
     }
 }
 
-export default class ViewRenderer extends Dict {
-    constructor(host) {
+export default class ViewRenderer extends Dict<View> {
+    host: Widget;
+    defaultConfigErrorRenderer: View;
+
+    constructor(host: Widget) {
         super();
 
         this.host = host;
         this.defaultConfigErrorRenderer = createDefaultConfigErrorView(this);
     }
 
-    define(name, render, options) {
-        super.define(name, Object.freeze({
+    define(name: string, render: viewDefineConfig, options?: ViewOptions): void {
+        super.set(name, Object.freeze({
             name,
+            options: Object.freeze({ ...options }),
             render: typeof render === 'function'
                 ? render.bind(this)
-                : (el, _, data, context) => this.render(el, render, data, context),
-            options: Object.freeze({ ...options })
+                : (el, _, data, context) => this.render(el, render, data, context)
         }));
     }
 
-    normalizeConfig(config) {
+    normalizeConfig(config: viewConfig): ViewConfig | ViewConfig[] | null {
         if (!config) {
             return null;
         }
@@ -212,37 +276,44 @@ export default class ViewRenderer extends Dict {
         return config;
     }
 
-    ensureValidConfig(config) {
+    ensureValidConfig(config: any): viewConfig {
         if (Array.isArray(config)) {
-            return config.map(item => this.ensureValidConfig(item));
+            return config.map(this.ensureValidConfig, this);
         }
 
         if (!config || !config.view) {
             return {
                 view: this.defaultConfigErrorRenderer.render,
-                reason: !config ? 'Config is not a valid value' : 'Option `view` is missed',
-                config
+                data: {
+                    reason: !config ? 'Config is an invalid value' : 'Option `view` is missed',
+                    config
+                }
             };
         }
 
         return config;
     }
 
-    composeConfig(config, extension) {
+    composeConfig(config: any, extension: any): ViewConfig | ViewConfig[] {
         config = this.normalizeConfig(config);
         extension = this.normalizeConfig(extension);
 
         // mix
-        if (config && extension) {
+        if (config !== null && extension !== null) {
             return Array.isArray(config)
                 ? config.map(item => ({ ...item, ...extension }))
                 : { ...config, ...extension };
         }
 
-        return config || extension;
+        return config !== null ? config : extension;
     }
 
-    render(container, config, data, context) {
+    render(
+        container: HTMLElement | DocumentFragment,
+        config: viewConfig,
+        data?,
+        context?
+    ): Promise<void> {
         return render.call(
             this,
             container,
@@ -252,7 +323,10 @@ export default class ViewRenderer extends Dict {
         );
     }
 
-    listLimit(value, defaultValue) {
+    listLimit(
+        value: number | false,
+        defaultValue: number
+    ): number | false {
         if (value === false) {
             return false;
         }
@@ -261,17 +335,25 @@ export default class ViewRenderer extends Dict {
             return defaultValue;
         }
 
-        return Math.max(parseInt(value, 10), 0) || defaultValue;
+        return Math.max(Math.floor(value), 1) || defaultValue;
     }
 
-    renderList(container, itemConfig, data, context, offset = 0, limit = false, moreContainer) {
+    renderList(
+        container: HTMLElement | DocumentFragment,
+        itemConfig: ViewConfig | ViewConfig[],
+        data: any[],
+        context,
+        offset = 0,
+        limit: number | false = false,
+        moreContainer?: HTMLElement
+    ): Promise<void> {
         if (limit === false) {
             limit = data.length;
         }
 
-        const result = Promise.all(
+        const result = Promise.allSettled(
             data
-                .slice(offset, offset + limit)
+                .slice(offset, offset + Number(limit))
                 .map((value, sliceIndex, slice) =>
                     this.render(container, itemConfig, value, {
                         ...context,
@@ -287,15 +369,22 @@ export default class ViewRenderer extends Dict {
             moreContainer || container,
             null,
             data.length,
-            offset + limit,
+            offset + Number(limit),
             limit,
             (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, moreContainer)
         );
 
-        return result;
+        return result.then();
     }
 
-    maybeMoreButtons(container, beforeEl, count, offset, limit, renderMore) {
+    maybeMoreButtons(
+        container: HTMLElement | DocumentFragment,
+        beforeEl: Node | null,
+        count: number,
+        offset: number,
+        limit: number,
+        renderMore: (offset: number, count: number) => void
+    ): HTMLElement | null {
         const restCount = count - offset;
         const buttons = restCount <= 0 ? null : document.createElement('span');
 
@@ -323,7 +412,11 @@ export default class ViewRenderer extends Dict {
         return buttons;
     }
 
-    renderMoreButton(container, caption, fn) {
+    renderMoreButton(
+        container: HTMLElement,
+        caption: string,
+        fn: () => void
+    ): void {
         const moreButton = document.createElement('button');
 
         moreButton.className = 'more-button';
@@ -331,7 +424,7 @@ export default class ViewRenderer extends Dict {
             container.remove();
             fn();
         });
-        moreButton.innerHTML = caption;
+        moreButton.textContent = caption;
 
         container.appendChild(moreButton);
     }

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const es5toEs6 = require('../libs/es5toEs6');
-const libFilename = path.join(__dirname, '../src/lib.js');
+const libFilename = path.join(__dirname, '../dist/lib.js');
 const libBundleFilename = path.join(__dirname, '../dist/discovery.umd.js');
 const libContent = fs.readFileSync(libFilename, 'utf8');
 const libBundleContent = fs.readFileSync(libBundleFilename, 'utf8');

@@ -1,8 +1,25 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import type { ViewRenderer, viewDefineConfig } from './view.js';
 
-const BUILDIN_NOT_FOUND = {
+interface Page {
+    name: string;
+    options?: PageOptions;
+    render: (el: HTMLElement, data?, context?) => any;
+}
+interface PageOptions {
+    reuseEl?: boolean;
+    init?: any;
+    keepScrollOffset?: boolean;
+    resolveLink?: string | any
+}
+interface RenderState {
+    pageEl: HTMLElement;
+    renderState: Promise<void>;
+};
+
+const BUILDIN_NOT_FOUND: Page = {
     name: 'not-found',
     render: (el, { name }) => {
         el.style.cssText = 'color:#a00';
@@ -10,7 +27,11 @@ const BUILDIN_NOT_FOUND = {
     }
 };
 
-export default class PageRenderer extends Dict {
+export default class PageRenderer extends Dict<Page> {
+    view: ViewRenderer;
+    lastPage: string
+    lastPageId: string;
+
     constructor(view) {
         super();
 
@@ -19,17 +40,17 @@ export default class PageRenderer extends Dict {
         this.lastPageId = null;
     }
 
-    define(name, render, options) {
-        super.define(name, Object.freeze({
+    define(name: string, render: viewDefineConfig, options?: PageOptions) {
+        super.set(name, Object.freeze({
             name,
+            options: Object.freeze({ ...options }),
             render: typeof render === 'function'
                 ? render.bind(this.view)
-                : (el, data, context) => this.view.render(el, render, data, context),
-            options: Object.freeze({ ...options })
+                : (el, data, context) => this.view.render(el, render, data, context)
         }));
     }
 
-    render(prevPageEl, name, data, context) {
+    render(prevPageEl: HTMLElement, name: string, data?, context?): RenderState {
         const renderStartTime = Date.now();
         let page = this.get(name);
         let rendered;
@@ -39,7 +60,7 @@ export default class PageRenderer extends Dict {
             data = { name };
         }
 
-        const { reuseEl, init, keepScrollOffset = true } = page.options || {};
+        const { reuseEl, init, keepScrollOffset = true } = page.options;
         const pageChanged = this.lastPage !== name;
         const pageRef = context && context.id;
         const pageRefChanged = this.lastPageId !== pageRef;
@@ -68,14 +89,16 @@ export default class PageRenderer extends Dict {
         }
 
         if (pageChanged || pageRefChanged || !keepScrollOffset) {
-            parentEl.scrollTop = 0;
+            (parentEl as HTMLElement).scrollTop = 0;
         }
 
         return {
             pageEl: newPageEl,
-            renderState: Promise.resolve(rendered).then(() =>
-                console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
-            )
+            renderState: Promise
+                .resolve(rendered)
+                .then(() =>
+                    console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
+                )
         };
     }
 }

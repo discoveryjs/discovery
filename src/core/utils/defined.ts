@@ -1,4 +1,4 @@
-export default function defined(values, fallback) {
+export default function defined<T, U>(values: T[], fallback: U): T | U {
     for (let i = 0; i < values.length; i++) {
         if (typeof values[i] !== 'undefined') {
             return values[i];
