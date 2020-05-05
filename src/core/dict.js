@@ -26,6 +26,9 @@ export default class Dictionary extends Emitter {
     }
 
     get names() {
-        return Object.keys(entries.get(this)).sort();
+        return Object.keys(entries.get(this));
+    }
+    get entries() {
+        return Object.entries(entries.get(this));
     }
 }

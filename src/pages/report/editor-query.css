@@ -1,8 +1,4 @@
 .page-report > .report-block.query > .report-block-content {
-    margin: 1em 0 1em -40px;
+    margin: 1em 0;
     overflow: hidden;
-}
-.page-report > .report-block.query > .report-block-content::before {
-    float: left;
-    content: 'Data:';
 }

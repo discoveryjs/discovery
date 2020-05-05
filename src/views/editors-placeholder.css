@@ -1,0 +1,12 @@
+.discovery-editor .CodeMirror .CodeMirror-placeholder {
+    color: #aaa;
+    font-style: italic;
+    height: 0;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s;
+}
+.discovery-editor .CodeMirror-empty:not(.CodeMirror-focused) .CodeMirror-placeholder {
+    opacity: 1;
+}

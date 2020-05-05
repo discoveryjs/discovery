@@ -5,6 +5,7 @@ import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 import './editors-hint.js';
+import './editors-placeholder.js';
 
 function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
     const startChar = current[0];
@@ -27,14 +28,21 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
 }
 
 class Editor extends Emitter {
-    constructor(autocomplete) {
+    constructor(options) {
+        const { autocomplete } = options;
+
         super();
 
         this.el = document.createElement('div');
         this.el.className = 'discovery-editor';
 
         const cm = CodeMirror(this.el, {
-            extraKeys: { 'Alt-Space': 'autocomplete' },
+            ...options,
+            extraKeys: {
+                'Alt-Space': 'autocomplete',
+                'Shift-Tab': false,
+                Tab: false
+            },
             mode: 'javascript',
             theme: 'neo',
             indentUnit: 0,
@@ -88,36 +96,41 @@ class Editor extends Emitter {
 }
 
 class QueryEditor extends Editor {
-    constructor(getSuggestions) {
-        super(function(cm) {
-            const cursor = cm.getCursor();
-            const suggestions = getSuggestions(
-                cm.getValue(),
-                cm.doc.indexFromPos(cursor)
-            );
+    constructor(options) {
+        const { autocomplete } = options || {};
 
-            if (!suggestions) {
-                return;
+        super({
+            ...options,
+            autocomplete: function(cm) {
+                const cursor = cm.getCursor();
+                const suggestions = autocomplete(
+                    cm.getValue(),
+                    cm.doc.indexFromPos(cursor)
+                );
+
+                if (!suggestions) {
+                    return;
+                }
+
+                return {
+                    list: suggestions.slice(0, 50).map(entry => {
+                        return {
+                            entry,
+                            text: entry.value,
+                            render: renderQueryAutocompleteItem,
+                            from: cm.posFromIndex(entry.from),
+                            to: cm.posFromIndex(entry.to)
+                        };
+                    })
+                };
             }
-
-            return {
-                list: suggestions.slice(0, 50).map(entry => {
-                    return {
-                        entry,
-                        text: entry.value,
-                        render: renderQueryAutocompleteItem,
-                        from: cm.posFromIndex(entry.from),
-                        to: cm.posFromIndex(entry.to)
-                    };
-                })
-            };
         });
     }
 }
 
 class ViewEditor extends Editor {
-    constructor() {
-        super();
+    constructor(options) {
+        super({ ...options });
     }
 }
 

@@ -1,5 +1,6 @@
 /* eslint-env browser */
 import { createElement } from '../core/utils/dom.js';
+import { escapeHtml } from '../core/utils/html.js';
 import { encodeParams, decodeParams } from './report/params.js';
 import createHeader from './report/header.js';
 import createQueryEditor from './report/editor-query.js';
@@ -67,6 +68,7 @@ export default function(discovery) {
             try {
                 result = handler(content, data, context, callback);
             } catch (error) {
+                console.error(error);
                 result = { error };
             }
 
@@ -117,8 +119,9 @@ export default function(discovery) {
     // Page
     //
     discovery.page.define('report', function(el, data, context) {
-        const noedit = context.params.noedit || context.params.dzen;
+        const editable = !context.params.noedit && !context.params.dzen;
         const pipeline = context.params.pipeline;
+        const dataIndex = [data];
         const results = [];
         const createdBlocksPool = new Map([...blockInstances].map(([key, value]) => [key, value.slice()]));
         const insert = createFlowWriter();
@@ -132,38 +135,56 @@ export default function(discovery) {
             }
         }
 
-        !noedit && insert(getInsertPoint(pipeline, 0));
+        editable && insert(getInsertPoint(pipeline, 0));
 
         for (let idx = 0; idx < pipeline.length; idx++) {
-            const [type, content] = pipeline[idx];
+            const [type, content, params] = pipeline[idx];
+            const { dataIn = dataIndex.length - 1 } = params || {};
             const block = getBlock(type, createdBlocksPool);
-            const result = getBlockResult(block, content, data, context, (newContent, forceRender) => {
-                pipeline[idx][1] = newContent;
-                updateParams({ pipeline }, true);
+            const result = getBlockResult(block, content, dataIndex[dataIn], context, {
+                editable,
+                dataIn,
+                dataOut: dataIndex.length,
+                updateContent: (newContent, forceRender) => {
+                    pipeline[idx][1] = newContent;
+                    updateParams({ pipeline }, true);
 
-                if (forceRender) {
-                    block.cache = null;
-                    // FIXME: need to rerender blocks from current only
-                    discovery.scheduleRender('page'); // force render
+                    if (forceRender) {
+                        block.cache = null;
+                        // FIXME: need to rerender blocks from current only
+                        discovery.scheduleRender('page'); // force render
+                    }
                 }
             });
 
-            console.log({ content, data, context }, result);
+            // console.log({ content, data, context }, result);
 
-            data = 'data' in result ? result.data : data;
             context = 'context' in result ? result.context : context;
             results.push(result);
+            if ('data' in result) {
+                block.el.firstChild.dataset.out = 'data' in result ? dataIndex.length : null;
+                dataIndex.push(data);
+            } else {
+                delete block.el.firstChild.dataset.out;
+            }
 
-            block.el.classList.toggle('editable', !noedit);
+            block.el.firstChild.dataset.in = dataIn;
+            block.el.classList.toggle('editable', editable);
             block.onDelete = () => {
                 pipeline.splice(idx, 1);
                 updateParams({ pipeline }, true);
             };
 
             insert(block.el);
-            !noedit && insert(getInsertPoint(pipeline, idx + 1));
+            editable && insert(getInsertPoint(pipeline, idx + 1));
 
             if (result.error) {
+                block.el.lastChild.innerHTML = '';
+                discovery.view.render(block.el.lastChild, {
+                    view: 'block',
+                    className: 'report-error',
+                    content: 'html:$ + "<br>(see details in console)"'
+                }, escapeHtml(String(result.error)));
                 break;
             }
         }

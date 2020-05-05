@@ -1,5 +1,4 @@
 import { createElement } from '../../core/utils/dom.js';
-import { escapeHtml } from '../../core/utils/html.js';
 
 function count(value, one, many) {
     return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
@@ -26,9 +25,7 @@ function createEditor(container, discovery) {
     };
 
     const queryEngineInfo = discovery.getQueryEngineInfo();
-    const buttonsEl = createElement('div', 'buttons');
     const liveEditEl = createElement('input', {
-        class: 'live-update',
         type: 'checkbox',
         checked: ctx.liveEdit,
         onchange: ({ target }) => {
@@ -39,29 +36,30 @@ function createEditor(container, discovery) {
             }
         }
     });
-
-    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, ctx.data, ctx.context);
-    const editor = new discovery.view.QueryEditor(getQuerySuggestions)
-        .on('change', value => ctx.liveEdit && ctx.updateContent(value));
-
-    container.appendChild(editor.el);
-    container.appendChild(createElement('div', 'editor-toolbar', [
+    const toolbarEl = createElement('div', 'editor-toolbar', [
         createElement('span', 'syntax-hint',
             `Use <a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
                 queryEngineInfo.name
             }</a> ${queryEngineInfo.version || ''} syntax for queries`
         ),
-        createElement('label', null, [liveEditEl, ' process on input']),
-        buttonsEl
-    ]));
+        createElement('label', 'checkbox', [liveEditEl, ' perform on input'])
+    ]);
+
+    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, ctx.data, ctx.context);
+    const editor = new discovery.view.QueryEditor({
+        autocomplete: getQuerySuggestions,
+        placeholder: 'Jora query...'
+    })
+        .on('change', value => ctx.liveEdit && ctx.updateContent(value));
+
+    container.appendChild(editor.el);
+    editor.el.appendChild(toolbarEl);
 
     // FIXME: temporary until full migration on discovery render
-    discovery.view.render(buttonsEl, {
+    discovery.view.render(toolbarEl, {
         view: 'button-primary',
-        content: 'text:"Process"',
-        onClick: () => {
-            ctx.updateContent(editor.getValue(), true);
-        }
+        content: 'text:"Run"',
+        onClick: () => ctx.updateContent(editor.getValue(), true)
     });
 
     return (content, data, context, updateContent) => {
@@ -74,12 +72,11 @@ export default function(dom, discovery) {
     let expandQueryResults = false;
     let editor = null;
 
-    return function(query, data, context, updateContent) {
-        const noedit = context.params.noedit;
+    return function(query, data, context, { updateContent, editable, dataOut }) {
         let queryTime;
         let results;
 
-        if (!noedit) {
+        if (editable) {
             if (editor === null) {
                 editor = createEditor(dom.editorEl, discovery);
             }
@@ -88,19 +85,14 @@ export default function(dom, discovery) {
         }
 
         // perform data query
-        try {
-            queryTime = Date.now();
-            results = discovery.query(query, data, context);
-            queryTime = Date.now() - queryTime;
-        } catch (error) {
-            dom.contentEl.innerHTML = '<div class="report-error query-error">' + escapeHtml(error.message) + '</div>';
-            return { error };
-        }
+        queryTime = Date.now();
+        results = discovery.query(query, data, context);
+        queryTime = Date.now() - queryTime;
 
         dom.contentEl.innerHTML = '';
         discovery.view.render(dom.contentEl, {
             view: 'expand',
-            title: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
+            title: `text:"Out [${dataOut}]: ${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
             expanded: expandQueryResults,
             onToggle: state => expandQueryResults = state,
             content: { view: 'struct', expanded: 1 }

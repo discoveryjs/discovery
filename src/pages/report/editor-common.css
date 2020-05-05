@@ -27,7 +27,7 @@
 .page-report > .report-block > .report-block-editor .report-editor-tab.active {
     padding-bottom: 3px;
     margin-bottom: 0;
-    background: #e8f5fd;
+    background: #d9e7ef;
     cursor: default;
 }
 .page-report > .report-block > .report-block-editor .report-editor-tab:not(.active):hover {
@@ -55,35 +55,61 @@
 .page-report > .report-block > .report-block-editor .editor-toolbar {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
+    align-items: stretch;
+    padding: 1px;
+    border: 1px solid #ddd;
+    border-top: none;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar label {
-    padding: 4px;
-    margin: 0 1ex;
+.page-report > .report-block > .report-block-editor .editor-toolbar > * {
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 12px 5px;
+}
+.page-report > .report-block > .report-block-editor .editor-toolbar > :first-child {
+    background: #fbfbfb;
+}
+.page-report > .report-block > .report-block-editor .editor-toolbar .checkbox {
+    position: relative;
     white-space: nowrap;
+    background: #fbfbfb;
+    margin: 0 1px;
+    cursor: pointer;
+}
+.page-report > .report-block > .report-block-editor .editor-toolbar .checkbox:hover {
+    background-image: linear-gradient(to top, rgba(0,0,0,.05), rgba(0,0,0,.05));
+}
+.page-report > .report-block > .report-block-editor .editor-toolbar .checkbox:focus-within {
+    box-shadow: inset 0 0 1px 3px rgba(0, 170, 255, 0.35);
+    background-image: linear-gradient(to top, rgba(0,0,0,.05), rgba(0,0,0,.05));
+}
+.page-report > .report-block > .report-block-editor .editor-toolbar input[type=checkbox] {
+    margin: 0;
+    outline: none;
+    cursor: pointer;
+}
+.page-report > .report-block > .report-block-editor .editor-toolbar .view-button {
+    border-radius: 0;
+    width: 12ex;
 }
 .page-report > .report-block > .report-block-editor .editor-toolbar .syntax-hint {
     padding-left: 10px;
     flex: 1;
     color: #aaa;
-    font-size: 12px;
 }
 
-.page-report > .report-block > .report-block-editor textarea {
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 9em;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 12px;
-    line-height: 18px; 
-    border-color: #aaa;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
-    resize: vertical;
+.page-report > .report-block > .report-block-editor .discovery-editor {
+    background: white;
 }
-.page-report > .report-block > .report-block-editor textarea:focus {
+.page-report > .report-block > .report-block-editor .CodeMirror {
+    border-radius: 0;
+    margin-bottom: 0;
+    border-color: #ddd;
+    border-bottom: 1px solid #e4e4e4;
+    /* background: #f2f2f2; */
+    /* box-shadow: none; */
+}
+.page-report > .report-block > .report-block-editor .CodeMirror-focused {
     border-color: #0af;
-    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
+    box-shadow: inset 0 0 1px 2px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
     outline: 0;
 }

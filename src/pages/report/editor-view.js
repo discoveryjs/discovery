@@ -1,5 +1,4 @@
-import { createElement, createText } from '../../core/utils/dom.js';
-import { escapeHtml } from '../../core/utils/html.js';
+import { createElement } from '../../core/utils/dom.js';
 
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
@@ -48,21 +47,24 @@ function createEditor(container, discovery) {
         ? defaultViewPresets.concat(discovery.options.viewPresets)
         : defaultViewPresets;
 
-    const availableViewListEl = createElement('span');
-    const viewLiveEditEl = createElement('input', {
-        class: 'live-update',
-        type: 'checkbox',
-        checked: true,
-        onchange: (e) => {
-            if (e.target.checked) {
-                updateContent(viewEditor.getValue());
-            }
+    const availableViewListPopup = new discovery.view.Popup({
+        render(el) {
+            discovery.view.render(el, {
+                view: 'menu',
+                data: '.({ name: pick(), type: pick(1).options.type }).sort(name asc)',
+                limit: false,
+                item: [
+                    'text:name + " "',
+                    {
+                        view: 'badge',
+                        when: 'type = "model"',
+                        data: '{ text: "model" }'
+                    }
+                ]
+            }, discovery.view.entries);
         }
     });
-    const viewEditor = new discovery.view.ViewEditor(discovery).on('change', value =>
-        viewLiveEditEl.checked && updateContent(value)
-    );
-    const viewEditorButtonsEl = createElement('div', 'buttons');
+
     const viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
         createElement('div', {
             class: 'report-editor-tab',
@@ -70,57 +72,71 @@ function createEditor(container, discovery) {
             onclick: () => updateContent(viewMode === 'Default' ? undefined : defaultViewSource)
         }, viewMode)
     );
-    const viewPresetsEls = viewPresets.map(({ name, content }) =>
+    const presetsEls = viewPresets.map(({ name, content }) =>
         createPresetTab(name, content, (...args) => updateContent(...args))
     );
-    const viewSetupEl = createElement('div', {
+
+    const editor = new discovery.view.ViewEditor({
+        placeholder: 'Discovery view definition...'
+    })
+        .on('change', value => liveEditEl.checked && updateContent(value));
+
+    const availableViewListEl = createElement('span', { title: 'Click for details' });
+    const liveEditEl = createElement('input', {
+        type: 'checkbox',
+        checked: true,
+        onchange: (e) => {
+            if (e.target.checked) {
+                updateContent(editor.getValue());
+            }
+        }
+    });
+    const prettifyButtonEl = createElement('button', {
+        class: 'formatting',
+        title: 'Prettify (input should be a JSON)',
+        onclick() {
+            editor.focus();
+
+            try {
+                const currentText = editor.getValue().trim();
+                const json = new Function('return 0,' + currentText)();
+
+                updateContent(toFormattedViewSource(json));
+            } catch (e) {
+                console.error('[Discovery] Prettify failed', e);
+            }
+        }
+    });
+    const toolbarEl = createElement('div', 'editor-toolbar', [
+        createElement('div', 'view-list-hint', [availableViewListEl]),
+        prettifyButtonEl,
+        createElement('label', 'checkbox', [liveEditEl, ' perform on input'])
+    ]);
+    const editorWrapperEl = createElement('div', {
         class: 'view-editor-form-content',
         hidden: true
-    }, [
-        createElement('button', {
-            class: 'view-button formatting',
-            title: 'Prettify (input should be a JSON)',
-            onclick() {
-                viewEditor.focus();
+    }, [editor.el]);
 
-                try {
-                    const currentText = viewEditor.getValue().trim();
-                    const json = new Function('return 0,' + currentText)();
-
-                    updateContent(toFormattedViewSource(json));
-                } catch (e) {
-                    console.error('[Discovery] Prettify failed', e);
-                }
-            }
-        }),
-        viewEditor.el,
-        createElement('div', 'editor-toolbar', [
-            createElement('div', 'view-editor-view-list', [createText('Available views: '), availableViewListEl]),
-            createElement('label', null, [viewLiveEditEl, ' build on input']),
-            viewEditorButtonsEl
-        ])
-    ]);
-
+    editor.el.appendChild(toolbarEl);
     container.appendChild(createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls));
-    container.appendChild(createElement('div', 'report-editor-tabs presets', viewPresetsEls));
-    container.appendChild(viewSetupEl);
+    container.appendChild(createElement('div', 'report-editor-tabs presets', presetsEls));
+    container.appendChild(editorWrapperEl);
 
     // FIXME: temporary until full migration on discovery render
-    discovery.view.render(viewEditorButtonsEl, {
+    discovery.view.render(toolbarEl, {
         view: 'button-primary',
-        content: 'text:"Build"',
+        content: 'text:"Render"',
         onClick: () => {
-            updateContent(viewEditor.getValue(), true);
+            updateContent(editor.getValue(), true);
         }
     });
 
     // sync view list
     const updateAvailableViewList = () =>
-        availableViewListEl.innerHTML = discovery.view.names
-            .map(name => `<span class="item">${name}</span>`)
-            .join(', ');
+        availableViewListEl.innerHTML = `Available ${discovery.view.names.length} views`;
 
     updateAvailableViewList();
+    availableViewListEl.addEventListener('click', () => availableViewListPopup.toggle(availableViewListEl));
     discovery.view.on('define', updateAvailableViewList);
 
     return (content, _data, _context, _updateContent, viewMode) => {
@@ -128,11 +144,11 @@ function createEditor(container, discovery) {
 
         // update editor content
         if (viewMode === 'custom') {
-            viewEditor.setValue(content);
+            editor.setValue(content);
         }
 
         // update view form
-        viewSetupEl.hidden = viewMode !== 'custom';
+        editorWrapperEl.hidden = viewMode !== 'custom';
         viewModeTabsEls.forEach(el =>
             el.classList.toggle('active', el.dataset.mode === viewMode)
         );
@@ -142,16 +158,15 @@ function createEditor(container, discovery) {
 export default function(dom, discovery) {
     let editor = null;
 
-    return function(source, data, context, updateContent) {
+    return function(source, data, context, { updateContent, editable }) {
         const viewMode = typeof source === 'string' ? 'custom' : 'default';
-        const noedit = context.params.noedit;
 
         // build a view
         if (!source && viewMode === 'default') {
             source = defaultViewSource;
         }
 
-        if (!noedit) {
+        if (editable) {
             if (editor === null) {
                 editor = createEditor(dom.editorEl, discovery);
             }
@@ -159,17 +174,7 @@ export default function(dom, discovery) {
             editor(source, data, context, updateContent, viewMode);
         }
 
-        let config;
-
-        try {
-            config = Function('return ' + (source ? '0,' + source : 'null'))();
-        } catch (e) {
-            console.error(e);
-            config = el => {
-                el.className = 'report-error render-error';
-                el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
-            };
-        }
+        let config = Function('return ' + (source ? '0,' + source : 'null'))();
 
         dom.contentEl.innerHTML = '';
         discovery.view.render(dom.contentEl, config, data, context);
