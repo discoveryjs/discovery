@@ -41,7 +41,8 @@ class Editor extends Emitter {
             extraKeys: {
                 'Alt-Space': 'autocomplete',
                 'Shift-Tab': false,
-                Tab: false
+                Tab: false,
+                ...options.extraKeys
             },
             mode: 'javascript',
             theme: 'neo',

@@ -1,4 +1,5 @@
 @import url('./report/header.css');
+@import url('./report/block.css');
 @import url('./report/editor-common.css');
 @import url('./report/editor-query.css');
 @import url('./report/editor-view.css');
@@ -8,116 +9,43 @@
 }
 
 /********************************
-* Error
-********************************/
-
-.page-report > .report-block > .report-block-content > .report-error {
-    display: block;
-    overflow: hidden;
-    border-left: 3px solid #f33;
-    background: #f9dbdb;
-    padding: 8px 12px;
-    font-size: 12px;
-    white-space: pre-wrap;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 11px;
-}
-.page-report > .report-block > .report-block-content > .report-error::before {
-    display: block;
-    margin-bottom: .5em;
-    font-size: 16px;
-}
-.page-report > .report-block.query > .report-block-content > .report-error::before {
-    content: 'Query error';
-}
-.page-report > .report-block.view > .report-block-content > .report-error::before {
-    content: 'Render error';
-}
-
-/********************************
-* Block
+* Insert point
 ********************************/
 
 .page-report > .insert-point {
-    margin: 2px 0 2px -33px;
-    max-height: 1px;
-    line-height: 2px;
-    font-size: 10px;
+    margin-left: -40px;
+    padding: 4px 0 4px 40px;
+    
+    background: no-repeat 20px center;
+    background-image: url('./report/img/block-add.svg');
+    background-size: 16px;
+    
+    font-size: 11px;
+    opacity: 0;
+    transition: opacity .25s ease-in-out;
+}
+.page-report > .insert-point:hover,
+.page-report > .insert-point:last-child {
+    opacity: 1;
+}
+.page-report > .insert-point:last-child {
+    margin-top: 20px;
+}
+.page-report > .report-header + .insert-point {
+    margin-top: -20px;
 }
 .discovery[data-dzen] .page-report > .insert-point {
     visibility: hidden;
 }
-.page-report > .insert-point .view-button {
-    padding: 0 8px;
-    margin: -6px 0;
-    width: 8px;
-    box-sizing: content-box;
+.page-report > .insert-point .add-block {
+    display: inline-block;
+    margin-right: 4px;
+    padding: 2px 12px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    text-transform: capitalize;
+    cursor: pointer;
 }
-
-.page-report > .report-block {
-    display: grid;
-    grid-template-columns: 40px auto;
-    grid-template-rows: auto;
-    grid-template-areas:
-        'actions editor'
-        'actions content';
-    margin-left: -40px;
-}
-.page-report > .report-block > .report-block-actions {
-    grid-area: actions;
-    display: none;
-    font-size: 10px;
-    padding: 8px 0;
-    text-align: center;
-    opacity: 1;
-}
-.page-report > .report-block > .report-block-editor {
-    display: none;
-    grid-area: editor;
-}
-.page-report > .report-block > .report-block-editor::before {
-    background: #ddeed0;
-    font-size: 10px;
-    padding: 2px 8px;
-    color: #6d8a66;
-}
-.page-report > .report-block.query > .report-block-editor::before {
-    content: 'Query';
-}
-.page-report > .report-block.view > .report-block-editor::before {
-    content: 'View';
-}
-.page-report > .report-block > .report-block-content {
-    grid-area: content;
-}
-
-.page-report > .report-block.editable > .report-block-actions,
-.page-report > .report-block.editable > .report-block-editor {
-    display: block;
-}
-
-.page-report > .report-block.editable:hover > .report-block-actions,
-.page-report > .report-block.editable:focus-within > .report-block-actions {
-    opacity: 1;
-}
-.page-report > .report-block > .report-block-actions:hover {
-    background: #eee;
-}
-.page-report > .report-block > .report-block-actions .view-button {
-    padding: 0 8px;
-    width: 8px;
-    box-sizing: content-box;
-    text-align: center;
-}
-.page-report > .report-block > .report-block-actions::before {
-    content: 'In [' attr(data-in) ']';
-    display: block;
-    padding-right: 4px;
-    text-align: right;
-}
-.page-report > .report-block > .report-block-actions[data-out]::after {
-    content: 'Out [' attr(data-out) ']';
-    display: block;
-    padding-right: 4px;
-    text-align: right;
+.page-report > .insert-point .add-block:hover {
+    background-image: linear-gradient(to top, rgba(0, 0, 0, .05), rgba(0, 0, 0, .05) 32px);
 }

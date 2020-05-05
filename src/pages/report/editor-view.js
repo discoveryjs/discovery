@@ -43,27 +43,10 @@ function createPresetTab(name, content, updateContent) {
 
 function createEditor(container, discovery) {
     let updateContent = () => {};
+    let liveUpdate = true;
     const viewPresets = Array.isArray(discovery.options.viewPresets)
         ? defaultViewPresets.concat(discovery.options.viewPresets)
         : defaultViewPresets;
-
-    const availableViewListPopup = new discovery.view.Popup({
-        render(el) {
-            discovery.view.render(el, {
-                view: 'menu',
-                data: '.({ name: pick(), type: pick(1).options.type }).sort(name asc)',
-                limit: false,
-                item: [
-                    'text:name + " "',
-                    {
-                        view: 'badge',
-                        when: 'type = "model"',
-                        data: '{ text: "model" }'
-                    }
-                ]
-            }, discovery.view.entries);
-        }
-    });
 
     const viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
         createElement('div', {
@@ -77,41 +60,48 @@ function createEditor(container, discovery) {
     );
 
     const editor = new discovery.view.ViewEditor({
-        placeholder: 'Discovery view definition...'
+        placeholder: 'Discovery view definition...',
+        extraKeys: { 'Cmd-Enter': () => updateContent(editor.getValue()) }
     })
-        .on('change', value => liveEditEl.checked && updateContent(value));
+        .on('change', value => liveUpdate && updateContent(value));
 
-    const availableViewListEl = createElement('span', { title: 'Click for details' });
-    const liveEditEl = createElement('input', {
-        type: 'checkbox',
-        checked: true,
-        onchange: (e) => {
-            if (e.target.checked) {
-                updateContent(editor.getValue());
-            }
-        }
-    });
-    const prettifyButtonEl = createElement('button', {
-        class: 'formatting',
-        title: 'Prettify (input should be a JSON)',
-        onclick() {
-            editor.focus();
-
-            try {
-                const currentText = editor.getValue().trim();
-                const json = new Function('return 0,' + currentText)();
-
-                updateContent(toFormattedViewSource(json));
-            } catch (e) {
-                console.error('[Discovery] Prettify failed', e);
-            }
-        }
-    });
+    const performButtonEl = createElement('span', {
+        class: 'perform-button disabled',
+        onclick: () => updateContent(editor.getValue(), true)
+    }, 'Render (Cmd+Enter)');
     const toolbarEl = createElement('div', 'editor-toolbar', [
-        createElement('div', 'view-list-hint', [availableViewListEl]),
-        prettifyButtonEl,
-        createElement('label', 'checkbox', [liveEditEl, ' perform on input'])
+        performButtonEl,
+        createElement('span', {
+            class: 'toggle-button live-update-button',
+            title: 'Perform on editing (live update)',
+            onclick: ({ target }) => {
+                liveUpdate = !liveUpdate;
+                target.classList.toggle('disabled', !liveUpdate);
+                performButtonEl.classList.toggle('disabled', liveUpdate);
+
+                if (liveUpdate) {
+                    updateContent(editor.getValue());
+                }
+            }
+        }),
+        createElement('span', {
+            class: 'toggle-button formatting-button',
+            title: 'Prettify (input should be a valid JSON)',
+            onclick() {
+                editor.focus();
+
+                try {
+                    const currentText = editor.getValue().trim();
+                    const json = new Function('return 0,' + currentText)();
+
+                    updateContent(toFormattedViewSource(json));
+                } catch (e) {
+                    console.error('[Discovery] Prettify failed', e);
+                }
+            }
+        })
     ]);
+
     const editorWrapperEl = createElement('div', {
         class: 'view-editor-form-content',
         hidden: true
@@ -121,23 +111,6 @@ function createEditor(container, discovery) {
     container.appendChild(createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls));
     container.appendChild(createElement('div', 'report-editor-tabs presets', presetsEls));
     container.appendChild(editorWrapperEl);
-
-    // FIXME: temporary until full migration on discovery render
-    discovery.view.render(toolbarEl, {
-        view: 'button-primary',
-        content: 'text:"Render"',
-        onClick: () => {
-            updateContent(editor.getValue(), true);
-        }
-    });
-
-    // sync view list
-    const updateAvailableViewList = () =>
-        availableViewListEl.innerHTML = `Available ${discovery.view.names.length} views`;
-
-    updateAvailableViewList();
-    availableViewListEl.addEventListener('click', () => availableViewListPopup.toggle(availableViewListEl));
-    discovery.view.on('define', updateAvailableViewList);
 
     return (content, _data, _context, _updateContent, viewMode) => {
         updateContent = _updateContent;
@@ -155,28 +128,65 @@ function createEditor(container, discovery) {
     };
 }
 
-export default function(dom, discovery) {
+export default function(discovery, { editorEl, contentEl }) {
     let editor = null;
 
-    return function(source, data, context, { updateContent, editable }) {
-        const viewMode = typeof source === 'string' ? 'custom' : 'default';
+    return {
+        renderHelp(el) {
+            const availableViewListEl = createElement('span', {
+                title: 'Click for details',
+                onclick() {
+                    availableViewListPopup.toggle(availableViewListEl);
+                }
+            });
 
-        // build a view
-        if (!source && viewMode === 'default') {
-            source = defaultViewSource;
-        }
+            // view popup
+            const availableViewListPopup = new discovery.view.Popup({
+                render(el) {
+                    discovery.view.render(el, {
+                        view: 'menu',
+                        data: '.({ name: pick(), type: pick(1).options.type }).sort(name asc)',
+                        limit: false,
+                        item: [
+                            'text:name + " "',
+                            {
+                                view: 'badge',
+                                when: 'type = "model"',
+                                data: '{ text: "model" }'
+                            }
+                        ]
+                    }, discovery.view.entries);
+                }
+            });
 
-        if (editable) {
-            if (editor === null) {
-                editor = createEditor(dom.editorEl, discovery);
+            // sync view list
+            const updateAvailableViewList = () =>
+                availableViewListEl.innerHTML = `Available ${discovery.view.names.length} views`;
+            updateAvailableViewList();
+            discovery.view.on('define', updateAvailableViewList);
+
+            el.append(availableViewListEl);
+        },
+        process: function(source, data, context, { updateContent, editable }) {
+            const viewMode = typeof source === 'string' ? 'custom' : 'default';
+
+            // build a view
+            if (!source && viewMode === 'default') {
+                source = defaultViewSource;
             }
 
-            editor(source, data, context, updateContent, viewMode);
+            if (editable) {
+                if (editor === null) {
+                    editor = createEditor(editorEl, discovery);
+                }
+
+                editor(source, data, context, updateContent, viewMode);
+            }
+
+            let config = Function('return ' + (source ? '0,' + source : 'null'))();
+
+            contentEl.innerHTML = '';
+            discovery.view.render(contentEl, config, data, context);
         }
-
-        let config = Function('return ' + (source ? '0,' + source : 'null'))();
-
-        dom.contentEl.innerHTML = '';
-        discovery.view.render(dom.contentEl, config, data, context);
     };
 }

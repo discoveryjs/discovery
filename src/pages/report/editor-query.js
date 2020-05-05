@@ -1,66 +1,56 @@
 import { createElement } from '../../core/utils/dom.js';
 
-function count(value, one, many) {
-    return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
-}
-
-function valueDescriptor(value) {
-    if (Array.isArray(value)) {
-        return `Array (${count(value, 'element', 'elements')})`;
-    }
-
-    if (value && typeof value === 'object') {
-        return `Object (${count(Object.keys(value), 'key', 'keys')})`;
-    }
-
-    return `Scalar (${value === null ? 'null' : typeof value})`;
-}
-
 function createEditor(container, discovery) {
     const ctx = {
         data: null,
         context: null,
         updateContent: () => {},
-        liveEdit: true
+        liveEdit: true,
+        suggestions: true
     };
 
-    const queryEngineInfo = discovery.getQueryEngineInfo();
-    const liveEditEl = createElement('input', {
-        type: 'checkbox',
-        checked: ctx.liveEdit,
-        onchange: ({ target }) => {
-            ctx.liveEdit = target.checked;
-
-            if (ctx.liveEdit) {
-                ctx.updateContent(editor.getValue());
-            }
-        }
-    });
-    const toolbarEl = createElement('div', 'editor-toolbar', [
-        createElement('span', 'syntax-hint',
-            `Use <a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
-                queryEngineInfo.name
-            }</a> ${queryEngineInfo.version || ''} syntax for queries`
-        ),
-        createElement('label', 'checkbox', [liveEditEl, ' perform on input'])
-    ]);
-
-    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, ctx.data, ctx.context);
     const editor = new discovery.view.QueryEditor({
-        autocomplete: getQuerySuggestions,
-        placeholder: 'Jora query...'
+        placeholder: 'Jora query...',
+        extraKeys: { 'Cmd-Enter': () => ctx.updateContent(editor.getValue()) },
+        autocomplete: (query, offset) =>
+            ctx.suggestions
+                ? discovery.querySuggestions(query, offset, ctx.data, ctx.context)
+                : []
     })
         .on('change', value => ctx.liveEdit && ctx.updateContent(value));
 
-    container.appendChild(editor.el);
-    editor.el.appendChild(toolbarEl);
+    const performButtonEl = createElement('span', {
+        class: 'perform-button disabled',
+        onclick: () => ctx.updateContent(editor.getValue(), true)
+    }, 'Run (Cmd+Enter)');
 
-    // FIXME: temporary until full migration on discovery render
-    discovery.view.render(toolbarEl, {
-        view: 'button-primary',
-        content: 'text:"Run"',
-        onClick: () => ctx.updateContent(editor.getValue(), true)
-    });
+    container.appendChild(editor.el);
+    editor.el.appendChild(createElement('div', 'editor-toolbar', [
+        performButtonEl,
+        createElement('span', {
+            class: 'toggle-button live-update-button',
+            title: 'Perform on editing (live update)',
+            onclick: ({ target }) => {
+                ctx.liveEdit = !ctx.liveEdit;
+                target.classList.toggle('disabled', !ctx.liveEdit);
+                performButtonEl.classList.toggle('disabled', ctx.liveEdit);
+                editor.focus();
+
+                if (ctx.liveEdit) {
+                    ctx.updateContent(editor.getValue());
+                }
+            }
+        }),
+        createElement('span', {
+            class: 'toggle-button suggestions-button',
+            title: 'Show suggestions',
+            onclick: ({ target }) => {
+                ctx.suggestions = !ctx.suggestions;
+                target.classList.toggle('disabled', !ctx.suggestions);
+                editor.focus();
+            }
+        })
+    ]));
 
     return (content, data, context, updateContent) => {
         Object.assign(ctx, { data, context, updateContent });
@@ -68,36 +58,33 @@ function createEditor(container, discovery) {
     };
 }
 
-export default function(dom, discovery) {
-    let expandQueryResults = false;
+export default function(discovery, { editorEl }) {
     let editor = null;
 
-    return function(query, data, context, { updateContent, editable, dataOut }) {
-        let queryTime;
-        let results;
+    return {
+        renderHelp(el) {
+            const queryEngineInfo = discovery.getQueryEngineInfo();
 
-        if (editable) {
-            if (editor === null) {
-                editor = createEditor(dom.editorEl, discovery);
+            el.innerHTML = `<a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
+                queryEngineInfo.name
+            }</a> ${queryEngineInfo.version || ''}`;
+        },
+        process: function(query, data, context, { updateContent, editable }) {
+            if (editable) {
+                if (editor === null) {
+                    editor = createEditor(editorEl, discovery);
+                }
+
+                editor(query, data, context, updateContent);
             }
 
-            editor(query, data, context, updateContent);
+            // perform data query
+            const queryStartTime = Date.now();
+
+            return {
+                data: discovery.query(query, data, context),
+                time: Date.now() - queryStartTime
+            };
         }
-
-        // perform data query
-        queryTime = Date.now();
-        results = discovery.query(query, data, context);
-        queryTime = Date.now() - queryTime;
-
-        dom.contentEl.innerHTML = '';
-        discovery.view.render(dom.contentEl, {
-            view: 'expand',
-            title: `text:"Out [${dataOut}]: ${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
-            expanded: expandQueryResults,
-            onToggle: state => expandQueryResults = state,
-            content: { view: 'struct', expanded: 1 }
-        }, results);
-
-        return { data: results };
     };
 }

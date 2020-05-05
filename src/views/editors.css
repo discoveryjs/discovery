@@ -3,6 +3,9 @@
 @import url('./editors-hint.css');
 @import url('./editors-placeholder.css');
 
+.discovery-editor {
+    position: relative;
+}
 .discovery-editor .CodeMirror {
     height: auto;
     overflow-y: visible !important;

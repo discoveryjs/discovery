@@ -1,0 +1,167 @@
+/********************************
+* layout
+********************************/
+
+.page-report > .report-block {
+    display: grid;
+    grid-template-columns: 40px auto;
+    grid-template-rows: auto;
+    grid-template-areas:
+        'actions header'
+        'actions editor'
+        'actions out'
+        'actions content';
+    margin-left: -40px;
+}
+
+.page-report > .report-block > .report-block-actions {
+    grid-area: actions;
+}
+.page-report > .report-block > .report-block-header {
+    grid-area: header;
+}
+.page-report > .report-block > .report-block-editor {
+    grid-area: editor;
+}
+.page-report > .report-block > .report-block-out {
+    grid-area: out;
+}
+.page-report > .report-block > .report-block-content {
+    grid-area: content;
+}
+
+.page-report > .report-block:not(.editable) > :not(.report-block-content) {
+    display: none !important;
+}
+
+/********************************
+* actions
+********************************/
+
+.page-report > .report-block > .report-block-actions {
+    font-size: 10px;
+    padding: 2px 0;
+    text-align: center;
+    opacity: 1;
+    border-right: 1px solid white;
+}
+.page-report > .report-block.editable:hover > .report-block-actions,
+.page-report > .report-block.editable:focus-within > .report-block-actions {
+    opacity: 1;
+}
+.page-report > .report-block > .report-block-actions:hover {
+    background: #eee;
+}
+.page-report > .report-block > .report-block-actions .view-button {
+    padding: 0 8px;
+    width: 8px;
+    box-sizing: content-box;
+    text-align: center;
+}
+.page-report > .report-block > .report-block-actions::before {
+    content: 'In [' attr(data-in) ']';
+    display: block;
+    padding-right: 4px;
+    text-align: right;
+    color: #666;
+}
+
+/********************************
+* header
+********************************/
+
+.page-report > .report-block > .report-block-header {
+    margin-bottom: 1px;
+    display: flex;
+    line-height: 1;
+    font-size: 11px;
+}
+.page-report > .report-block > .report-block-header .label {
+    position: relative;
+    padding: 4px 8px 4px 28px;
+    min-width: 40px;
+    border-right: 1px solid white;
+    font-size: 11px;
+    color: #6d8a66;
+    background: #ddeed0;
+    text-transform: capitalize;
+}
+.page-report > .report-block > .report-block-header .label button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border: none;
+    width: 20px;
+    background: rgba(0, 0, 0, .05) center no-repeat;
+    background-image: url('img/block-delete.svg');
+    background-size: 12px;
+    cursor: pointer;
+}
+.page-report > .report-block > .report-block-header .label button:hover,
+.page-report > .report-block > .report-block-header .label button:focus {
+    outline: none;
+    background-color: rgba(0, 0, 0, .15);
+}
+
+.page-report > .report-block > .report-block-header .comment {
+    flex: 1;
+    padding: 4px 8px;
+    color: #aaa;
+    background: #f8f8f8;
+}
+
+.page-report > .report-block > .report-block-header .editor-hint {
+    padding: 4px 8px;
+    margin-left: 1px;
+    color: #888;
+    background: #f8f8f8;
+}
+
+/********************************
+* header
+********************************/
+
+.page-report > .report-block > .report-block-out {
+    padding-top: 1px;
+}
+.page-report > .report-block > .report-block-out > .view-expand > .header {
+    font-size: 10px;
+    color: #666;
+}
+.page-report > .report-block > .report-block-out > .view-expand > .header > .trigger {
+    margin-right: 8px;
+}
+.page-report > .report-block > .report-block-out > .view-expand:not(.expanded) > .header {
+    opacity: .6;
+}
+.page-report > .report-block > .report-block-out > .view-expand:not(.expanded) > .header:not(:hover) {
+    background: white;
+}
+
+/********************************
+* Error
+********************************/
+
+.page-report > .report-block > .report-block-content > .report-error {
+    display: block;
+    overflow: hidden;
+    border-left: 3px solid #f33;
+    background: #f9dbdb;
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: pre-wrap;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+}
+.page-report > .report-block > .report-block-content > .report-error::before {
+    display: block;
+    margin-bottom: .5em;
+    font-size: 16px;
+}
+.page-report > .report-block.query > .report-block-content > .report-error::before {
+    content: 'Query error';
+}
+.page-report > .report-block.view > .report-block-content > .report-error::before {
+    content: 'Render error';
+}

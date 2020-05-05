@@ -53,48 +53,58 @@
 ********************************/
 
 .page-report > .report-block > .report-block-editor .editor-toolbar {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    padding: 1px;
-    border: 1px solid #ddd;
-    border-top: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar > * {
-    font-size: 11px;
+.page-report > .report-block > .report-block-editor .perform-button {
+    display: inline-block;
+    vertical-align: top;
+    padding: 6px 8px 7px;
+    border-radius: 3px;
+    background-color: #00aaff;
+    color: white;
+    font-size: 10px;
     line-height: 1;
-    padding: 4px 12px 5px;
-}
-.page-report > .report-block > .report-block-editor .editor-toolbar > :first-child {
-    background: #fbfbfb;
-}
-.page-report > .report-block > .report-block-editor .editor-toolbar .checkbox {
-    position: relative;
-    white-space: nowrap;
-    background: #fbfbfb;
-    margin: 0 1px;
     cursor: pointer;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar .checkbox:hover {
-    background-image: linear-gradient(to top, rgba(0,0,0,.05), rgba(0,0,0,.05));
+.page-report > .report-block > .report-block-editor .perform-button:hover {
+    background-color: #009cf0;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar .checkbox:focus-within {
-    box-shadow: inset 0 0 1px 3px rgba(0, 170, 255, 0.35);
-    background-image: linear-gradient(to top, rgba(0,0,0,.05), rgba(0,0,0,.05));
+.page-report > .report-block > .report-block-editor .perform-button.disabled {
+    display: none;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar input[type=checkbox] {
-    margin: 0;
-    outline: none;
+.page-report > .report-block > .report-block-editor .toggle-button {
+    display: inline-block;
+    margin-left: 2px;
+    width: 16px;
+    height: 15px;
+    padding: 4px;
+    background: no-repeat 5px 4px;
+    background-size: 16px;
+    background-color: #f4f4f4;
+    border-radius: 3px;
     cursor: pointer;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar .view-button {
-    border-radius: 0;
-    width: 12ex;
+.page-report > .report-block > .report-block-editor .toggle-button.disabled {
+    opacity: .4;
+    background-color: transparent;
 }
-.page-report > .report-block > .report-block-editor .editor-toolbar .syntax-hint {
-    padding-left: 10px;
-    flex: 1;
-    color: #aaa;
+.page-report > .report-block > .report-block-editor .toggle-button:hover {
+    background-color: #ddd;
+}
+.page-report > .report-block > .report-block-editor .live-update-button {
+    background-image: url('./img/live-update.svg');
+    background-size: 15px;
+}
+.page-report > .report-block > .report-block-editor .suggestions-button {
+    background-image: url('./img/suggestions.svg');
+    background-size: 14px;
+}
+.page-report > .report-block > .report-block-editor .formatting-button {
+    background-image: url('./img/formatting.svg');
+    background-size: 14px;
 }
 
 .page-report > .report-block > .report-block-editor .discovery-editor {

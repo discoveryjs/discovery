@@ -1,43 +1,15 @@
 .page-report > .report-block.view > .report-block-editor {
-    margin-bottom: 12px;
+    padding-bottom: 12px;
 }
 
-.page-report > .report-block.view > .report-block-editor .report-editor-tabs.view-mode::before {
-    display: inline-block;
-    content: 'View:';
-}
 .page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets {
     margin-left: 3ex;
 }
 .page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets::before {
-    content: 'View presets:'
+    content: 'Presets:'
 }
 .page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets .tab:first-child {
     border-bottom-left-radius: 4px;
-}
-
-.page-report > .report-block.view > .report-block-editor .view-editor-form-content {
-    border-radius: 0 4px 4px 4px;
-}
-.page-report > .report-block.view > .report-block-editor .formatting {
-    /* position: absolute;
-    right: 5px;
-    width: 30px;
-    height: 30px; */
-    font-size: 0;
-    background-color: #f8f8f8;
-    background-image: url('./img/formatting.svg');
-    background-repeat: no-repeat;
-    background-size: 20px;
-    background-position: center;
-    border: none;
-    cursor: pointer;
-}
-.page-report > .report-block.view > .report-block-editor .formatting:hover {
-    background-color: #eee;
-}
-.page-report > .report-block.view > .report-block-editor .formatting:focus {
-    outline: none;
 }
 
 .page-report > .report-block.view > .report-block-editor .view-list-hint {

@@ -1,6 +1,5 @@
 .discovery-editor .CodeMirror .CodeMirror-placeholder {
     color: #aaa;
-    font-style: italic;
     height: 0;
     overflow: visible;
     pointer-events: none;

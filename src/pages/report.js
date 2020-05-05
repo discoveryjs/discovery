@@ -2,6 +2,7 @@
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import { encodeParams, decodeParams } from './report/params.js';
+import { BlockPool } from './report/block.js';
 import createHeader from './report/header.js';
 import createQueryEditor from './report/editor-query.js';
 import createViewEditor from './report/editor-view.js';
@@ -26,94 +27,26 @@ export default function(discovery) {
         };
     }
 
-    function getBlock(type, pool) {
-        const createdTypeBlocks = pool.get(type);
-
-        if (createdTypeBlocks.length > 0) {
-            return createdTypeBlocks.shift();
-        }
-
-        const actionsEl = createElement('div', 'report-block-actions', [
-            createElement('button', {
-                class: 'view-button delete',
-                onclick: () => block.onDelete()
-            }, 'x')
-        ]);
-        const editorEl = createElement('div', 'report-block-editor');
-        const contentEl = createElement('div', 'report-block-content');
-        const blockEl = createElement('div', 'report-block ' + type, [actionsEl, editorEl, contentEl]);
-
-        const block = {
-            el: blockEl,
-            onDelete: () => {},
-            handler: pipelineHandlers[type]({ editorEl, contentEl }, discovery, updateParams),
-            cache: null
-        };
-
-        blockInstances.get(type).push(block);
-
-        return block;
-    }
-
-    function getBlockResult(block, content, data, context, callback) {
-        const { handler, cache } = block;
-
-        if (cache === null ||
-            cache.content !== content ||
-            cache.data !== data ||
-            cache.context !== context) {
-            // update cache
-            let result;
-
-            try {
-                result = handler(content, data, context, callback);
-            } catch (error) {
-                console.error(error);
-                result = { error };
-            }
-
-            block.cache = {
-                content,
-                data,
-                context,
-                result: result || {}
-            };
-        } else {
-            console.log('From cache', block.cache);
-        }
-
-        return block.cache.result;
-    }
-
     function getInsertPoint(pipeline, idx) {
-        const tmpEl = document.createElement('div');
-        tmpEl.className = 'insert-point';
-        discovery.view.render(tmpEl, {
-            view: 'button',
-            content: 'text:"+"',
-            onClick: (el) => {
-                shareOptionsPopup.show(el, (popupEl, triggerEl, hide) => discovery.view.render(popupEl, {
-                    view: 'menu',
-                    data: Object.keys(pipelineHandlers),
-                    onClick(type) {
-                        hide();
+        return createElement('div', 'insert-point',
+            Object.keys(pipelineHandlers)
+                .map(type => createElement('span', {
+                    class: 'add-block',
+                    onclick() {
                         pipeline.splice(idx, 0, [type]);
                         updateParams({ pipeline }, true);
                     }
-                }));
-            }
-        });
-
-        return tmpEl;
+                }, type))
+        );
     }
 
     const pipelineHandlers = {
         query: createQueryEditor,
         view: createViewEditor
     };
-    const blockInstances = new Map(Object.keys(pipelineHandlers).map(type => [type, []]));
+
+    const blocksPool = new BlockPool(discovery, pipelineHandlers);
     const header = createHeader(discovery, updateParams);
-    const shareOptionsPopup = new discovery.view.Popup();
 
     //
     // Page
@@ -122,9 +55,9 @@ export default function(discovery) {
         const editable = !context.params.noedit && !context.params.dzen;
         const pipeline = context.params.pipeline;
         const dataIndex = [data];
-        const results = [];
-        const createdBlocksPool = new Map([...blockInstances].map(([key, value]) => [key, value.slice()]));
         const insert = createFlowWriter();
+
+        blocksPool.resetUsedBlocks();
 
         // update report header
         header.render(data, context);
@@ -140,11 +73,12 @@ export default function(discovery) {
         for (let idx = 0; idx < pipeline.length; idx++) {
             const [type, content, params] = pipeline[idx];
             const { dataIn = dataIndex.length - 1 } = params || {};
-            const block = getBlock(type, createdBlocksPool);
-            const result = getBlockResult(block, content, dataIndex[dataIn], context, {
-                editable,
+            const dataOut = dataIndex.length;
+            const block = blocksPool.get(type);
+            const result = block.perform(content, dataIndex[dataIn], context, {
                 dataIn,
-                dataOut: dataIndex.length,
+                dataOut,
+                editable,
                 updateContent: (newContent, forceRender) => {
                     pipeline[idx][1] = newContent;
                     updateParams({ pipeline }, true);
@@ -160,12 +94,8 @@ export default function(discovery) {
             // console.log({ content, data, context }, result);
 
             context = 'context' in result ? result.context : context;
-            results.push(result);
             if ('data' in result) {
-                block.el.firstChild.dataset.out = 'data' in result ? dataIndex.length : null;
-                dataIndex.push(data);
-            } else {
-                delete block.el.firstChild.dataset.out;
+                dataIndex.push(result.data);
             }
 
             block.el.firstChild.dataset.in = dataIn;
@@ -190,7 +120,7 @@ export default function(discovery) {
         }
 
         // remove unused blocks
-        createdBlocksPool.forEach(blocks => blocks.forEach(block => block.el.remove()));
+        blocksPool.removeUnusedBlocks();
     }, {
         reuseEl: true,
         init(el) {
