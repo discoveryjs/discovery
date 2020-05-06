@@ -15,11 +15,11 @@ const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
 
 function defaultEncodeParams(params) {
-    return new URLSearchParams(params).toString();
+    return params;
 }
 
-function defaultDecodeParams(value) {
-    return value;
+function defaultDecodeParams(pairs) {
+    return Object.fromEntries(pairs);
 }
 
 function setDatasetValue(el, key, value) {
@@ -30,11 +30,19 @@ function setDatasetValue(el, key, value) {
     }
 }
 
-function getPageMethod(instance, pageId, name, fallback) {
-    const page = instance.page.get(pageId);
+function getPageOption(host, pageId, name, fallback) {
+    const page = host.page.get(pageId);
 
-    return page && typeof page.options[name] === 'function'
+    return page && Object.hasOwnProperty.call(page.options, name)
         ? page.options[name]
+        : fallback;
+}
+
+function getPageMethod(host, pageId, name, fallback) {
+    const method = getPageOption(host, pageId, name, fallback);
+
+    return typeof method === 'function'
+        ? method
         : fallback;
 }
 
@@ -502,37 +510,43 @@ export default class Widget extends Emitter {
 
     encodePageHash(pageId, pageRef, pageParams) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
-        const encodedParams = encodeParams(pageParams || {});
+        let encodedParams = encodeParams(pageParams || {});
+
+        if (encodedParams && typeof encodedParams !== 'string') {
+            if (!Array.isArray(encodedParams)) {
+                encodedParams = Object.entries(encodedParams);
+            }
+
+            encodedParams = encodedParams
+                .map(pair => pair.map(encodeURIComponent).join('='))
+                .join('&');
+        }
 
         return `#${
-            pageId !== this.defaultPageId ? escape(pageId) : ''
+            pageId !== this.defaultPageId ? encodeURIComponent(pageId) : ''
         }${
-            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + escape(pageRef) : ''
+            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + encodeURIComponent(pageRef) : ''
         }${
             encodedParams ? '&' + encodedParams : ''
         }`;
     }
 
     decodePageHash(hash) {
-        const parts = hash.substr(1).split('&');
-        const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
+        const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
+        const [pageId, pageRef] = hash.substring(1, delimIndex).split(':').map(decodeURIComponent);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
-            map[key] = value || true;
-            return map;
-        }, {}));
+        const pairs = hash.substr(delimIndex + 1).split('&').map(pair => {
+            const eqIndex = pair.indexOf('=');
+            return eqIndex !== -1
+                ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]
+                : [decodeURIComponent(pair), true];
+        });
 
         return {
             pageId: pageId || this.defaultPageId,
             pageRef,
-            pageParams
+            pageParams: decodeParams(pairs)
         };
-    }
-
-    getPageOption(name, fallback) {
-        const page = this.page.get(this.pageId);
-
-        return page && name in page.options ? page.options[name] : fallback;
     }
 
     setPage(pageId, pageRef, pageParams, replace = false) {
@@ -543,10 +557,7 @@ export default class Widget extends Emitter {
     }
 
     setPageParams(pageParams, replace = false) {
-        return this.setPageHash(
-            this.encodePageHash(this.pageId, this.pageRef, pageParams),
-            replace
-        );
+        return this.setPage(this.pageId, this.pageRef, pageParams, replace);
     }
 
     setPageHash(hash, replace = false) {

@@ -7,6 +7,9 @@
 - Changed `value` option behaviour for `input` view to be a query instead of a plain value
 - Fixed missed custom page's `decodeParams` method call on initial render
 - Removed `defined()` helper
+- Removed `Widget#getPageOption()` method
+- Changed protocol for `page.options.decodeParams()`, handler must take an array of URI component pairs
+- Extended protocol for `page.options.encodeParams()`, handler may return an array of URI component pairs or an object beside a string; keys and values will be encoded by host
 
 ## 1.0.0-beta.31 (23-04-2020)
 
