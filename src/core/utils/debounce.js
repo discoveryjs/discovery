@@ -74,7 +74,7 @@ function debounce(func, options) {
         options = { wait: options };
     }
 
-    if (!options) {
+    if (!isObject(options)) {
         return func;
     }
 
@@ -96,12 +96,10 @@ function debounce(func, options) {
         throw new TypeError('Expected a function');
     }
     wait = Number(wait) || 0;
-    if (isObject(options)) {
-        leading = Boolean(options.leading);
-        maxing = 'maxWait' in options;
-        maxWait = maxing ? Math.max(Number(options.maxWait) || 0, wait) : maxWait;
-        trailing = 'trailing' in options ? Boolean(options.trailing) : trailing;
-    }
+    leading = Boolean(options.leading);
+    maxing = 'maxWait' in options;
+    maxWait = maxing ? Math.max(Number(options.maxWait) || 0, wait) : maxWait;
+    trailing = 'trailing' in options ? Boolean(options.trailing) : trailing;
 
     function invokeFunc(time) {
         const args = lastArgs;
