@@ -21,7 +21,7 @@ export default function(discovery) {
             htmlType = 'text',
             htmlMin,
             htmlMax,
-            debounce = 0
+            debounce
         } = config;
         const factory = factories[type] || factories.text;
         const inputEl = el.appendChild(document.createElement('input'));

@@ -69,7 +69,17 @@ function isObject(value) {
  * // Check for pending invocations.
  * const status = debounced.pending() ? "Pending..." : "Ready"
  */
-function debounce(func, wait, options) {
+function debounce(func, options) {
+    if (typeof options === 'number') {
+        options = { wait: options };
+    }
+
+    if (!options) {
+        return func;
+    }
+
+    let { wait } = options;
+
     let lastArgs;
     let lastThis;
     let maxWait;
