@@ -1,6 +1,5 @@
 /* eslint-env browser */
 
-import defined from '../core/utils/defined.js';
 import safeFilterRx from '../core/utils/safe-filter-rx.js';
 import debounceFn from '../core/utils/debounce.js';
 
@@ -25,7 +24,11 @@ export default function(discovery) {
         } = config;
         const factory = factories[type] || factories.text;
         const inputEl = el.appendChild(document.createElement('input'));
-        let lastInput = defined([value, context[name]], '');
+        let lastInput = value ? discovery.query(value, data, context) : context[name];
+
+        if (typeof lastInput !== 'string') {
+            lastInput = '';
+        }
 
         inputEl.type = htmlType;
         inputEl.value = lastInput;

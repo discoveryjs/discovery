@@ -1,9 +1,10 @@
 ## next
 
 - Fixed `table` view to use `<table>` tag for root element instead of `<div>`
-- Added `debounce` property to `input` view config.
+- Added `debounce` property to `input` view config
 - Exposed lib API as `Widget#lib`
 - Extended `safeFilterRx()` to add pattern value to produced regexp as `rawSource`
+- Changed `value` option behaviour for `input` view to be a query instead of a plain value
 
 ## 1.0.0-beta.31 (23-04-2020)
 
