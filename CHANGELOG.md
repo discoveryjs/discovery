@@ -5,6 +5,7 @@
 - Exposed lib API as `Widget#lib`
 - Extended `safeFilterRx()` to add pattern value to produced regexp as `rawSource`
 - Changed `value` option behaviour for `input` view to be a query instead of a plain value
+- Fixed missed custom page's `decodeParams` method call on initial render
 
 ## 1.0.0-beta.31 (23-04-2020)
 

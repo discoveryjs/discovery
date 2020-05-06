@@ -137,7 +137,17 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
-        this.page.on('define', name => this.addValueLinkResolver(extractValueLinkResolver(this, name)));
+        this.page.on('define', name => {
+            this.addValueLinkResolver(extractValueLinkResolver(this, name));
+
+            // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
+            if (this.pageId === name && this.pageHash !== '#') {
+                const hash = this.pageHash;
+                this.pageHash = '#';
+                this.setPageHash(hash);
+                this.cancelScheduledRender();
+            }
+        });
         this.entityResolvers = [];
         this.linkResolvers = [];
         this.prepare = data => data;
@@ -147,7 +157,6 @@ export default class Widget extends Emitter {
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
-        this.scheduledRenderPage = null;
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
@@ -444,13 +453,13 @@ export default class Widget extends Emitter {
     }
 
     cancelScheduledRender(subject) {
-        const sheduledRenders = renderScheduler.get(this);
+        const scheduledRenders = renderScheduler.get(this);
 
-        if (sheduledRenders) {
+        if (scheduledRenders) {
             if (subject) {
-                sheduledRenders.delete(subject);
+                scheduledRenders.delete(subject);
             } else {
-                sheduledRenders.clear();
+                scheduledRenders.clear();
             }
         }
     }
@@ -508,7 +517,6 @@ export default class Widget extends Emitter {
         const parts = hash.substr(1).split('&');
         const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        console.log({ decodeParams });
         const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
             map[key] = value || true;
             return map;
