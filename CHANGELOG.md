@@ -1,6 +1,7 @@
 ## next
 
 - Fixed `table` view to use `<table>` tag for root element instead of `<div>`
+- Added `debounce` property to `input` view config.
 - Exposed lib API as `Widget#lib`
 - Extended `safeFilterRx()` to add pattern value to produced regexp as `rawSource`
 

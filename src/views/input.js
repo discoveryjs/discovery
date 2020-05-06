@@ -2,6 +2,7 @@
 
 import defined from '../core/utils/defined.js';
 import safeFilterRx from '../core/utils/safe-filter-rx.js';
+import debounceFn from '../core/utils/debounce.js';
 
 export default function(discovery) {
     const factories = {
@@ -10,7 +11,18 @@ export default function(discovery) {
     };
 
     discovery.view.define('input', function(el, config, data, context) {
-        const { name, value, type = 'text', placeholder, onInit, onChange, htmlType = 'text', htmlMin, htmlMax } = config;
+        const {
+            name,
+            value,
+            type = 'text',
+            placeholder,
+            onInit,
+            onChange,
+            htmlType = 'text',
+            htmlMin,
+            htmlMax,
+            debounce
+        } = config;
         const factory = factories[type] || factories.text;
         const inputEl = el.appendChild(document.createElement('input'));
         let lastInput = defined([value, context[name]], '');
@@ -30,7 +42,7 @@ export default function(discovery) {
             inputEl.max = htmlMax;
         }
 
-        inputEl.addEventListener('input', () => {
+        inputEl.addEventListener('input', debounceFn(() => {
             const newInput = inputEl.value.trim();
 
             if (lastInput !== newInput) {
@@ -40,7 +52,7 @@ export default function(discovery) {
                     onChange(factory(newInput), name, data, context);
                 }
             }
-        });
+        }, debounce));
 
         if (typeof onInit === 'function') {
             onInit(factory(inputEl.value.trim()), name, data, context);
