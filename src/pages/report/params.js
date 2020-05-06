@@ -52,7 +52,7 @@ export function encodeParams(params) {
 
     if (pipeline.length > 0 || Array.isArray(rawPipeline)) {
         const pipelineJson = JSON.stringify(pipeline);
-        console.log(pipelineJson);
+
         if (pipelineJson !== '[["query",""],["view",null]]') {
             parts.push(encodeSearchParamPair('p', base64.encode(pipelineJson)));
         }
@@ -100,8 +100,6 @@ export function decodeParams(params) {
             decodedParams[name] = params[name];
         }
     });
-
-    console.log('decoded', decodedParams);
 
     return decodedParams;
 }

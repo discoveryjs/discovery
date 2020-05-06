@@ -1,27 +1,27 @@
-.page-report > .report-block.view > .report-block-editor {
-    padding-bottom: 12px;
+.page-report > .report-block.view.editable > .report-block-content {
+    padding: 12px 0 8px;
 }
 
-.page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets {
-    margin-left: 3ex;
+.page-report > .report-block.view > .report-block-header .presets {
+    margin-left: 6ex;
+    display: flex;
+    border-right: 1px solid white;
 }
-.page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets::before {
-    content: 'Presets:'
-}
-.page-report > .report-block.view > .report-block-editor .report-editor-tabs.presets .tab:first-child {
-    border-bottom-left-radius: 4px;
-}
-
-.page-report > .report-block.view > .report-block-editor .view-list-hint {
-    flex: 1;
-    padding-left: 10px;
-    padding-right: 10px;
-    font-size: 11px;
+.page-report > .report-block.view > .report-block-header .presets::before {
+    content: 'Presets:';
+    padding: 4px 2px;
     color: #aaa;
 }
-.page-report > .report-block.view > .report-block-editor .view-list-hint span {
-    text-decoration: underline;
+
+.page-report > .report-block.view > .report-block-header .presets .tab {
+    padding: 4px 8px;
+    border-left: 1px solid white;
+    background-color: #e8e8e8;
+    color: #666;
     cursor: pointer;
+}
+.page-report > .report-block.view > .report-block-header .presets .tab:hover {
+    background-color: #ddeed0;
 }
 
 .discovery[data-dzen] .page-report > .report-block.view > .report-block-editor {

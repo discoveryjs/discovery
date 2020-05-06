@@ -3,6 +3,13 @@ import { createElement } from '../../core/utils/dom.js';
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
     {
+        name: 'Raw data',
+        content: toFormattedViewSource({
+            view: 'struct',
+            expanded: 1
+        })
+    },
+    {
         name: 'Table',
         content: toFormattedViewSource({
             view: 'table'
@@ -34,30 +41,9 @@ function toFormattedViewSource(value) {
         );
 }
 
-function createPresetTab(name, content, updateContent) {
-    return createElement('div', {
-        class: 'report-editor-tab',
-        onclick: () => updateContent(content) // JSON.stringify(content, null, 4)
-    }, name || 'Untitled preset');
-}
-
-function createEditor(container, discovery) {
+function createEditor(discovery, headerBodyEl, editorEl) {
     let updateContent = () => {};
     let liveUpdate = true;
-    const viewPresets = Array.isArray(discovery.options.viewPresets)
-        ? defaultViewPresets.concat(discovery.options.viewPresets)
-        : defaultViewPresets;
-
-    const viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
-        createElement('div', {
-            class: 'report-editor-tab',
-            'data-mode': viewMode.toLowerCase(),
-            onclick: () => updateContent(viewMode === 'Default' ? undefined : defaultViewSource)
-        }, viewMode)
-    );
-    const presetsEls = viewPresets.map(({ name, content }) =>
-        createPresetTab(name, content, (...args) => updateContent(...args))
-    );
 
     const editor = new discovery.view.ViewEditor({
         placeholder: 'Discovery view definition...',
@@ -102,91 +88,83 @@ function createEditor(container, discovery) {
         })
     ]);
 
-    const editorWrapperEl = createElement('div', {
-        class: 'view-editor-form-content',
-        hidden: true
-    }, [editor.el]);
+    editorEl
+        .appendChild(editor.el)
+        .appendChild(toolbarEl);
 
-    editor.el.appendChild(toolbarEl);
-    container.appendChild(createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls));
-    container.appendChild(createElement('div', 'report-editor-tabs presets', presetsEls));
-    container.appendChild(editorWrapperEl);
+    // presets
+    const viewPresets = Array.isArray(discovery.options.viewPresets)
+        ? defaultViewPresets.concat(discovery.options.viewPresets)
+        : defaultViewPresets;
 
-    return (content, _data, _context, _updateContent, viewMode) => {
+    headerBodyEl.append(createElement('div', 'presets',
+        viewPresets.map(({ name, content }) =>
+            createElement('div', {
+                class: 'tab',
+                onclick: () => updateContent(content) // JSON.stringify(content, null, 4)
+            }, name || 'Untitled preset')
+        )
+    ));
+
+    return (content, _updateContent) => {
         updateContent = _updateContent;
-
-        // update editor content
-        if (viewMode === 'custom') {
-            editor.setValue(content);
-        }
-
-        // update view form
-        editorWrapperEl.hidden = viewMode !== 'custom';
-        viewModeTabsEls.forEach(el =>
-            el.classList.toggle('active', el.dataset.mode === viewMode)
-        );
+        editor.setValue(content);
     };
 }
 
-export default function(discovery, { editorEl, contentEl }) {
+function renderHint(discovery, el) {
+    const viewListEl = createElement('span');
+    const updateAvailableViewList = () =>
+        viewListEl.innerHTML = `Available ${discovery.view.names.length} views`;
+    const viewListPopup = new discovery.view.Popup({
+        render(el) {
+            discovery.view.render(el, {
+                view: 'menu',
+                data: '.({ name: pick(), type: pick(1).options.type }).sort(name asc)',
+                limit: false,
+                item: [
+                    'text:name + " "',
+                    {
+                        view: 'badge',
+                        when: 'type = "model"',
+                        data: '{ text: "model" }'
+                    }
+                ]
+            }, discovery.view.entries);
+        }
+    });
+
+    // sync view list
+    discovery.view.on('define', updateAvailableViewList);
+    updateAvailableViewList();
+
+    // setup hint
+    el.title = 'Click for details';
+    el.append(viewListEl);
+    el.addEventListener('click', () => viewListPopup.toggle(el));
+}
+
+export default function(discovery, { headerBodyEl, headerHintEl, editorEl, contentEl }) {
     let editor = null;
 
-    return {
-        renderHelp(el) {
-            const availableViewListEl = createElement('span', {
-                title: 'Click for details',
-                onclick() {
-                    availableViewListPopup.toggle(availableViewListEl);
-                }
-            });
-
-            // view popup
-            const availableViewListPopup = new discovery.view.Popup({
-                render(el) {
-                    discovery.view.render(el, {
-                        view: 'menu',
-                        data: '.({ name: pick(), type: pick(1).options.type }).sort(name asc)',
-                        limit: false,
-                        item: [
-                            'text:name + " "',
-                            {
-                                view: 'badge',
-                                when: 'type = "model"',
-                                data: '{ text: "model" }'
-                            }
-                        ]
-                    }, discovery.view.entries);
-                }
-            });
-
-            // sync view list
-            const updateAvailableViewList = () =>
-                availableViewListEl.innerHTML = `Available ${discovery.view.names.length} views`;
-            updateAvailableViewList();
-            discovery.view.on('define', updateAvailableViewList);
-
-            el.append(availableViewListEl);
-        },
-        process: function(source, data, context, { updateContent, editable }) {
-            const viewMode = typeof source === 'string' ? 'custom' : 'default';
-
-            // build a view
-            if (!source && viewMode === 'default') {
-                source = defaultViewSource;
-            }
-
-            if (editable) {
-                if (editor === null) {
-                    editor = createEditor(editorEl, discovery);
-                }
-
-                editor(source, data, context, updateContent, viewMode);
-            }
-
-            let config = Function('return ' + (source ? '0,' + source : 'null'))();
-
-            contentEl.innerHTML = '';
-            discovery.view.render(contentEl, config, data, context);
+    return function(source, data, context, { updateContent, editable }) {
+        // init source
+        if (typeof source !== 'string') {
+            source = defaultViewSource;
         }
+
+        if (editable) {
+            if (editor === null) {
+                editor = createEditor(discovery, headerBodyEl, editorEl);
+                renderHint(discovery, headerHintEl);
+            }
+
+            editor(source, updateContent);
+        }
+
+        let config = Function('return ' + (source ? '0,' + source : 'null'))();
+
+        contentEl.innerHTML = '';
+        discovery.view.render(contentEl, config, data, context);
     };
 }

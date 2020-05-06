@@ -22,6 +22,7 @@
 }
 .page-report > .report-block > .report-block-editor {
     grid-area: editor;
+    overflow: hidden;
 }
 .page-report > .report-block > .report-block-out {
     grid-area: out;
@@ -71,19 +72,18 @@
 ********************************/
 
 .page-report > .report-block > .report-block-header {
-    margin-bottom: 1px;
     display: flex;
-    line-height: 1;
+    margin-bottom: 1px;
+    background: linear-gradient(to right, #ddeed0 40px, #f8f8f8 150px);
     font-size: 11px;
+    line-height: 1;
 }
 .page-report > .report-block > .report-block-header .label {
     position: relative;
     padding: 4px 8px 4px 28px;
     min-width: 40px;
-    border-right: 1px solid white;
     font-size: 11px;
     color: #6d8a66;
-    background: #ddeed0;
     text-transform: capitalize;
 }
 .page-report > .report-block > .report-block-header .label button {
@@ -104,22 +104,27 @@
     background-color: rgba(0, 0, 0, .15);
 }
 
-.page-report > .report-block > .report-block-header .comment {
+.page-report > .report-block > .report-block-header .body {
     flex: 1;
-    padding: 4px 8px;
-    color: #aaa;
-    background: #f8f8f8;
 }
 
 .page-report > .report-block > .report-block-header .editor-hint {
-    padding: 4px 8px;
-    margin-left: 1px;
+    display: block;
+    padding: 4px 22px 4px 8px;
+    border-left: 1px solid white;
+    background: no-repeat right 5px top 3px #f8f8f8;
+    background-image: url('./img/hint.svg');
+    background-size: 14px;
     color: #888;
-    background: #f8f8f8;
+    text-decoration-color: #c4c4c4;
+    cursor: pointer;
+}
+.page-report > .report-block > .report-block-header .editor-hint:hover {
+    background-color: #e8e8e8;
 }
 
 /********************************
-* header
+* out
 ********************************/
 
 .page-report > .report-block > .report-block-out {
@@ -128,6 +133,7 @@
 .page-report > .report-block > .report-block-out > .view-expand > .header {
     font-size: 10px;
     color: #666;
+    transition: background-color .175s .075s ease-in-out;
 }
 .page-report > .report-block > .report-block-out > .view-expand > .header > .trigger {
     margin-right: 8px;
@@ -143,7 +149,7 @@
 * Error
 ********************************/
 
-.page-report > .report-block > .report-block-content > .report-error {
+.page-report > .report-block > .report-block-out > .report-error {
     display: block;
     overflow: hidden;
     border-left: 3px solid #f33;
@@ -154,14 +160,14 @@
     font-family: Consolas, Monaco, monospace;
     font-size: 11px;
 }
-.page-report > .report-block > .report-block-content > .report-error::before {
+.page-report > .report-block > .report-block-out > .report-error::before {
     display: block;
     margin-bottom: .5em;
     font-size: 16px;
 }
-.page-report > .report-block.query > .report-block-content > .report-error::before {
+.page-report > .report-block.query > .report-block-out > .report-error::before {
     content: 'Query error';
 }
-.page-report > .report-block.view > .report-block-content > .report-error::before {
+.page-report > .report-block.view > .report-block-out > .report-error::before {
     content: 'Render error';
 }

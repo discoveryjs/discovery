@@ -1,6 +1,5 @@
 /* eslint-env browser */
 import { createElement } from '../core/utils/dom.js';
-import { escapeHtml } from '../core/utils/html.js';
 import { encodeParams, decodeParams } from './report/params.js';
 import { BlockPool } from './report/block.js';
 import createHeader from './report/header.js';
@@ -79,44 +78,33 @@ export default function(discovery) {
                 dataIn,
                 dataOut,
                 editable,
-                updateContent: (newContent, forceRender) => {
+                updateContent: (newContent, forcePerform) => {
                     pipeline[idx][1] = newContent;
                     updateParams({ pipeline }, true);
 
-                    if (forceRender) {
-                        block.cache = null;
-                        // FIXME: need to rerender blocks from current only
+                    if (forcePerform) {
+                        block.resetCache();
                         discovery.scheduleRender('page'); // force render
                     }
                 }
             });
-
-            // console.log({ content, data, context }, result);
 
             context = 'context' in result ? result.context : context;
             if ('data' in result) {
                 dataIndex.push(result.data);
             }
 
-            block.el.firstChild.dataset.in = dataIn;
-            block.el.classList.toggle('editable', editable);
+            insert(block.el);
             block.onDelete = () => {
                 pipeline.splice(idx, 1);
                 updateParams({ pipeline }, true);
             };
 
-            insert(block.el);
-            editable && insert(getInsertPoint(pipeline, idx + 1));
-
             if (result.error) {
-                block.el.lastChild.innerHTML = '';
-                discovery.view.render(block.el.lastChild, {
-                    view: 'block',
-                    className: 'report-error',
-                    content: 'html:$ + "<br>(see details in console)"'
-                }, escapeHtml(String(result.error)));
                 break;
             }
+
+            editable && insert(getInsertPoint(pipeline, idx + 1));
         }
 
         // remove unused blocks

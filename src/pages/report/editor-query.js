@@ -1,6 +1,6 @@
 import { createElement } from '../../core/utils/dom.js';
 
-function createEditor(container, discovery) {
+function createEditor(discovery, container) {
     const ctx = {
         data: null,
         context: null,
@@ -24,33 +24,34 @@ function createEditor(container, discovery) {
         onclick: () => ctx.updateContent(editor.getValue(), true)
     }, 'Run (Cmd+Enter)');
 
-    container.appendChild(editor.el);
-    editor.el.appendChild(createElement('div', 'editor-toolbar', [
-        performButtonEl,
-        createElement('span', {
-            class: 'toggle-button live-update-button',
-            title: 'Perform on editing (live update)',
-            onclick: ({ target }) => {
-                ctx.liveEdit = !ctx.liveEdit;
-                target.classList.toggle('disabled', !ctx.liveEdit);
-                performButtonEl.classList.toggle('disabled', ctx.liveEdit);
-                editor.focus();
+    container
+        .appendChild(editor.el)
+        .appendChild(createElement('div', 'editor-toolbar', [
+            performButtonEl,
+            createElement('span', {
+                class: 'toggle-button live-update-button',
+                title: 'Perform on editing (live update)',
+                onclick: ({ target }) => {
+                    ctx.liveEdit = !ctx.liveEdit;
+                    target.classList.toggle('disabled', !ctx.liveEdit);
+                    performButtonEl.classList.toggle('disabled', ctx.liveEdit);
+                    editor.focus();
 
-                if (ctx.liveEdit) {
-                    ctx.updateContent(editor.getValue());
+                    if (ctx.liveEdit) {
+                        ctx.updateContent(editor.getValue());
+                    }
                 }
-            }
-        }),
-        createElement('span', {
-            class: 'toggle-button suggestions-button',
-            title: 'Show suggestions',
-            onclick: ({ target }) => {
-                ctx.suggestions = !ctx.suggestions;
-                target.classList.toggle('disabled', !ctx.suggestions);
-                editor.focus();
-            }
-        })
-    ]));
+            }),
+            createElement('span', {
+                class: 'toggle-button suggestions-button',
+                title: 'Show suggestions',
+                onclick: ({ target }) => {
+                    ctx.suggestions = !ctx.suggestions;
+                    target.classList.toggle('disabled', !ctx.suggestions);
+                    editor.focus();
+                }
+            })
+        ]));
 
     return (content, data, context, updateContent) => {
         Object.assign(ctx, { data, context, updateContent });
@@ -58,33 +59,33 @@ function createEditor(container, discovery) {
     };
 }
 
-export default function(discovery, { editorEl }) {
+function renderHint(discovery, el) {
+    const { name, link, version } = discovery.getQueryEngineInfo();
+
+    el.href = link;
+    el.textContent = `${name} ${version || ''}`;
+}
+
+export default function(discovery, { editorEl, headerHintEl }) {
     let editor = null;
 
-    return {
-        renderHelp(el) {
-            const queryEngineInfo = discovery.getQueryEngineInfo();
+    renderHint(discovery, headerHintEl);
 
-            el.innerHTML = `<a class="view-link" href="${queryEngineInfo.link}" target="_blank">${
-                queryEngineInfo.name
-            }</a> ${queryEngineInfo.version || ''}`;
-        },
-        process: function(query, data, context, { updateContent, editable }) {
-            if (editable) {
-                if (editor === null) {
-                    editor = createEditor(editorEl, discovery);
-                }
-
-                editor(query, data, context, updateContent);
+    return function(query = '', data, context, { updateContent, editable }) {
+        if (editable) {
+            if (editor === null) {
+                editor = createEditor(discovery, editorEl);
             }
 
-            // perform data query
-            const queryStartTime = Date.now();
-
-            return {
-                data: discovery.query(query, data, context),
-                time: Date.now() - queryStartTime
-            };
+            editor(query, data, context, updateContent);
         }
+
+        // perform data query
+        const queryStartTime = Date.now();
+
+        return {
+            data: discovery.query(query, data, context),
+            time: Date.now() - queryStartTime
+        };
     };
 }

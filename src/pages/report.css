@@ -1,7 +1,6 @@
 @import url('./report/header.css');
 @import url('./report/block.css');
 @import url('./report/editor-common.css');
-@import url('./report/editor-query.css');
 @import url('./report/editor-view.css');
 
 .page-report {
@@ -22,14 +21,11 @@
     
     font-size: 11px;
     opacity: 0;
-    transition: opacity .25s ease-in-out;
+    transition: opacity .175s .075s ease-in-out;
 }
 .page-report > .insert-point:hover,
 .page-report > .insert-point:last-child {
     opacity: 1;
-}
-.page-report > .insert-point:last-child {
-    margin-top: 20px;
 }
 .page-report > .report-header + .insert-point {
     margin-top: -20px;
@@ -41,7 +37,7 @@
     display: inline-block;
     margin-right: 4px;
     padding: 2px 12px;
-    background: #f0f0f0;
+    background: #f4f4f4;
     border-radius: 3px;
     text-transform: capitalize;
     cursor: pointer;

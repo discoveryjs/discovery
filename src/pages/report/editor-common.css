@@ -1,55 +1,28 @@
 /********************************
-* Tabs
+* Editor
 ********************************/
 
-.page-report > .report-block > .report-block-editor .report-editor-tabs {
-    overflow: hidden;
-    display: inline-block;
-    vertical-align: top;
+.page-report > .report-block > .report-block-editor .discovery-editor {
+    background: white;
 }
-.page-report > .report-block > .report-block-content::before,
-.page-report > .report-block > .report-block-editor .report-editor-tabs::before {
-    padding: 3px 4px;
-    width: 40px;
-    text-align: right;
-    box-sizing: border-box;
-    font-size: 11px;
-    color: #aaa;
-}
-.page-report > .report-block > .report-block-editor .report-editor-tab {
-    display: inline-block;
-    margin: 0 1px 1px 0;
-    padding: 2px 12px;
-    background: #f4f4f4;
-    font-size: 12px;
-    cursor: pointer;
-}
-.page-report > .report-block > .report-block-editor .report-editor-tab.active {
-    padding-bottom: 3px;
+.page-report > .report-block > .report-block-editor .CodeMirror {
+    border-radius: 0;
     margin-bottom: 0;
-    background: #d9e7ef;
-    cursor: default;
+    border-color: #ddd;
+    /* background: #f2f2f2; */
+    box-shadow: inset 0 0 0 2px #f8f8f8;
 }
-.page-report > .report-block > .report-block-editor .report-editor-tab:not(.active):hover {
-    background: #e4e4e4;
+.page-report > .report-block > .report-block-editor .CodeMirror-focused {
+    border-color: #0af;
+    box-shadow: inset 0 0 1px 2px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
+    outline: 0;
 }
-.page-report > .report-block > .report-block-editor .report-editor-tab:first-child {
-    border-top-left-radius: 4px;
-}
-.page-report > .report-block > .report-block-editor .report-editor-tab.active:first-child {
-    border-bottom-left-radius: 4px;
-    padding-bottom: 2px;
-    margin-bottom: 1px;
-}
-.page-report > .report-block > .report-block-editor .report-editor-tab:last-child {
-    border-top-right-radius: 4px;
-}
-.page-report > .report-block > .report-block-editor .report-editor-tab:not(.active):last-child {
-    border-bottom-right-radius: 4px;
+.page-report > .report-block > .report-block-editor .CodeMirror-sizer {
+    border-right-width: 200px !important;
 }
 
 /********************************
-* Editor
+* Editor toolbar
 ********************************/
 
 .page-report > .report-block > .report-block-editor .editor-toolbar {
@@ -57,6 +30,7 @@
     top: 6px;
     right: 6px;
     z-index: 10;
+    opacity: .8;
 }
 .page-report > .report-block > .report-block-editor .perform-button {
     display: inline-block;
@@ -105,21 +79,4 @@
 .page-report > .report-block > .report-block-editor .formatting-button {
     background-image: url('./img/formatting.svg');
     background-size: 14px;
-}
-
-.page-report > .report-block > .report-block-editor .discovery-editor {
-    background: white;
-}
-.page-report > .report-block > .report-block-editor .CodeMirror {
-    border-radius: 0;
-    margin-bottom: 0;
-    border-color: #ddd;
-    border-bottom: 1px solid #e4e4e4;
-    /* background: #f2f2f2; */
-    /* box-shadow: none; */
-}
-.page-report > .report-block > .report-block-editor .CodeMirror-focused {
-    border-color: #0af;
-    box-shadow: inset 0 0 1px 2px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
-    outline: 0;
 }

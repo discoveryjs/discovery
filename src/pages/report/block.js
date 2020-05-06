@@ -1,4 +1,5 @@
 import { createElement } from '../../core/utils/dom.js';
+import { escapeHtml } from '../../core/utils/html.js';
 
 function count(value, one, many) {
     return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
@@ -18,7 +19,12 @@ function valueDescriptor(value) {
 
 export class Block {
     constructor(host, type, factory) {
-        const actionsEl = createElement('div', 'report-block-actions', []);
+        const headerBodyEl = createElement('div', 'body');
+        const headerHintEl = createElement('a', {
+            class: 'editor-hint',
+            tabindex: -1,
+            target: '_blank'
+        });
         const headerEl = createElement('div', 'report-block-header', [
             createElement('div', 'label', [
                 createElement('button', {
@@ -28,9 +34,11 @@ export class Block {
                 }),
                 type
             ]),
-            createElement('div', 'comment', 'Comment...'),
-            createElement('div', 'editor-hint')
+            headerBodyEl,
+            headerHintEl
         ]);
+
+        const actionsEl = createElement('div', 'report-block-actions', []);
         const editorEl = createElement('div', 'report-block-editor');
         const contentEl = createElement('div', 'report-block-content');
         const outEl = createElement('div', 'report-block-out');
@@ -42,21 +50,30 @@ export class Block {
             contentEl
         ]);
 
-        const handler = factory(host, { editorEl, contentEl });
-
-        handler.renderHelp(headerEl.lastChild);
-
         this.host = host;
         this.el = blockEl;
         this.outEl = outEl;
         this.expandOut = false;
         this.onDelete = () => {};
-        this.handler = handler.process;
+        this.cache = null;
+        this.handler = factory(host, {
+            headerBodyEl,
+            headerHintEl,
+            editorEl,
+            contentEl
+        });
+    }
+
+    resetCache() {
         this.cache = null;
     }
 
     perform(content, data, context, params) {
         let { handler, cache } = this;
+        const { dataIn, dataOut, editable } = params;
+
+        this.el.firstChild.dataset.in = dataIn;
+        this.el.classList.toggle('editable', editable);
 
         if (cache !== null &&
             cache.content === content &&
@@ -66,7 +83,9 @@ export class Block {
         }
 
         // update cache
+
         let result;
+
         this.outEl.innerHTML = '';
 
         try {
@@ -75,14 +94,29 @@ export class Block {
             if ('data' in result) {
                 this.host.view.render(this.outEl, {
                     view: 'expand',
-                    title: `text:"Out [${params.dataOut}]: ${valueDescriptor(result.data)}${'time' in result ? ` in ${parseInt(result.time, 10)}ms` : ''}"`,
+                    title: `text:"Out [${dataOut}]: ${
+                        valueDescriptor(result.data)
+                    }${
+                        'time' in result ? ` in ${parseInt(result.time, 10)}ms` : ''
+                    }"`,
                     expanded: this.expandOut,
                     onToggle: state => this.expandOut = state,
-                    content: { view: 'struct', expanded: 1 }
+                    content: {
+                        view: 'struct',
+                        expanded: 1,
+                        limit: 10
+                    }
                 }, result.data);
             }
         } catch (error) {
             console.error(error);
+
+            this.host.view.render(this.outEl, {
+                view: 'block',
+                className: 'report-error',
+                content: 'html:$ + "<br>(see details in console)"'
+            }, escapeHtml(String(error)));
+
             result = { error };
         }
 

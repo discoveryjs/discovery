@@ -225,7 +225,7 @@ class Widget {
             cm.on('focus', this.onFocus = () => clearTimeout(closingOnBlur));
         }
 
-        this.updatePosSize();
+        setTimeout(() => this.updatePosSize(), 1);
         document.addEventListener('scroll', this.onScroll = () => this.updatePosSize(), true);
 
         CodeMirror.on(hintsEl, 'mousedown', () => setTimeout(() => cm.focus(), 20));
@@ -301,6 +301,10 @@ class Widget {
     }
 
     updatePosSize() {
+        if (this.completion.widget !== this) {
+            return;
+        }
+
         const { completion, hintsEl, data } = this;
         const cm = completion.cm;
         let pos = cm.cursorCoords();
