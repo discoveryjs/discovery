@@ -1,6 +1,7 @@
 ## next
 
 - Fixed `table` view to use `<table>` tag for root element instead of `<div>`
+- Exposed lib API as `Widget#lib`
 
 ## 1.0.0-beta.31 (23-04-2020)
 

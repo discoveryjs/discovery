@@ -7,6 +7,7 @@ import PageRenderer from '../core/page.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
 const lastSetDataPromise = new WeakMap();
@@ -129,6 +130,8 @@ function fuzzyStringCmp(a, b) {
 export default class Widget extends Emitter {
     constructor(container, defaultPage, options) {
         super();
+
+        this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
         this.view = new ViewRenderer(this);
@@ -505,6 +508,7 @@ export default class Widget extends Emitter {
         const parts = hash.substr(1).split('&');
         const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
+        console.log({ decodeParams });
         const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
             map[key] = value || true;
             return map;
