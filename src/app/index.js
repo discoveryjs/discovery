@@ -44,15 +44,6 @@ export default class App extends Widget {
             () => {},
             (host) => host.mode === 'modelfree'
         );
-
-        // setup the drag&drop listeners for model free mode
-        if (this.mode === 'modelfree' && this.dom.container) {
-            this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
-            this.dom.container.addEventListener('dragover', e => {
-                e.stopPropagation();
-                e.preventDefault();
-            }, true);
-        }
     }
 
     setData(data, context) {
@@ -60,11 +51,8 @@ export default class App extends Widget {
 
         if (this.mode === 'modelfree') {
             setDataPromise.then(() => {
-                const pageHash = this.pageHash;
-
                 this.defaultPageId = this.reportPageId;
-                this.pageHash = undefined; // force update
-                this.setPageHash(pageHash, true);
+                this.setPageHash(this.pageHash, true);
             });
         }
 
@@ -139,6 +127,15 @@ export default class App extends Widget {
             this.dom.container.appendChild(
                 this.dom.loadingOverlay = createElement('div', 'loading-overlay done', 'Loading...')
             );
+
+            // setup the drag&drop listeners for model free mode
+            if (this.options.mode === 'modelfree') {
+                this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
+                this.dom.container.addEventListener('dragover', e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }, true);
+            }
         }
     }
 
@@ -151,6 +148,7 @@ export default class App extends Widget {
 
     renderPage() {
         document.title = this.getRenderContext().name || document.title;
+
         return super.renderPage();
     }
 }
