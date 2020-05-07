@@ -90,6 +90,10 @@ export default function(discovery) {
             return;
         }
 
+        cols = cols.filter(col =>
+            !hasOwnProperty.call(col, 'when') || discovery.query(col.when, data, context)
+        );
+
         cols.forEach(col =>
             headEl.appendChild(document.createElement('th')).innerText = col.header
         );
