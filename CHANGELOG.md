@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.32 (07-05-2020)
 
 - Fixed `table` view to use `<table>` tag for root element instead of `<div>`
 - Added `debounce` property to `input` view config
