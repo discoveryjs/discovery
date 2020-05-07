@@ -8,16 +8,31 @@ function configFromName(name) {
         header: name,
         view: 'table-cell',
         data: obj => obj[name],
-        sorting: `$[${JSON.stringify(name)}] asc`
+        sorting: `$[${JSON.stringify(name)}] desc`
     };
+}
+
+function sortingFromString(query, view) {
+    if (typeof query !== 'string') {
+        return;
+    }
+
+    if (view) {
+        const colonIndex = query.indexOf(':');
+
+        if (colonIndex === -1) {
+            return;
+        }
+
+        query = query.slice(colonIndex + 1);
+    }
+
+    return `(${query}) desc`;
 }
 
 function resolveColConfig(name, config) {
     if (typeof config === 'string') {
-        return {
-            ...configFromName(name),
-            content: config
-        };
+        config = { content: config };
     }
 
     return hasOwnProperty.call(config, 'content') || hasOwnProperty.call(config, 'data')
@@ -125,7 +140,12 @@ export default function(discovery) {
 
             headerCellEl.textContent = col.header;
 
-            const sorting = discovery.query(col.sorting, null, context);
+            const sorting = discovery.query(
+                col.sorting || sortingFromString(col.content, true) || sortingFromString(col.data),
+                null,
+                context
+            );
+
             if (typeof sorting === 'function') {
                 headerCellEl.classList.add('sortable');
                 headerCellEl.addEventListener('click', () => {

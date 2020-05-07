@@ -1,3 +1,9 @@
+## next
+
+- Fixed `table`'s cell content rendering when col config is a string
+- Changed default sorting order to `desc` in `table` view
+- Improved `table` auto-sorting detection
+
 ## 1.0.0-beta.32 (07-05-2020)
 
 - Fixed `table` view to use `<table>` tag for root element instead of `<div>`
