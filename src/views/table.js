@@ -91,12 +91,21 @@ export default function(discovery) {
         }
 
         cols = cols.filter(col =>
-            !hasOwnProperty.call(col, 'when') || discovery.query(col.when, data, context)
+            !hasOwnProperty.call(col, 'when') || discovery.queryBool(col.when, data, context)
         );
 
-        cols.forEach(col =>
-            headEl.appendChild(document.createElement('th')).innerText = col.header
-        );
+        for (const col of cols) {
+            if (hasOwnProperty.call(col, 'whenData') && col.whenData !== undefined) {
+                const { whenData, content } = col;
+
+                col.whenData = undefined;
+                col.content = (data, context) =>
+                    discovery.queryBool(whenData, data, context) ? { content } : undefined;
+            }
+
+            headEl.appendChild(createElement('th'))
+                .textContent = col.header;
+        }
 
         moreEl.colSpan = cols.length;
         discovery.view.renderList(bodyEl, this.composeConfig({

@@ -35,7 +35,17 @@ function defaultCellRender(el, data) {
 
 export default function(discovery) {
     discovery.view.define('table-cell', function(el, config, data, context) {
-        const { content, details } = config;
+        let { content, details } = config;
+
+        if (typeof content === 'function') {
+            content = content(data, context);
+
+            if (!content) {
+                return;
+            }
+
+            content = content.content;
+        }
 
         if (content) {
             discovery.view.render(el, content, data, context);
