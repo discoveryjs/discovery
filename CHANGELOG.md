@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.33 (07-05-2020)
 
 - Fixed `table`'s cell content rendering when col config is a string
 - Changed default sorting order to `desc` in `table` view
