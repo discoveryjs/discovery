@@ -180,7 +180,7 @@ export default class Widget extends Emitter {
         this.apply(pages);
 
         if (defaultPage) {
-            this.page.define('default', defaultPage);
+            this.page.define(this.defaultPageId, defaultPage);
         }
 
         if (this.options.extensions) {

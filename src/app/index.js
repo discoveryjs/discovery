@@ -17,8 +17,8 @@ export default class App extends Widget {
 
         this.addBadge(
             'Index',
-            () => this.setPage('default'),
-            (host) => host.pageId !== 'default' && host.mode !== 'modelfree'
+            () => this.setPage(this.defaultPageId),
+            (host) => host.pageId !== this.defaultPageId && host.mode !== 'modelfree'
         );
         this.addBadge(
             'Make report',
