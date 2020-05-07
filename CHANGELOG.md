@@ -17,6 +17,7 @@
 - Changed `table` to apply `when` on column config to entire column
 - Changed `table` to not render a cell content depending on `whenData` in column config
 - Changed `when` and `whenData` to not apply when `undefined` or not an own property (like not set at all)
+- Added sorting for `table` view
 
 ## 1.0.0-beta.31 (23-04-2020)
 
