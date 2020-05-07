@@ -11,6 +11,7 @@
 - Changed protocol for `page.options.decodeParams()`, handler must take an array of URI component pairs
 - Extended protocol for `page.options.encodeParams()`, handler may return an array of URI component pairs or an object beside a string; keys and values will be encoded by host
 - Changed references to default page as `defaultPageId` instead of hardcoded `'default'` value
+- Added `Widget.options.reportPageId` option
 
 ## 1.0.0-beta.31 (23-04-2020)
 

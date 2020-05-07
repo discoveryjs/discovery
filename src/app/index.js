@@ -22,8 +22,8 @@ export default class App extends Widget {
         );
         this.addBadge(
             'Make report',
-            () => this.setPage('report'),
-            (host) => host.pageId !== 'report' && host.mode !== 'modelfree'
+            () => this.setPage(this.reportPageId),
+            (host) => host.pageId !== this.reportPageId && host.mode !== 'modelfree'
         );
         this.addBadge(
             'Reload with no cache',
@@ -62,7 +62,7 @@ export default class App extends Widget {
             setDataPromise.then(() => {
                 const pageHash = this.pageHash;
 
-                this.defaultPageId = 'report';
+                this.defaultPageId = this.reportPageId;
                 this.pageHash = undefined; // force update
                 this.setPageHash(pageHash, true);
             });

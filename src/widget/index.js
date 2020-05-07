@@ -161,6 +161,7 @@ export default class Widget extends Emitter {
         this.prepare = data => data;
 
         this.defaultPageId = this.options.defaultPageId || 'default';
+        this.reportPageId = this.options.reportPageId || 'report';
         this.pageId = this.defaultPageId;
         this.pageRef = null;
         this.pageParams = {};
