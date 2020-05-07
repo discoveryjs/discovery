@@ -11,10 +11,16 @@ function configFromName(name) {
     };
 }
 
-function resolveColConfig(config) {
+function resolveColConfig(name, config) {
     return typeof config === 'string'
-        ? { data: self, content: config }
-        : { data: self, ...config };
+        ? {
+            data: self,
+            content: config
+        }
+        : {
+            data: hasOwnProperty.call(config, 'content') ? self : obj => obj[name],
+            ...config
+        };
 }
 
 export default function(discovery) {
@@ -74,7 +80,9 @@ export default function(discovery) {
             colNames.forEach(name =>
                 cols.push({
                     ...configFromName(name),
-                    ...hasOwnProperty.call(colsMap, name) ? resolveColConfig(colsMap[name]) : null
+                    ...hasOwnProperty.call(colsMap, name)
+                        ? resolveColConfig(name, colsMap[name])
+                        : null
                 })
             );
         } else {

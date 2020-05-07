@@ -13,6 +13,7 @@
 - Changed references to default page as `defaultPageId` instead of hardcoded `'default'` value
 - Added `Widget.options.reportPageId` option
 - Improved `Widget.setPageHash()` method to detect changes based on decoded page id, ref and params and re-apply new values if needed
+- Fixed `table` to not override `data` when col config in `cols` object have no `content` property
 
 ## 1.0.0-beta.31 (23-04-2020)
 
