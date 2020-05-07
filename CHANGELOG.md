@@ -15,6 +15,7 @@
 - Improved `Widget.setPageHash()` method to detect changes based on decoded page id, ref and params and re-apply new values if needed
 - Fixed `table` to not override `data` when column config in `cols` object have no `content` property
 - Fixed `table` to apply `when` on column config to entire column
+- Changed `when` and `whenData` to not apply when `undefined` (like not set at all)
 
 ## 1.0.0-beta.31 (23-04-2020)
 
