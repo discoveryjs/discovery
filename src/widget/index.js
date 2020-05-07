@@ -562,24 +562,23 @@ export default class Widget extends Emitter {
     }
 
     setPageHash(hash, replace = false) {
-        if (hash !== this.pageHash) {
-            const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
-            const changed =
-                this.pageId !== pageId ||
-                this.pageRef !== pageRef ||
-                !equal(this.pageParams, pageParams);
+        const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
 
-            this.pageHash = hash;
+        if (this.pageId !== pageId ||
+            this.pageRef !== pageRef ||
+            !equal(this.pageParams, pageParams)) {
 
-            if (changed) {
-                this.pageId = pageId;
-                this.pageRef = pageRef;
-                this.pageParams = pageParams;
-                this.scheduleRender('page');
+            this.pageId = pageId;
+            this.pageRef = pageRef;
+            this.pageParams = pageParams;
+            this.scheduleRender('page');
+
+            if (hash !== this.pageHash) {
+                this.pageHash = hash;
                 this.emit('pageHashChange', replace);
-            }
 
-            return changed;
+                return true;
+            }
         }
 
         return false;
