@@ -1,6 +1,43 @@
 ## next
 
+- Fixed exception in `table` view when column query is empty
+
+## 1.0.0-beta.35 (14-05-2020)
+
+- Bumped deps: [hitext@1.0.0-beta.1](https://github.com/hitext/hitext/releases/tag/v1.0.0-beta.1), [hitext-prismjs@1.1.0](https://github.com/hitext/prismjs/releases/tag/v1.1.0)
+
+## 1.0.0-beta.34 (14-05-2020)
+
+- Bumped jora version to `1.0.0-beta.1`
+- Improved error handling in query editor
+- Fixed ignoring explicit column sorting in `table` view when value is falsy
+
+## 1.0.0-beta.33 (07-05-2020)
+
+- Fixed `table`'s cell content rendering when col config is a string
+- Changed default sorting order to `desc` in `table` view
+- Improved `table` auto-sorting detection
+
+## 1.0.0-beta.32 (07-05-2020)
+
 - Fixed `table` view to use `<table>` tag for root element instead of `<div>`
+- Added `debounce` property to `input` view config
+- Exposed lib API as `Widget#lib`
+- Extended `safeFilterRx()` to add pattern value to produced regexp as `rawSource`
+- Changed `value` option behaviour for `input` view to be a query instead of a plain value
+- Fixed missed custom page's `decodeParams` method call on initial render
+- Removed `defined()` helper
+- Removed `Widget#getPageOption()` method
+- Changed protocol for `page.options.decodeParams()`, handler must take an array of URI component pairs
+- Extended protocol for `page.options.encodeParams()`, handler may return an array of URI component pairs or an object beside a string; keys and values will be encoded by host
+- Changed references to default page as `defaultPageId` instead of hardcoded `'default'` value
+- Added `Widget.options.reportPageId` option
+- Improved `Widget.setPageHash()` method to detect changes based on decoded page id, ref and params and re-apply new values if needed
+- Fixed `table` to not override `data` when column config in `cols` object have no `content` property
+- Changed `table` to apply `when` on column config to entire column
+- Changed `table` to not render a cell content depending on `whenData` in column config
+- Changed `when` and `whenData` to not apply when `undefined` or not an own property (like not set at all)
+- Added sorting for `table` view
 
 ## 1.0.0-beta.31 (23-04-2020)
 

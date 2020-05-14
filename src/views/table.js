@@ -1,20 +1,50 @@
 /* eslint-env browser */
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
-const self = data => data;
+import { createElement } from '../core/utils/dom.js';
+const hasOwnProperty = Object.hasOwnProperty;
 
 function configFromName(name) {
     return {
         header: name,
         view: 'table-cell',
-        data: obj => obj[name]
+        data: obj => obj[name],
+        sorting: `$[${JSON.stringify(name)}] desc`
     };
 }
 
-function resolveColConfig(config) {
-    return typeof config === 'string'
-        ? { data: self, content: config }
-        : { data: self, ...config };
+function sortingFromString(query, view) {
+    if (typeof query !== 'string') {
+        return;
+    }
+
+    if (view) {
+        const colonIndex = query.indexOf(':');
+
+        if (colonIndex === -1) {
+            return;
+        }
+
+        query = query.slice(colonIndex + 1);
+    }
+
+    return `(${query || '$'}) desc`;
+}
+
+function resolveColConfig(name, config) {
+    if (typeof config === 'string') {
+        config = { content: config };
+    }
+
+    return hasOwnProperty.call(config, 'content') || hasOwnProperty.call(config, 'data')
+        ? {
+            header: name,
+            view: 'table-cell',
+            ...config
+        }
+        : {
+            ...configFromName(name),
+            ...config
+        };
 }
 
 export default function(discovery) {
@@ -22,17 +52,28 @@ export default function(discovery) {
         let { cols, rowConfig, limit } = config;
         let colsMap = cols && typeof cols === 'object' ? cols : {};
         let scalarCol = false;
+        let currentSortingCol = null;
+        let currentSortingColAsc = null;
 
         if (!Array.isArray(data)) {
             data = data ? [data] : [];
         }
 
-        const headEl = el.appendChild(document.createElement('thead'));
-        const bodyEl = el.appendChild(document.createElement('tbody'));
+        const headEl = el.appendChild(createElement('thead'));
+        const bodyEl = el.appendChild(createElement('tbody'));
         const moreEl = el
-            .appendChild(document.createElement('tbody'))
-            .appendChild(document.createElement('tr'))
-            .appendChild(document.createElement('td'));
+            .appendChild(createElement('tbody'))
+            .appendChild(createElement('tr'))
+            .appendChild(createElement('td'));
+
+        const render = (orderedData) => {
+            bodyEl.innerHTML = '';
+            moreEl.innerHTML = '';
+            discovery.view.renderList(bodyEl, this.composeConfig({
+                view: 'table-row',
+                cols
+            }, rowConfig), orderedData, context, 0, discovery.view.listLimit(limit, 25), moreEl);
+        };
 
         if (Array.isArray(cols)) {
             cols = cols.map((def, idx) =>
@@ -41,7 +82,6 @@ export default function(discovery) {
                     : {
                         header: 'col' + idx,
                         view: 'table-cell',
-                        data: self,
                         ...def
                     }
             );
@@ -67,30 +107,77 @@ export default function(discovery) {
                 cols.push({
                     header: '[value]',
                     view: 'table-cell',
-                    data: data => String(data)
+                    data: String
                 });
             }
 
             colNames.forEach(name =>
-                cols.push({
-                    ...configFromName(name),
-                    ...hasOwnProperty.call(colsMap, name) ? resolveColConfig(colsMap[name]) : null
-                })
+                cols.push(
+                    hasOwnProperty.call(colsMap, name)
+                        ? resolveColConfig(name, colsMap[name])
+                        : configFromName(name)
+                )
             );
         } else {
             console.warn('config.cols and data is not an array, no way to build a table');
             return;
         }
 
-        cols.forEach(col =>
-            headEl.appendChild(document.createElement('th')).innerText = col.header
+        cols = cols.filter(col =>
+            !hasOwnProperty.call(col, 'when') || discovery.queryBool(col.when, data, context)
         );
 
+        for (const col of cols) {
+            if (hasOwnProperty.call(col, 'whenData') && col.whenData !== undefined) {
+                const { whenData, content } = col;
+
+                col.whenData = undefined;
+                col.content = (data, context) =>
+                    discovery.queryBool(whenData, data, context) ? { content } : undefined;
+            }
+
+            const headerCellEl = headEl.appendChild(createElement('th'));
+
+            headerCellEl.textContent = col.header;
+
+            const sorting = discovery.query(
+                hasOwnProperty.call(col, 'sorting')
+                    ? col.sorting
+                    : sortingFromString(col.content, true) || sortingFromString(col.data),
+                null,
+                context
+            );
+
+            if (typeof sorting === 'function') {
+                headerCellEl.classList.add('sortable');
+                headerCellEl.addEventListener('click', () => {
+                    if (currentSortingCol === headerCellEl) {
+                        if (currentSortingColAsc) {
+                            headerCellEl.classList.remove('asc');
+                            headerCellEl.classList.add('desc');
+                            currentSortingColAsc = false;
+                            render(data.slice().sort((a, b) => -sorting(a, b)));
+                        } else {
+                            headerCellEl.classList.remove('desc');
+                            currentSortingCol = null;
+                            render(data);
+                        }
+                    } else {
+                        if (currentSortingCol !== null) {
+                            currentSortingCol.classList.remove('asc', 'desc');
+                        }
+
+                        currentSortingCol = headerCellEl;
+                        currentSortingColAsc = true;
+                        headerCellEl.classList.add('asc');
+                        render(data.slice().sort(sorting));
+                    }
+                });
+            }
+        }
+
         moreEl.colSpan = cols.length;
-        discovery.view.renderList(bodyEl, this.composeConfig({
-            view: 'table-row',
-            cols
-        }, rowConfig), data, context, 0, discovery.view.listLimit(limit, 25), moreEl);
+        render(data);
     }, {
         tag: 'table'
     });

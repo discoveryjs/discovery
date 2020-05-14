@@ -1,9 +1,5 @@
 import * as base64 from '../../core/utils/base64.js';
 
-function encodeSearchParamPair(name, value) {
-    return encodeURIComponent(name) + '=' + encodeURIComponent(value);
-}
-
 function ensureString(value, fallback) {
     return typeof value === 'string' ? value : fallback || '';
 }
@@ -11,38 +7,39 @@ function ensureString(value, fallback) {
 export function encodeParams(params) {
     const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
     const { query, view, title, dzen, noedit, extra } = typeof params === 'string' ? { query: params } : params;
-    const parts = [];
+    const pairs = [];
 
     if (dzen) {
-        parts.push('dzen');
+        pairs.push(['dzen']);
     }
 
     if (noedit) {
-        parts.push('noedit');
+        pairs.push(['noedit']);
     }
 
     if (title) {
-        parts.push(encodeSearchParamPair('title', title));
+        pairs.push(['title', title]);
     }
 
     if (query) {
-        parts.push(encodeSearchParamPair('q', base64.encode(query)));
+        pairs.push(['q', base64.encode(query)]);
     }
 
     if (typeof view === 'string') {
-        parts.push(view ? encodeSearchParamPair('v', base64.encode(view)) : 'v');
+        pairs.push(view ? ['v', base64.encode(view)] : ['v']);
     }
 
     Object.keys(extra || {}).sort().forEach(name => {
         if (!specialParams.includes(name)) {
-            parts.push(encodeSearchParamPair(name, extra[name]));
+            pairs.push([name, extra[name]]);
         }
     });
 
-    return parts.join('&');
+    return pairs;
 }
 
-export function decodeParams(params) {
+export function decodeParams(pairs) {
+    const params = Object.fromEntries(pairs);
     const specialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
     const decodedParams = {
         title: params.title || '',

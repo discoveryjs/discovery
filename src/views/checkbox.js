@@ -1,7 +1,5 @@
 /* eslint-env browser */
 
-import defined from '../core/utils/defined.js';
-
 export default function(discovery) {
     discovery.view.define('checkbox', function(el, config, data, context) {
         const { name, checked, readonly, content, onInit, onChange } = config;
@@ -9,7 +7,7 @@ export default function(discovery) {
         let renderContent = null;
 
         inputEl.type = 'checkbox';
-        inputEl.checked = defined([checked !== undefined ? discovery.queryBool(checked, data, context) : undefined, context[name]], false);
+        inputEl.checked = checked !== undefined ? discovery.queryBool(checked, data, context) : Boolean(context[name]);
         inputEl.readOnly = readonly;
         inputEl.addEventListener('click', (e) => {
             if (readonly) {
