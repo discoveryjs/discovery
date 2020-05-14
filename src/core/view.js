@@ -73,7 +73,7 @@ function renderDom(renderer, placeholder, config, data, context) {
                 }
             }
 
-            placeholder.parentNode.replaceChild(el, placeholder);
+            placeholder.replaceWith(el);
         });
 }
 
@@ -151,9 +151,9 @@ function render(container, config, data, context) {
                     ? renderDom(renderer, placeholder, config, data, context)
                     : placeholder.remove()
             )
-            .catch(e => {
-                renderDom(this.get('alert-danger'), placeholder, {}, e);
-                console.error(e);
+            .catch(error => {
+                renderDom(this.get('alert-danger'), placeholder, { className: 'buildin-render-error' }, error);
+                console.error(error);
             });
     } else {
         return Promise.resolve();
@@ -191,7 +191,7 @@ export default class ViewRenderer extends Dict {
         }
 
         if (typeof config === 'string') {
-            const [, prefix, query] = config.match(/^(\S+?):((?:.|\s)+)$/) || [];
+            const [, prefix, query] = config.match(/^(\S+?):((?:.|\s)*)$/) || [];
 
             if (prefix) {
                 config = {

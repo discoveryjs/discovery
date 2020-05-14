@@ -4,6 +4,35 @@
 @import url('./views/index-complex.css');
 @import url('./app/app.css');
 
+.more-buttons {
+    display: block;
+}
+.more-buttons .more-button {
+    vertical-align: top;
+    margin-top: 4px;
+    margin-right: 1ex;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 11px;
+    line-height: normal;
+    font-family: system-ui, Arial, sans-serif;
+    min-height: 0;
+    cursor: pointer;
+}
+.more-buttons .more-button:hover,
+.more-buttons .more-button:active,
+.more-buttons .more-button:focus {
+    border-color: #ccc;
+    outline: none;
+}
+.more-buttons .more-button:active {
+    box-shadow: inset 0 2px 1px #f0f0f0;
+    padding-top: 5px;
+    padding-bottom: 3px;
+}
+
 .discovery .buildin-view-config-error {
     display: inline-block;
     vertical-align: top;
@@ -39,4 +68,17 @@
 .discovery .buildin-view-config-error .view-struct {
     margin: 4px -4px -4px;
     border-radius: 0 0 4px 4px;
+}
+
+.discovery .buildin-render-error {
+    white-space: pre-wrap;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+}
+.discovery .buildin-render-error::before {
+    content: 'Render error';
+    display: block;
+    color: black;
+    font-size: 16px;
+    margin-bottom: .5em;
 }
