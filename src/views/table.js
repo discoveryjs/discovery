@@ -27,7 +27,7 @@ function sortingFromString(query, view) {
         query = query.slice(colonIndex + 1);
     }
 
-    return `(${query}) desc`;
+    return `(${query || '$'}) desc`;
 }
 
 function resolveColConfig(name, config) {
