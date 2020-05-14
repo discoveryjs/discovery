@@ -141,7 +141,9 @@ export default function(discovery) {
             headerCellEl.textContent = col.header;
 
             const sorting = discovery.query(
-                col.sorting || sortingFromString(col.content, true) || sortingFromString(col.data),
+                hasOwnProperty.call(col, 'sorting')
+                    ? col.sorting
+                    : sortingFromString(col.content, true) || sortingFromString(col.data),
                 null,
                 context
             );

@@ -2,6 +2,7 @@
 
 - Bumped jora version to `1.0.0-beta.1`
 - Improved error handling in query editor
+- Fixed ignoring explicit column sorting in `table` view when value is falsy
 
 ## 1.0.0-beta.33 (07-05-2020)
 
