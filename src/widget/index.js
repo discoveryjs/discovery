@@ -8,6 +8,7 @@ import TypeResolver from '../core/type-resolver.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
 const lastSetDataPromise = new WeakMap();
@@ -15,11 +16,11 @@ const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
 
 function defaultEncodeParams(params) {
-    return new URLSearchParams(params).toString();
+    return params;
 }
 
-function defaultDecodeParams(value) {
-    return value;
+function defaultDecodeParams(pairs) {
+    return Object.fromEntries(pairs);
 }
 
 function setDatasetValue(el, key, value) {
@@ -30,12 +31,65 @@ function setDatasetValue(el, key, value) {
     }
 }
 
-function getPageMethod(instance, pageId, name, fallback) {
-    const page = instance.page.get(pageId);
+function getPageOption(host, pageId, name, fallback) {
+    const page = host.page.get(pageId);
 
-    return page && typeof page.options[name] === 'function'
+    return page && Object.hasOwnProperty.call(page.options, name)
         ? page.options[name]
         : fallback;
+}
+
+function getPageMethod(host, pageId, name, fallback) {
+    const method = getPageOption(host, pageId, name, fallback);
+
+    return typeof method === 'function'
+        ? method
+        : fallback;
+}
+
+function extractValueLinkResolver(host, pageId) {
+    const { resolveLink } = host.page.get(pageId).options;
+
+    if (!resolveLink) {
+        return;
+    }
+
+    switch (typeof resolveLink) {
+        case 'string':
+            const [type, ref = 'id'] = resolveLink.split(':');
+
+            return (entity) => {
+                if (entity && entity.type === type) {
+                    return {
+                        type: pageId,
+                        text: entity.name,
+                        href: host.encodePageHash(pageId, entity[ref]),
+                        entity: entity.entity
+                    };
+                }
+            };
+
+        case 'function':
+            return (entity, value, data, context) => {
+                if (!value) {
+                    return;
+                }
+
+                const link = resolveLink(entity, value, data, context);
+
+                if (link) {
+                    return {
+                        type: pageId,
+                        text: typeof link === 'string' ? link : pageId,
+                        href: host.encodePageHash(pageId, link),
+                        entity: entity.entity
+                    };
+                }
+            };
+
+        default:
+            console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, resolveLink);
+    }
 }
 
 function genUniqueId(len = 16) {
@@ -189,10 +243,23 @@ export default class Widget extends Emitter {
     constructor(container, defaultPage, options) {
         super();
 
+        this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
+
         this.options = options || {};
         this.view = new ViewRenderer(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
+        this.page.on('define', name => {
+            this.addValueLinkResolver(extractValueLinkResolver(this, name));
+
+            // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
+            if (this.pageId === name && this.pageHash !== '#') {
+                const hash = this.pageHash;
+                this.pageHash = '#';
+                this.setPageHash(hash);
+                this.cancelScheduledRender();
+            }
+        });
 
         this.prepare = data => data;
         this.entityResolvers = [];
@@ -205,11 +272,11 @@ export default class Widget extends Emitter {
         };
 
         this.defaultPageId = this.options.defaultPageId || 'default';
+        this.reportPageId = this.options.reportPageId || 'report';
         this.pageId = this.defaultPageId;
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
-        this.scheduledRenderPage = null;
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
@@ -220,7 +287,7 @@ export default class Widget extends Emitter {
         this.apply(pages);
 
         if (defaultPage) {
-            this.page.define('default', defaultPage);
+            this.page.define(this.defaultPageId, defaultPage);
         }
 
         if (this.options.extensions) {
@@ -362,10 +429,8 @@ export default class Widget extends Emitter {
                     stat: true
                 };
 
-                lastQuerySuggestionsStat.set(this, stat = Object.assign(
-                    jora(query, options)(data, context),
-                    { query, data, context }
-                ));
+                lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
+                Object.assign(stat, jora(query, options)(data, context));
             }
 
             suggestions = stat.suggestion(offset);
@@ -382,7 +447,9 @@ export default class Widget extends Emitter {
                     });
             }
         } catch (e) {
+            console.groupCollapsed('[Discovery] Error on getting suggestions for query');
             console.error(e);
+            console.groupEnd();
             return;
         }
     }
@@ -508,13 +575,13 @@ export default class Widget extends Emitter {
     }
 
     cancelScheduledRender(subject) {
-        const sheduledRenders = renderScheduler.get(this);
+        const scheduledRenders = renderScheduler.get(this);
 
-        if (sheduledRenders) {
+        if (scheduledRenders) {
             if (subject) {
-                sheduledRenders.delete(subject);
+                scheduledRenders.delete(subject);
             } else {
-                sheduledRenders.clear();
+                scheduledRenders.clear();
             }
         }
     }
@@ -557,37 +624,43 @@ export default class Widget extends Emitter {
 
     encodePageHash(pageId, pageRef, pageParams) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
-        const encodedParams = encodeParams(pageParams || {});
+        let encodedParams = encodeParams(pageParams || {});
+
+        if (encodedParams && typeof encodedParams !== 'string') {
+            if (!Array.isArray(encodedParams)) {
+                encodedParams = Object.entries(encodedParams);
+            }
+
+            encodedParams = encodedParams
+                .map(pair => pair.map(encodeURIComponent).join('='))
+                .join('&');
+        }
 
         return `#${
-            pageId !== this.defaultPageId ? escape(pageId) : ''
+            pageId !== this.defaultPageId ? encodeURIComponent(pageId) : ''
         }${
-            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + escape(pageRef) : ''
+            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + encodeURIComponent(pageRef) : ''
         }${
             encodedParams ? '&' + encodedParams : ''
         }`;
     }
 
     decodePageHash(hash) {
-        const parts = hash.substr(1).split('&');
-        const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
+        const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
+        const [pageId, pageRef] = hash.substring(1, delimIndex).split(':').map(decodeURIComponent);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
-            map[key] = value || true;
-            return map;
-        }, {}));
+        const pairs = hash.substr(delimIndex + 1).split('&').map(pair => {
+            const eqIndex = pair.indexOf('=');
+            return eqIndex !== -1
+                ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]
+                : [decodeURIComponent(pair), true];
+        });
 
         return {
             pageId: pageId || this.defaultPageId,
             pageRef,
-            pageParams
+            pageParams: decodeParams(pairs)
         };
-    }
-
-    getPageOption(name, fallback) {
-        const page = this.page.get(this.pageId);
-
-        return page && name in page.options ? page.options[name] : fallback;
     }
 
     setPage(pageId, pageRef, pageParams, replace = false) {
@@ -598,31 +671,27 @@ export default class Widget extends Emitter {
     }
 
     setPageParams(pageParams, replace = false) {
-        return this.setPageHash(
-            this.encodePageHash(this.pageId, this.pageRef, pageParams),
-            replace
-        );
+        return this.setPage(this.pageId, this.pageRef, pageParams, replace);
     }
 
     setPageHash(hash, replace = false) {
-        if (hash !== this.pageHash) {
-            const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
-            const changed =
-                this.pageId !== pageId ||
-                this.pageRef !== pageRef ||
-                !equal(this.pageParams, pageParams);
+        const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
 
-            this.pageHash = hash;
+        if (this.pageId !== pageId ||
+            this.pageRef !== pageRef ||
+            !equal(this.pageParams, pageParams)) {
 
-            if (changed) {
-                this.pageId = pageId;
-                this.pageRef = pageRef;
-                this.pageParams = pageParams;
-                this.scheduleRender('page');
+            this.pageId = pageId;
+            this.pageRef = pageRef;
+            this.pageParams = pageParams;
+            this.scheduleRender('page');
+
+            if (hash !== this.pageHash) {
+                this.pageHash = hash;
                 this.emit('pageHashChange', replace);
-            }
 
-            return changed;
+                return true;
+            }
         }
 
         return false;

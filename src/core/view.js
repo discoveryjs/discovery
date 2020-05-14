@@ -32,7 +32,7 @@ function createDefaultConfigErrorView(view) {
 };
 
 function condition(type, host, config, data, context) {
-    if (type in config === false) {
+    if (!Object.hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
 
