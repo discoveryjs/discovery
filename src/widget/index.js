@@ -324,10 +324,8 @@ export default class Widget extends Emitter {
                     stat: true
                 };
 
-                lastQuerySuggestionsStat.set(this, stat = Object.assign(
-                    jora(query, options)(data, context),
-                    { query, data, context }
-                ));
+                lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
+                Object.assign(stat, jora(query, options)(data, context));
             }
 
             suggestions = stat.suggestion(offset);
@@ -344,7 +342,9 @@ export default class Widget extends Emitter {
                     });
             }
         } catch (e) {
+            console.groupCollapsed('[Discovery] Error on getting suggestions for query');
             console.error(e);
+            console.groupEnd();
             return;
         }
     }

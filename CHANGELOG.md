@@ -1,6 +1,7 @@
 ## next
 
 - Bumped jora version to `1.0.0-beta.1`
+- Improved error handling in query editor
 
 ## 1.0.0-beta.33 (07-05-2020)
 

@@ -27,7 +27,7 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
 }
 
 class Editor extends Emitter {
-    constructor(autocomplete) {
+    constructor(hint) {
         super();
 
         this.el = document.createElement('div');
@@ -38,17 +38,15 @@ class Editor extends Emitter {
             mode: 'javascript',
             theme: 'neo',
             indentUnit: 0,
-            hintOptions: autocomplete && {
-                hint: autocomplete,
-                completeSingle: false,
-                closeOnUnfocus: true,
+            showHintOptions: {
+                hint,
                 isolateStyleMarker: this.getIsolateStyleMarker()
             }
         });
 
         cm.on('change', () => this.emit('change', cm.getValue()));
 
-        if (autocomplete) {
+        if (typeof hint === 'function') {
             // patch prepareSelection to inject a context hint
             // const ps = cm.display.input.prepareSelection;
             // cm.display.input.prepareSelection = function(...args) {
@@ -59,8 +57,10 @@ class Editor extends Emitter {
             //     return selection;
             // };
 
-            cm.on('cursorActivity', cm => cm.state.focused && cm.showHint(autocomplete));
-            cm.on('focus', cm => !cm.state.completionActive && cm.showHint(autocomplete));
+            cm.on('cursorActivity', cm => {
+                cm.state.focused && cm.showHint();
+            });
+            cm.on('focus', cm => !cm.state.completionActive && cm.showHint());
         }
 
         this.cm = cm;
