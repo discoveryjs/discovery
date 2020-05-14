@@ -41,7 +41,10 @@ export default function(discovery) {
                                     'h2:usage.title',
                                     {
                                         view: 'source',
-                                        data: (data) => ({ content: JSON.stringify(data.usage.view, null, 4) })
+                                        data: (data) => ({
+                                            syntax: 'json',
+                                            content: JSON.stringify(data.usage.view, null, 4)
+                                        })
                                     },
                                     {
                                         view: 'render',
