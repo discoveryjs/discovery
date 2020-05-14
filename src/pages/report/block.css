@@ -29,6 +29,8 @@
 }
 .page-report > .report-block > .report-block-content {
     grid-area: content;
+    overflow: hidden;
+    overflow-x: auto;
 }
 
 .page-report > .report-block:not(.editable) > :not(.report-block-content) {
@@ -74,16 +76,22 @@
 .page-report > .report-block > .report-block-header {
     display: flex;
     margin-bottom: 1px;
-    background: linear-gradient(to right, #ddeed0 40px, #f8f8f8 150px);
+    background: linear-gradient(to right, transparent 40px, #f8f8f8 150px) #ddeed0;
+    color: #6d8a66;
     font-size: 11px;
     line-height: 1;
+    transition-property: background-color, color;
+    transition: .25s;
+}
+.page-report > .report-block.error > .report-block-header {
+    color: #8a6666;
+    background-color: #ffe4e4;
 }
 .page-report > .report-block > .report-block-header .label {
     position: relative;
     padding: 4px 8px 4px 28px;
     min-width: 40px;
     font-size: 11px;
-    color: #6d8a66;
     text-transform: capitalize;
 }
 .page-report > .report-block > .report-block-header .label button {
@@ -116,11 +124,13 @@
     background-image: url('./img/hint.svg');
     background-size: 14px;
     color: #888;
-    text-decoration-color: #c4c4c4;
+    text-decoration-color: #ddd;
     cursor: pointer;
 }
-.page-report > .report-block > .report-block-header .editor-hint:hover {
+.page-report > .report-block > .report-block-header .editor-hint:hover,
+.page-report > .report-block > .report-block-header .editor-hint:focus {
     background-color: #e8e8e8;
+    outline: none;
 }
 
 /********************************

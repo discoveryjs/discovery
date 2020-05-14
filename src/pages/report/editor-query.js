@@ -1,24 +1,24 @@
 import { createElement } from '../../core/utils/dom.js';
 
 function createEditor(discovery, container) {
+    let editorErrorMarker = null;
+    let suggestions = true;
+    let liveEdit = true;
     const ctx = {
         data: null,
         context: null,
-        updateContent: () => {},
-        liveEdit: true,
-        suggestions: true
+        updateContent: () => {}
     };
 
-    const editorErrorMarker = null;
     const editor = new discovery.view.QueryEditor({
         placeholder: 'Jora query...',
         extraKeys: { 'Cmd-Enter': () => ctx.updateContent(editor.getValue()) },
         autocomplete: (query, offset) =>
-            ctx.suggestions
+            suggestions
                 ? discovery.querySuggestions(query, offset, ctx.data, ctx.context)
                 : []
     })
-        .on('change', value => ctx.liveEdit && ctx.updateContent(value));
+        .on('change', value => liveEdit && ctx.updateContent(value));
 
     const performButtonEl = createElement('span', {
         class: 'perform-button disabled',
@@ -33,12 +33,12 @@ function createEditor(discovery, container) {
                 class: 'toggle-button live-update-button',
                 title: 'Perform on editing (live update)',
                 onclick: ({ target }) => {
-                    ctx.liveEdit = !ctx.liveEdit;
-                    target.classList.toggle('disabled', !ctx.liveEdit);
-                    performButtonEl.classList.toggle('disabled', ctx.liveEdit);
+                    liveEdit = !liveEdit;
+                    target.classList.toggle('disabled', !liveEdit);
+                    performButtonEl.classList.toggle('disabled', liveEdit);
                     editor.focus();
 
-                    if (ctx.liveEdit) {
+                    if (liveEdit) {
                         ctx.updateContent(editor.getValue());
                     }
                 }
@@ -47,8 +47,8 @@ function createEditor(discovery, container) {
                 class: 'toggle-button suggestions-button',
                 title: 'Show suggestions',
                 onclick: ({ target }) => {
-                    ctx.suggestions = !ctx.suggestions;
-                    target.classList.toggle('disabled', !ctx.suggestions);
+                    suggestions = !suggestions;
+                    target.classList.toggle('disabled', !suggestions);
                     editor.focus();
                 }
             })
@@ -103,7 +103,7 @@ export default function(discovery, { editorEl, headerHintEl }) {
                 editor = createEditor(discovery, editorEl);
             }
 
-            editor(query, data, context, updateContent);
+            editor.update(query, data, context, updateContent);
         }
 
         // perform data query

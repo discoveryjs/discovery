@@ -87,6 +87,7 @@ export class Block {
         let result;
 
         this.outEl.innerHTML = '';
+        this.el.classList.remove('error');
 
         try {
             result = handler(content, data, context, params) || {};
@@ -111,6 +112,7 @@ export class Block {
         } catch (error) {
             console.error(error);
 
+            this.el.classList.add('error');
             this.host.view.render(this.outEl, {
                 view: 'block',
                 className: 'report-error',
