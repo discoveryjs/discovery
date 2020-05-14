@@ -15,6 +15,12 @@ const es6NodeModules = {
             'mode/javascript/javascript.js'
         ]
     },
+    json5: {
+        name: 'json5',
+        files: [
+            'dist/index.min.js'
+        ]
+    },
     prismjs: {
         name: 'Prism',
         files: [

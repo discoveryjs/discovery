@@ -1,4 +1,5 @@
 import { createElement } from '../../core/utils/dom.js';
+import json5 from '/gen/json5.js';
 
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
@@ -42,6 +43,7 @@ function toFormattedViewSource(value) {
 }
 
 function createEditor(discovery, headerBodyEl, editorEl) {
+    let editorErrorMarker = null;
     let updateContent = () => {};
     let liveUpdate = true;
 
@@ -106,9 +108,42 @@ function createEditor(discovery, headerBodyEl, editorEl) {
         )
     ));
 
-    return (content, _updateContent) => {
-        updateContent = _updateContent;
-        editor.setValue(content);
+    return {
+        update(content, _updateContent) {
+            updateContent = _updateContent;
+
+            if (editorErrorMarker) {
+                editorErrorMarker.clear();
+                editorErrorMarker = null;
+            }
+
+            editor.setValue(content);
+        },
+        error(error) {
+            const doc = editor.cm.doc;
+            const line = error.lineNumber - 1;
+            let column = error.columnNumber - 1;
+
+            if (typeof line === 'number' && typeof column === 'number') {
+                const lineText = doc.getLine(line);
+
+                // FIXME: is it a bug of JSON5?
+                if (column === -1) {
+                    column = lineText;
+                }
+
+                editorErrorMarker = lineText.length === column
+                    ? doc.setBookmark(
+                        { line, ch: column },
+                        { widget: createElement('span', 'discovery-editor-error', ' ') }
+                    )
+                    : doc.markText(
+                        { line, ch: column },
+                        { line, ch: column + 1 },
+                        { className: 'discovery-editor-error' }
+                    );
+            }
+        }
     };
 }
 
@@ -159,12 +194,18 @@ export default function(discovery, { headerBodyEl, headerHintEl, editorEl, conte
                 renderHint(discovery, headerHintEl);
             }
 
-            editor(source, updateContent);
+            editor.update(source, updateContent);
         }
 
-        let config = Function('return ' + (source ? '0,' + source : 'null'))();
+        try {
+            contentEl.innerHTML = '';
+            discovery.view.render(contentEl, json5.parse(source), data, context);
+        } catch (error) {
+            if (editor) {
+                editor.error(error);
+            }
 
-        contentEl.innerHTML = '';
-        discovery.view.render(contentEl, config, data, context);
+            throw error;
+        }
     };
 }
