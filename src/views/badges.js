@@ -16,7 +16,7 @@ export default function(discovery) {
         const { content } = config;
         let { color, text, href, prefix, postfix } = data || {};
 
-        if (typeof data === 'string') {
+        if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
             text = data;
         }
 

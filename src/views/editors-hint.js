@@ -13,35 +13,36 @@ const ACTIVE_HINT_CLASS = 'active';
 const requestAnimationFrame = window.requestAnimationFrame || (fn => setTimeout(fn, 1000 / 60));
 const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
+CodeMirror.commands.autocomplete = CodeMirror.showHint;
+CodeMirror.defineOption('showHintOptions', null);
 CodeMirror.defineExtension('showHint', function(options) {
     options = {
-        closeCharacters: /[\s()\[\]{};:>,]/,
         closeOnUnfocus: true,
         container: null,
-        ...this.options.hintOptions,
+        ...this.options.showHintOptions,
         ...options
     };
-
-    const selections = this.listSelections();
-    if (selections.length > 1) {
-        return;
-    }
-
-    // By default, don't allow completion when something is selected.
-    if (this.somethingSelected()) {
-        return;
-    }
 
     if (this.state.completionActive) {
         this.state.completionActive.close();
     }
 
-    if (!options.hint) {
+    if (this.listSelections().length > 1) {
+        return;
+    }
+
+    // don't allow completion when something is selected.
+    if (this.somethingSelected()) {
+        return;
+    }
+
+    if (typeof options.hint !== 'function') {
         return;
     }
 
     this.state.completionActive = new Completion(this, options);
     this.state.completionActive.update(true);
+
     CodeMirror.signal(this, 'startCompletion', this);
 });
 
@@ -56,6 +57,15 @@ class Completion {
         this.startLen = this.cm.getLine(this.startPos.line).length - this.cm.getSelection().length;
 
         cm.on('cursorActivity', this.activityFunc = () => this.cursorActivity());
+
+        if (options.closeOnUnfocus) {
+            let closingOnBlur;
+            this.onFocus = () => clearTimeout(closingOnBlur);
+            this.onBlur = () => closingOnBlur = setTimeout(() => this.close(), 100);
+
+            cm.on('focus', this.onFocus);
+            cm.on('blur', this.onBlur);
+        }
     }
 
     close() {
@@ -66,6 +76,11 @@ class Completion {
         this.cm.state.completionActive = null;
         this.tick = null;
         this.cm.off('cursorActivity', this.activityFunc);
+
+        if (this.options.closeOnUnfocus) {
+            this.cm.off('blur', this.onBlur);
+            this.cm.off('focus', this.onFocus);
+        }
 
         if (this.widget) {
             if (this.data) {
@@ -109,8 +124,7 @@ class Completion {
         const pos = this.cm.getCursor();
         const line = this.cm.getLine(pos.line);
         if (pos.line != this.startPos.line || line.length - pos.ch != this.startLen - this.startPos.ch ||
-            pos.ch < this.startPos.ch || this.cm.somethingSelected() ||
-            (!pos.ch || this.options.closeCharacters.test(line.charAt(pos.ch - 1)))) {
+            pos.ch < this.startPos.ch || this.cm.somethingSelected()) {
             this.close();
         } else {
             this.debounce = requestAnimationFrame(() => this.update());
@@ -121,7 +135,7 @@ class Completion {
     }
 
     update(first) {
-        if (this.tick == null) {
+        if (this.tick === null) {
             return;
         }
 
@@ -217,14 +231,6 @@ class Widget {
             Esc: () => completion.close()
         });
 
-        if (completion.options.closeOnUnfocus) {
-            let closingOnBlur;
-            cm.on('blur', this.onBlur = () => {
-                closingOnBlur = setTimeout(() => completion.close(), 100);
-            });
-            cm.on('focus', this.onFocus = () => clearTimeout(closingOnBlur));
-        }
-
         setTimeout(() => this.updatePosSize(), 1);
         document.addEventListener('scroll', this.onScroll = () => this.updatePosSize(), true);
 
@@ -250,11 +256,6 @@ class Widget {
         this.completion.widget = null;
         this.completion.cm.removeKeyMap(this.keyMap);
         this.hintsEl.remove();
-
-        if (this.completion.options.closeOnUnfocus) {
-            this.completion.cm.off('blur', this.onBlur);
-            this.completion.cm.off('focus', this.onFocus);
-        }
 
         document.removeEventListener('scroll', this.onScroll, true);
     }
@@ -345,6 +346,3 @@ class Widget {
         }
     }
 };
-
-CodeMirror.commands.autocomplete = CodeMirror.showHint;
-CodeMirror.defineOption('hintOptions', null);

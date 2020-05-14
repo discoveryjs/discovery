@@ -5,6 +5,11 @@
 .page-report > .report-block > .report-block-editor .discovery-editor {
     background: white;
 }
+.page-report > .report-editor .discovery-editor-error {
+    border-bottom: 1px solid rgba(255, 0, 0, .6);
+    background: rgba(255, 215, 209, 0.3);
+}
+
 .page-report > .report-block > .report-block-editor .CodeMirror {
     border-radius: 0;
     margin-bottom: 0;

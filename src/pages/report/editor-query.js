@@ -9,6 +9,7 @@ function createEditor(discovery, container) {
         suggestions: true
     };
 
+    const editorErrorMarker = null;
     const editor = new discovery.view.QueryEditor({
         placeholder: 'Jora query...',
         extraKeys: { 'Cmd-Enter': () => ctx.updateContent(editor.getValue()) },
@@ -53,9 +54,34 @@ function createEditor(discovery, container) {
             })
         ]));
 
-    return (content, data, context, updateContent) => {
-        Object.assign(ctx, { data, context, updateContent });
-        editor.setValue(content);
+    return {
+        update(content, data, context, updateContent) {
+            Object.assign(ctx, { data, context, updateContent });
+
+            if (editorErrorMarker) {
+                editorErrorMarker.clear();
+                editorErrorMarker = null;
+            }
+
+            editor.setValue(content);
+        },
+        error(error) {
+            const loc = error.details && error.details.loc;
+            const doc = editor.cm.doc;
+
+            if (loc) {
+                editorErrorMarker = error.details.token === 'EOF'
+                    ? doc.setBookmark(
+                        doc.posFromIndex(error.details.loc.range[0]),
+                        { widget: createElement('span', 'discovery-editor-error', ' ') }
+                    )
+                    : doc.markText(
+                        doc.posFromIndex(error.details.loc.range[0]),
+                        doc.posFromIndex(error.details.loc.range[1]),
+                        { className: 'discovery-editor-error' }
+                    );
+            }
+        }
     };
 }
 
@@ -83,9 +109,17 @@ export default function(discovery, { editorEl, headerHintEl }) {
         // perform data query
         const queryStartTime = Date.now();
 
-        return {
-            data: discovery.query(query, data, context),
-            time: Date.now() - queryStartTime
-        };
+        try {
+            return {
+                data: discovery.query(query, data, context),
+                time: Date.now() - queryStartTime
+            };
+        } catch (error) {
+            if (editor) {
+                editor.error(error);
+            }
+
+            throw error;
+        }
     };
 }
