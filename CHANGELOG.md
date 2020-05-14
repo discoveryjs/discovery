@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.35 (14-05-2020)
 
 - Bumped deps: [hitext@1.0.0-beta.1](https://github.com/hitext/hitext/releases/tag/v1.0.0-beta.1), [hitext-prism@1.1.0](https://github.com/hitext/prismjs/releases/tag/v1.1.0)
 
