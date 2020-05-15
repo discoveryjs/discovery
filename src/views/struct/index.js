@@ -414,7 +414,12 @@ export default function(discovery) {
         };
 
         structViewRoots.add(el);
-        renderValue(el, data, expanded, options, null);
+        renderValue(el, data, expanded, options, {
+            parent: null,
+            host: { '': data },
+            key: '',
+            index: 0
+        });
         scheduleApplyAnnotations();
 
         if (expandable && !expanded) {

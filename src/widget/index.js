@@ -4,10 +4,11 @@ import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
-import TypeResolver from '../core/type-resolver.js';
+import ObjectMarker from '../core/object-maker.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
@@ -15,13 +16,8 @@ const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
 
-function defaultEncodeParams(params) {
-    return params;
-}
-
-function defaultDecodeParams(pairs) {
-    return Object.fromEntries(pairs);
-}
+const defaultEncodeParams = (params) => params;
+const defaultDecodeParams = (pairs) => Object.fromEntries(pairs);
 
 function setDatasetValue(el, key, value) {
     if (value) {
@@ -47,114 +43,36 @@ function getPageMethod(host, pageId, name, fallback) {
         : fallback;
 }
 
-function extractValueLinkResolver(host, pageId) {
-    const { resolveLink } = host.page.get(pageId).options;
-
-    if (!resolveLink) {
-        return;
-    }
-
-    switch (typeof resolveLink) {
-        case 'string':
-            const [type, ref = 'id'] = resolveLink.split(':');
-
-            return (entity) => {
-                if (entity && entity.type === type) {
-                    return {
-                        type: pageId,
-                        text: entity.name,
-                        href: host.encodePageHash(pageId, entity[ref]),
-                        entity: entity.entity
-                    };
-                }
-            };
-
-        case 'function':
-            return (entity, value, data, context) => {
-                if (!value) {
-                    return;
-                }
-
-                const link = resolveLink(entity, value, data, context);
-
-                if (link) {
-                    return {
-                        type: pageId,
-                        text: typeof link === 'string' ? link : pageId,
-                        href: host.encodePageHash(pageId, link),
-                        entity: entity.entity
-                    };
-                }
-            };
-
-        default:
-            console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, resolveLink);
-    }
-}
-
 function genUniqueId(len = 16) {
     const base36 = val => Math.round(val).toString(36);
     let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
 
     while (uid.length < len) {
-        uid += base36(new Date * Math.random());
+        uid += base36(Date.now() * Math.random());
     }
 
     return uid.substr(0, len);
 }
 
-function equal(a, b) {
-    if (a === b) {
-        return true;
-    }
-
-    for (let key in a) {
-        if (hasOwnProperty.call(a, key)) {
-            if (!hasOwnProperty.call(b, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    for (let key in b) {
-        if (hasOwnProperty.call(b, key)) {
-            if (!hasOwnProperty.call(a, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-function fuzzyStringCmp(a, b) {
-    const startChar = a[0];
-    const lastChar = a[a.length - 1];
-    const start = startChar === '"' || startChar === "'" ? 1 : 0;
-    const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-
-    return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
-}
-
 function createDataExtensionApi(instance) {
-    const entityResolvers = new TypeResolver();
-    // const linkResolvers = new X(instance.pageLinkResolvers, entityResolvers);
+    const objectMarkers = new ObjectMarker();
+    // const linkResolvers = new X(instance.pageLinkResolvers, objectMarkers);
     const linkResolvers = [];
     const annotations = [];
     const queryExtensions = {
         query: (...args) => instance.query(...args),
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
+        marker: (current, type) => objectMarkers.lookup(current, type),
+        markerAll: (current) => objectMarkers.lookupAll(current),
         autolink(current, type) {
             if (current && typeof current.autolink === 'function') {
                 return current.autolink();
             }
 
-            const descriptor = entityResolvers.resolve(current, type);
+            const marker = objectMarkers.lookup(current, type);
 
-            if (descriptor && typeof descriptor.link === 'function') {
-                return descriptor.link(current);
-            }
+            return marker && marker.href;
         }
     };
     const addValueAnnotation = (query, options = false) => {
@@ -173,63 +91,66 @@ function createDataExtensionApi(instance) {
     return {
         apply() {
             Object.assign(instance, {
-                entityResolvers,
+                objectMarkers,
                 linkResolvers,
                 annotations,
                 queryExtensions
             });
         },
         methods: {
-            defineType(name, options) {
-                const resolver = entityResolvers.define(name, options);
-                const pageId = options && options.page;
+            defineObjectMarker(name, options) {
+                const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 
-                if (pageId) {
+                if (!lookup) {
+                    return () => {};
+                }
+
+                if (page !== null) {
                     if (!instance.page.isDefined(options.page)) {
                         console.error(`[Discovery] Page reference "${options.page}" doesn't exist`);
                         return;
                     }
 
                     linkResolvers.push(value => {
-                        const entity = resolver(value);
+                        const marker = lookup(value);
 
-                        if (entity) {
+                        if (marker !== null) {
                             return {
-                                type: pageId,
-                                text: entity.name,
-                                href: instance.encodePageHash(pageId, entity.id),
-                                entity: entity.entity
+                                type: page,
+                                text: marker.title,
+                                href: marker.href,
+                                entity: marker.object
                             };
                         }
                     });
 
                     addValueAnnotation((value, context) => {
-                        const entity = resolver(value);
+                        const marker = lookup(value);
 
-                        if (entity && entity.value !== context.host) {
+                        if (marker && marker.object !== context.host) {
                             return {
                                 place: 'before',
-                                className: 'value-marker',
-                                text: pageId,
-                                href: instance.encodePageHash(pageId, entity.id)
+                                className: 'marker',
+                                text: page,
+                                href: marker.href
                             };
                         }
                     });
                 } else {
                     addValueAnnotation((value, context) => {
-                        const entity = resolver(value);
+                        const marker = lookup(value);
 
-                        if (entity && entity.value !== context.host) {
+                        if (marker && marker.object !== context.host) {
                             return {
                                 place: 'before',
-                                className: 'value-marker',
+                                className: 'marker',
                                 text: name
                             };
                         }
                     });
                 }
 
-                return resolver;
+                return mark;
             },
             addValueAnnotation,
             addQueryHelpers(helpers) {
@@ -249,11 +170,15 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
-        this.page.on('define', name => {
-            this.addValueLinkResolver(extractValueLinkResolver(this, name));
+        this.page.on('define', (pageId, options) => {
+            const { resolveLink } = options;
+
+            if (typeof resolveLink !== 'undefined') {
+                console.warn('"resolveLink" option in "definePage()" options is deprecated, use "page" option for "defineObjectMarker()" method in prepare function');
+            }
 
             // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
-            if (this.pageId === name && this.pageHash !== '#') {
+            if (this.pageId === pageId && this.pageHash !== '#') {
                 const hash = this.pageHash;
                 this.pageHash = '#';
                 this.setPageHash(hash);
@@ -262,7 +187,7 @@ export default class Widget extends Emitter {
         });
 
         this.prepare = data => data;
-        this.entityResolvers = [];
+        this.objectMarkers = [];
         this.linkResolvers = [];
         this.annotations = [];
         this.queryExtensions = {
@@ -437,12 +362,13 @@ export default class Widget extends Emitter {
 
             if (suggestions) {
                 return suggestions
-                    .filter(
-                        item => item.value !== item.current && fuzzyStringCmp(item.current, item.value)
+                    .filter(item =>
+                        item.value !== item.current && fuzzyStringCompare(item.current, item.value)
                     )
                     .sort((a, b) => {
                         const at = typeOrder.indexOf(a.type);
                         const bt = typeOrder.indexOf(b.type);
+
                         return at - bt || (a.value < b.value ? -1 : 1);
                     });
             }

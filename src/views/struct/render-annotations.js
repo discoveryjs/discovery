@@ -2,7 +2,6 @@ import { createElement } from '../../core/utils/dom.js';
 
 export default function renderAnnotations(annotations) {
     const startTime = Date.now();
-    const errors = [];
     let i = 0;
 
     for (; i < annotations.length; i++) {
@@ -52,10 +51,4 @@ export default function renderAnnotations(annotations) {
     }
 
     annotations.splice(0, i);
-
-    if (errors.length) {
-        console.groupCollapsed(`[Discovery] ${errors.length} errors in struct view during annotations render`);
-        errors.forEach(e => console.error(e));
-        console.groupEnd();
-    }
 }

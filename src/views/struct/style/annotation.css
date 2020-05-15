@@ -27,13 +27,13 @@
     vertical-align: text-bottom;
     height: 16px;
     width: 16px;
-    background: var(--annotation-image, ) 50% center no-repeat;
-    background-size: 16px;
+    background: var(--annotation-image, ) var(--annotation-image-position, 50% center) no-repeat;
+    background-size: var(--annotation-image-size, 16px);
 }
 .view-struct .value-annotation.icon.has-text::before {
-    margin-right: 4px;
+    margin-right: var(--annotation-image-margin, 4px);
 }
-.view-struct .value-annotation.value-marker {
+.view-struct .value-annotation.marker {
     display: inline-block;
     vertical-align: middle;
     padding: 1px 4px 1px;
@@ -45,10 +45,10 @@
     border-radius: 3px;
     user-select: none;
 }
-.view-struct .value-annotation.value-marker[href] {
+.view-struct .value-annotation.marker[href] {
     background: #dfeffb;
 }
-.view-struct .value-annotation.value-marker[href]:hover {
+.view-struct .value-annotation.marker[href]:hover {
     text-decoration: underline;
     color: #89a0bd;
 }
