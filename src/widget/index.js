@@ -130,7 +130,7 @@ function createDataExtensionApi(instance) {
                         if (marker && marker.object !== context.host) {
                             return {
                                 place: 'before',
-                                className: 'marker',
+                                style: 'badge',
                                 text: page,
                                 href: marker.href
                             };
@@ -143,7 +143,7 @@ function createDataExtensionApi(instance) {
                         if (marker && marker.object !== context.host) {
                             return {
                                 place: 'before',
-                                className: 'marker',
+                                style: 'badge',
                                 text: name
                             };
                         }

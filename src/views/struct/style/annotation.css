@@ -1,25 +1,11 @@
-.view-struct .value-annotation.before {
+.view-struct .value-annotation {
     display: inline-block;
-    font-size: 11px;
-    color: #dea92c;
-}
-.view-struct .value-annotation.before + .value {
-    margin-left: 4px;
-}
-.view-struct .value-annotation.after {
-    display: inline-block;
-    margin-left: 2ex;
-    /* color: #dea92c; */
     color: #aaa;
-    background: linear-gradient(to right, white, transparent);
-    padding: 0 4px;
-    border-left: 1px solid;
     font-size: 10px;
     line-height: 14px;
-    border-radius: 4px;
 }
 .view-struct .value-annotation + .value-annotation {
-    margin-left: 2px;
+    margin-left: 4px;
 }
 .view-struct .value-annotation.icon::before {
     content: '';
@@ -33,7 +19,28 @@
 .view-struct .value-annotation.icon.has-text::before {
     margin-right: var(--annotation-image-margin, 4px);
 }
-.view-struct .value-annotation.marker {
+
+.view-struct .value-annotation.before + .value {
+    margin-left: 4px;
+}
+.view-struct .value + .value-annotation.after {
+    margin-left: 2ex;
+}
+
+.view-struct .value-annotation.style-default {
+    padding: 0 4px;
+    border-radius: 4px;
+}
+.view-struct .value-annotation.before.style-default {
+    background: linear-gradient(to left, white, transparent);
+    border-right: 1px solid;    
+}
+.view-struct .value-annotation.after.style-default {
+    background: linear-gradient(to right, white, transparent);
+    border-left: 1px solid;
+}
+
+.view-struct .value-annotation.style-badge {
     display: inline-block;
     vertical-align: middle;
     padding: 1px 4px 1px;
@@ -45,10 +52,10 @@
     border-radius: 3px;
     user-select: none;
 }
-.view-struct .value-annotation.marker[href] {
+.view-struct .value-annotation.style-badge[href] {
     background: #dfeffb;
 }
-.view-struct .value-annotation.marker[href]:hover {
+.view-struct .value-annotation.style-badge[href]:hover {
     text-decoration: underline;
     color: #89a0bd;
 }

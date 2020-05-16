@@ -1,5 +1,7 @@
 import { createElement } from '../../core/utils/dom.js';
 
+const styles = ['none', 'default', 'badge'];
+
 export default function renderAnnotations(annotations) {
     const startTime = Date.now();
     let i = 0;
@@ -11,7 +13,7 @@ export default function renderAnnotations(annotations) {
 
         const { el, data } = annotations[i];
         const {
-            place,
+            place = 'after',
             className,
             text = typeof data !== 'object' ? String(data) : '',
             title,
@@ -19,9 +21,11 @@ export default function renderAnnotations(annotations) {
             href,
             external
         } = data;
+        const style = styles.includes(data.style) ? data.style : (place === 'before' ? 'none' : 'default');
         const hasText = text !== '';
         const elClassName = [
             'value-annotation',
+            'style-' + style,
             place === 'before' ? 'before' : 'after',
             hasText ? 'has-text' : '',
             className || ''
@@ -36,6 +40,7 @@ export default function renderAnnotations(annotations) {
 
         if (icon) {
             annotationEl.classList.add('icon');
+
             if (/^[a-z_$][a-z0-9_$-]*$/i.test(icon)) {
                 annotationEl.classList.add('icon-' + icon);
             } else {
