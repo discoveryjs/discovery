@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.36 (17-05-2020)
 
 - Bumped deps: [jora@1.0.0-beta.2](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.2)
 - Fixed exception in `table` view when column query is empty
