@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.37 (18-05-2020)
 
 - Extended `prepare` handler to take extension API as a second parameter. For now API contains following methods:
     - `addValueAnnotation()` to define a value annotation used mostly in `struct` view. The first argument should be a handler: a function or a string query. Handler takes a value and context, which contains properties: `host` (an object or an array that includes a value), `key`, `index` and `parent` (a reference to parent context). The handler should return falsy value (when no annotation needed) or an object with following fields (all fields are optional):
