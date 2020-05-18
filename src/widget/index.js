@@ -64,16 +64,7 @@ function createDataExtensionApi(instance) {
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
         marker: (current, type) => objectMarkers.lookup(current, type),
-        markerAll: (current) => objectMarkers.lookupAll(current),
-        autolink(current, type) {
-            if (current && typeof current.autolink === 'function') {
-                return current.autolink();
-            }
-
-            const marker = objectMarkers.lookup(current, type);
-
-            return marker && marker.href;
-        }
+        markerAll: (current) => objectMarkers.lookupAll(current)
     };
     const addValueAnnotation = (query, options = false) => {
         if (typeof options === 'boolean') {
@@ -170,11 +161,11 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
-        this.page.on('define', (pageId, options) => {
-            const { resolveLink } = options;
+        this.page.on('define', (pageId, page) => {
+            const { resolveLink } = page.options;
 
             if (typeof resolveLink !== 'undefined') {
-                console.warn('"resolveLink" option in "definePage()" options is deprecated, use "page" option for "defineObjectMarker()" method in prepare function');
+                console.warn('"resolveLink" in "page.define()" options is deprecated, use "page" option for "defineObjectMarker()" method in prepare function');
             }
 
             // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
@@ -289,13 +280,12 @@ export default class Widget extends Emitter {
 
     // TODO: remove
     addEntityResolver() {
-        console.error('[Discovery] Widget#addEntityResolver() is removed, use extenstion API in prepare instead, i.e. setPrepare((data, { defineType }) => ...)');
+        console.error('[Discovery] "Widget#addEntityResolver()" method was removed, use "defineObjectMarker()" instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker(...)))');
     }
 
-    addValueLinkResolver(resolver) {
-        if (typeof resolver === 'function') {
-            this.linkResolvers.push(resolver);
-        }
+    // TODO: remove
+    addValueLinkResolver() {
+        console.error('[Discovery] "Widget#addValueLinkResolver()" method was removed, use "defineObjectMarker()" with "page" option instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker("marker-name", { ..., page: "page-name" })))');
     }
 
     resolveValueLinks(value) {
@@ -389,9 +379,8 @@ export default class Widget extends Emitter {
     }
 
     // TODO: remove
-    addQueryHelpers(extensions) {
-        console.warn('[Discovery] Widget#addQueryHelpers() is deprecated, use extenstion API in prepare instead');
-        this._extensitionApi.addQueryHelpers(extensions);
+    addQueryHelpers() {
+        console.error('[Discovery] "Widget#addQueryHelpers()" method was removed, use "addQueryHelpers()" instead, i.e. setPrepare((data, { addQueryHelpers }) => addQueryHelpers(...))');
     }
 
     //
