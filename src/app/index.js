@@ -10,7 +10,7 @@ export default class App extends Widget {
     constructor(container, options = {}) {
         super(container, null, options);
 
-        this.mode = options.mode;
+        this.mode = this.options.mode;
 
         this.apply(complexViews);
         this.apply(router);
@@ -28,7 +28,7 @@ export default class App extends Widget {
         this.addBadge(
             'Reload with no cache',
             () => fetch('drop-cache').then(() => location.reload()),
-            () => options.cache
+            () => this.options.cache
         );
         this.addBadge(
             'Switch model',

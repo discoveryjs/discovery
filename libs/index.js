@@ -57,8 +57,7 @@ function nodeModelPath(name, relPath) {
     );
 }
 
-for (let name in es6NodeModules) {
-    const libConfig = es6NodeModules[name];
+function libContent(name, libConfig) {
     let filesContent = libConfig.files.reduce(
         (res, relFilename) =>
             res + fs.readFileSync(nodeModelPath(name, relFilename), 'utf8'),
@@ -68,13 +67,19 @@ for (let name in es6NodeModules) {
         filesContent = libConfig.patch(filesContent);
     }
 
+    return filesContent;
+}
+
+for (let name in es6NodeModules) {
+    const libConfig = es6NodeModules[name];
+
     exports[name] = {
         filename: `${name}.js`,
         get source() {
-            return es5toEs6(libConfig.name, filesContent, libConfig.imports);
+            return es5toEs6(libConfig.name, libContent(name, libConfig), libConfig.imports);
         },
         get sourceCjs() {
-            return es5toEs6(libConfig.name, filesContent, libConfig.imports, true);
+            return es5toEs6(libConfig.name, libContent(name, libConfig), libConfig.imports, true);
         }
     };
 }

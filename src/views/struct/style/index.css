@@ -1,0 +1,51 @@
+@import './structure.css';
+@import './action-button.css';
+@import './annotation.css';
+
+.view-struct {
+    position: relative;
+    margin: 1px 0;
+    padding: 7px 8px;
+    overflow: auto;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+    line-height: 18px;
+    background: #fafafa;
+    color: #666;
+    white-space: nowrap;
+}
+.view-struct.struct-expand {
+    cursor: pointer;
+}
+.view-struct .struct-expand-value {
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap !important;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.view-struct.struct-expand:hover,
+.view-struct .struct-expand-value:hover {
+    color: #333;
+    background: #eee;
+}
+.view-struct.struct-expanded-value,
+.view-struct .struct-expanded-value {
+    background-image: linear-gradient(to bottom, #eee, #eee);
+    background-size: 1px calc(100% - 38px);
+    background-position: 4.85ex 20px;
+    background-repeat: no-repeat;
+    background-attachment: local;
+}
+.view-struct.struct-expanded-value {
+    background-size: 1px calc(100% - 54px);
+    background-position: 11px 28px;
+}
+
+.discovery-view-popup.view-struct-actions-popup .error {
+    font-size: 11px;
+    color: #a00;
+}
+.discovery-view-popup.view-struct-actions-popup .num-delim {
+    padding-left: 3px;
+}
