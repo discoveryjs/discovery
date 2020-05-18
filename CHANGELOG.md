@@ -1,3 +1,35 @@
+## 1.0.0-beta.37 (18-05-2020)
+
+- Extended `prepare` handler to take extension API as a second parameter. For now API contains following methods:
+    - `addValueAnnotation()` to define a value annotation used mostly in `struct` view. The first argument should be a handler: a function or a string query. Handler takes a value and context, which contains properties: `host` (an object or an array that includes a value), `key`, `index` and `parent` (a reference to parent context). The handler should return falsy value (when no annotation needed) or an object with following fields (all fields are optional):
+        - `place` – `'after'` (by default) or `'before'`, where to place annotation before or after a value
+        - `style` – `'default'` (by default), `'none'` (no any visual styles for annotation block) or `'badge'` (uses for object markers)
+        - `className` - additional CSS classes that should be added to annotation block
+        - `text` – annotation text
+        - `title` – value for `title` attribute
+        - `icon` - url, dataURI or class name with `icon-` prefix
+        - `href` - annotation is a link
+        - `external` - when annotation is a link, open in new window when true
+    - `defineObjectMarker(name, options)` to define an object marker, which returns a function to wrap objects, i.e. `object.forEach(defineObjectMarker('foo', { /* options */ }))`. Options (all are optional):
+        - `refs` – a list of string (a field name) or function (getter), which values should refer to an object beside direct reference to object. Uses for unique object values, e.g. `id`
+        - `lookupRefs` - a list of string (a field name) or function (getter), that uses to retrieve additional values to identify original object
+        - `page` - a string, marker should be a link to specified page
+        - `ref` - a string (a field name) or a function (getter), a value that uses in link to page to identify object
+        - `title` -  astring (a field name) or a function (getter), a text that represent an object, e.g. in `auto-link` 
+    - `addQueryHelpers()` method the same as `Widget#addQueryHelpers()`
+- Added a set of default methods:
+    - `marker(type?)` – returns any marker associated with a value, when `type` is specified only this type of marker may be returned
+    - `markerAll()` – returns all markers associated with a value
+- Removed `Widget#addEntityResolver()` method, use `defineObjectMarker()` instead
+- Removed `Widget#addValueLinkResolver()` method, use `defineObjectMarker()` with `page` option instead
+- Removed `Widget#addQueryHelpers()` method, use `addQueryHelpers()` instead
+- Removed `resolveLink` option for `page.define()`, use `page` option in `defineObjectMarker()` instead
+
+## 1.0.0-beta.36 (17-05-2020)
+
+- Bumped deps: [jora@1.0.0-beta.2](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.2)
+- Fixed exception in `table` view when column query is empty
+
 ## 1.0.0-beta.35 (14-05-2020)
 
 - Bumped deps: [hitext@1.0.0-beta.1](https://github.com/hitext/hitext/releases/tag/v1.0.0-beta.1), [hitext-prismjs@1.1.0](https://github.com/hitext/prismjs/releases/tag/v1.1.0)

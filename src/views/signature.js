@@ -669,8 +669,6 @@ export default function(discovery) {
 
         const data = elementToData.get(activeEl);
 
-        console.log(activeEl, data);
-
         if (data) {
             const { path, map, offset } = data;
             const fragment = createFragment();
