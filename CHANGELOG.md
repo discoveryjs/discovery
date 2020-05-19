@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.38 (19-05-2020)
 
 - Fixed switching to "Processing..." lable on data is loaded and decoded instead of TTFB time
 
