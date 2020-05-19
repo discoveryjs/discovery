@@ -91,12 +91,12 @@ export default class App extends Widget {
 
         return fetch(explicitData ? 'data:application/json,{}' : url)
             .then(res => {
-                console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
-                this.dom.loadingOverlay.innerHTML = 'Processing data...';
-
                 return explicitData || res.json();
             })
             .then(res => {
+                console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
+                this.dom.loadingOverlay.innerHTML = 'Processing data...';
+
                 if (res.error) {
                     throw new Error(res.error);
                 }
@@ -125,7 +125,7 @@ export default class App extends Widget {
 
         if (this.dom.container) {
             this.dom.container.appendChild(
-                this.dom.loadingOverlay = createElement('div', 'loading-overlay done', 'Loading...')
+                this.dom.loadingOverlay = createElement('div', 'loading-overlay done', 'Loading data...')
             );
 
             // setup the drag&drop listeners for model free mode

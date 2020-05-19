@@ -1,3 +1,7 @@
+## next
+
+- Fixed switching to "Processing..." lable on data is loaded and decoded instead of TTFB time
+
 ## 1.0.0-beta.37 (18-05-2020)
 
 - Extended `prepare` handler to take extension API as a second parameter. For now API contains following methods:
