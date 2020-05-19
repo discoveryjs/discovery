@@ -370,6 +370,30 @@ export default class Widget extends Emitter {
         }
     }
 
+    queryStat(query, offset, data, context) {
+        try {
+            let stat = lastQuerySuggestionsStat.get(this);
+
+            if (!stat || stat.query !== query || stat.data !== data || stat.context !== context) {
+                const options = {
+                    methods: this.queryExtensions,
+                    tolerant: true,
+                    stat: true
+                };
+
+                lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
+                Object.assign(stat, jora(query, options)(data, context));
+            }
+
+            return stat.stat(offset);
+        } catch (e) {
+            console.groupCollapsed('[Discovery] Error on getting suggestions for query');
+            console.error(e);
+            console.groupEnd();
+            return;
+        }
+    }
+
     getQueryEngineInfo() {
         return {
             name: 'jora',

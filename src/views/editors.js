@@ -40,6 +40,7 @@ class Editor extends Emitter {
             indentUnit: 0,
             showHintOptions: {
                 hint,
+                discovery: this.discovery(),
                 isolateStyleMarker: this.getIsolateStyleMarker()
             }
         });
@@ -89,7 +90,7 @@ class Editor extends Emitter {
 
 class QueryEditor extends Editor {
     constructor(getSuggestions) {
-        super(function(cm) {
+        super((cm) => {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),
@@ -101,6 +102,15 @@ class QueryEditor extends Editor {
             }
 
             return {
+                discovery: this.discovery(),
+                getStat: () => {
+                    return this.discovery().queryStat(
+                        cm.getValue(),
+                        cm.doc.indexFromPos(cm.getCursor()),
+                        this.discovery().data,
+                        this.discovery().context
+                    );
+                },
                 list: suggestions.slice(0, 50).map(entry => {
                     return {
                         entry,
@@ -124,11 +134,17 @@ class ViewEditor extends Editor {
 export default function(discovery) {
     Object.assign(discovery.view, {
         QueryEditor: class extends QueryEditor {
+            discovery() {
+                return discovery;
+            }
             getIsolateStyleMarker() {
                 return discovery.isolateStyleMarker;
             }
         },
         ViewEditor: class extends ViewEditor {
+            discovery() {
+                return discovery;
+            }
             getIsolateStyleMarker() {
                 return discovery.isolateStyleMarker;
             }

@@ -1,5 +1,8 @@
 /* isolate-style-root: discovery-view-editor-hints-popup */
 .discovery-view-editor-hints-popup {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
     position: absolute;
     z-index: 10;
     overflow: hidden;
@@ -22,6 +25,18 @@
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
     line-height: 18px;
+}
+
+.discovery-view-editor-hints-popup > * {
+    min-width: 150px;
+}
+.discovery-view-editor-hints-popup > :last-child {
+    max-height: 250px;
+    min-width: 200px;
+    max-width: 350px;
+}
+.discovery-view-editor-hints-popup > :last-child > * {
+    height: 100%;
 }
 
 .discovery-view-editor-hint {

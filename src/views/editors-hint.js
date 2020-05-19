@@ -190,7 +190,7 @@ function getHintElement(hintsElement, el) {
 class Widget {
     constructor(completion, data) {
         const cm = completion.cm;
-        const hintsEl = this.hintsEl = document.createElement('ul');
+        const hintsEl = this.hintsEl = document.createElement('div');
         const hintsElClassNames = [
             POPUP_CLASS,
             completion.cm.options.theme,
@@ -200,28 +200,28 @@ class Widget {
         this.completion = completion;
         this.data = data;
         this.picked = false;
-        this.selectedHint = data.selectedHint || 0;
+        this.selectedHint = -1;
 
         hintsElClassNames.forEach(className => hintsEl.classList.add(className));
         (completion.options.container || document.body).appendChild(hintsEl);
 
-        this.items = data.list.map((cur, idx) => {
-            const el = hintsEl.appendChild(document.createElement('li'));
+        const list = hintsEl.appendChild(document.createElement('div'));
+        this.signatureEl = hintsEl.appendChild(document.createElement('div'));
+        this.items = data.list.map((item) => {
+            const el = list.appendChild(document.createElement('div'));
 
             el.className = HINT_CLASS;
 
-            if (idx === this.selectedHint) {
-                el.classList.add(ACTIVE_HINT_CLASS);
-            }
-
-            if (cur.render) {
-                cur.render(el, data, cur);
+            if (item.render) {
+                item.render(el, data, item);
             } else {
-                el.appendChild(document.createTextNode(cur.displayText || getText(cur)));
+                el.appendChild(document.createTextNode(item.displayText || getText(item)));
             }
 
             return el;
         });
+
+        this.changeActive(data.selectedHint || 0);
 
         cm.addKeyMap(this.keyMap = {
             Up: () => this.changeActive(this.selectedHint - 1),
@@ -291,6 +291,13 @@ class Widget {
         }
 
         next.classList.add(ACTIVE_HINT_CLASS);
+        this.signatureEl.innerHTML = '';
+        const query = '.().($[' + JSON.stringify(this.data.list[this.selectedHint].entry.value) + '])';
+        const current = this.data.getStat()[0].values[0];
+        const signatureFor = this.data.discovery.query(query, current);
+        console.log({ query, current, signatureFor });
+        this.data.discovery.view.render(this.signatureEl, { view: 'signature', expanded: 1 },
+            signatureFor);
 
         if (next.offsetTop < this.hintsEl.scrollTop) {
             this.hintsEl.scrollTop = next.offsetTop - 3;
@@ -299,6 +306,9 @@ class Widget {
         }
 
         CodeMirror.signal(this.data, 'select', this.data.list[this.selectedHint], next);
+
+        // this.signatureEl
+        console.log(this.data.getStat());
     }
 
     updatePosSize() {
