@@ -102,20 +102,23 @@ class QueryEditor extends Editor {
             }
 
             return {
-                discovery: this.discovery(),
-                getStat: () => {
-                    return this.discovery().queryStat(
-                        cm.getValue(),
-                        cm.doc.indexFromPos(cm.getCursor()),
-                        this.discovery().data,
-                        this.discovery().context
-                    );
-                },
                 list: suggestions.slice(0, 50).map(entry => {
                     return {
                         entry,
                         text: entry.value,
                         render: renderQueryAutocompleteItem,
+                        renderDetails: entry.type === 'property' ? (el, value) => {
+                            const query = '$[=>context="path"].values.().($[' + JSON.stringify(value) + '])';
+                            const current = this.discovery().queryStat(
+                                cm.getValue(),
+                                cm.doc.indexFromPos(cm.getCursor()),
+                                this.discovery().data,
+                                this.discovery().context
+                            );
+                            const signatureFor = this.discovery().query(query, current);
+                            // console.log({ query, current, signatureFor });
+                            this.discovery().view.render(el, { view: 'signature', expanded: 1 }, signatureFor);
+                        } : null,
                         from: cm.posFromIndex(entry.from),
                         to: cm.posFromIndex(entry.to)
                     };

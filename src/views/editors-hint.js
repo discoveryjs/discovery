@@ -17,7 +17,7 @@ CodeMirror.commands.autocomplete = CodeMirror.showHint;
 CodeMirror.defineOption('showHintOptions', null);
 CodeMirror.defineExtension('showHint', function(options) {
     options = {
-        closeOnUnfocus: true,
+        closeOnUnfocus: false,
         container: null,
         ...this.options.showHintOptions,
         ...options
@@ -205,10 +205,10 @@ class Widget {
         hintsElClassNames.forEach(className => hintsEl.classList.add(className));
         (completion.options.container || document.body).appendChild(hintsEl);
 
-        const list = hintsEl.appendChild(document.createElement('div'));
-        this.signatureEl = hintsEl.appendChild(document.createElement('div'));
+        this.listEl = hintsEl.appendChild(document.createElement('div'));
+        this.detailsEl = hintsEl.appendChild(document.createElement('div'));
         this.items = data.list.map((item) => {
-            const el = list.appendChild(document.createElement('div'));
+            const el = this.listEl.appendChild(document.createElement('div'));
 
             el.className = HINT_CLASS;
 
@@ -281,6 +281,7 @@ class Widget {
 
         const prev = this.items[this.selectedHint];
         const next = this.items[this.selectedHint = idx];
+        const nextItemData = this.data.list[this.selectedHint];
 
         if (next === prev) {
             return;
@@ -291,24 +292,22 @@ class Widget {
         }
 
         next.classList.add(ACTIVE_HINT_CLASS);
-        this.signatureEl.innerHTML = '';
-        const query = '.().($[' + JSON.stringify(this.data.list[this.selectedHint].entry.value) + '])';
-        const current = this.data.getStat()[0].values[0];
-        const signatureFor = this.data.discovery.query(query, current);
-        console.log({ query, current, signatureFor });
-        this.data.discovery.view.render(this.signatureEl, { view: 'signature', expanded: 1 },
-            signatureFor);
 
-        if (next.offsetTop < this.hintsEl.scrollTop) {
-            this.hintsEl.scrollTop = next.offsetTop - 3;
-        } else if (next.offsetTop + next.offsetHeight > this.hintsEl.scrollTop + this.hintsEl.clientHeight) {
-            this.hintsEl.scrollTop = next.offsetTop + next.offsetHeight - this.hintsEl.clientHeight + 3;
+        if (typeof nextItemData.renderDetails === 'function') {
+            this.detailsEl.hidden = false;
+            this.detailsEl.innerHTML = '';
+            nextItemData.renderDetails(this.detailsEl, nextItemData.entry.value);
+        } else {
+            this.detailsEl.hidden = true;
+        }
+
+        if (next.offsetTop < this.listEl.scrollTop) {
+            this.listEl.scrollTop = next.offsetTop - 3;
+        } else if (next.offsetTop + next.offsetHeight > this.listEl.scrollTop + this.listEl.clientHeight) {
+            this.listEl.scrollTop = next.offsetTop + next.offsetHeight - this.listEl.clientHeight + 3;
         }
 
         CodeMirror.signal(this.data, 'select', this.data.list[this.selectedHint], next);
-
-        // this.signatureEl
-        console.log(this.data.getStat());
     }
 
     updatePosSize() {

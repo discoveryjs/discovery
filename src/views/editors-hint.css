@@ -19,9 +19,6 @@
     font-size: 90%;
     font-family: monospace;
 
-    max-height: 20em;
-    overflow-y: auto;
-
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
     line-height: 18px;
@@ -30,6 +27,11 @@
 .discovery-view-editor-hints-popup > * {
     min-width: 150px;
 }
+.discovery-view-editor-hints-popup > :first-child {
+    max-height: 20em;
+    overflow: hidden;
+    overflow-y: auto;
+}
 .discovery-view-editor-hints-popup > :last-child {
     max-height: 250px;
     min-width: 200px;
@@ -37,6 +39,8 @@
 }
 .discovery-view-editor-hints-popup > :last-child > * {
     height: 100%;
+    padding-top: 1px;
+    padding-bottom: 1px;
 }
 
 .discovery-view-editor-hint {
