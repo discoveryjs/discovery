@@ -95,10 +95,13 @@ export default class App extends Widget {
             })
             .then(res => {
                 console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
+                this.dom.loadingOverlay.classList.add('done');
                 this.dom.loadingOverlay.innerHTML = 'Processing data...';
 
                 if (res.error) {
-                    throw new Error(res.error);
+                    const error = new Error(res.error);
+                    error.stack = null;
+                    throw error;
                 }
 
                 let data = dataField ? res[dataField] : res;
@@ -108,14 +111,13 @@ export default class App extends Widget {
                     createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
                 };
 
-                this.setData(data, context);
-                this.dom.loadingOverlay.classList.add('done');
+                return this.setData(data, context);
             })
             .catch(e => {
                 this.dom.loadingOverlay.classList.add('error');
                 this.dom.loadingOverlay.innerHTML =
                     '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' +
-                    '<pre><div class="view-alert view-alert-danger">Data loading error</div><div class="view-alert view-alert-danger">' + escapeHtml(String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
+                    '<pre><div class="view-alert view-alert-danger">Data loading error</div><div class="view-alert view-alert-danger">' + escapeHtml(e.stack || String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
                 console.error('[Discovery] Data load error:', e);
             });
     }
