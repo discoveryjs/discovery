@@ -1,0 +1,83 @@
+.page-report > .report-block.markdown.editable > .report-block-content {
+    margin-top: 1em;
+}
+.page-report > .report-block.markdown > .report-block-content > :first-child {
+    margin-top: 0;
+}
+
+.page-report > .report-block.markdown > .report-block-content blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: .25em solid #dfe2e5;
+}
+
+.page-report > .report-block.markdown > .report-block-content code {
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    padding: .2em .4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(27,31,35,.05);
+    border-radius: 3px;
+}
+
+.page-report > .report-block.markdown > .report-block-content a {
+    color: #0099DD;
+    text-decoration-skip: ink;
+    text-decoration-color: #92cee7;
+}
+.page-report > .report-block.markdown > .report-block-content a:hover {
+    color: #0077BB;
+    text-decoration-color: currentColor;
+}
+
+.page-report > .report-block.markdown > .report-block-content .check-list-item {
+    list-style: none;
+    margin-left: -22px;
+}
+
+.page-report > .report-block.markdown > .report-block-content h1 {
+    font-size: 220%;
+    font-weight: normal;
+    margin: .812em 0 .65em;
+}
+.page-report > .report-block.markdown > .report-block-content h1:first-child {
+    margin-top: 0;
+}
+
+.page-report > .report-block.markdown > .report-block-content h2 {
+    font-size: 150%;
+    font-weight: normal;
+    margin: .78em 0;
+}
+.page-report > .report-block.markdown > .report-block-content h3 {
+    font-size: 130%;
+    font-weight: normal;
+    margin: .73em 0;
+}
+.page-report > .report-block.markdown > .report-block-content h4 {
+    font-size: 120%;
+    font-weight: normal;
+    color: #222;
+    margin: .73em 0;
+}
+.page-report > .report-block.markdown > .report-block-content h5 {
+    font-size: 110%;
+    font-weight: normal;
+    color: #777;
+    margin: .68em 0;
+}
+
+.page-report > .report-block.markdown > .report-block-content table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    border: 1px solid grey;
+}
+.page-report > .report-block.markdown > .report-block-content thead {
+    background-color: #f6f6f6;
+}
+.page-report > .report-block.markdown > .report-block-content th,
+.page-report > .report-block.markdown > .report-block-content td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}

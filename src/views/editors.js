@@ -37,6 +37,8 @@ class Editor extends Emitter {
         this.el.className = 'discovery-editor';
 
         const cm = CodeMirror(this.el, {
+            mode: 'javascript',
+            indentUnit: 0,
             ...options,
             extraKeys: {
                 'Alt-Space': 'autocomplete',
@@ -44,9 +46,7 @@ class Editor extends Emitter {
                 Tab: false,
                 ...options.extraKeys
             },
-            mode: 'javascript',
             theme: 'neo',
-            indentUnit: 0,
             showHintOptions: {
                 hint: autocomplete,
                 isolateStyleMarker: this.getIsolateStyleMarker()
@@ -133,6 +133,23 @@ class ViewEditor extends Editor {
     }
 }
 
+class MarkdownEditor extends Editor {
+    constructor(options) {
+        super({
+            lineWrapping: true,
+            ...options,
+            mode: {
+                gitHubSpice: false,
+                tokenTypeOverrides: {
+                    emoji: 'emoji'
+                },
+                ...options && options.mode,
+                name: 'gfm'
+            }
+        });
+    }
+}
+
 export default function(discovery) {
     Object.assign(discovery.view, {
         QueryEditor: class extends QueryEditor {
@@ -141,6 +158,11 @@ export default function(discovery) {
             }
         },
         ViewEditor: class extends ViewEditor {
+            getIsolateStyleMarker() {
+                return discovery.isolateStyleMarker;
+            }
+        },
+        MarkdownEditor: class extends MarkdownEditor {
             getIsolateStyleMarker() {
                 return discovery.isolateStyleMarker;
             }

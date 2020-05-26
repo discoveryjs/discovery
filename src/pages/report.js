@@ -3,8 +3,9 @@ import { createElement } from '../core/utils/dom.js';
 import { encodeParams, decodeParams } from './report/params.js';
 import { BlockPool } from './report/block.js';
 import createHeader from './report/header.js';
-import createQueryEditor from './report/editor-query.js';
-import createViewEditor from './report/editor-view.js';
+import createQueryBlock from './report/editor-query.js';
+import createViewBlock from './report/editor-view.js';
+import createMarkdownBlock from './report/editor-markdown.js';
 
 export default function(discovery) {
     function updateParams(delta, replace) {
@@ -40,8 +41,9 @@ export default function(discovery) {
     }
 
     const pipelineHandlers = {
-        query: createQueryEditor,
-        view: createViewEditor
+        query: createQueryBlock,
+        view: createViewBlock,
+        markdown: createMarkdownBlock
     };
 
     const blocksPool = new BlockPool(discovery, pipelineHandlers);
@@ -78,6 +80,9 @@ export default function(discovery) {
                 dataIn,
                 dataOut,
                 editable,
+                toggleEditor: () => {
+                    block.toggleEditor();
+                },
                 updateContent: (newContent, forcePerform) => {
                     pipeline[idx][1] = newContent;
                     updateParams({ pipeline }, true);

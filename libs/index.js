@@ -12,13 +12,22 @@ const es6NodeModules = {
         name: 'CodeMirror',
         files: [
             'lib/codemirror.js',
-            'mode/javascript/javascript.js'
+            'mode/javascript/javascript.js',
+            'mode/markdown/markdown.js',
+            'addon/mode/overlay.js',
+            'mode/gfm/gfm.js'
         ]
     },
     json5: {
         name: 'json5',
         files: [
             'dist/index.min.js'
+        ]
+    },
+    marked: {
+        name: 'marked',
+        files: [
+            'marked.min.js'
         ]
     },
     prismjs: {
