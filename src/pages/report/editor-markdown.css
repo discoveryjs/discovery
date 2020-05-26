@@ -13,12 +13,31 @@
 }
 
 .page-report > .report-block.markdown > .report-block-content code {
-    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
     padding: .2em .4em;
     margin: 0;
-    font-size: 85%;
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 90%;
     background-color: rgba(27,31,35,.05);
     border-radius: 3px;
+}
+
+.page-report > .report-block.markdown > .report-block-content pre {
+    padding: 12px;
+    overflow: auto;
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 90%;
+    line-height: 1.25;
+    background-color: #f6f8fa;
+    border-radius: 3px;
+    margin-bottom: 0;
+    word-break: normal;
+}
+.page-report > .report-block.markdown > .report-block-content pre code {
+    padding: 0;
+    font-family: inherit;
+    font-size: 100%;
+    background: none;
+    border-radius: none;
 }
 
 .page-report > .report-block.markdown > .report-block-content a {
