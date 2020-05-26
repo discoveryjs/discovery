@@ -1,6 +1,6 @@
-@import './structure.css';
-@import './action-button.css';
-@import './annotation.css';
+@import url('./structure.css');
+@import url('./action-button.css');
+@import url('./annotation.css');
 
 .view-struct {
     position: relative;
