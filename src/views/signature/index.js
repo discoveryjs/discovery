@@ -96,7 +96,7 @@ export default function(discovery) {
         const { expanded, path } = config;
         const stat = collectStat(data, expanded);
         const normPath = Array.isArray(path)
-            ? path.map(value => typeof value === 'number' ? `pick(${value})` : value)
+            ? path.map((value, idx) => typeof value === 'number' ? `${idx ? '' : '$'}[${value}]` : '.' + value)
             : undefined;
 
         renderStat(el, stat, elementToData, normPath);

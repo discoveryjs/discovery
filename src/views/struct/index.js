@@ -317,7 +317,7 @@ export default function(discovery) {
             const data = elementData.get(el);
             let context = elementContext.get(el);
 
-            while (context !== null) {
+            while (context !== null && context.parent !== null) {
                 path.unshift(context.key);
                 context = context.parent;
             }

@@ -73,7 +73,7 @@ export function renderPropertyDetails(el, data, discovery) {
             when: 'path',
             className: 'path',
             data: 'path',
-            item: 'text:"." + $'
+            item: 'text'
         },
         {
             view: 'h1',
