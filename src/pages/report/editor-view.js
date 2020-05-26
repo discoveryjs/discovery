@@ -165,7 +165,7 @@ function renderHint(discovery, el) {
                         data: '{ text: "model" }'
                     }
                 ]
-            }, discovery.view.entries);
+            }, [...discovery.view.entries]);
         }
     });
 
