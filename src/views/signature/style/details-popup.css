@@ -1,0 +1,160 @@
+
+.discovery-view-popup.signature-details {
+    padding: 10px;
+}
+.discovery-view-popup.signature-details > * {
+    max-width: 420px;
+}
+
+.discovery-view-popup.signature-details .path {
+    position: relative;
+    top: -4px;
+    margin-bottom: -2px;
+    font-size: 12px;
+    color: #bd6476;
+    opacity: .8;
+}
+
+.discovery-view-popup.signature-details .view-h1 {
+    margin: 20px 0 15px;
+    line-height: 1;
+    font-size: 180%;
+}
+.discovery-view-popup.signature-details .view-h1.property {
+    color: #bd6476;
+}
+.discovery-view-popup.signature-details .view-h1.type {
+    color: #07a;
+    margin-bottom: 8px;
+}
+.discovery-view-popup.signature-details .path + .view-h1,
+.discovery-view-popup.signature-details .view-h1:first-child {
+    margin-top: 0;
+}
+.discovery-view-popup.signature-details .view-h1:last-child {
+    margin-bottom: 0;
+}
+.discovery-view-popup.signature-details .usage-stat {
+    display: inline-block;
+    padding: 0 2ex 0 1ex;
+    font-size: 12px;
+    font-weight: normal;
+    color: #aaa;
+}
+.discovery-view-popup.signature-details .usage-stat.optional::before {
+    content: 'optional ';
+    color: #ff6e13;
+}
+.discovery-view-popup.signature-details .num {
+    /* padding: 2px; */
+    /* background: #ecf6fd; */
+    color: #5193c1;
+}
+.discovery-view-popup.signature-details .pie-stat {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+.discovery-view-popup.signature-details .pie-stat .list-header {
+    font-size: 11px;
+    color: #aaa;
+}
+.discovery-view-popup.signature-details .pie-stat .view-list {
+    max-width: 270px;
+}
+.discovery-view-popup.signature-details .pie-stat .view-list-item {
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+}
+.discovery-view-popup.signature-details .pie-stat .dot {
+    display: inline-block;
+    min-width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+}
+.discovery-view-popup.signature-details .pie-stat .caption {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 5px;
+}
+.discovery-view-popup.signature-details .pie-stat .caption:empty::before {
+    content: 'empty string';
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: #f0f0f0;
+    color: #888;
+    font-size: 11px;
+}
+.discovery-view-popup.signature-details .pie-stat .times {
+    color: #aaa;
+    font-size: 11px;
+}
+.discovery-view-popup.signature-details .pie-stat .pie {
+    transform: rotate(-90deg);
+    height: var(--size, 100px);
+    width: var(--size, 100px);
+    margin: 0 20px 0 10px;
+    border-radius: 50%;
+}
+
+.discovery-view-popup.signature-details .overview-stat {
+    color: #aaa;
+    font-size: 12px;
+}
+.discovery-view-popup.signature-details .overview-stat + .view-content-filter {
+    margin-top: 8px;
+}
+.discovery-view-popup.signature-details .view-content-filter > .view-input {
+    margin-bottom: 4px;
+}
+
+.discovery-view-popup.signature-details .view-menu-item {
+    display: flex;
+    align-items: baseline;
+}
+.discovery-view-popup.signature-details .view-menu-item > .caption {
+    flex: 1;
+}
+.discovery-view-popup.signature-details .view-menu-item > .caption:empty::before {
+    content: '[empty string]';
+    color: #888;
+}
+.discovery-view-popup.signature-details .view-menu-item > .count {
+    color: #aaa;
+    font-size: 11px;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item {
+    position: relative;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct {
+    overflow: hidden;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .count {
+    position: absolute;
+    top: 7px;
+    right: 0;
+    color: #aaa;
+    font-size: 11px;
+    padding: 0 4px;
+    border-radius: 3px 0 0 3px;
+    background: rgba(255, 255, 255, .9);
+}
+
+.discovery-view-popup.signature-details .array-types {
+    padding: 8px 0 8px 12px;
+    margin-top: 4px;
+    border-left: 2px solid #07a;
+}
+.discovery-view-popup.signature-details .array-types::before {
+    content: 'Array value types';
+    display: inline-block;
+    position: relative;
+    top: -12px;
+    left: -12px;
+    padding: 2px 4px;
+    color: white;
+    font-size: 10px;
+    line-height: 12px;
+    background: #07a;
+}

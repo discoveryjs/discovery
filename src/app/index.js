@@ -10,25 +10,25 @@ export default class App extends Widget {
     constructor(container, options = {}) {
         super(container, null, options);
 
-        this.mode = options.mode;
+        this.mode = this.options.mode;
 
         this.apply(complexViews);
         this.apply(router);
 
         this.addBadge(
             'Index',
-            () => this.setPage('default'),
-            (host) => host.pageId !== 'default' && host.mode !== 'modelfree'
+            () => this.setPage(this.defaultPageId),
+            (host) => host.pageId !== this.defaultPageId && host.mode !== 'modelfree'
         );
         this.addBadge(
             'Make report',
-            () => this.setPage('report'),
-            (host) => host.pageId !== 'report' && host.mode !== 'modelfree'
+            () => this.setPage(this.reportPageId),
+            (host) => host.pageId !== this.reportPageId && host.mode !== 'modelfree'
         );
         this.addBadge(
             'Reload with no cache',
             () => fetch('drop-cache').then(() => location.reload()),
-            () => options.cache
+            () => this.options.cache
         );
         this.addBadge(
             'Switch model',
@@ -44,15 +44,6 @@ export default class App extends Widget {
             () => {},
             (host) => host.mode === 'modelfree'
         );
-
-        // setup the drag&drop listeners for model free mode
-        if (this.mode === 'modelfree' && this.dom.container) {
-            this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
-            this.dom.container.addEventListener('dragover', e => {
-                e.stopPropagation();
-                e.preventDefault();
-            }, true);
-        }
     }
 
     setData(data, context) {
@@ -60,11 +51,8 @@ export default class App extends Widget {
 
         if (this.mode === 'modelfree') {
             setDataPromise.then(() => {
-                const pageHash = this.pageHash;
-
-                this.defaultPageId = 'report';
-                this.pageHash = undefined; // force update
-                this.setPageHash(pageHash, true);
+                this.defaultPageId = this.reportPageId;
+                this.setPageHash(this.pageHash, true);
             });
         }
 
@@ -103,14 +91,17 @@ export default class App extends Widget {
 
         return fetch(explicitData ? 'data:application/json,{}' : url)
             .then(res => {
-                console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
-                this.dom.loadingOverlay.innerHTML = 'Processing data...';
-
                 return explicitData || res.json();
             })
             .then(res => {
+                console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
+                this.dom.loadingOverlay.classList.add('done');
+                this.dom.loadingOverlay.innerHTML = 'Processing data...';
+
                 if (res.error) {
-                    throw new Error(res.error);
+                    const error = new Error(res.error);
+                    error.stack = null;
+                    throw error;
                 }
 
                 let data = dataField ? res[dataField] : res;
@@ -120,15 +111,14 @@ export default class App extends Widget {
                     createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
                 };
 
-                this.setData(data, context);
-                this.dom.loadingOverlay.classList.add('done');
+                return this.setData(data, context);
             })
             .catch(e => {
                 this.dom.loadingOverlay.classList.add('error');
                 this.dom.loadingOverlay.innerHTML =
-                    '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' +
-                    '<pre><div class="view-alert view-alert-danger">Data loading error</div><div class="view-alert view-alert-danger">' + escapeHtml(String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
-                console.error('[Discovery] Data load error:', e);
+                    (this.options.cache ? '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' : '') +
+                    '<pre><div class="view-alert view-alert-danger">Error loading data</div><div class="view-alert view-alert-danger">' + escapeHtml(e.stack || String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
+                console.error('[Discovery] Error loading data:', e);
             });
     }
 
@@ -137,8 +127,17 @@ export default class App extends Widget {
 
         if (this.dom.container) {
             this.dom.container.appendChild(
-                this.dom.loadingOverlay = createElement('div', 'loading-overlay done', 'Loading...')
+                this.dom.loadingOverlay = createElement('div', 'loading-overlay done', 'Loading data...')
             );
+
+            // setup the drag&drop listeners for model free mode
+            if (this.options.mode === 'modelfree') {
+                this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
+                this.dom.container.addEventListener('dragover', e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }, true);
+            }
         }
     }
 
@@ -151,6 +150,7 @@ export default class App extends Widget {
 
     renderPage() {
         document.title = this.getRenderContext().name || document.title;
+
         return super.renderPage();
     }
 }

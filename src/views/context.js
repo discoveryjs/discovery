@@ -36,17 +36,16 @@ export default function(discovery) {
         let inited = false;
         let { modifiers = [] } = config;
         const { content } = config;
+        const handlers = {
+            onInit: updateContext,
+            onChange: updateContext
+        };
 
         if (!Array.isArray(modifiers)) {
             modifiers = [modifiers];
         }
 
-        const awaitRender = discovery.view.render(el, modifiers.map(
-            item => this.composeConfig(item, {
-                onInit: updateContext,
-                onChange: updateContext
-            })
-        ), data, context);
+        const awaitRender = discovery.view.render(el, this.composeConfig(modifiers, handlers), data, context);
 
         contentStartMarker = el.appendChild(document.createComment('context view content start'));
         contentEndMarker = el.appendChild(document.createComment('context view content end'));

@@ -47,7 +47,7 @@ export default function(discovery) {
             }
 
             if (typeof handler === 'function') {
-                handler(currentValue, name);
+                handler(currentValue, name, data, context);
             }
         }
 

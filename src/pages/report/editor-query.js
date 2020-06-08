@@ -71,6 +71,8 @@ export default function(discovery, updateParams) {
         }
     });
 
+    let errorMarker;
+
     return {
         el: queryEditorFormEl,
         perform(data, context) {
@@ -84,11 +86,32 @@ export default function(discovery, updateParams) {
             if (lastQuery.query === pageQuery && lastQuery.data === data && lastQuery.context === context) {
                 results = lastQuery.results;
             } else {
+                if (errorMarker) {
+                    errorMarker.clear();
+                    errorMarker = null;
+                }
+
                 try {
                     queryTime = Date.now();
                     results = discovery.query(pageQuery, data, context);
                     queryTime = Date.now() - queryTime;
                 } catch (error) {
+                    const loc = error.details && error.details.loc;
+                    const doc = queryEditor.cm.doc;
+
+                    if (loc) {
+                        errorMarker = error.details.token === 'EOF'
+                            ? doc.setBookmark(
+                                doc.posFromIndex(error.details.loc.range[0]),
+                                { widget: createElement('span', 'discovery-editor-error', ' ') }
+                            )
+                            : doc.markText(
+                                doc.posFromIndex(error.details.loc.range[0]),
+                                doc.posFromIndex(error.details.loc.range[1]),
+                                { className: 'discovery-editor-error' }
+                            );
+                    }
+
                     lastQuery = {};
                     queryEditorResultEl.innerHTML = '<div class="report-error query-error">' + escapeHtml(error.message) + '</div>';
                     return { error };

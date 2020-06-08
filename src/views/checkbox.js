@@ -1,7 +1,5 @@
 /* eslint-env browser */
 
-import defined from '../core/utils/defined.js';
-
 export default function(discovery) {
     discovery.view.define('checkbox', function(el, config, data, context) {
         const { name, checked, readonly, content, onInit, onChange } = config;
@@ -9,7 +7,7 @@ export default function(discovery) {
         let renderContent = null;
 
         inputEl.type = 'checkbox';
-        inputEl.checked = defined([checked !== undefined ? discovery.queryBool(checked, data, context) : undefined, context[name]], false);
+        inputEl.checked = checked !== undefined ? discovery.queryBool(checked, data, context) : Boolean(context[name]);
         inputEl.readOnly = readonly;
         inputEl.addEventListener('click', (e) => {
             if (readonly) {
@@ -18,7 +16,7 @@ export default function(discovery) {
         });
         inputEl.addEventListener('change', () => {
             if (typeof onChange === 'function') {
-                onChange(inputEl.checked, name);
+                onChange(inputEl.checked, name, data, context);
 
                 if (renderContent !== null) {
                     renderContent();
@@ -27,7 +25,7 @@ export default function(discovery) {
         });
 
         if (typeof onInit === 'function') {
-            onInit(inputEl.checked, name);
+            onInit(inputEl.checked, name, data, context);
         }
 
         if (content) {
@@ -36,10 +34,10 @@ export default function(discovery) {
                 const localContext = name ? { ...context, [name]: inputEl.checked } : context;
 
                 contentEl.innerHTML = '';
-                discovery.view.render(contentEl, content, data, localContext);
+                return discovery.view.render(contentEl, content, data, localContext);
             };
 
-            renderContent();
+            return renderContent();
         }
     }, {
         tag: 'label'

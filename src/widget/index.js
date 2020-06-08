@@ -4,23 +4,21 @@ import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
+import ObjectMarker from '../core/object-maker.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import attachViewInspector from './view-inspector.js';
+import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
+import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
 
-function defaultEncodeParams(params) {
-    return new URLSearchParams(params).toString();
-}
-
-function defaultDecodeParams(value) {
-    return value;
-}
+const defaultEncodeParams = (params) => params;
+const defaultDecodeParams = (pairs) => Object.fromEntries(pairs);
 
 function setDatasetValue(el, key, value) {
     if (value) {
@@ -30,57 +28,20 @@ function setDatasetValue(el, key, value) {
     }
 }
 
-function getPageMethod(instance, pageId, name, fallback) {
-    const page = instance.page.get(pageId);
+function getPageOption(host, pageId, name, fallback) {
+    const page = host.page.get(pageId);
 
-    return page && typeof page.options[name] === 'function'
+    return page && Object.hasOwnProperty.call(page.options, name)
         ? page.options[name]
         : fallback;
 }
 
-function extractValueLinkResolver(host, pageId) {
-    const { resolveLink } = host.page.get(pageId).options;
+function getPageMethod(host, pageId, name, fallback) {
+    const method = getPageOption(host, pageId, name, fallback);
 
-    if (!resolveLink) {
-        return;
-    }
-
-    switch (typeof resolveLink) {
-        case 'string':
-            const [type, ref = 'id'] = resolveLink.split(':');
-
-            return (entity) => {
-                if (entity && entity.type === type) {
-                    return {
-                        type: pageId,
-                        text: entity.name,
-                        href: host.encodePageHash(pageId, entity[ref]),
-                        entity: entity.entity
-                    };
-                }
-            };
-
-        case 'function':
-            return (entity, value, data, context) => {
-                if (!value) {
-                    return;
-                }
-
-                const link = resolveLink(entity, value, data, context);
-
-                if (link) {
-                    return {
-                        type: pageId,
-                        text: typeof link === 'string' ? link : pageId,
-                        href: host.encodePageHash(pageId, link),
-                        entity: entity.entity
-                    };
-                }
-            };
-
-        default:
-            console.warn(`[Discovery] Page '${pageId}' has a bad value for resolveLink:`, resolveLink);
-    }
+    return typeof method === 'function'
+        ? method
+        : fallback;
 }
 
 function genUniqueId(len = 16) {
@@ -88,80 +49,162 @@ function genUniqueId(len = 16) {
     let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
 
     while (uid.length < len) {
-        uid += base36(new Date * Math.random());
+        uid += base36(Date.now() * Math.random());
     }
 
     return uid.substr(0, len);
 }
 
-function equal(a, b) {
-    if (a === b) {
-        return true;
-    }
+function createDataExtensionApi(instance) {
+    const objectMarkers = new ObjectMarker();
+    // const linkResolvers = new X(instance.pageLinkResolvers, objectMarkers);
+    const linkResolvers = [];
+    const annotations = [];
+    const queryExtensions = {
+        query: (...args) => instance.query(...args),
+        pageLink: (pageRef, pageId, pageParams) =>
+            instance.encodePageHash(pageId, pageRef, pageParams),
+        marker: (current, type) => objectMarkers.lookup(current, type),
+        markerAll: (current) => objectMarkers.lookupAll(current)
+    };
+    const addValueAnnotation = (query, options = false) => {
+        if (typeof options === 'boolean') {
+            options = {
+                debug: options
+            };
+        }
 
-    for (let key in a) {
-        if (hasOwnProperty.call(a, key)) {
-            if (!hasOwnProperty.call(b, key) || a[key] !== b[key]) {
-                return false;
+        annotations.push({
+            query,
+            ...options
+        });
+    };
+
+    return {
+        apply() {
+            Object.assign(instance, {
+                objectMarkers,
+                linkResolvers,
+                annotations,
+                queryExtensions
+            });
+        },
+        methods: {
+            defineObjectMarker(name, options) {
+                const { page, mark, lookup } = objectMarkers.define(name, options) || {};
+
+                if (!lookup) {
+                    return () => {};
+                }
+
+                if (page !== null) {
+                    if (!instance.page.isDefined(options.page)) {
+                        console.error(`[Discovery] Page reference "${options.page}" doesn't exist`);
+                        return;
+                    }
+
+                    linkResolvers.push(value => {
+                        const marker = lookup(value);
+
+                        if (marker !== null) {
+                            return {
+                                type: page,
+                                text: marker.title,
+                                href: marker.href,
+                                entity: marker.object
+                            };
+                        }
+                    });
+
+                    addValueAnnotation((value, context) => {
+                        const marker = lookup(value);
+
+                        if (marker && marker.object !== context.host) {
+                            return {
+                                place: 'before',
+                                style: 'badge',
+                                text: page,
+                                href: marker.href
+                            };
+                        }
+                    });
+                } else {
+                    addValueAnnotation((value, context) => {
+                        const marker = lookup(value);
+
+                        if (marker && marker.object !== context.host) {
+                            return {
+                                place: 'before',
+                                style: 'badge',
+                                text: name
+                            };
+                        }
+                    });
+                }
+
+                return mark;
+            },
+            addValueAnnotation,
+            addQueryHelpers(helpers) {
+                Object.assign(queryExtensions, helpers);
             }
         }
-    }
-
-    for (let key in b) {
-        if (hasOwnProperty.call(b, key)) {
-            if (!hasOwnProperty.call(a, key) || a[key] !== b[key]) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-function fuzzyStringCmp(a, b) {
-    const startChar = a[0];
-    const lastChar = a[a.length - 1];
-    const start = startChar === '"' || startChar === "'" ? 1 : 0;
-    const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-
-    return b.toLowerCase().indexOf(a.toLowerCase().substring(start, a.length - end), b[0] === '"' || b[0] === "'") !== -1;
+    };
 }
 
 export default class Widget extends Emitter {
     constructor(container, defaultPage, options) {
         super();
 
+        this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
+
         this.options = options || {};
         this.view = new ViewRenderer(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
-        this.page.on('define', name => this.addValueLinkResolver(extractValueLinkResolver(this, name)));
-        this.entityResolvers = [];
-        this.linkResolvers = [];
+        this.page.on('define', (pageId, page) => {
+            const { resolveLink } = page.options;
+
+            if (typeof resolveLink !== 'undefined') {
+                console.warn('"resolveLink" in "page.define()" options is deprecated, use "page" option for "defineObjectMarker()" method in prepare function');
+            }
+
+            // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
+            if (this.pageId === pageId && this.pageHash !== '#') {
+                const hash = this.pageHash;
+                this.pageHash = '#';
+                this.setPageHash(hash);
+                this.cancelScheduledRender();
+            }
+        });
+
         this.prepare = data => data;
-
-        this.defaultPageId = this.options.defaultPageId || 'default';
-        this.pageId = this.defaultPageId;
-        this.pageRef = null;
-        this.pageParams = {};
-        this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
-        this.scheduledRenderPage = null;
-
-        this.instanceId = genUniqueId();
-        this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.badges = [];
-        this.dom = {};
+        this.objectMarkers = [];
+        this.linkResolvers = [];
+        this.annotations = [];
         this.queryExtensions = {
             query: (...args) => this.query(...args),
             pageLink: (pageRef, pageId, pageParams) =>
                 this.encodePageHash(pageId, pageRef, pageParams)
         };
 
+        this.defaultPageId = this.options.defaultPageId || 'default';
+        this.reportPageId = this.options.reportPageId || 'report';
+        this.pageId = this.defaultPageId;
+        this.pageRef = null;
+        this.pageParams = {};
+        this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
+
+        this.instanceId = genUniqueId();
+        this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
+        this.badges = [];
+        this.dom = {};
+
         this.apply(views);
         this.apply(pages);
 
         if (defaultPage) {
-            this.page.define('default', defaultPage);
+            this.page.define(this.defaultPageId, defaultPage);
         }
 
         if (this.options.extensions) {
@@ -197,18 +240,28 @@ export default class Widget extends Emitter {
 
     setData(data, context = {}) {
         const startTime = Date.now();
-        const setDataPromise = Promise
-            .resolve(this.prepare(data, value => data = value))
-            .then(() => {  // TODO: use prepare ret
-                const lastPromise = lastSetDataPromise.get(this);
+        const dataExtension = createDataExtensionApi(this);
+        this._extensitionApi = dataExtension.methods; // TODO: remove
+        const checkIsNotPrevented = () => {
+            const lastPromise = lastSetDataPromise.get(this);
 
-                // prevent race conditions, perform only this promise was last one
-                if (lastPromise !== setDataPromise) {
-                    throw new Error('Prevented by another setData()');
-                }
+            // prevent race conditions, perform only if this promise is last one
+            if (lastPromise !== setDataPromise) {
+                throw new Error('Prevented by another setData()');
+            }
+        };
+        const setDataPromise = Promise.resolve(data)
+            .then((data) => {
+                checkIsNotPrevented();
+
+                return this.prepare(data, dataExtension.methods) || data;
+            })
+            .then((data) => {
+                checkIsNotPrevented();
 
                 this.data = data;
                 this.context = context;
+                dataExtension.apply(this);
 
                 this.emit('data');
                 console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
@@ -226,24 +279,14 @@ export default class Widget extends Emitter {
         return setDataPromise;
     }
 
-    addEntityResolver(fn) {
-        this.entityResolvers.push(fn);
+    // TODO: remove
+    addEntityResolver() {
+        console.error('[Discovery] "Widget#addEntityResolver()" method was removed, use "defineObjectMarker()" instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker(...)))');
     }
 
-    resolveEntity(value) {
-        for (let i = 0; i < this.entityResolvers.length; i++) {
-            const entity = this.entityResolvers[i](value);
-
-            if (entity) {
-                return entity;
-            }
-        }
-    }
-
-    addValueLinkResolver(resolver) {
-        if (typeof resolver === 'function') {
-            this.linkResolvers.push(resolver);
-        }
+    // TODO: remove
+    addValueLinkResolver() {
+        console.error('[Discovery] "Widget#addValueLinkResolver()" method was removed, use "defineObjectMarker()" with "page" option instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker("marker-name", { ..., page: "page-name" })))');
     }
 
     resolveValueLinks(value) {
@@ -251,10 +294,8 @@ export default class Widget extends Emitter {
         const type = typeof value;
 
         if (value && (type === 'object' || type === 'string')) {
-            const entity = this.resolveEntity(value);
-
-            for (let i = 0; i < this.linkResolvers.length; i++) {
-                const link = this.linkResolvers[i](entity, value, this.data, this.context);
+            for (const resolver of this.linkResolvers) {
+                const link = resolver(value);
 
                 if (link) {
                     result.push(link);
@@ -304,27 +345,28 @@ export default class Widget extends Emitter {
                     stat: true
                 };
 
-                lastQuerySuggestionsStat.set(this, stat = Object.assign(
-                    jora(query, options)(data, context),
-                    { query, data, context }
-                ));
+                lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
+                Object.assign(stat, jora(query, options)(data, context));
             }
 
             suggestions = stat.suggestion(offset);
 
             if (suggestions) {
                 return suggestions
-                    .filter(
-                        item => item.value !== item.current && fuzzyStringCmp(item.current, item.value)
+                    .filter(item =>
+                        item.value !== item.current && fuzzyStringCompare(item.current, item.value)
                     )
                     .sort((a, b) => {
                         const at = typeOrder.indexOf(a.type);
                         const bt = typeOrder.indexOf(b.type);
+
                         return at - bt || (a.value < b.value ? -1 : 1);
                     });
             }
         } catch (e) {
+            console.groupCollapsed('[Discovery] Error on getting suggestions for query');
             console.error(e);
+            console.groupEnd();
             return;
         }
     }
@@ -337,8 +379,9 @@ export default class Widget extends Emitter {
         };
     }
 
-    addQueryHelpers(extensions) {
-        Object.assign(this.queryExtensions, extensions);
+    // TODO: remove
+    addQueryHelpers() {
+        console.error('[Discovery] "Widget#addQueryHelpers()" method was removed, use "addQueryHelpers()" instead, i.e. setPrepare((data, { addQueryHelpers }) => addQueryHelpers(...))');
     }
 
     //
@@ -346,19 +389,27 @@ export default class Widget extends Emitter {
     //
 
     setContainer(container) {
-        const containerEl = container || null;
+        const newContainerEl = container || null;
+        const oldDomRefs = this.dom;
 
-        if (containerEl) {
-            this.dom.container = containerEl;
+        if (this.dom.container === newContainerEl) {
+            return;
+        }
 
-            containerEl.classList.add('discovery', this.isolateStyleMarker);
-            containerEl.dataset.discoveryInstanceId = this.instanceId;
+        // reset old refs
+        this.dom = {};
 
-            containerEl.appendChild(
+        if (newContainerEl !== null) {
+            this.dom.container = newContainerEl;
+
+            newContainerEl.classList.add('discovery', this.isolateStyleMarker);
+            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
+
+            newContainerEl.appendChild(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar')
             );
 
-            containerEl.appendChild(
+            newContainerEl.appendChild(
                 createElement('main', 'discovery-content', [
                     this.dom.badges = createElement('div', 'discovery-content-badges'),
                     this.dom.pageContent = createElement('article')
@@ -375,6 +426,8 @@ export default class Widget extends Emitter {
                 this.dom[key] = null;
             }
         }
+
+        this.emit('container-changed', this.dom, oldDomRefs);
     }
 
     addGlobalEventListener(eventName, handler, options) {
@@ -444,13 +497,13 @@ export default class Widget extends Emitter {
     }
 
     cancelScheduledRender(subject) {
-        const sheduledRenders = renderScheduler.get(this);
+        const scheduledRenders = renderScheduler.get(this);
 
-        if (sheduledRenders) {
+        if (scheduledRenders) {
             if (subject) {
-                sheduledRenders.delete(subject);
+                scheduledRenders.delete(subject);
             } else {
-                sheduledRenders.clear();
+                scheduledRenders.clear();
             }
         }
     }
@@ -493,37 +546,43 @@ export default class Widget extends Emitter {
 
     encodePageHash(pageId, pageRef, pageParams) {
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
-        const encodedParams = encodeParams(pageParams || {});
+        let encodedParams = encodeParams(pageParams || {});
+
+        if (encodedParams && typeof encodedParams !== 'string') {
+            if (!Array.isArray(encodedParams)) {
+                encodedParams = Object.entries(encodedParams);
+            }
+
+            encodedParams = encodedParams
+                .map(pair => pair.map(encodeURIComponent).join('='))
+                .join('&');
+        }
 
         return `#${
-            pageId !== this.defaultPageId ? escape(pageId) : ''
+            pageId !== this.defaultPageId ? encodeURIComponent(pageId) : ''
         }${
-            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + escape(pageRef) : ''
+            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + encodeURIComponent(pageRef) : ''
         }${
             encodedParams ? '&' + encodedParams : ''
         }`;
     }
 
     decodePageHash(hash) {
-        const parts = hash.substr(1).split('&');
-        const [pageId, pageRef] = (parts.shift() || '').split(':').map(unescape);
+        const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
+        const [pageId, pageRef] = hash.substring(1, delimIndex).split(':').map(decodeURIComponent);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pageParams = decodeParams([...new URLSearchParams(parts.join('&'))].reduce((map, [key, value]) => {
-            map[key] = value || true;
-            return map;
-        }, {}));
+        const pairs = hash.substr(delimIndex + 1).split('&').map(pair => {
+            const eqIndex = pair.indexOf('=');
+            return eqIndex !== -1
+                ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]
+                : [decodeURIComponent(pair), true];
+        });
 
         return {
             pageId: pageId || this.defaultPageId,
             pageRef,
-            pageParams
+            pageParams: decodeParams(pairs)
         };
-    }
-
-    getPageOption(name, fallback) {
-        const page = this.page.get(this.pageId);
-
-        return page && name in page.options ? page.options[name] : fallback;
     }
 
     setPage(pageId, pageRef, pageParams, replace = false) {
@@ -534,31 +593,27 @@ export default class Widget extends Emitter {
     }
 
     setPageParams(pageParams, replace = false) {
-        return this.setPageHash(
-            this.encodePageHash(this.pageId, this.pageRef, pageParams),
-            replace
-        );
+        return this.setPage(this.pageId, this.pageRef, pageParams, replace);
     }
 
     setPageHash(hash, replace = false) {
-        if (hash !== this.pageHash) {
-            const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
-            const changed =
-                this.pageId !== pageId ||
-                this.pageRef !== pageRef ||
-                !equal(this.pageParams, pageParams);
+        const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
 
-            this.pageHash = hash;
+        if (this.pageId !== pageId ||
+            this.pageRef !== pageRef ||
+            !equal(this.pageParams, pageParams)) {
 
-            if (changed) {
-                this.pageId = pageId;
-                this.pageRef = pageRef;
-                this.pageParams = pageParams;
-                this.scheduleRender('page');
+            this.pageId = pageId;
+            this.pageRef = pageRef;
+            this.pageParams = pageParams;
+            this.scheduleRender('page');
+
+            if (hash !== this.pageHash) {
+                this.pageHash = hash;
                 this.emit('pageHashChange', replace);
-            }
 
-            return changed;
+                return true;
+            }
         }
 
         return false;

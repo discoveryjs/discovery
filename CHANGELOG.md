@@ -1,13 +1,99 @@
 ## next
 
+- Improved error handling in data prepare handler
+- Changed location path in signature details popup to use `[index]` instead of `pick(index)`
+- Improved estimated JSON size computation in `struct` action popup
+- Added "Copy path" to `struct` action popup
+
+## 1.0.0-beta.38 (19-05-2020)
+
+- Fixed switching to "Processing..." label on data is loaded and decoded instead of TTFB time
+
+## 1.0.0-beta.37 (18-05-2020)
+
+- Extended `prepare` handler to take extension API as a second parameter. For now API contains following methods:
+    - `addValueAnnotation()` to define a value annotation used mostly in `struct` view. The first argument should be a handler: a function or a string query. Handler takes a value and context, which contains properties: `host` (an object or an array that includes a value), `key`, `index` and `parent` (a reference to parent context). The handler should return falsy value (when no annotation needed) or an object with following fields (all fields are optional):
+        - `place` – `'after'` (by default) or `'before'`, where to place annotation before or after a value
+        - `style` – `'default'` (by default), `'none'` (no any visual styles for annotation block) or `'badge'` (uses for object markers)
+        - `className` - additional CSS classes that should be added to annotation block
+        - `text` – annotation text
+        - `title` – value for `title` attribute
+        - `icon` - url, dataURI or class name with `icon-` prefix
+        - `href` - annotation is a link
+        - `external` - when annotation is a link, open in new window when true
+    - `defineObjectMarker(name, options)` to define an object marker, which returns a function to wrap objects, i.e. `object.forEach(defineObjectMarker('foo', { /* options */ }))`. Options (all are optional):
+        - `refs` – a list of string (a field name) or function (getter), which values should refer to an object beside direct reference to object. Uses for unique object values, e.g. `id`
+        - `lookupRefs` - a list of string (a field name) or function (getter), that uses to retrieve additional values to identify original object
+        - `page` - a string, marker should be a link to specified page
+        - `ref` - a string (a field name) or a function (getter), a value that uses in link to page to identify object
+        - `title` -  astring (a field name) or a function (getter), a text that represent an object, e.g. in `auto-link` 
+    - `addQueryHelpers()` method the same as `Widget#addQueryHelpers()`
+- Added a set of default methods:
+    - `marker(type?)` – returns any marker associated with a value, when `type` is specified only this type of marker may be returned
+    - `markerAll()` – returns all markers associated with a value
+- Removed `Widget#addEntityResolver()` method, use `defineObjectMarker()` instead
+- Removed `Widget#addValueLinkResolver()` method, use `defineObjectMarker()` with `page` option instead
+- Removed `Widget#addQueryHelpers()` method, use `addQueryHelpers()` instead
+- Removed `resolveLink` option for `page.define()`, use `page` option in `defineObjectMarker()` instead
+
+## 1.0.0-beta.36 (17-05-2020)
+
+- Bumped deps: [jora@1.0.0-beta.2](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.2)
+- Fixed exception in `table` view when column query is empty
+
+## 1.0.0-beta.35 (14-05-2020)
+
+- Bumped deps: [hitext@1.0.0-beta.1](https://github.com/hitext/hitext/releases/tag/v1.0.0-beta.1), [hitext-prismjs@1.1.0](https://github.com/hitext/prismjs/releases/tag/v1.1.0)
+
+## 1.0.0-beta.34 (14-05-2020)
+
+- Bumped jora version to `1.0.0-beta.1`
+- Improved error handling in query editor
+- Fixed ignoring explicit column sorting in `table` view when value is falsy
+
+## 1.0.0-beta.33 (07-05-2020)
+
+- Fixed `table`'s cell content rendering when col config is a string
+- Changed default sorting order to `desc` in `table` view
+- Improved `table` auto-sorting detection
+
+## 1.0.0-beta.32 (07-05-2020)
+
+- Fixed `table` view to use `<table>` tag for root element instead of `<div>`
+- Added `debounce` property to `input` view config
+- Exposed lib API as `Widget#lib`
+- Extended `safeFilterRx()` to add pattern value to produced regexp as `rawSource`
+- Changed `value` option behaviour for `input` view to be a query instead of a plain value
+- Fixed missed custom page's `decodeParams` method call on initial render
+- Removed `defined()` helper
+- Removed `Widget#getPageOption()` method
+- Changed protocol for `page.options.decodeParams()`, handler must take an array of URI component pairs
+- Extended protocol for `page.options.encodeParams()`, handler may return an array of URI component pairs or an object beside a string; keys and values will be encoded by host
+- Changed references to default page as `defaultPageId` instead of hardcoded `'default'` value
+- Added `Widget.options.reportPageId` option
+- Improved `Widget.setPageHash()` method to detect changes based on decoded page id, ref and params and re-apply new values if needed
+- Fixed `table` to not override `data` when column config in `cols` object have no `content` property
+- Changed `table` to apply `when` on column config to entire column
+- Changed `table` to not render a cell content depending on `whenData` in column config
+- Changed `when` and `whenData` to not apply when `undefined` or not an own property (like not set at all)
+- Added sorting for `table` view
+
+## 1.0.0-beta.31 (23-04-2020)
+
+- Added `checkbox-list` view
 - Added `whenData` common option to view config
 - Added `Popup#toggle()` method
-- Extended `menu-item` to take data as item text when it's a string
 - Added object/array size hint in `struct` view
 - Added "sort keys" toggle for objects in `struct` view
 - Added "sort keys" and "dict mode" actions for objects in `signature` view
-- Fixed edge cases for value stat output in `signature` view
+- Extended `badge` and `pill-badge` views to use number and boolean data as text
+- Extended `menu-item` to take data as item text when it's a string
+- Extended `badge` to take data as item text when it's a string
+- Extended `block` view to pass `onInit` and `onChange` handlers if any to its content
+- Extended `checkbox`, `input`, `select` and `tabs` views to pass `data` and `context` to `onInit` and `onChange` handler beside value and name
+- Changed `table` view to not render a row when data is falsy
 - Changed `utils.createElement()` to ignore attributes with not own keys or `undefined` value
+- Fixed edge cases for value stat output in `signature` view
 - Fixed scrolling issue for `tabs` view when used in sidebar
 
 ## 1.0.0-beta.30 (25-03-2020)

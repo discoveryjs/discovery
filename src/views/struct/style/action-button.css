@@ -1,0 +1,64 @@
+.view-struct .struct-action-button {
+    vertical-align: middle;
+    margin-left: 2px;
+    padding: 1px 4px;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    font-size: 8px;
+    color: #ddd;
+    background: #fcfcfc;
+    cursor: pointer;
+}
+.view-struct .struct-action-button:hover,
+.view-struct .discovery-view-popup-active {
+    color: #333;
+    background: #eee;
+    border-color: #d0d0d0;
+}
+.view-struct .sort-keys > .struct-action-button[data-action="toggle-sort-keys"],
+.view-struct .string-value-as-text > .struct-action-button[data-action="toggle-string-mode"] {
+    color: #686;
+    background: #e5f7e5;
+    border-color: #d0e0d0;
+}
+.view-struct .struct-action-button[data-action="show-signature"] {
+    cursor: default;
+}
+@media (hover:none), (hover:on-demand) { 
+    .view-struct .struct-action-button {
+        padding: 3px 20px 3px;
+        color: #333;
+        background: white;
+        border-color: #e0e0e0;
+    }
+    .view-struct .struct-action-button[data-action="show-signature"] {
+        cursor: pointer;
+    }    
+}
+/* FIXME: temporary, until multiple popups support */
+.discovery-view-popup .view-struct .struct-action-button[data-action="show-signature"] {
+    display: none;
+}
+.view-struct .struct-action-button[data-action="collapse"]::before {
+    content: "–";
+}
+.view-struct .struct-action-button[data-action="show-signature"]::before {
+    content: "𝕊";
+}
+.view-struct .struct-action-button[data-action="value-actions"]::before {
+    content: "ƒ";
+}
+.view-struct .struct-action-button[data-action="toggle-sort-keys"]::before {
+    content: "keys ↓";
+}
+.view-struct .struct-action-button[data-action="toggle-string-mode"]::before {
+    content: "as text";
+}
+
+.discovery-view-popup.view-struct-actions-popup .notes {
+    display: inline;
+    color: #666;
+}
+.discovery-view-popup.view-struct-actions-popup .notes::before {
+    content: ' ';
+}
