@@ -2,6 +2,7 @@
 
 - Improved error handling in data prepare handler
 - Changed location path in signature details popup to use `[index]` instead of `pick(index)`
+- Improved estimated JSON size computation in `struct` action's popup
 
 ## 1.0.0-beta.38 (19-05-2020)
 
