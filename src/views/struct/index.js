@@ -204,6 +204,26 @@ export default function(discovery) {
         );
     }
 
+    function buildPathForElement(el, raw) {
+        let path = [];
+        let context = elementContext.get(el);
+
+        while (context !== null && context.parent !== null) {
+            path.unshift(context.key);
+            context = context.parent;
+        }
+
+        if (raw) {
+            return path;
+        }
+
+        return path.map((part, idx) =>
+            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
+                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
+                : (idx === 0 ? part : '.' + part)
+        );
+    }
+
     function applyAnnotations(el, value, options, context) {
         for (const annotation of options.annotations) {
             try {
@@ -268,6 +288,7 @@ export default function(discovery) {
                     }
                 ];
             } else {
+                const path = buildPathForElement(el).join('');
                 const maxAllowedSize = 1024 * 1024 * 1024;
                 const { minLength: compactSize, circular } = jsonStrinifyInfo(data);
                 let jsonFormattedStringifyError = false;
@@ -285,6 +306,14 @@ export default function(discovery) {
                     if (formattedSize > maxAllowedSize) {
                         jsonFormattedStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
                     }
+                }
+
+                if (path) {
+                    actions.push({
+                        text: 'Copy path:',
+                        notes: escapeHtml(path),
+                        action: () => copyText(path)
+                    });
                 }
 
                 actions.push({
