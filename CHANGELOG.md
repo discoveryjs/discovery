@@ -5,6 +5,7 @@
 - Improved estimated JSON size computation in `struct` action popup
 - Added "Copy path" to `struct` action popup
 - Added `passive` option support detection test and `passiveCaptureOptions` for `addEventListener()` in `utils.dom`
+- Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
 
 ## 1.0.0-beta.38 (19-05-2020)
 

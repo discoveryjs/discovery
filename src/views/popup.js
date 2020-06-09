@@ -1,9 +1,11 @@
 /* eslint-env browser */
 import { getOffsetParent, getBoundingRect, getViewportRect } from '../core/utils/layout.js';
+import { passiveCaptureOptions } from '../core/utils/dom.js';
 
 const openedPopups = [];
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 const defaultOptions = {
+    position: 'trigger',
     hoverTriggers: null,
     hoverPin: false,
     render: undefined
@@ -25,8 +27,87 @@ function hideIfEventOutside(event) {
 }
 
 export default function(discovery) {
+    const instances = [];
+    const hoverTriggerInstances = [];
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let globalListeners = null;
+    const addGlobalHoverListeners = () => {
+        if (globalListeners !== null) {
+            return;
+        }
+
+        globalListeners = [
+            discovery.addGlobalEventListener('mouseenter', ({ target }) => {
+                if (target === document) {
+                    return;
+                }
+
+                for (const instance of hoverTriggerInstances) {
+                    const targetRelatedPopup = findTargetRelatedPopup(instance, target);
+                    const triggerEl = targetRelatedPopup
+                        ? targetRelatedPopup.el
+                        : target.closest(instance.options.hoverTriggers);
+
+                    if (triggerEl) {
+                        instance.hideTimer = clearTimeout(instance.hideTimer);
+
+                        if (triggerEl !== instance.lastHoverTriggerEl) {
+                            // change hover pinned only when trigger is not a popup in pinned mode
+                            if (!targetRelatedPopup || !targetRelatedPopup.hoverPinned) {
+                                instance.lastHoverTriggerEl = triggerEl;
+                            }
+
+                            // show only if event target isn't a popup
+                            if (!targetRelatedPopup) {
+                                instance.hoverPinned = false;
+                                instance.el.classList.remove('pinned');
+                                instance.show(triggerEl);
+                            }
+                        }
+                    }
+                }
+            }, passiveCaptureOptions),
+
+            discovery.addGlobalEventListener('mouseleave', ({ target }) => {
+                for (const instance of hoverTriggerInstances) {
+                    if (instance.lastHoverTriggerEl && instance.lastHoverTriggerEl === target) {
+                        instance.lastHoverTriggerEl = null;
+                        instance.hideTimer = setTimeout(instance.hide, 100);
+                    }
+                }
+            }, passiveCaptureOptions),
+
+            discovery.addGlobalEventListener('click', (event) => {
+                for (const instance of hoverTriggerInstances) {
+                    if (instance.options.hoverPin === 'trigger-click') {
+                        if (instance.lastHoverTriggerEl && instance.lastTriggerEl.contains(event.target)) {
+                            instance.lastHoverTriggerEl = null;
+                            instance.hoverPinned = true;
+                            instance.el.classList.add('pinned');
+
+                            event.stopPropagation();
+                        }
+                    }
+                }
+            }, true)
+        ];
+    };
+    const updatePointerRelatedPositions = ({ x, y}) => {
+        lastMouseX = x;
+        lastMouseY = y;
+
+        for (const instance of instances) {
+            if (instance.options.position === 'pointer' && !instance.hoverPinned) {
+                instance.updatePosition();
+            }
+        }
+    };
+
     discovery.view.Popup = class Popup {
         constructor(options) {
+            instances.push(this);
+
             this.options = {
                 ...defaultOptions,
                 ...options
@@ -56,53 +137,8 @@ export default function(discovery) {
                 this.el.classList.add('show-on-hover');
                 this.el.dataset.pinMode = this.options.hoverPin || 'none';
 
-                discovery.addGlobalEventListener('mouseenter', ({ target }) => {
-                    if (target === document) {
-                        return;
-                    }
-
-                    const targetRelatedPopup = findTargetRelatedPopup(this, target);
-                    const triggerEl = targetRelatedPopup
-                        ? targetRelatedPopup.el
-                        : target.closest(this.options.hoverTriggers);
-
-                    if (triggerEl) {
-                        this.hideTimer = clearTimeout(this.hideTimer);
-
-                        if (triggerEl !== this.lastHoverTriggerEl) {
-                            // change hover pinned only when trigger is not a popup in pinned mode
-                            if (!targetRelatedPopup || !targetRelatedPopup.hoverPinned) {
-                                this.lastHoverTriggerEl = triggerEl;
-                            }
-
-                            // show only if event target isn't a popup
-                            if (!targetRelatedPopup) {
-                                this.hoverPinned = false;
-                                this.el.classList.remove('pinned');
-
-                                this.show(triggerEl);
-                            }
-                        }
-                    }
-                }, true);
-
-                discovery.addGlobalEventListener('mouseleave', ({ target }) => {
-                    if (this.lastHoverTriggerEl && this.lastHoverTriggerEl === target) {
-                        this.lastHoverTriggerEl = null;
-                        this.hideTimer = setTimeout(this.hide, 100);
-                    }
-                }, true);
-
-                if (this.options.hoverPin === 'trigger-click') {
-                    discovery.addGlobalEventListener('click', (event) => {
-                        if (this.lastHoverTriggerEl && this.lastTriggerEl.contains(event.target)) {
-                            this.lastHoverTriggerEl = null;
-                            this.hoverPinned = true;
-                            this.el.classList.add('pinned');
-                            event.stopPropagation();
-                        }
-                    }, true);
-                }
+                hoverTriggerInstances.push(this);
+                addGlobalHoverListeners();
             }
         }
 
@@ -124,9 +160,54 @@ export default function(discovery) {
 
         show(triggerEl, render = this.options.render) {
             const hostEl = document.body;
-            const box = getBoundingRect(triggerEl, hostEl);
+
+            this.hideTimer = clearTimeout(this.hideTimer);
+            this.relatedPopups.forEach(related => related.hide());
+
+            if (typeof render === 'function') {
+                this.el.innerHTML = '';
+                render(this.el, triggerEl, this.hide);
+            }
+
+            if (this.lastTriggerEl) {
+                this.lastTriggerEl.classList.remove('discovery-view-popup-active');
+            }
+
+            if (triggerEl) {
+                triggerEl.classList.add('discovery-view-popup-active');
+            }
+
+            this.lastTriggerEl = triggerEl || null;
+
+            if (!this.visible) {
+                openedPopups.push(this);
+
+                window.addEventListener('resize', this.hide);
+
+                if (openedPopups.length === 1) {
+                    document.addEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);
+                    document.addEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
+                    document.addEventListener('click', hideIfEventOutside, true);
+                }
+            }
+
+            this.updatePosition();
+
+            // always append since it can pop up by z-index
+            hostEl.appendChild(this.el);
+        }
+
+        updatePosition() {
+            if (!this.visible || (this.options.position !== 'pointer' && !this.lastTriggerEl)) {
+                return;
+            }
+
+            const hostEl = document.body;
             const offsetParent = getOffsetParent(hostEl.firstChild);
             const viewport = getViewportRect(window, offsetParent);
+            const box = this.options.position !== 'pointer'
+                ? getBoundingRect(this.lastTriggerEl, hostEl)
+                : { left: lastMouseX, right: lastMouseX, top: lastMouseY, bottom: lastMouseY };
             const availHeightTop = box.top - viewport.top - 3;
             const availHeightBottom = viewport.bottom - box.bottom - 3;
             const availWidthLeft = box.right - viewport.left - 3;
@@ -160,34 +241,7 @@ export default function(discovery) {
                 this.el.dataset.hTo = 'right';
             }
 
-            this.hideTimer = clearTimeout(this.hideTimer);
-            this.relatedPopups.forEach(related => related.hide());
-
-            if (typeof render === 'function') {
-                this.el.innerHTML = '';
-                render(this.el, triggerEl, this.hide);
-            }
-
-            if (this.lastTriggerEl) {
-                this.lastTriggerEl.classList.remove('discovery-view-popup-active');
-            }
-
-            triggerEl.classList.add('discovery-view-popup-active');
-            this.lastTriggerEl = triggerEl;
-
-            // always append since it can pop up by z-index
-            hostEl.appendChild(this.el);
-
-            if (!this.visible) {
-                openedPopups.push(this);
-
-                window.addEventListener('resize', this.hide);
-
-                if (openedPopups.length === 1) {
-                    document.addEventListener('scroll', hideIfEventOutside, true);
-                    document.addEventListener('click', hideIfEventOutside, true);
-                }
-            }
+            this.relatedPopups.forEach(related => related.updatePosition());
         }
 
         hide() {
@@ -209,7 +263,8 @@ export default function(discovery) {
                 window.removeEventListener('resize', this.hide);
 
                 if (openedPopups.length === 0) {
-                    document.removeEventListener('scroll', hideIfEventOutside, true);
+                    document.removeEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);
+                    document.removeEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
                     document.removeEventListener('click', hideIfEventOutside, true);
                 }
             }
