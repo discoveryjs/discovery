@@ -197,6 +197,7 @@ export default class Widget extends Emitter {
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
+        this.inspectState = false;
         this.badges = [];
         this.dom = {};
 
@@ -388,6 +389,12 @@ export default class Widget extends Emitter {
     // UI
     //
 
+    getDomRoots() {
+        return [
+            ...document.querySelectorAll(`[data-discovery-instance-id=${JSON.stringify(this.instanceId)}]`)
+        ];
+    }
+
     setContainer(container) {
         const newContainerEl = container || null;
         const oldDomRefs = this.dom;
@@ -469,6 +476,15 @@ export default class Widget extends Emitter {
         this.badges.push(badge);
 
         return badge;
+    }
+
+    inspect(state) {
+        state = Boolean(state);
+
+        if (this.inspectState !== state) {
+            this.inspectState = state;
+            this.emit(state ? 'inspect-enabled' : 'inspect-disabled');
+        }
     }
 
     //

@@ -5,6 +5,27 @@ import Dict from './dict.js';
 const STUB_OBJECT = Object.freeze({});
 const viewEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
 
+function collectViewTree(node, parent, ignoreNodes) {
+    if (ignoreNodes.has(node)) {
+        return;
+    }
+
+    if (viewEls.has(node)) {
+        parent.children.push(parent = {
+            node,
+            parent,
+            view: viewEls.get(node),
+            children: []
+        });
+    }
+
+    if (node.nodeType === 1) {
+        for (let child = node.firstChild; child; child = child.nextSibling) {
+            collectViewTree(child, parent, ignoreNodes);
+        }
+    }
+};
+
 function createDefaultConfigErrorView(view) {
     return  {
         name: 'config-error',
@@ -74,7 +95,7 @@ function renderDom(renderer, placeholder, config, data, context) {
                 }
             }
 
-            if (el.nodeType === 1) {
+            if (el.nodeType === 1 || el.nodeType === 3) {
                 viewEls.set(el, {
                     nodes: [el],
                     config,
@@ -83,12 +104,13 @@ function renderDom(renderer, placeholder, config, data, context) {
                 });
             } else {
                 const nodes = [...el.children];
-                nodes.forEach(childEl => viewEls.set(childEl, {
+                const info = {
                     nodes,
                     config,
                     data,
                     context
-                }));
+                };
+                nodes.forEach(childEl => viewEls.set(childEl, info));
             }
 
             placeholder.parentNode.replaceChild(el, placeholder);
@@ -354,31 +376,34 @@ export default class ViewRenderer extends Dict {
         container.appendChild(moreButton);
     }
 
-    getViewStackTrace(el) {
-        const { container } = this.host.dom;
+    getViewTree(ignore) {
+        const ignoreNodes = new Set(ignore || []);
+        const result = [];
 
-        if (!container || el instanceof Node === false || !container.contains(el)) {
+        for (const root of this.host.getDomRoots()) {
+            collectViewTree(root, { parent: null, children: result }, ignoreNodes);
+        }
+
+        return result;
+    }
+
+    getViewStackTrace(el) {
+        const { container: root } = this.host.dom;
+
+        if (!root || el instanceof Node === false || !root.contains(el)) {
             return null;
         }
 
         const stack = [];
         let cursor = el;
 
-        while (cursor !== container) {
+        while (cursor !== root) {
             if (viewEls.has(cursor)) {
                 stack.push(viewEls.get(cursor));
             }
 
             cursor = cursor.parentNode;
         }
-
-        // const nodes = container.querySelectorAll('*');
-
-        // for (const node of nodes) {
-        //     if (x.has(node)) {
-        //         node.style.outline = '1px solid red';
-        //     }
-        // }
 
         if (stack.length === 0) {
             return null;

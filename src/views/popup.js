@@ -205,9 +205,15 @@ export default function(discovery) {
             const hostEl = document.body;
             const offsetParent = getOffsetParent(hostEl.firstChild);
             const viewport = getViewportRect(window, offsetParent);
+            const pointerOffset = 3;
             const box = this.options.position !== 'pointer'
                 ? getBoundingRect(this.lastTriggerEl, hostEl)
-                : { left: lastMouseX, right: lastMouseX, top: lastMouseY, bottom: lastMouseY };
+                : {
+                    left: lastMouseX + pointerOffset,
+                    right: lastMouseX - pointerOffset,
+                    top: lastMouseY - pointerOffset,
+                    bottom: lastMouseY + pointerOffset
+                };
             const availHeightTop = box.top - viewport.top - 3;
             const availHeightBottom = viewport.bottom - box.bottom - 3;
             const availWidthLeft = box.right - viewport.left - 3;

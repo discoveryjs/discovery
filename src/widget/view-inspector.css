@@ -1,0 +1,46 @@
+.discovery-view-inspector-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 255, .1);
+    z-index: 200;
+    pointer-events: none;
+}
+.discovery-view-inspector-overlay.pick-element {
+    pointer-events: auto;
+}
+.discovery-view-inspector-overlay .overlay {
+    position: absolute;
+    background-color: rgba(0, 255, 0, 0.001);
+    transition: background-color 15ms 25ms;
+    box-sizing: border-box;
+}
+.discovery-view-inspector-overlay .overlay.hovered {
+    background-color: rgba(0, 255, 0, .25);
+    -webkit-backdrop-filter: hue-rotate(180deg);
+    backdrop-filter: hue-rotate(180deg);
+    border: 1px dashed rgba(0, 128, 0, .4);
+}
+
+.discovery-view-popup.view-stack-trace {
+    pointer-events: none;
+    z-index: 1001;
+    max-width: 650px !important;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, .65);
+}
+
+.discovery-view-popup.view-stack-trace .stack-view-chain {
+    padding: 4px;
+}
+.discovery-view-popup.view-stack-trace .stack-view-chain .view-list-item:not(:last-child) {
+    color: #aaa;
+}
+.discovery-view-popup.view-stack-trace .stack-view-chain .view-list-item:not(:first-child)::before {
+    content: '\a0→\a0';
+    color: #888;
+}
+.discovery-view-popup.view-stack-trace .view-struct {
+    background-color: rgba(240, 240, 240, .5);
+}

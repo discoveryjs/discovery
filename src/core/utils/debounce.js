@@ -36,12 +36,12 @@ function isObject(value) {
  * @since 0.1.0
  * @category Function
  * @param {Function} func The function to debounce.
- * @param {number} [wait=0]
- *  The number of milliseconds to delay; if omitted, `requestAnimationFrame` is
- *  used (if available).
  * @param {Object} [options={}] The options object.
  * @param {boolean} [options.leading=false]
  *  Specify invoking on the leading edge of the timeout.
+ * @param {number} [options.wait=0]
+ *  The number of milliseconds to delay; if omitted, `requestAnimationFrame` is
+ *  used (if available).
  * @param {number} [options.maxWait]
  *  The maximum time `func` is allowed to be delayed before it's invoked.
  * @param {boolean} [options.trailing=true]
@@ -95,7 +95,8 @@ function debounce(func, options) {
     if (typeof func !== 'function') {
         throw new TypeError('Expected a function');
     }
-    wait = Number(wait) || 0;
+
+    wait = Math.max(0, Number(wait) || 0);
     leading = Boolean(options.leading);
     maxing = 'maxWait' in options;
     maxWait = maxing ? Math.max(Number(options.maxWait) || 0, wait) : maxWait;
@@ -209,9 +210,11 @@ function debounce(func, options) {
         }
         return result;
     }
+
     debounced.cancel = cancel;
     debounced.flush = flush;
     debounced.pending = pending;
+
     return debounced;
 }
 
