@@ -1,0 +1,68 @@
+@import url('./action-button.css');
+@import url('./details-popup.css');
+
+.view-signature {
+    position: relative;
+    margin: 1px 0;
+    padding: 7px 32px 7px 8px;
+    overflow: auto;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+    line-height: 18px;
+    background: #fafafa;
+    color: #666;
+    white-space: pre;
+}
+.discovery-view-popup .view-signature {
+    background: none;
+}
+
+.view-signature .expand {
+    padding: 2px;
+    margin: 0 -2px;
+}
+.view-signature .expand:hover {
+    border-radius: 4px;
+    background-color: #eee;
+    color: #333;
+    cursor: pointer;
+}
+
+.view-signature .count {
+    vertical-align: middle;
+    padding-left: 3px;
+    font-size: 90%;
+    color: #ddd;
+}
+.view-signature .count::before {
+    content: attr(data-value);
+}
+.view-signature .count:hover {
+    color: #aaa;
+}
+
+.view-signature .property {
+    padding: 2px;
+    margin: 0 -2px;
+    color: #bd6476;
+    cursor: pointer;
+}
+.view-signature .property.discovery-view-popup-active,
+.view-signature .property:hover {
+    background-color: #eee;
+}
+.view-signature .optional {
+    color: #ff6e13;
+    padding-left: 2px;
+}
+
+.view-signature .type {
+    padding: 2px;
+    margin: 0 -2px 0 -2px;
+    color: #07a;
+    cursor: pointer;
+}
+.view-signature .type.discovery-view-popup-active,
+.view-signature .type:hover {
+    background-color: #eee;
+}

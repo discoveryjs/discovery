@@ -8,25 +8,35 @@ export default class Dictionary extends Emitter {
     constructor() {
         super();
 
-        entries.set(this, Object.create(null));
+        entries.set(this, new Map());
     }
 
     define(key, value) {
-        entries.get(this)[key] = value;
-
+        entries.get(this).set(key, value);
         this.emit('define', key, value);
+
+        return value;
     }
 
     isDefined(key) {
-        return key in entries.get(this);
+        return entries.get(this).has(key);
     }
 
     get(key) {
-        return entries.get(this)[key];
+        return entries.get(this).get(key);
+    }
+    get names() {
+        return [...entries.get(this).keys()];
     }
 
-    get names() {
-        return Object.keys(entries.get(this)).sort();
+    get keys() {
+        return entries.get(this).keys();
+    }
+    get values() {
+        return entries.get(this).values();
+    }
+    get entries() {
+        return entries.get(this).entries();
     }
     get values() {
         return Object.values(entries.get(this));
