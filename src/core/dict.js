@@ -38,10 +38,4 @@ export default class Dictionary extends Emitter {
     get entries() {
         return entries.get(this).entries();
     }
-    get values() {
-        return Object.values(entries.get(this));
-    }
-    get entries() {
-        return Object.entries(entries.get(this));
-    }
 }

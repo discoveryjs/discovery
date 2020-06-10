@@ -5,6 +5,7 @@ import { jsonStrinifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
 import renderAnnotations from './render-annotations.js';
+import usage from './usage.js';
 import {
     stringValueProto,
     arrayValueProto,
@@ -466,6 +467,8 @@ export default function(discovery) {
         if (expandable && !expanded) {
             el.classList.add('struct-expand');
         }
+    }, {
+        usage
     });
 
     // FIXME: this function never call
