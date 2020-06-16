@@ -95,24 +95,14 @@ function renderDom(renderer, placeholder, config, data, context) {
                 }
             }
 
-            if (el.nodeType === 1 || el.nodeType === 3) {
-                viewEls.set(el, {
-                    nodes: [el],
-                    config,
-                    data,
-                    context
-                });
-            } else {
-                const nodes = [...el.children];
-                const info = {
-                    nodes,
-                    config,
-                    data,
-                    context
-                };
-                nodes.forEach(childEl => viewEls.set(childEl, info));
-            }
+            const info = {
+                nodes: el.nodeType === 1 || el.nodeType === 3 ? [el] : [...el.children],
+                config,
+                data,
+                context
+            };
 
+            info.nodes.forEach(node => viewEls.set(node, info));
             placeholder.parentNode.replaceChild(el, placeholder);
         });
 }

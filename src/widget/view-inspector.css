@@ -2,6 +2,8 @@
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 255, .1);
     z-index: 200;
     pointer-events: none;
@@ -12,13 +14,15 @@
 .discovery-view-inspector-overlay .overlay {
     position: absolute;
     background-color: rgba(0, 255, 0, 0.001);
+    /* background-color: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 128, 0, .2); */
     transition: background-color 15ms 25ms;
     box-sizing: border-box;
 }
 .discovery-view-inspector-overlay .overlay.hovered {
     background-color: rgba(0, 255, 0, .25);
-    -webkit-backdrop-filter: hue-rotate(180deg);
-    backdrop-filter: hue-rotate(180deg);
+    -webkit-backdrop-filter: grayscale(1);
+    backdrop-filter: grayscale(1);
     border: 1px dashed rgba(0, 128, 0, .4);
 }
 

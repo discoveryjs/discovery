@@ -26,6 +26,10 @@ export default class App extends Widget {
             (host) => host.pageId !== this.reportPageId && host.mode !== 'modelfree'
         );
         this.addBadge(
+            'Inspect',
+            () => this.inspect(!this.inspectMode)
+        );
+        this.addBadge(
             'Reload with no cache',
             () => fetch('drop-cache').then(() => location.reload()),
             () => this.options.cache

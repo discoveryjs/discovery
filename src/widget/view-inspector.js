@@ -58,7 +58,10 @@ export default (host) => {
                     overlay.box = box;
                 }
 
-                walk(leaf.children, overlay.el);
+                if (leaf.children.length) {
+                    overlay.el.style.overflow = getComputedStyle(leaf.node).overflow !== 'visible' ? 'hidden' : 'visible';
+                    walk(leaf.children, overlay.el);
+                }
             }
         };
 

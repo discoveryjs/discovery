@@ -197,7 +197,7 @@ export default class Widget extends Emitter {
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.inspectState = false;
+        this.inspectMode = false;
         this.badges = [];
         this.dom = {};
 
@@ -481,8 +481,8 @@ export default class Widget extends Emitter {
     inspect(state) {
         state = Boolean(state);
 
-        if (this.inspectState !== state) {
-            this.inspectState = state;
+        if (this.inspectMode !== state) {
+            this.inspectMode = state;
             this.emit(state ? 'inspect-enabled' : 'inspect-disabled');
         }
     }
