@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './indicator.usage.js';
 
 export default function(discovery) {
     discovery.view.define('indicator', function(el, config, data, context) {
@@ -17,6 +18,7 @@ export default function(discovery) {
             el.href = href;
         }
     }, {
-        tag: 'a'
+        tag: 'a',
+        usage
     });
 }

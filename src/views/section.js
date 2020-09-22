@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './section.usage.js';
 
 export default function(discovery) {
     discovery.view.define('section', function(el, config, data, context) {
@@ -8,5 +9,5 @@ export default function(discovery) {
             { view: 'header', content: header },
             content
         ], data, context);
-    });
+    }, { usage });
 }

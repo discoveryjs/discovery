@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './link.usage.js';
 
 export default function(discovery) {
     discovery.view.define('link', function(el, config, data, context) {
@@ -27,6 +28,7 @@ export default function(discovery) {
             el.appendChild(document.createTextNode(String(text)));
         }
     }, {
-        tag: 'a'
+        tag: 'a',
+        usage
     });
 }

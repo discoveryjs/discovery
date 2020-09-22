@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './expand.usage.js';
 
 export default function(discovery) {
     discovery.view.define('expand', function(el, config, data, context) {
@@ -39,5 +40,5 @@ export default function(discovery) {
 
         discovery.view.render(titleEl, title || { view: 'text', data: '"No title"' }, data, context);
         renderState();
-    });
+    }, { usage });
 }

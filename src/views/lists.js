@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './lists.usage.js';
 
 export default function(discovery) {
     function render(el, config, data, context) {
@@ -20,9 +21,9 @@ export default function(discovery) {
         }
     }
 
-    discovery.view.define('list', render);
-    discovery.view.define('inline-list', render);
-    discovery.view.define('comma-list', render);
-    discovery.view.define('ol', render, { tag: 'ol' });
-    discovery.view.define('ul', render, { tag: 'ul' });
+    discovery.view.define('list', render, { usage });
+    discovery.view.define('inline-list', render, { usage });
+    discovery.view.define('comma-list', render, { usage });
+    discovery.view.define('ol', render, { tag: 'ol', usage });
+    discovery.view.define('ul', render, { tag: 'ul', usage });
 }
