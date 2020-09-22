@@ -8,6 +8,11 @@
 - Changes in `tabs` view:
     - Changed `tabs` config option to take a query
     - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
+- Changes in `table` view:
+    - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
+    - Make column non-sortable when all its values are equal, since sorting have no effect
+    - Used natural sorting approach for generated sorting functions
+    - Inverted icons for sorting direction
 
 ## 1.0.0-beta.38 (19-05-2020)
 
