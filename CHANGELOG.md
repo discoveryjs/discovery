@@ -4,7 +4,10 @@
 - Changed location path in signature details popup to use `[index]` instead of `pick(index)`
 - Improved estimated JSON size computation in `struct` action popup
 - Added "Copy path" to `struct` action popup
-- Fixed patch for `prismjs@^1.21.0`
+- Fixed patching for `prismjs@^1.21.0`
+- Changes in `tabs` view:
+    - Changed `tabs` config option to take a query
+    - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
 
 ## 1.0.0-beta.38 (19-05-2020)
 
