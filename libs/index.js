@@ -30,7 +30,7 @@ const es6NodeModules = {
                 // prevent global polution
                 .replace(/_self.Prism = _;/, '')
                 // prevent auto-highlighting
-                .replace(/document.currentScript.+;/, 'false;');
+                .replace(/manual:.+?,/, 'manual:true,');
         }
     },
     hitext: {
