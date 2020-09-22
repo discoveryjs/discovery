@@ -26,12 +26,10 @@ export default function(discovery) {
                 }
 
                 tabs.forEach(tab =>
-                    discovery.view.render(tabsEl, discovery.view.composeConfig({
-                        view: 'tab',
+                    discovery.view.render(tabsEl, discovery.view.composeConfig(tabConfig, {
                         active: tab.value === currentValue,
-                        content: tab.content,
-                        onClick: renderContent
-                    }, tabConfig), tab, context)
+                        content: tab.content || tabConfig.content
+                    }), tab, context)
                 );
 
                 if (afterTabs) {
@@ -51,8 +49,8 @@ export default function(discovery) {
             }
         }
 
-        const { content, beforeTabs, afterTabs, tabConfig, onInit, onChange } = config;
-        let { name, tabs } = config;
+        const { content, beforeTabs, afterTabs, onInit, onChange } = config;
+        let { name, tabs, tabConfig } = config;
         const tabsEl = el.appendChild(document.createElement('div'));
         let contentEl = null;
         let beforeTabsEl = null;
@@ -65,6 +63,12 @@ export default function(discovery) {
                 : name in context
                     ? context[name]
                     : undefined;
+
+        tabs = discovery.query(tabs, data, context);
+        tabConfig = discovery.view.composeConfig({
+            view: 'tab',
+            onClick: renderContent
+        }, tabConfig);
 
         tabsEl.className = 'view-tabs-buttons';
 
