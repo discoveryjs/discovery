@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './select.usage.js';
 
 export default function(discovery) {
     const defaultItemRender = 'text-match:{ text, match: #.filter }';
@@ -91,5 +92,5 @@ export default function(discovery) {
         }
 
         renderCaption();
-    });
+    }, { usage });
 }

@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './columns.usage.js';
 
 export default function(discovery) {
     function render(el, config, data, context) {
@@ -20,8 +21,8 @@ export default function(discovery) {
         }
     }
 
-    discovery.view.define('columns', render);
+    discovery.view.define('columns', render, { usage });
     discovery.view.define('column', function(el, config, data, context) {
         discovery.view.render(el, config.content, data, context);
-    });
+    }, { usage });
 }

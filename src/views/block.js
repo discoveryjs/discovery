@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './block.usage.js';
 
 export default function(discovery) {
     discovery.view.define('block', function(el, config, data, context) {
@@ -11,5 +12,5 @@ export default function(discovery) {
             });
 
         return discovery.view.render(el, blockContent, data, context);
-    });
+    }, { usage });
 }

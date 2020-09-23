@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './badges.usage.js';
 
 function maybeFix(el, type, value) {
     if (!value) {
@@ -37,6 +38,6 @@ export default function(discovery) {
         maybeFix(el, 'postfix', postfix);
     }
 
-    discovery.view.define('badge', render, { tag: 'a' });
-    discovery.view.define('pill-badge', render, { tag: 'a' });
+    discovery.view.define('badge', render, { tag: 'a', usage });
+    discovery.view.define('pill-badge', render, { tag: 'a', usage });
 }

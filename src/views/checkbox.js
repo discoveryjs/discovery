@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './checkbox.usage.js';
 
 export default function(discovery) {
     discovery.view.define('checkbox', function(el, config, data, context) {
@@ -40,6 +41,7 @@ export default function(discovery) {
             return renderContent();
         }
     }, {
-        tag: 'label'
+        tag: 'label',
+        usage
     });
 }
