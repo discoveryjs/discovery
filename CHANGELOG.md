@@ -11,6 +11,12 @@
         - Don't apply `onClick` when button is disabled
         - Add `onclick` class to element when `onClick` handler is applied
         - Preserve style of hover state while triggered popup is showing
+    - `menu-item`
+        - Added support for `href` and `external` values in `data`, which ignores when item is disabled or `onClick` is specified
+        - Changed to use `<a>` as a view root element
+        - Changed to use `disabled` attribute to indicate disabled state instead of `.disabled` class
+        - Add `onclick` class to element when `onClick` handler is applied
+        - Preserve style of hover state while triggered popup is showing
     - `table`
         - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
         - Make column non-sortable when all its values are equal, since sorting have no effect
