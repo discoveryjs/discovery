@@ -5,14 +5,20 @@
 - Improved estimated JSON size computation in `struct` action popup
 - Added "Copy path" to `struct` action popup
 - Fixed patching for `prismjs@^1.21.0`
-- Changes in `tabs` view:
-    - Changed `tabs` config option to take a query
-    - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
-- Changes in `table` view:
-    - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
-    - Make column non-sortable when all its values are equal, since sorting have no effect
-    - Used natural sorting approach for generated sorting functions
-    - Inverted icons for sorting direction
+- Changes in views:
+    - `button`
+        - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
+        - Don't apply `onClick` when button is disabled
+        - Add `onclick` class to element when `onClick` handler is applied
+        - Preserve style of hover state while triggered popup is showing
+    - `table`
+        - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
+        - Make column non-sortable when all its values are equal, since sorting have no effect
+        - Used natural sorting approach for generated sorting functions
+        - Inverted icons for sorting direction
+    - `tabs`
+        - Changed `tabs` config option to take a query
+        - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
 
 ## 1.0.0-beta.38 (19-05-2020)
 

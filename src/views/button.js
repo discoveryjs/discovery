@@ -3,20 +3,24 @@
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content, disabled = false, onClick } = config;
-        const { text = '' } = data || {};
+        const { text = '', href, external } = data || {};
 
         el.classList.add('view-button');
-        el.disabled = discovery.query(disabled, data, context);
-        el.addEventListener('click', () => {
-            if (typeof onClick === 'function') {
-                onClick(el, data, context);
-            }
-        });
+
+        if (discovery.query(disabled, data, context)) {
+            el.disabled = true;
+        } else if (typeof onClick === 'function') {
+            el.addEventListener('click', () => onClick(el, data, context));
+            el.classList.add('onclick');
+        } else if (href) {
+            el.href = href;
+            el.target = external ? '_blank' : '';
+        }
 
         if (content) {
-            discovery.view.render(el, content, data, context);
+            return discovery.view.render(el, content, data, context);
         } else {
-            el.innerText = text;
+            el.textContent = text;
         }
     }
 
