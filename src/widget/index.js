@@ -263,7 +263,6 @@ export default class Widget extends Emitter {
                 dataExtension.apply(this);
 
                 this.emit('data');
-                this.dom.loadingOverlay.classList.add('done');
                 console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
             });
 

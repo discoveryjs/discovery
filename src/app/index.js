@@ -130,6 +130,7 @@ export default class App extends Widget {
             })
             .then(res => {
                 console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
+                this.dom.loadingOverlay.classList.add('done');
                 this.dom.loadingOverlay.innerHTML = 'Processing data...';
 
                 if (res.error) {
