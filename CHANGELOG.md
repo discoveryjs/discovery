@@ -13,6 +13,7 @@
     - Make column non-sortable when all its values are equal, since sorting have no effect
     - Used natural sorting approach for generated sorting functions
     - Inverted icons for sorting direction
+- Display data loading progress
 
 ## 1.0.0-beta.38 (19-05-2020)
 
