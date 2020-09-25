@@ -90,12 +90,46 @@ export default class App extends Widget {
         this.dom.loadingOverlay.classList.remove('error', 'done');
 
         return fetch(explicitData ? 'data:application/json,{}' : url)
-            .then(res => {
-                return explicitData || res.json();
+            .then(async res => {
+                if (explicitData) {
+                    return explicitData;
+                }
+
+                const contentLength = Number(res.headers.get('content-length'));
+
+                if (contentLength) {
+                    const reader = res.body.getReader();
+                    const chunks = [];
+                    let recievedLength = 0;
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+
+                        if (done) {
+                            break;
+                        }
+
+                        chunks.push(value);
+                        recievedLength += value.length;
+
+                        this.dom.loadingOverlay.innerHTML = `Loading data (${Math.floor((recievedLength / contentLength) * 100)}%)...`;
+                    }
+
+                    const chunksArr = new Uint8Array(recievedLength);
+                    let pos = 0;
+
+                    for (let chunk of chunks) {
+                        chunksArr.set(chunk, pos);
+                        pos += chunk.length;
+                    }
+
+                    return JSON.parse(new TextDecoder('utf-8').decode(chunksArr));
+                } else {
+                    return res.json();
+                }
             })
             .then(res => {
                 console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
-                this.dom.loadingOverlay.classList.add('done');
                 this.dom.loadingOverlay.innerHTML = 'Processing data...';
 
                 if (res.error) {
