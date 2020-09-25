@@ -27,8 +27,10 @@
     - `tabs`
         - Changed `tabs` config option to take a query
         - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
+        - Apply tabs configuration to tab's config instead of data
     - `tab`
-        - Added support for `disabled` in `data`
+        - Moved `value` and `text` from data to config
+        - Added `disabled` config option
         - Add `onclick` class to element when `onClick` handler is applied
 
 

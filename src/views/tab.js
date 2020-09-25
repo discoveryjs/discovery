@@ -2,9 +2,7 @@
 
 export default function(discovery) {
     discovery.view.define('tab', function(el, config, data, context) {
-        const { content, active = false, onClick } = config;
-        const { text, value, disabled = false } = data || {};
-        console.log(data);
+        const { content, active = false, onClick, text = value, value, disabled = false } = config;
 
         if (discovery.query(disabled, data, context)) {
             el.classList.add('disabled');
@@ -20,7 +18,7 @@ export default function(discovery) {
         if (content) {
             return discovery.view.render(el, content, data, context);
         } else {
-            el.textContent = data && 'text' in data ? text : value;
+            el.textContent = text;
         }
     });
 }
