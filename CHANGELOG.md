@@ -5,6 +5,7 @@
 - Fixed patching for `prismjs@^1.21.0`
 - Reworked navigation panel and introduced `Widget#nav` API
 - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
+- Display data loading progress
 - Changes in views:
     - `button`
         - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
