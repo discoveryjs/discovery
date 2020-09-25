@@ -12,7 +12,6 @@
     - `menu-item`
         - Added support for `href` and `external` values in `data`, which ignores when item is disabled or `onClick` is specified
         - Changed to use `<a>` as a view root element
-        - Changed to use `disabled` attribute to indicate disabled state instead of `.disabled` class
         - Changed `onClick` signature `onClick(value)` -> `onClick(el, data, context)`
         - Add `onclick` class to element when `onClick` handler is applied
         - Preserve style of hover state while triggered popup is showing

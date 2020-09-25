@@ -6,7 +6,7 @@ export default function(discovery) {
         const { text, selected = false, disabled = false, href, external } = data || {};
 
         if (disabled) {
-            el.disabled = true;
+            el.classList.add('disabled');
         } else if (typeof onClick === 'function') {
             el.addEventListener('click', () => onClick(el, data, context));
             el.classList.add('onclick');
