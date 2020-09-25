@@ -109,21 +109,26 @@ export default class App extends Widget {
                             break;
                         }
 
-                        chunks.push(value);
+                        chunks.unshift(value);
                         recievedLength += value.length;
 
                         this.dom.loadingOverlay.innerHTML = `Loading data (${Math.floor((recievedLength / contentLength) * 100)}%)...`;
                     }
 
-                    const chunksArr = new Uint8Array(recievedLength);
+                    let chunksArr = new Uint8Array(recievedLength);
                     let pos = 0;
 
-                    for (let chunk of chunks) {
+                    while (chunks.length) {
+                        const chunk = chunks.pop();
                         chunksArr.set(chunk, pos);
                         pos += chunk.length;
                     }
 
-                    return JSON.parse(new TextDecoder('utf-8').decode(chunksArr));
+                    const decoded = new TextDecoder('utf-8').decode(chunksArr);
+
+                    chunksArr = null;
+
+                    return JSON.parse(decoded);
                 } else {
                     return res.json();
                 }
