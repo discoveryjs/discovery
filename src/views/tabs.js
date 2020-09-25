@@ -26,10 +26,9 @@ export default function(discovery) {
                 }
 
                 tabs.forEach(tab =>
-                    discovery.view.render(tabsEl, discovery.view.composeConfig(tabConfig, {
-                        active: tab.value === currentValue,
-                        content: tab.content || tabConfig.content
-                    }), tab, context)
+                    discovery.view.render(tabsEl, discovery.view.composeConfig(tab, {
+                        active: tab.value === currentValue
+                    }), data, context)
                 );
 
                 if (afterTabs) {
@@ -103,7 +102,10 @@ export default function(discovery) {
                     initValue = tab.value;
                 }
 
-                return tab;
+                return {
+                    ...tabConfig,
+                    ...tab
+                };
             });
         } else {
             tabs = [];
