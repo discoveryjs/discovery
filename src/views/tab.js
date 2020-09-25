@@ -2,7 +2,14 @@
 
 export default function(discovery) {
     discovery.view.define('tab', function(el, config, data, context) {
-        const { content, active = false, onClick, text = value, value, disabled = false } = config;
+        const {
+            content,
+            active = false,
+            disabled = false,
+            onClick,
+            value,
+            text = value
+        } = config;
 
         if (discovery.query(disabled, data, context)) {
             el.classList.add('disabled');
