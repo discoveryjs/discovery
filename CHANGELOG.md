@@ -3,6 +3,7 @@
 - Improved error handling in data prepare handler
 - Changed location path in signature details popup to use `[index]` instead of `pick(index)`
 - Fixed patching for `prismjs@^1.21.0`
+- Display data loading progress
 - Changes in views:
     - `button`
         - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
