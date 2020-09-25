@@ -19,18 +19,3 @@
     visibility: hidden;
     transition: all .2s;
 }
-
-.discovery-content-badges > .load-data-badge {
-    position: relative;
-    overflow: hidden;
-}
-.discovery-content-badges > .load-data-badge input {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    left: -150px;
-    height: 100px;
-    width: 400px;
-    opacity: 0;
-    cursor: pointer;
-}

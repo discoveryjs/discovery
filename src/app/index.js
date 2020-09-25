@@ -15,35 +15,42 @@ export default class App extends Widget {
         this.apply(complexViews);
         this.apply(router);
 
-        this.addBadge(
-            'Index',
-            () => this.setPage(this.defaultPageId),
-            (host) => host.pageId !== this.defaultPageId && host.mode !== 'modelfree'
-        );
-        this.addBadge(
-            'Make report',
-            () => this.setPage(this.reportPageId),
-            (host) => host.pageId !== this.reportPageId && host.mode !== 'modelfree'
-        );
-        this.addBadge(
-            'Reload with no cache',
-            () => fetch('drop-cache').then(() => location.reload()),
-            () => this.options.cache
-        );
-        this.addBadge(
-            'Switch model',
-            () => location.href = '..',
-            (host) => host.mode === 'multi'
-        );
-        this.addBadge(
-            (el) => {
-                el.classList.add('load-data-badge');
-                el.innerHTML = 'Load data<input type="file" accept="application/json,.json">';
-                el.lastChild.addEventListener('change', e => this.loadDataFromEvent(e));
-            },
-            () => {},
-            (host) => host.mode === 'modelfree'
-        );
+        if (this.mode === 'modelfree') {
+            this.nav.append({
+                name: 'load-data',
+                onClick: () => createElement('input', {
+                    type: 'file',
+                    accept: 'application/json,.json',
+                    onchange: e => this.loadDataFromEvent(e)
+                }).click(),
+                content: 'text:"Load data"'
+            });
+        } else {
+            this.nav.append({
+                name: 'index-page',
+                when: () => this.pageId !== this.defaultPageId,
+                onClick: () => this.setPage(this.defaultPageId),
+                content: 'text:"Index"'
+            });
+            this.nav.append({
+                name: 'report-page',
+                when: () => this.pageId !== this.reportPageId,
+                onClick: () => this.setPage(this.reportPageId),
+                content: 'text:"Make report"'
+            });
+            this.nav.menu.append({
+                name: 'drop-cache',
+                when: () => this.options.cache,
+                onClick: () => fetch('drop-cache').then(() => location.reload()),
+                content: 'text:"Reload with no cache"'
+            });
+            this.nav.menu.append({
+                name: 'switch-model',
+                when: () => this.mode === 'multi',
+                onClick: () => location.href = '..',
+                content: 'text:"Switch model"'
+            });
+        }
     }
 
     setData(data, context) {
