@@ -91,74 +91,115 @@ export default class App extends Widget {
     }
 
     loadDataFromUrl(url, dataField) {
-        const loadStartTime = Date.now();
         const explicitData = typeof url === 'string' ? undefined : url;
+        const elapsed = {
+            start: Date.now(),
+            time() {
+                try {
+                    return Date.now() - this.start;
+                } finally {
+                    this.start = Date.now();
+                }
+            }
+        };
+        const setTitle = title => this.dom.loadingOverlay.textContent = title;
+        const setProgress = progress => this.dom.loadingOverlay.style.setProperty('--progress', progress);
+        const process = async (name, progress, fn = () => {}) => {
+            try {
+                setTitle(name + '...');
+                await new Promise(requestAnimationFrame);
+                setProgress(progress);
+
+                return await fn();
+            } finally {
+                await new Promise(requestAnimationFrame);
+                console.log(`[Discovery] ${name} in ${elapsed.time()}ms`);
+            }
+        };
 
         this.dom.loadingOverlay.classList.remove('error', 'done');
 
-        return fetch(explicitData ? 'data:application/json,{}' : url)
+        return process('Awaiting data', 0, () => fetch(explicitData ? 'data:application/json,{}' : url))
             .then(async res => {
                 if (explicitData) {
                     return explicitData;
                 }
 
                 const contentLength = Number(res.headers.get('content-length'));
+                let decoded;
 
                 if (contentLength) {
-                    const reader = res.body.getReader();
-                    const chunks = [];
-                    let recievedLength = 0;
+                    const loadedBytes = await process('Receiving data', 0, async () => {
+                        const reader = res.body.getReader();
+                        const chunks = [];
+                        let recievedLength = 0;
+                        let progress = 0;
+                        let progressPercentage;
+                        let prevProgressPercentage;
 
-                    while (true) {
-                        const { done, value } = await reader.read();
+                        while (true) {
+                            const { done, value } = await reader.read();
 
-                        if (done) {
-                            break;
+                            if (done) {
+                                break;
+                            }
+
+                            chunks.unshift(value);
+                            recievedLength += value.length;
+                            progress = recievedLength / contentLength;
+                            progressPercentage = Math.round(progress * 100);
+
+                            if (progressPercentage !== prevProgressPercentage) {
+                                prevProgressPercentage = progressPercentage;
+                                setTitle(`Receiving data (${progressPercentage}%)...`);
+                                setProgress(0.85 * progress);
+                            }
                         }
 
-                        chunks.unshift(value);
-                        recievedLength += value.length;
+                        // concat
+                        let chunksArr = new Uint8Array(recievedLength);
+                        let pos = 0;
 
-                        this.dom.loadingOverlay.innerHTML = `Loading data (${Math.floor((recievedLength / contentLength) * 100)}%)...`;
-                    }
+                        while (chunks.length) {
+                            const chunk = chunks.pop();
+                            chunksArr.set(chunk, pos);
+                            pos += chunk.length;
+                        }
 
-                    let chunksArr = new Uint8Array(recievedLength);
-                    let pos = 0;
+                        return chunksArr;
+                    });
 
-                    while (chunks.length) {
-                        const chunk = chunks.pop();
-                        chunksArr.set(chunk, pos);
-                        pos += chunk.length;
-                    }
-
-                    const decoded = new TextDecoder('utf-8').decode(chunksArr);
-
-                    chunksArr = null;
-
-                    return JSON.parse(decoded);
+                    decoded = await process('Processing data (decode)', 0.9, () =>
+                        new TextDecoder('utf-8').decode(loadedBytes)
+                    );
                 } else {
-                    return res.json();
+                    decoded = await process('Receiving data', 0.9, () =>
+                        res.text()
+                    );
                 }
-            })
-            .then(res => {
-                console.log(`[Discovery] Data loaded in ${Date.now() - loadStartTime}ms`);
-                this.dom.loadingOverlay.classList.add('done');
-                this.dom.loadingOverlay.innerHTML = 'Processing data...';
 
+                return process('Processing data (parse)', 0.95, () =>
+                    JSON.parse(decoded)
+                );
+            })
+            .then(async res => {
                 if (res.error) {
                     const error = new Error(res.error);
                     error.stack = null;
                     throw error;
                 }
 
-                let data = dataField ? res[dataField] : res;
-                let context = {
+                const data = dataField ? res[dataField] : res;
+                const context = {
                     name: 'Discovery',
                     ...dataField ? res : { data: res },
                     createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
                 };
 
-                return this.setData(data, context);
+                return process('Processing data (prepare)', 1.0, () => {
+                    this.dom.loadingOverlay.classList.add('done');
+                    return this.setData(data, context);
+                });
             })
             .catch(e => {
                 this.dom.loadingOverlay.classList.add('error');
@@ -173,8 +214,8 @@ export default class App extends Widget {
         super.setContainer(container);
 
         if (this.dom.container) {
-            this.dom.container.appendChild(
-                this.dom.loadingOverlay = createElement('div', 'loading-overlay done', 'Loading data...')
+            this.dom.container.append(
+                this.dom.loadingOverlay = createElement('div', 'loading-overlay done')
             );
 
             // setup the drag&drop listeners for model free mode

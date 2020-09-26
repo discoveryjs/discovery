@@ -19,3 +19,15 @@
     visibility: hidden;
     transition: all .2s;
 }
+.discovery > .loading-overlay:not(.error)::after {
+    --width: 300px;
+    content: '';
+    display: block;
+    height: 3px;
+    box-sizing: border-box;
+    margin-top: 4px;
+    max-width: var(--width);
+    border-left: calc(var(--width) * var(--progress, 0)) solid #1f7ec5;
+    background: #eee;
+    border-radius: 2px;
+}
