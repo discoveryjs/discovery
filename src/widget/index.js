@@ -178,6 +178,7 @@ export default class Widget extends Emitter {
                 this.cancelScheduledRender();
             }
         });
+        renderScheduler.set(this, new Set());
 
         this.prepare = data => data;
         this.objectMarkers = [];
@@ -447,24 +448,32 @@ export default class Widget extends Emitter {
     //
 
     scheduleRender(subject) {
-        if (!renderScheduler.has(this)) {
-            const subjects = new Set();
+        const scheduler = renderScheduler.get(this);
 
-            renderScheduler.set(this, subjects);
-            Promise.resolve().then(() => {
-                renderScheduler.delete(this);
-
-                if (subjects.has('sidebar')) {
-                    this.renderSidebar();
-                }
-
-                if (subjects.has('page')) {
-                    this.renderPage();
-                }
-            });
+        if (scheduler.has(subject)) {
+            return;
         }
 
-        renderScheduler.get(this).add(subject);
+        scheduler.add(subject);
+
+        if (scheduler.timer) {
+            return;
+        }
+
+        scheduler.timer = Promise.resolve().then(async () => {
+            for (const subject of scheduler) {
+                switch (subject) {
+                    case 'sidebar':
+                        await this.renderSidebar();
+                        break;
+                    case 'page':
+                        await this.renderPage();
+                        break;
+                }
+            }
+
+            scheduler.timer = null;
+        });
     }
 
     cancelScheduledRender(subject) {
@@ -494,15 +503,13 @@ export default class Widget extends Emitter {
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('sidebar');
-        }
+        renderScheduler.get(this).delete('sidebar');
 
         if (this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
 
             this.dom.sidebar.innerHTML = '';
-            this.view.render(
+            return this.view.render(
                 this.dom.sidebar,
                 'sidebar',
                 this.data,
@@ -592,9 +599,7 @@ export default class Widget extends Emitter {
 
     renderPage() {
         // cancel scheduled renderPage
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('page');
-        }
+        renderScheduler.get(this).delete('page');
 
         const { pageEl, renderState } = this.page.render(
             this.dom.pageContent,
