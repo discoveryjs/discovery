@@ -8,7 +8,7 @@ export default function(discovery) {
         if (disabled) {
             el.classList.add('disabled');
         } else if (typeof onClick === 'function') {
-            el.addEventListener('click', () => onClick(el, data, context));
+            el.addEventListener('click', () => onClick(data, context));
             el.classList.add('onclick');
         } else if (href) {
             el.href = href;
