@@ -63,8 +63,6 @@ function libContent(libPath, libConfig) {
         ''
     );
 
-    console.log(libPath, filesContent.length, libConfig);
-
     return typeof libConfig.patch === 'function'
         ? libConfig.patch(filesContent)
         : filesContent;
