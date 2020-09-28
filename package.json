@@ -11,6 +11,7 @@
     "jsdelivr": "dist/discovery.umd.js",
     "browser": {
         "/gen/jora.js": "./dist/gen/jora.js",
+        "/gen/@discoveryjs/json-ext.js": "./dist/gen/@discoveryjs/json-ext.js",
         "/gen/hitext": "./dist/gen/hitext.js",
         "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
         "/gen/prismjs": "./dist/gen/prismjs.js",
