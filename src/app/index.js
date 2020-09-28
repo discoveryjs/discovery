@@ -90,8 +90,23 @@ export default class App extends Widget {
         reader.readAsText(file);
     }
 
-    loadDataFromUrl(url, dataField) {
+    async loadDataFromUrl(url, dataField) {
+        const progressEl = this.dom.loadingOverlay;
         const explicitData = typeof url === 'string' ? undefined : url;
+        const setTitle = title => progressEl.querySelector('.title').textContent = title;
+        const setProgress = progress => progressEl.style.setProperty('--progress', progress);
+        const process = async (name, progress, fn = () => {}) => {
+            try {
+                setTitle(name + '...');
+                await new Promise(requestAnimationFrame);
+                setProgress(progress);
+
+                return await fn();
+            } finally {
+                console.log(`[Discovery] ${name} in ${elapsed.time()}ms`);
+                await new Promise(requestAnimationFrame);
+            }
+        };
         const elapsed = {
             start: Date.now(),
             time() {
@@ -102,22 +117,11 @@ export default class App extends Widget {
                 }
             }
         };
-        const setTitle = title => this.dom.loadingOverlay.textContent = title;
-        const setProgress = progress => this.dom.loadingOverlay.style.setProperty('--progress', progress);
-        const process = async (name, progress, fn = () => {}) => {
-            try {
-                setTitle(name + '...');
-                await new Promise(requestAnimationFrame);
-                setProgress(progress);
 
-                return await fn();
-            } finally {
-                await new Promise(requestAnimationFrame);
-                console.log(`[Discovery] ${name} in ${elapsed.time()}ms`);
-            }
-        };
-
-        this.dom.loadingOverlay.classList.remove('error', 'done');
+        progressEl.innerHTML = '<div class="title"></div><div class="progress"></div>';
+        progressEl.classList.remove('error', 'done');
+        progressEl.classList.add('init');
+        requestAnimationFrame(() => progressEl.classList.remove('init'));
 
         return process('Awaiting data', 0, () => fetch(explicitData ? 'data:application/json,{}' : url))
             .then(async res => {
@@ -131,11 +135,12 @@ export default class App extends Widget {
                 if (contentLength) {
                     const loadedBytes = await process('Receiving data', 0, async () => {
                         const reader = res.body.getReader();
-                        const chunks = [];
+                        const payload = new Uint8Array(contentLength);
                         let recievedLength = 0;
                         let progress = 0;
                         let progressPercentage;
                         let prevProgressPercentage;
+                        let prevProgressTime = Date.now();
 
                         while (true) {
                             const { done, value } = await reader.read();
@@ -144,29 +149,21 @@ export default class App extends Widget {
                                 break;
                             }
 
-                            chunks.unshift(value);
+                            payload.set(value, recievedLength);
                             recievedLength += value.length;
+
                             progress = recievedLength / contentLength;
                             progressPercentage = Math.round(progress * 100);
 
-                            if (progressPercentage !== prevProgressPercentage) {
+                            if (progressPercentage !== prevProgressPercentage && (progress === 1.0 || Date.now() - prevProgressTime > 50)) {
+                                prevProgressTime = Date.now();
                                 prevProgressPercentage = progressPercentage;
                                 setTitle(`Receiving data (${progressPercentage}%)...`);
                                 setProgress(0.85 * progress);
                             }
                         }
 
-                        // concat
-                        let chunksArr = new Uint8Array(recievedLength);
-                        let pos = 0;
-
-                        while (chunks.length) {
-                            const chunk = chunks.pop();
-                            chunksArr.set(chunk, pos);
-                            pos += chunk.length;
-                        }
-
-                        return chunksArr;
+                        return payload;
                     });
 
                     decoded = await process('Processing data (decode)', 0.9, () =>
@@ -196,14 +193,15 @@ export default class App extends Widget {
                     createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
                 };
 
-                return process('Processing data (prepare)', 1.0, () => {
-                    this.dom.loadingOverlay.classList.add('done');
-                    return this.setData(data, context);
-                });
+                await process('Processing data (prepare)', 1.0, () =>
+                    this.setData(data, context)
+                );
+
+                progressEl.classList.add('done');
             })
             .catch(e => {
-                this.dom.loadingOverlay.classList.add('error');
-                this.dom.loadingOverlay.innerHTML =
+                progressEl.classList.add('error');
+                progressEl.innerHTML =
                     (this.options.cache ? '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' : '') +
                     '<pre><div class="view-alert view-alert-danger">Error loading data</div><div class="view-alert view-alert-danger">' + escapeHtml(e.stack || String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
                 console.error('[Discovery] Error loading data:', e);

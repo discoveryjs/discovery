@@ -8,6 +8,14 @@
     padding: 20px;
     background: white;
     font-size: 16px;
+    will-change: opacity;
+}
+.discovery > .loading-overlay > * {
+    transition: opacity .15s .4s;
+}
+.discovery > .loading-overlay.init > *,
+.discovery > .loading-overlay.done:not(.error) > * {
+    opacity: 0;
 }
 .discovery > .loading-overlay.error {
     color: #a00;
@@ -19,15 +27,27 @@
     visibility: hidden;
     transition: all .2s;
 }
-.discovery > .loading-overlay:not(.error)::after {
-    --width: 300px;
+.discovery > .loading-overlay:not(.error) .progress {
     content: '';
     display: block;
-    height: 3px;
-    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
     margin-top: 4px;
-    max-width: var(--width);
-    border-left: calc(var(--width) * var(--progress, 0)) solid #1f7ec5;
-    background: #eee;
+    box-sizing: border-box;
+    height: 3px;
+    max-width: 300px;
+    background: #1f7ec5;
     border-radius: 2px;
+}
+.discovery > .loading-overlay:not(.error) .progress::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translateX(calc(100% * var(--progress, 0)));
+    /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
+    background-color: #eee;
 }
