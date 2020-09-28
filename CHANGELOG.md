@@ -17,6 +17,11 @@
         - Changed to use `<a>` as a view root element
         - Add `onclick` class to element when `onClick` handler is applied
         - Preserve style of hover state while triggered popup is showing
+    - `select`
+        - Added `beforeItems` and `afterItems` options to specify content before/after items
+        - Added `limit` option to limit items count on first render
+        - Added `minItemsFilter` option to specify minimal items count (excluding reset item) required to apply filter input (default `10`)
+        - Changed popup content layout and styles
     - `struct`
         - Improved estimated JSON size computation in action popup
         - Added "Copy path" to action popup
