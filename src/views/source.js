@@ -56,13 +56,17 @@ export default function(discovery) {
 
         if (disabled) {
             el.classList.add('disabled');
-            el.innerText = error;
+            el.textContent = error;
             return;
         }
 
         if (error) {
             el.classList.add('error');
-            el.innerText = error;
+            el.textContent = error;
+            return;
+        }
+
+        if (typeof source !== 'string') {
             return;
         }
 

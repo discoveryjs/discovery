@@ -5,6 +5,7 @@ export { default as block } from './block.js';
 export { default as button } from './button.js';
 export { default as checkboxList } from './checkbox-list.js';
 export { default as checkbox } from './checkbox.js';
+export { default as column } from './column.js';
 export { default as columns } from './columns.js';
 export { default as contentFilter } from './content-filter.js';
 export { default as context } from './context.js';

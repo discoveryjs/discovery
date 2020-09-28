@@ -2,9 +2,9 @@
 
 export default function(discovery) {
     discovery.view.define('list-item', function(el, config, data, context) {
-        const { content } = config;
+        const { content = 'text' } = config;
 
-        discovery.view.render(el, content, data, context);
+        return discovery.view.render(el, content, data, context);
     }, {
         tag: 'li'
     });

@@ -4,7 +4,7 @@ export default function(discovery) {
     discovery.view.define('content-filter', function(el, config, data, context) {
         const { name = 'filter', type = 'regexp', placeholder, content } = config;
 
-        discovery.view.render(el, {
+        return discovery.view.render(el, {
             view: 'context',
             modifiers: {
                 view: 'input',

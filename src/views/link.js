@@ -22,9 +22,9 @@ export default function(discovery) {
         }
 
         if (content) {
-            discovery.view.render(el, content, data, context);
+            return discovery.view.render(el, content, data, context);
         } else {
-            el.appendChild(document.createTextNode(String(text)));
+            el.textContent = text;
         }
     }, {
         tag: 'a'
