@@ -8,7 +8,7 @@ export default function(discovery) {
             disabled = false,
             onClick,
             value,
-            text = value
+            text = String(value).replace(/^./, m => m.toUpperCase())
         } = config;
 
         if (discovery.query(disabled, data, context)) {
