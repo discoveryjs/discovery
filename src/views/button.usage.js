@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 export default [
     {
         title: 'Variations',
@@ -12,6 +14,7 @@ export default [
         title: 'Default usage',
         view: {
             view: 'button',
+            onClick: () => alert('Hi!'),
             data: {
                 text: 'Hello world!'
             }
