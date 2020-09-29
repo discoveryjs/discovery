@@ -9,6 +9,7 @@ import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
+import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
@@ -159,6 +160,7 @@ export default class Widget extends Emitter {
 
         this.options = options || {};
         this.view = new ViewRenderer(this);
+        this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
         this.page.on('define', (pageId, page) => {
@@ -176,6 +178,7 @@ export default class Widget extends Emitter {
                 this.cancelScheduledRender();
             }
         });
+        renderScheduler.set(this, new Set());
 
         this.prepare = data => data;
         this.objectMarkers = [];
@@ -196,7 +199,6 @@ export default class Widget extends Emitter {
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.badges = [];
         this.dom = {};
 
         this.apply(views);
@@ -410,14 +412,12 @@ export default class Widget extends Emitter {
 
             newContainerEl.appendChild(
                 createElement('main', 'discovery-content', [
-                    this.dom.badges = createElement('div', 'discovery-content-badges'),
+                    this.dom.nav = createElement('div', 'discovery-content-badges'),
                     this.dom.pageContent = createElement('article')
                 ])
             );
 
-            this.badges.forEach(badge =>
-                this.dom.badges.appendChild(badge.el)
-            );
+            this.nav.render(this.dom.nav);
         }
 
         this.emit('container-changed', this.dom, oldDomRefs);
@@ -439,29 +439,8 @@ export default class Widget extends Emitter {
         return () => document.removeEventListener(eventName, handlerWrapper, options);
     }
 
-    addBadge(caption, action, visible) {
-        const badge = {
-            el: document.createElement('div'),
-            visible: typeof visible === 'function' ? visible : () => true
-        };
-
-        badge.el.className = 'badge';
-        badge.el.addEventListener('click', action);
-        badge.el.hidden = !badge.visible(this);
-
-        if (typeof caption === 'function') {
-            caption(badge.el);
-        } else {
-            badge.el.innerHTML = caption;
-        }
-
-        if (this.dom.badges) {
-            this.dom.badges.appendChild(badge.el);
-        }
-
-        this.badges.push(badge);
-
-        return badge;
+    addBadge() {
+        console.error('Widget#addBadge() is obsoleted, use Widget#nav API instead');
     }
 
     //
@@ -469,24 +448,32 @@ export default class Widget extends Emitter {
     //
 
     scheduleRender(subject) {
-        if (!renderScheduler.has(this)) {
-            const subjects = new Set();
+        const scheduler = renderScheduler.get(this);
 
-            renderScheduler.set(this, subjects);
-            Promise.resolve().then(() => {
-                renderScheduler.delete(this);
-
-                if (subjects.has('sidebar')) {
-                    this.renderSidebar();
-                }
-
-                if (subjects.has('page')) {
-                    this.renderPage();
-                }
-            });
+        if (scheduler.has(subject)) {
+            return;
         }
 
-        renderScheduler.get(this).add(subject);
+        scheduler.add(subject);
+
+        if (scheduler.timer) {
+            return;
+        }
+
+        scheduler.timer = Promise.resolve().then(async () => {
+            for (const subject of scheduler) {
+                switch (subject) {
+                    case 'sidebar':
+                        await this.renderSidebar();
+                        break;
+                    case 'page':
+                        await this.renderPage();
+                        break;
+                }
+            }
+
+            scheduler.timer = null;
+        });
     }
 
     cancelScheduledRender(subject) {
@@ -516,15 +503,13 @@ export default class Widget extends Emitter {
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('sidebar');
-        }
+        renderScheduler.get(this).delete('sidebar');
 
         if (this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
 
             this.dom.sidebar.innerHTML = '';
-            this.view.render(
+            return this.view.render(
                 this.dom.sidebar,
                 'sidebar',
                 this.data,
@@ -614,9 +599,7 @@ export default class Widget extends Emitter {
 
     renderPage() {
         // cancel scheduled renderPage
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('page');
-        }
+        renderScheduler.get(this).delete('page');
 
         const { pageEl, renderState } = this.page.render(
             this.dom.pageContent,
@@ -626,7 +609,7 @@ export default class Widget extends Emitter {
         );
 
         this.dom.pageContent = pageEl;
-        this.badges.forEach(badge => badge.el.hidden = !badge.visible(this));
+        this.nav.render(this.dom.nav);
 
         setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
         setDatasetValue(this.dom.container, 'compact', this.options.compact);

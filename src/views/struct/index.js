@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+import { escapeHtml } from '../../core/utils/html.js';
+import { jsonStringifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
 import renderAnnotations from './render-annotations.js';
@@ -51,7 +53,7 @@ function formatSize(size) {
         return '';
     }
 
-    return ', ' + String(size.length).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
+    return ', ' + String(size).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
 }
 
 function renderValueSize(el, entries, unit) {
@@ -202,6 +204,26 @@ export default function(discovery) {
         );
     }
 
+    function buildPathForElement(el, raw) {
+        let path = [];
+        let context = elementContext.get(el);
+
+        while (context !== null && context.parent !== null) {
+            path.unshift(context.key);
+            context = context.parent;
+        }
+
+        if (raw) {
+            return path;
+        }
+
+        return path.map((part, idx) =>
+            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
+                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
+                : (idx === 0 ? part : '.' + part)
+        );
+    }
+
     function applyAnnotations(el, value, options, context) {
         for (const annotation of options.annotations) {
             try {
@@ -246,7 +268,8 @@ export default function(discovery) {
     const valueActionsPopup = new discovery.view.Popup({
         className: 'view-struct-actions-popup',
         render: (popupEl, triggerEl) => {
-            const data = elementData.get(triggerEl.parentNode);
+            const el = triggerEl.parentNode;
+            const data = elementData.get(el);
             let actions = [];
 
             if (typeof data === 'string') {
@@ -265,29 +288,48 @@ export default function(discovery) {
                     }
                 ];
             } else {
-                let error = false;
-                let stringifiedJson;
+                const path = buildPathForElement(el).join('');
+                const maxAllowedSize = 1024 * 1024 * 1024;
+                const { minLength: compactSize, circular } = jsonStringifyInfo(data);
+                let jsonFormattedStringifyError = false;
+                let jsonCompactStringifyError = false;
+                let formattedSize = 0;
 
-                try {
-                    stringifiedJson = JSON.stringify(data);
-                } catch (e) {
-                    error = 'Can\'t be copied: ' + e.message;
+                if (circular.length) {
+                    jsonCompactStringifyError = 'Can\'t be copied: Converting circular structure to JSON';
+                    jsonFormattedStringifyError = jsonCompactStringifyError;
+                } else if (compactSize > maxAllowedSize) {
+                    jsonCompactStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
+                    jsonFormattedStringifyError = jsonCompactStringifyError;
+                } else {
+                    formattedSize = jsonStringifyInfo(data, null, 4).minLength;
+                    if (formattedSize > maxAllowedSize) {
+                        jsonFormattedStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
+                    }
                 }
 
-                actions = [
-                    {
-                        text: 'Copy as JSON (formatted)',
-                        error,
-                        disabled: Boolean(error),
-                        action: () => copyText(JSON.stringify(data, null, 4))
-                    },
-                    {
-                        text: `Copy as JSON (compact${formatSize(stringifiedJson)})`,
-                        error,
-                        disabled: Boolean(error),
-                        action: () => copyText(stringifiedJson)
-                    }
-                ];
+                if (path) {
+                    actions.push({
+                        text: 'Copy path:',
+                        notes: escapeHtml(path),
+                        action: () => copyText(path)
+                    });
+                }
+
+                actions.push({
+                    text: 'Copy as JSON',
+                    notes: `(formatted${formatSize(formattedSize)})`,
+                    error: jsonFormattedStringifyError,
+                    disabled: Boolean(jsonFormattedStringifyError),
+                    action: () => copyText(JSON.stringify(data, null, 4))
+                });
+                actions.push({
+                    text: 'Copy as JSON',
+                    notes: `(compact${jsonCompactStringifyError ? '' : formatSize(compactSize)})`,
+                    error: jsonCompactStringifyError,
+                    disabled: Boolean(jsonCompactStringifyError),
+                    action: () => copyText(JSON.stringify(data))
+                });
             }
 
             discovery.view.render(popupEl, {
@@ -300,8 +342,14 @@ export default function(discovery) {
                     'html:text',
                     {
                         view: 'block',
-                        className: 'error',
+                        when: 'notes',
+                        className: 'notes',
+                        content: 'html:notes'
+                    },
+                    {
+                        view: 'block',
                         when: 'error',
+                        className: 'error',
                         content: 'text:error'
                     }
                 ]
@@ -313,19 +361,12 @@ export default function(discovery) {
         hoverTriggers: '.view-struct .show-signature',
         render: function(popupEl, triggerEl) {
             const el = triggerEl.parentNode;
-            const path = [];
             const data = elementData.get(el);
-            let context = elementContext.get(el);
-
-            while (context !== null) {
-                path.unshift(context.key);
-                context = context.parent;
-            }
 
             discovery.view.render(popupEl, {
                 view: 'signature',
                 expanded: 2,
-                path
+                path: buildPathForElement(el, true)
             }, data);
         }
     });

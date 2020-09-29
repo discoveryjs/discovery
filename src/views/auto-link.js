@@ -15,12 +15,12 @@ export default function(discovery) {
             : null;
 
         if (processedHref) {
-            discovery.view.render(el, { view: 'link', content }, {
+            return discovery.view.render(el, { view: 'link', content }, {
                 ...links[0],
                 href: processedHref
             }, context);
         } else {
-            discovery.view.render(el, fallback || content || 'text', data, context);
+            return discovery.view.render(el, fallback || content || 'text', data, context);
         }
     }, {
         tag: false

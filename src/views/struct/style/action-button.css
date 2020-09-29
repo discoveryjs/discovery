@@ -35,7 +35,8 @@
         cursor: pointer;
     }    
 }
-.discovery-view-popup .view-struct .struct-action-button[data-action="show-signature"] { /* FIXME: temporary, until multiple popups support */
+/* FIXME: temporary, until multiple popups support */
+.discovery-view-popup .view-struct .struct-action-button[data-action="show-signature"] {
     display: none;
 }
 .view-struct .struct-action-button[data-action="collapse"]::before {
@@ -52,4 +53,12 @@
 }
 .view-struct .struct-action-button[data-action="toggle-string-mode"]::before {
     content: "as text";
+}
+
+.discovery-view-popup.view-struct-actions-popup .notes {
+    display: inline;
+    color: #666;
+}
+.discovery-view-popup.view-struct-actions-popup .notes::before {
+    content: ' ';
 }

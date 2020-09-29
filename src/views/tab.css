@@ -6,10 +6,8 @@
     border-bottom: none;
     border-radius: 5px 5px 0 0;
     cursor: pointer;
-    text-transform: capitalize;
     white-space: nowrap;
 }
-
 .view-tab.active {
     position: relative;
     z-index: 10;
@@ -18,4 +16,11 @@
     border-color: #ddd;
     background: white;
     cursor: default;
+}
+.view-tab.disabled {
+    color: #aaa;
+}
+.view-tab.disabled,
+.view-tab:not(.onclick) {
+    pointer-events: none;
 }

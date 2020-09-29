@@ -5,7 +5,7 @@ const defaultDetailsRender = { view: 'struct', expanded: 1 };
 function defaultCellRender(el, data) {
     if (Array.isArray(data)) {
         el.className = 'details complex';
-        el.innerText = data.length ? '[…]' : '[]';
+        el.textContent = data.length ? '[…]' : '[]';
         return;
     }
 
@@ -13,16 +13,16 @@ function defaultCellRender(el, data) {
         el.className = 'details complex';
         for (let k in data) {
             if (Object.prototype.hasOwnProperty.call(data, k)) {
-                el.innerText = '{…}';
+                el.textContent = '{…}';
                 return;
             }
         }
-        el.innerText = '{}';
+        el.textContent = '{}';
         return;
     }
 
     if (data === undefined) {
-        el.innerText = '';
+        el.textContent = '';
         return;
     }
 
@@ -30,7 +30,7 @@ function defaultCellRender(el, data) {
         el.className = 'number';
     }
 
-    el.innerText = data;
+    el.textContent = data;
 }
 
 export default function(discovery) {
@@ -45,12 +45,6 @@ export default function(discovery) {
             }
 
             content = content.content;
-        }
-
-        if (content) {
-            discovery.view.render(el, content, data, context);
-        } else {
-            defaultCellRender(el, data);
         }
 
         if (details) {
@@ -99,6 +93,12 @@ export default function(discovery) {
                     discovery.view.render(detailsEl, details || defaultDetailsRender, data, context);
                 }
             });
+        }
+
+        if (content) {
+            return discovery.view.render(el, content, data, context);
+        } else {
+            defaultCellRender(el, data);
         }
     }, {
         tag: 'td'

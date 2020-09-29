@@ -74,7 +74,7 @@ function createObjectMarker(config) {
         if (getRef !== null) {
             indexRefs.unshift(getRef);
         } else {
-            console.warn(`Option "getRef" for "${name}" marker must be specified when "page" options is defined ("page" option ignored)`);
+            console.warn(`Option "ref" for "${name}" marker must be specified when "page" options is defined ("page" option ignored)`);
         }
     }
 

@@ -2,11 +2,20 @@
 
 export default function(discovery) {
     discovery.view.define('tab', function(el, config, data, context) {
-        const { content, active, onClick } = config;
-        const { text, value } = data;
+        const {
+            content,
+            active = false,
+            disabled = false,
+            onClick,
+            value,
+            text = value
+        } = config;
 
-        if (typeof onClick === 'function') {
+        if (discovery.query(disabled, data, context)) {
+            el.classList.add('disabled');
+        } else if (typeof onClick === 'function') {
             el.addEventListener('click', () => onClick(value));
+            el.classList.add('onclick');
         }
 
         if (active) {
@@ -14,9 +23,9 @@ export default function(discovery) {
         }
 
         if (content) {
-            discovery.view.render(el, content, data, context);
+            return discovery.view.render(el, content, data, context);
         } else {
-            el.innerText = text || value;
+            el.textContent = text;
         }
     });
 }

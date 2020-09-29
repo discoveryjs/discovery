@@ -2,9 +2,9 @@
 
 export default function(discovery) {
     function render(el, config, data, context) {
-        const { content } = config;
+        const { content = 'text' } = config;
 
-        discovery.view.render(el, content || 'text', data, context);
+        return discovery.view.render(el, content, data, context);
     }
 
     discovery.view.define('alert', render);

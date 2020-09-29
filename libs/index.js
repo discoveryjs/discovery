@@ -8,6 +8,12 @@ const es6NodeModules = {
             'dist/jora.js'
         ]
     },
+    '@discoveryjs/json-ext': {
+        name: 'jsonExt',
+        files: [
+            'dist/json-ext.js'
+        ]
+    },
     codemirror: {
         name: 'CodeMirror',
         files: [
@@ -45,7 +51,7 @@ const es6NodeModules = {
                 // prevent global polution
                 .replace(/_self.Prism = _;/, '')
                 // prevent auto-highlighting
-                .replace(/document.currentScript.+;/, 'false;');
+                .replace(/manual:.+?,/, 'manual:true,');
         }
     },
     hitext: {
@@ -65,36 +71,31 @@ const es6NodeModules = {
     }
 };
 
-function nodeModelPath(name, relPath) {
-    return path.join(
-        path.dirname(require.resolve(name + '/package.json')),
-        relPath
-    );
-}
-
-function libContent(name, libConfig) {
-    let filesContent = libConfig.files.reduce(
+function libContent(libPath, libConfig) {
+    const filesContent = libConfig.files.reduce(
         (res, relFilename) =>
-            res + fs.readFileSync(nodeModelPath(name, relFilename), 'utf8'),
-        '');
+            res + fs.readFileSync(path.join(libPath, relFilename), 'utf8'),
+        ''
+    );
 
-    if (typeof libConfig.patch === 'function') {
-        filesContent = libConfig.patch(filesContent);
-    }
-
-    return filesContent;
+    return typeof libConfig.patch === 'function'
+        ? libConfig.patch(filesContent)
+        : filesContent;
 }
 
 for (let name in es6NodeModules) {
     const libConfig = es6NodeModules[name];
+    const libPath = path.dirname(require.resolve((libConfig.pkg || name) + '/package.json'));
 
     exports[name] = {
+        name,
         filename: `${name}.js`,
+        path: libPath,
         get source() {
-            return es5toEs6(libConfig.name, libContent(name, libConfig), libConfig.imports);
+            return es5toEs6(libConfig.name, libContent(libPath, libConfig), libConfig.imports);
         },
         get sourceCjs() {
-            return es5toEs6(libConfig.name, libContent(name, libConfig), libConfig.imports, true);
+            return es5toEs6(libConfig.name, libContent(libPath, libConfig), libConfig.imports, true);
         }
     };
 }

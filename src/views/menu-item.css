@@ -1,12 +1,16 @@
 .view-menu-item {
+    display: block;
     padding: 4px 12px;
+    color: inherit;
+    text-decoration: none;
     cursor: pointer;
 }
 .view-menu-item:empty::before {
     content: '|';
     visibility: hidden;
 }
-.view-menu-item:hover {
+.view-menu-item:hover,
+.view-menu-item.discovery-view-popup-active {
     background: #e0e0e0;
 }
 .view-menu-item.selected {
@@ -16,5 +20,8 @@
 .view-menu-item.disabled {
     opacity: .65;
     background: none;
+    pointer-events: none;
+}
+.view-menu-item:not(.onclick):not([href]) {
     pointer-events: none;
 }
