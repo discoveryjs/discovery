@@ -8,6 +8,8 @@
 - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
 - Added optional `postRender()` method in view config, which is useful for final decoration
 - Changes in views:
+    - `block`
+        - Removed missed styles, it affected `<h2>` by legacy reasons
     - `button`
         - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
         - Don't apply `onClick` when button is disabled
