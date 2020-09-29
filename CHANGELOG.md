@@ -1,11 +1,11 @@
 ## next
 
 - Improved error handling in data prepare handler
-- Changed location path in signature details popup to use `[index]` instead of `pick(index)`
+- Display data loading progress
 - Fixed patching for `prismjs@^1.21.0`
 - Reworked navigation panel and introduced `Widget#nav` API
 - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
-- Display data loading progress
+- Added optional `postRender()` method in view config, which is useful for final decoration
 - Changes in views:
     - `button`
         - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
@@ -22,6 +22,8 @@
         - Added `limit` option to limit items count on first render
         - Added `minItemsFilter` option to specify minimal items count (excluding reset item) required to apply filter input (default `10`)
         - Changed popup content layout and styles
+    - `signature`
+        - Changed location path in details popup to use `[index]` instead of `pick(index)`
     - `struct`
         - Improved estimated JSON size computation in action popup
         - Added "Copy path" to action popup
