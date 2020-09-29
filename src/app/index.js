@@ -12,6 +12,8 @@ export default class App extends Widget {
 
         this.mode = this.options.mode;
 
+        this.download = this.options.setup.model && this.options.setup.model.download;
+
         this.apply(complexViews);
         this.apply(router);
 
@@ -43,6 +45,11 @@ export default class App extends Widget {
                 when: () => this.options.cache,
                 onClick: () => fetch('drop-cache').then(() => location.reload()),
                 content: 'text:"Reload with no cache"'
+            });
+            this.nav.menu.append({
+                name: 'download',
+                when: () => this.download,
+                data: `{text:"Download report",href:"${this.download}"}`
             });
             this.nav.menu.append({
                 name: 'switch-model',
