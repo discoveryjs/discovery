@@ -27,10 +27,15 @@ export class Block {
         });
         const headerEl = createElement('div', 'report-block-header', [
             createElement('div', 'label', [
-                createElement('button', {
-                    class: 'delete',
-                    title: 'Remove block',
-                    onclick: () => this.onDelete()
+                // createElement('button', {
+                //     class: 'delete',
+                //     title: 'Remove block',
+                //     onclick: () => this.onDelete()
+                // }),
+                createElement('span', {
+                    class: 'toggle',
+                    title: 'Toggle editor',
+                    onclick: () => this.toggleEditor()
                 }),
                 type
             ]),
@@ -53,6 +58,7 @@ export class Block {
         this.host = host;
         this.el = blockEl;
         this.outEl = outEl;
+        this.expandEditor = true;
         this.expandOut = false;
         this.onDelete = () => {};
         this.cache = null;
@@ -62,6 +68,11 @@ export class Block {
             editorEl,
             contentEl
         });
+    }
+
+    toggleEditor() {
+        this.expandEditor = !this.expandEditor;
+        this.el.classList.toggle('editor-collapsed', !this.expandEditor);
     }
 
     resetCache() {

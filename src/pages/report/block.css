@@ -33,7 +33,8 @@
     overflow-x: auto;
 }
 
-.page-report > .report-block:not(.editable) > :not(.report-block-content) {
+.page-report > .report-block:not(.editable) > :not(.report-block-content),
+.page-report > .report-block.editor-collapsed > .report-block-editor {
     display: none !important;
 }
 
@@ -75,7 +76,6 @@
 
 .page-report > .report-block > .report-block-header {
     display: flex;
-    margin-bottom: 1px;
     background: linear-gradient(to right, transparent 40px, #f8f8f8 150px) #ddeed0;
     color: #6d8a66;
     font-size: 11px;
@@ -88,13 +88,14 @@
     background-color: #ffe4e4;
 }
 .page-report > .report-block > .report-block-header .label {
+    display: flex;
     position: relative;
-    padding: 4px 8px 4px 28px;
+    padding: 4px 8px 5px 28px;
     min-width: 40px;
     font-size: 11px;
     text-transform: capitalize;
 }
-.page-report > .report-block > .report-block-header .label button {
+/* .page-report > .report-block > .report-block-header .label button {
     position: absolute;
     top: 0;
     left: 0;
@@ -110,6 +111,30 @@
 .page-report > .report-block > .report-block-header .label button:focus {
     outline: none;
     background-color: rgba(0, 0, 0, .15);
+} */
+.page-report > .report-block > .report-block-header .toggle {
+    display: block;
+    margin: -4px 8px -5px -28px;
+    order: -1;
+    text-align: center;
+    background-color: rgba(0, 0, 0, .05);
+    border-right: 1px solid rgba(255, 255, 255, .75);
+    cursor: pointer;
+}
+.page-report > .report-block > .report-block-header .toggle::before {
+    background: url(img/expand.svg) no-repeat center;
+    background-size: 12px;
+    transition: transform .15s ease-in;
+    width: 20px;
+    height: 100%;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: .5;
+    transform: rotate(0deg);
+    content: '';
+}
+.page-report > .report-block.editor-collapsed > .report-block-header .toggle::before {
+    transform: rotate(-90deg);
 }
 
 .page-report > .report-block > .report-block-header .body {
@@ -131,6 +156,13 @@
 .page-report > .report-block > .report-block-header .editor-hint:focus {
     background-color: #e8e8e8;
     outline: none;
+}
+
+/********************************
+* editor
+********************************/
+.page-report > .report-block > .report-block-editor {
+    margin-top: 1px;
 }
 
 /********************************
