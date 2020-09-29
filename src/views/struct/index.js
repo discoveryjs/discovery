@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import { escapeHtml } from '../../core/utils/html.js';
-import { jsonStrinifyInfo } from '../../core/utils/json.js';
+import { jsonStringifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
 import renderAnnotations from './render-annotations.js';
@@ -291,7 +291,7 @@ export default function(discovery) {
             } else {
                 const path = buildPathForElement(el).join('');
                 const maxAllowedSize = 1024 * 1024 * 1024;
-                const { minLength: compactSize, circular } = jsonStrinifyInfo(data);
+                const { minLength: compactSize, circular } = jsonStringifyInfo(data);
                 let jsonFormattedStringifyError = false;
                 let jsonCompactStringifyError = false;
                 let formattedSize = 0;
@@ -303,7 +303,7 @@ export default function(discovery) {
                     jsonCompactStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
                     jsonFormattedStringifyError = jsonCompactStringifyError;
                 } else {
-                    formattedSize = jsonStrinifyInfo(data, null, 4).minLength;
+                    formattedSize = jsonStringifyInfo(data, null, 4).minLength;
                     if (formattedSize > maxAllowedSize) {
                         jsonFormattedStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
                     }

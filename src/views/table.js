@@ -9,7 +9,7 @@ function configFromName(name) {
         header: name,
         view: 'table-cell',
         data: obj => obj[name],
-        sorting: `$[${JSON.stringify(name)}] desc`
+        sorting: `$[${JSON.stringify(name)}] ascN`
     };
 }
 
@@ -28,7 +28,7 @@ function sortingFromString(query, view) {
         query = query.slice(colonIndex + 1);
     }
 
-    return `(${query || '$'}) desc`;
+    return `(${query || '$'}) ascN`;
 }
 
 function resolveColConfig(name, config) {
@@ -48,19 +48,39 @@ function resolveColConfig(name, config) {
         };
 }
 
+function getOrder(data, sorting) {
+    if (typeof sorting !== 'function') {
+        return false;
+    }
+
+    let order = 0;
+    for (let i = 1; i < data.length; i++) {
+        const sign = Math.sign(sorting(data[i - 1], data[i]));
+
+        if (sign) {
+            if (order && sign !== order) {
+                return false;
+            }
+
+            order = sign;
+        }
+    }
+
+    return -order;
+}
+
 export default function(discovery) {
     discovery.view.define('table', function(el, config, data, context) {
         let { cols, rowConfig, limit } = config;
         let colsMap = cols && typeof cols === 'object' ? cols : {};
         let scalarCol = false;
-        let currentSortingCol = null;
-        let currentSortingColAsc = null;
 
         if (!Array.isArray(data)) {
             data = data ? [data] : [];
         }
 
         const headEl = el.appendChild(createElement('thead'));
+        const headerCells = [];
         const bodyEl = el.appendChild(createElement('tbody'));
         const moreEl = el
             .appendChild(createElement('tbody'))
@@ -70,6 +90,13 @@ export default function(discovery) {
         const render = (orderedData) => {
             bodyEl.innerHTML = '';
             moreEl.innerHTML = '';
+
+            for (const headerCell of headerCells) {
+                const order = getOrder(orderedData, headerCell.sorting);
+                headerCell.el.classList.toggle('asc', order === 1);
+                headerCell.el.classList.toggle('desc', order === -1);
+            }
+
             discovery.view.renderList(bodyEl, this.composeConfig({
                 view: 'table-row',
                 cols
@@ -86,7 +113,7 @@ export default function(discovery) {
                         ...def
                     }
             );
-        } else if (Array.isArray(data)) {
+        } else {
             const colNames = new Set();
             cols = [];
 
@@ -119,9 +146,6 @@ export default function(discovery) {
                         : configFromName(name)
                 )
             );
-        } else {
-            console.warn('config.cols and data is not an array, no way to build a table');
-            return;
         }
 
         cols = cols.filter(col =>
@@ -138,7 +162,11 @@ export default function(discovery) {
             }
 
             const headerCellEl = headEl.appendChild(createElement('th'));
+            const headerCell = {
+                el: headerCellEl
+            };
 
+            headerCells.push(headerCell);
             headerCellEl.textContent = col.header;
 
             const sorting = discovery.query(
@@ -148,32 +176,25 @@ export default function(discovery) {
                 null,
                 context
             );
+            const defaultOrder = typeof sorting === 'function'
+                ? getOrder(data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
+                : 0;
 
-            if (typeof sorting === 'function') {
+            if (defaultOrder !== 0) {
+                col.sorting = sorting;
+                headerCell.sorting = sorting;
                 headerCellEl.classList.add('sortable');
                 headerCellEl.addEventListener('click', () => {
-                    if (currentSortingCol === headerCellEl) {
-                        if (currentSortingColAsc) {
-                            headerCellEl.classList.remove('asc');
-                            headerCellEl.classList.add('desc');
-                            currentSortingColAsc = false;
-                            render(data.slice().sort((a, b) => -sorting(a, b)));
-                        } else {
-                            headerCellEl.classList.remove('desc');
-                            currentSortingCol = null;
-                            render(data);
-                        }
+                    if (headerCellEl.classList.contains('asc')) {
+                        render(data.slice().sort((a, b) => -sorting(a, b)));
+                    } else if (headerCellEl.classList.contains('desc') && !defaultOrder) {
+                        render(data);
                     } else {
-                        if (currentSortingCol !== null) {
-                            currentSortingCol.classList.remove('asc', 'desc');
-                        }
-
-                        currentSortingCol = headerCellEl;
-                        currentSortingColAsc = true;
-                        headerCellEl.classList.add('asc');
                         render(data.slice().sort(sorting));
                     }
                 });
+            } else {
+                col.sorting = false;
             }
         }
 

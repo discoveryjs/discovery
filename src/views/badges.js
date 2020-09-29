@@ -9,7 +9,7 @@ function maybeFix(el, type, value) {
     const prefixEl = el.appendChild(document.createElement('span'));
 
     prefixEl.className = type;
-    prefixEl.innerText = value;
+    prefixEl.textContent = value;
 }
 
 export default function(discovery) {

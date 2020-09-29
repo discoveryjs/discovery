@@ -1,13 +1,46 @@
 ## next
 
 - Improved error handling in data prepare handler
-- Changed location path in signature details popup to use `[index]` instead of `pick(index)`
-- Improved estimated JSON size computation in `struct` action popup
-- Added "Copy path" to `struct` action popup
+- Display data loading progress
 - Fixed patching for `prismjs@^1.21.0`
-- Changes in `tabs` view:
-    - Changed `tabs` config option to take a query
-    - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
+- Reworked navigation panel and introduced `Widget#nav` API
+- Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
+- Added optional `postRender()` method in view config, which is useful for final decoration
+- Changes in views:
+    - `button`
+        - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
+        - Don't apply `onClick` when button is disabled
+        - Add `onclick` class to element when `onClick` handler is applied
+        - Preserve style of hover state while triggered popup is showing
+    - `menu-item`
+        - Added support for `href` and `external` values in `data`, which ignores when item is disabled or `onClick` is specified
+        - Changed to use `<a>` as a view root element
+        - Add `onclick` class to element when `onClick` handler is applied
+        - Preserve style of hover state while triggered popup is showing
+    - `select`
+        - Added `beforeItems` and `afterItems` options to specify content before/after items
+        - Added `limit` option to limit items count on first render
+        - Added `minItemsFilter` option to specify minimal items count (excluding reset item) required to apply filter input (default `10`)
+        - Changed popup content layout and styles
+    - `signature`
+        - Changed location path in details popup to use `[index]` instead of `pick(index)`
+    - `struct`
+        - Improved estimated JSON size computation in action popup
+        - Added "Copy path" to action popup
+    - `table`
+        - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
+        - Make column non-sortable when all its values are equal, since sorting have no effect
+        - Used natural sorting approach for generated sorting functions
+        - Inverted icons for sorting direction
+    - `tabs`
+        - Changed `tabs` config option to take a query
+        - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
+        - Apply tabs configuration to tab's config instead of data
+    - `tab`
+        - Moved `value` and `text` from data to config
+        - Added `disabled` config option
+        - Add `onclick` class to element when `onClick` handler is applied
+
 
 ## 1.0.0-beta.38 (19-05-2020)
 

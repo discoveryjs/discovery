@@ -44,9 +44,13 @@ function renderDom(renderer, placeholder, config, data, context) {
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
         : document.createElement(tag || 'div');
+    let pipeline = Promise.resolve(renderer.render(el, config, data, context));
 
-    return Promise
-        .resolve(renderer.render(el, config, data, context))
+    if (typeof config.postRender === 'function') {
+        pipeline = pipeline.then(() => config.postRender(el, config, data, context));
+    }
+
+    return pipeline
         .then(function() {
             if (el.classList) {
                 if (renderer.name) {
@@ -73,7 +77,7 @@ function renderDom(renderer, placeholder, config, data, context) {
                 }
             }
 
-            placeholder.parentNode.replaceChild(el, placeholder);
+            placeholder.replaceWith(el);
         });
 }
 
@@ -344,11 +348,11 @@ export default class ViewRenderer extends Dict {
         const moreButton = document.createElement('button');
 
         moreButton.className = 'more-button';
+        moreButton.innerHTML = caption;
         moreButton.addEventListener('click', () => {
             container.remove();
             fn();
         });
-        moreButton.innerHTML = caption;
 
         container.appendChild(moreButton);
     }

@@ -7,11 +7,3 @@
     content: attr(emptyText);
     color: #888;
 }
-
-.view-columns .view-column {
-    padding-right: 40px;
-    min-width: 150px;
-}
-.view-columns .view-column:last-child {
-    padding-right: 0;
-}

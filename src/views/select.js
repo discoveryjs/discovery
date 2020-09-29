@@ -4,9 +4,8 @@ import usage from './select.usage.js';
 export default function(discovery) {
     const defaultItemRender = 'text-match:{ text, match: #.filter }';
     const variantQuery = '{ value: $, text: #.selectVariantTextQuery.query($, #) }';
-    const variantsQuery = `.(${variantQuery})`;
     const variantsPopup = new discovery.view.Popup({
-        className: 'select-variants'
+        className: 'view-select-popup'
     });
 
     discovery.view.define('select', function(el, config, data, context) {
@@ -21,16 +20,82 @@ export default function(discovery) {
             }
         }
 
-        const { name, value, text = '$', placeholder, resetItem = false, item = defaultItemRender, itemConfig, onInit, onChange } = config;
+        const {
+            name,
+            value,
+            text = '$',
+            placeholder,
+            limit,
+            minItemsFilter = 10,
+            resetItem = false,
+            item = defaultItemRender,
+            itemConfig,
+            beforeItems,
+            afterItems,
+            onInit,
+            onChange
+        } = config;
         let currentValue = value ? discovery.query(value, data, context) : context[name];
         let variantsPopupContext = {
             ...context,
+            selectMinItemsFilter: minItemsFilter,
             selectCurrentValue: currentValue,
             selectVariantTextQuery: text,
-            selectResetItem: resetItem === true
-                ? { value: undefined, text: '' }
-                : resetItem
+            selectResetItem: resetItem
+                ? [{ value: undefined, text: '', ...resetItem, resetItem: true }]
+                : []
         };
+        const popupContent = [];
+
+        if (beforeItems) {
+            popupContent.push(discovery.view.composeConfig(beforeItems, { onInit, onChange }));
+        }
+
+        popupContent.push({
+            view: 'context',
+            data: `.(${variantQuery})`,
+            modifiers: {
+                view: 'input',
+                when: 'size() >= #.selectMinItemsFilter',
+                type: 'regexp',
+                name: 'filter',
+                className: 'view-select__filter',
+                placeholder: 'Filter'
+            },
+            content: {
+                view: 'menu',
+                className: 'view-select__variants',
+                data: '#.selectResetItem + .[no #.filter or text~=#.filter]',
+                limit,
+                itemConfig: discovery.view.composeConfig({
+                    className: [
+                        data => data.resetItem ? 'reset-item' : '',
+                        data => data.value === currentValue ? 'selected' : ''
+                    ]
+                }, itemConfig),
+                item,
+                onClick(data) {
+                    variantsPopup.hide();
+
+                    if (currentValue !== data.value) {
+                        currentValue = data.value;
+                        variantsPopupContext = {
+                            ...variantsPopupContext,
+                            selectCurrentValue: currentValue
+                        };
+                        renderCaption();
+
+                        if (typeof onChange === 'function') {
+                            onChange(data.value, name, data, context);
+                        }
+                    }
+                }
+            }
+        });
+
+        if (afterItems) {
+            popupContent.push(discovery.view.composeConfig(afterItems, { onInit, onChange }));
+        }
 
         if (placeholder) {
             el.dataset.placeholder = placeholder;
@@ -38,53 +103,10 @@ export default function(discovery) {
 
         el.tabIndex = 0;
         el.addEventListener('click', () => {
-            if (variantsPopup.visible) {
-                variantsPopup.hide();
-                return;
-            }
-
-            variantsPopup.show(el, popupEl => {
-                discovery.view.render(popupEl, {
-                    view: 'content-filter',
-                    data: resetItem
-                        ? `[{
-                            value: undefined,
-                            text: "",
-                            resetItem: true,
-                            ...#.selectResetItem
-                        }] + ${variantsQuery}`
-                        : variantsQuery,
-                    content: {
-                        view: 'menu',
-                        data: '.[no #.filter or text~=#.filter or resetItem]',
-                        itemConfig: discovery.view.composeConfig({
-                            className: [
-                                data => data.resetItem ? 'reset-item' : '',
-                                data => data.value === currentValue ? 'selected' : ''
-                            ]
-                        }, itemConfig),
-                        item,
-                        onClick: (data) => {
-                            variantsPopup.hide();
-
-                            if (currentValue !== data.value) {
-                                currentValue = data.value;
-                                variantsPopupContext = {
-                                    ...variantsPopupContext,
-                                    selectCurrentValue: currentValue
-                                };
-                                renderCaption();
-
-                                if (typeof onChange === 'function') {
-                                    onChange(data.value, name, data, context);
-                                }
-                            }
-                        }
-                    }
-                }, data, variantsPopupContext).then(() =>
-                    popupEl.querySelector('input').focus()
-                );
-            });
+            variantsPopup.toggle(el, popupEl =>
+                discovery.view.render(popupEl, popupContent, data, variantsPopupContext)
+                    .then(() => (popupEl.querySelector('.view-select__filter input') || { focus() {} }).focus())
+            );
         });
 
         if (typeof onInit === 'function') {
