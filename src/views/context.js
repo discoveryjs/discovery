@@ -11,10 +11,14 @@ export default function(discovery) {
             }
 
             // render new content
-            const buffer = document.createDocumentFragment();
+            const buffer = lastRender = document.createDocumentFragment();
             return discovery.view
                 .render(buffer, content, data, localContext)
-                .then(() => contentEndMarker.before(buffer));
+                .then(() => {
+                    if (buffer === lastRender) {
+                        contentStartMarker.after(buffer);
+                    }
+                });
         }
 
         function updateContext(value, name) {
@@ -30,6 +34,7 @@ export default function(discovery) {
         let localContext = { ...context };
         let contentStartMarker = null;
         let contentEndMarker = null;
+        let lastRender = null;
         let inited = false;
         let { modifiers = [] } = config;
         const { content = [] } = config;
