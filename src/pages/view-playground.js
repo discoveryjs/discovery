@@ -1,3 +1,5 @@
+import { jsonStringifyAsJavaScript } from '../core/utils/json.js';
+
 export default function(discovery) {
     const fixture = () => ({
         views: Object.fromEntries(discovery.view.entries),
@@ -42,8 +44,8 @@ export default function(discovery) {
                                     {
                                         view: 'source',
                                         data: (data) => ({
-                                            syntax: 'json',
-                                            content: JSON.stringify(data.usage.view, null, 4)
+                                            syntax: 'js',
+                                            content: jsonStringifyAsJavaScript(data.usage.view)
                                         })
                                     },
                                     {

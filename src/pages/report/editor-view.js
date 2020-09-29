@@ -1,39 +1,30 @@
 import { createElement, createText } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
+import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
 
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
     {
         name: 'Table',
-        content: toFormattedViewSource({
+        content: jsonStringifyAsJavaScript({
             view: 'table'
         })
     },
     {
         name: 'Auto-link list',
-        content: toFormattedViewSource({
+        content: jsonStringifyAsJavaScript({
             view: 'ol',
             item: 'auto-link'
         })
     },
     {
         name: 'Signature',
-        content: toFormattedViewSource({
+        content: jsonStringifyAsJavaScript({
             view: 'signature',
             expanded: 2
         })
     }
 ];
-
-function toFormattedViewSource(value) {
-    return JSON
-        .stringify(value, null, 4)
-        .replace(/"((?:\\.|[^"])*)"(:?)/g,
-            (_, content, colon) => colon && /^[a-z$_][a-z$_\d]*$/i.test(content)
-                ? content + colon
-                : `'${content.replace(/\\"/g, '"').replace(/'/g, '\\\'')}'` + colon
-        );
-}
 
 function createPresetTab(name, content, updateParams) {
     return createElement('div', {
@@ -87,7 +78,7 @@ export default function(discovery, updateParams) {
                         const json = new Function('return 0,' + currentText)();
 
                         updateParams({
-                            view: toFormattedViewSource(json)
+                            view: jsonStringifyAsJavaScript(json)
                         });
                     } catch (e) {
                         console.error('[Discovery] Prettify failed', e);
