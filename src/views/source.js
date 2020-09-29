@@ -66,7 +66,7 @@ export default function(discovery) {
             return;
         }
 
-        if (typeof source !== 'string') {
+        if (typeof content !== 'string') {
             return;
         }
 
