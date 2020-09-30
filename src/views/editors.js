@@ -3,6 +3,7 @@
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
+import renderUsage from '../views/_usage.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 import './editors-hint.js';
 
@@ -27,7 +28,7 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
 }
 
 class Editor extends Emitter {
-    constructor(hint) {
+    constructor({ hint, mode }) {
         super();
 
         this.el = document.createElement('div');
@@ -35,7 +36,7 @@ class Editor extends Emitter {
 
         const cm = CodeMirror(this.el, {
             extraKeys: { 'Alt-Space': 'autocomplete' },
-            mode: 'javascript',
+            mode: mode || 'javascript',
             theme: 'neo',
             indentUnit: 0,
             showHintOptions: {
@@ -89,7 +90,7 @@ class Editor extends Emitter {
 
 class QueryEditor extends Editor {
     constructor(getSuggestions) {
-        super(function(cm) {
+        super({ hint: function(cm) {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),
@@ -111,15 +112,63 @@ class QueryEditor extends Editor {
                     };
                 })
             };
-        });
+        } });
     }
 }
 
+let viewHintPopup = null;
 class ViewEditor extends Editor {
     constructor() {
-        super();
+        super({ mode: 'discovery-view' });
+
+        this.cm.isDiscoveryViewDefined = name => this.isViewDefined(name);
+
+        if (viewHintPopup === null) {
+            viewHintPopup = this.createHintPopup();
+        }
     }
 }
+
+CodeMirror.defineMode('discovery-view', function(config) {
+    const jsMode = CodeMirror.getMode(config, 'javascript');
+
+    return {
+        ...jsMode,
+        token: function(stream, state) {
+            if (state.suspendTokens) {
+                const { pos, token } = state.suspendTokens.shift();
+
+                stream.pos = pos;
+                if (state.suspendTokens.length === 0) {
+                    state.suspendTokens = null;
+                }
+
+                return token;
+            }
+
+            const start = stream.pos;
+            const token = jsMode.token(stream, state);
+
+            if (token === 'string') {
+                const end = stream.pos;
+                const content = stream.string.slice(start + 1, end - 1).split(':')[0];
+                const cm = stream.lineOracle.doc.cm;
+
+                if (cm.isDiscoveryViewDefined(content)) {
+                    stream.pos = start + 1;
+                    state.suspendTokens = [
+                        { pos: start + 1 + content.length, token: 'string discovery-token-hint' },
+                        { pos: end, token }
+                    ];
+
+                    return token;;
+                }
+            }
+
+            return token;
+        }
+    };
+});
 
 export default function(discovery) {
     Object.assign(discovery.view, {
@@ -129,8 +178,25 @@ export default function(discovery) {
             }
         },
         ViewEditor: class extends ViewEditor {
+            isViewDefined(name) {
+                return discovery.view.isDefined(name);
+            }
             getIsolateStyleMarker() {
                 return discovery.isolateStyleMarker;
+            }
+            createHintPopup() {
+                return new discovery.view.Popup({
+                    className: 'view-editor-view-hint',
+                    hoverTriggers: '.cm-discovery-token-hint',
+                    hoverPin: 'trigger-click',
+                    render: function(popupEl, triggerEl) {
+                        discovery.view.render(popupEl, {
+                            view: 'block',
+                            className: 'content',
+                            content: renderUsage(discovery)
+                        }, discovery.view.get(triggerEl.textContent), {});
+                    }
+                });
             }
         }
     });
