@@ -6,6 +6,7 @@
 - Fixed patching for `prismjs@^1.21.0`
 - Reworked navigation panel and introduced `Widget#nav` API
 - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
+- Added `Widget#setPageRef()` method
 - Added optional `postRender()` method in view config, which is useful for final decoration
 - Changes in views:
     - `block`

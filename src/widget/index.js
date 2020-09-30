@@ -570,6 +570,10 @@ export default class Widget extends Emitter {
         );
     }
 
+    setPageRef(pageRef, replace = false) {
+        return this.setPage(this.pageId, pageRef, this.pageParams, replace);
+    }
+
     setPageParams(pageParams, replace = false) {
         return this.setPage(this.pageId, this.pageRef, pageParams, replace);
     }
