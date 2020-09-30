@@ -63,7 +63,11 @@ export default function(discovery) {
                         view: 'menu',
                         name: 'view',
                         limit: false,
-                        data: '.[name ~= #.filter].sort(name asc).({ ..., disabled: no options.usage })',
+                        data: `
+                            .[name ~= #.filter]
+                            .sort(name asc)
+                            .({ ..., disabled: no options.usage })
+                        `,
                         item: 'text-match:{ text: name, match: #.filter }'
                     }
                 }
@@ -72,74 +76,83 @@ export default function(discovery) {
         content: {
             view: 'block',
             className: 'content',
+            data: '$[=> name=(#.view.name or #.id)]',
             content: {
                 view: 'switch',
                 content: [
-                    { when: 'no #.view.name', content: 'text:"Select a view"' },
-                    { content: {
-                        view: 'context',
-                        data: '$[=>name=#.view.name].($name; options.usage.({ $name, usage: $ }))',
-                        content: [
-                            'h1:#.view.name',
-                            {
-                                view: 'list',
-                                item: [
-                                    'h2:usage.title',
-                                    {
-                                        view: 'context',
-                                        modifiers: {
-                                            view: 'block',
-                                            className: 'usage-render',
-                                            postRender: (el, { onInit }) => onInit(el, 'root'),
-                                            content: {
-                                                view: 'render',
-                                                config: 'usage.view',
-                                                data: fixture,
-                                                context: '{ view }'
-                                            }
-                                        },
+                    { when: 'no $ and #.id', content: 'alert-warning:"View \\"" + #.id + "\\" not found"' },
+                    { when: 'no $', content: 'text:"Select a view"' },
+                    { content: [
+                        { view: 'context', postRender: function(el, config, data, context) {
+                            // FIXME: make it simpler
+                            discovery.setPageRef(data.name);
+                            discovery.cancelScheduledRender();
+                            context.id = discovery.pageRef;
+                        } },
+
+                        'h1:name',
+                        {
+                            view: 'list',
+                            data: 'options.usage.({ usage: $ })',
+                            itemConfig: {
+                                className: 'usage-section'
+                            },
+                            item: [
+                                'h2:usage.title',
+                                {
+                                    view: 'context',
+                                    modifiers: {
+                                        view: 'block',
+                                        className: 'usage-render',
+                                        postRender: (el, { onInit }) => onInit(el, 'root'),
                                         content: {
-                                            view: 'tabs',
-                                            className: 'usage-sources',
-                                            name: 'code',
-                                            tabs: [
-                                                { value: 'config', text: 'Config (JS)' },
-                                                { value: 'config-json', text: 'Config (JSON)' },
-                                                { value: 'html', text: 'HTML' }
-                                            ],
-                                            content: {
-                                                view: 'switch',
-                                                content: [
-                                                    { when: '#.code="config"', content: {
-                                                        view: 'source',
-                                                        className: 'first-tab',
-                                                        data: (data) => ({
-                                                            syntax: 'js',
-                                                            content: jsonStringifyAsJavaScript(data.usage.view)
-                                                        })
-                                                    } },
-                                                    { when: '#.code="config-json"', content: {
-                                                        view: 'source',
-                                                        data: (data) => ({
-                                                            syntax: 'json',
-                                                            content: JSON.stringify(data.usage.view, null, 4)
-                                                        })
-                                                    } },
-                                                    { when: '#.code="html"', content: {
-                                                        view: 'source',
-                                                        data: (data, context) => ({
-                                                            syntax: 'html',
-                                                            content: childrenHtml(context.root)
-                                                        })
-                                                    } }
-                                                ]
-                                            }
+                                            view: 'render',
+                                            config: 'usage.view',
+                                            data: fixture,
+                                            context: '{ view }'
+                                        }
+                                    },
+                                    content: {
+                                        view: 'tabs',
+                                        className: 'usage-sources',
+                                        name: 'code',
+                                        tabs: [
+                                            { value: 'config', text: 'Config (JS)' },
+                                            { value: 'config-json', text: 'Config (JSON)' },
+                                            { value: 'html', text: 'HTML' }
+                                        ],
+                                        content: {
+                                            view: 'switch',
+                                            content: [
+                                                { when: '#.code="config"', content: {
+                                                    view: 'source',
+                                                    className: 'first-tab',
+                                                    data: (data) => ({
+                                                        syntax: 'js',
+                                                        content: jsonStringifyAsJavaScript(data.usage.view)
+                                                    })
+                                                } },
+                                                { when: '#.code="config-json"', content: {
+                                                    view: 'source',
+                                                    data: (data) => ({
+                                                        syntax: 'json',
+                                                        content: JSON.stringify(data.usage.view, null, 4)
+                                                    })
+                                                } },
+                                                { when: '#.code="html"', content: {
+                                                    view: 'source',
+                                                    data: (data, context) => ({
+                                                        syntax: 'html',
+                                                        content: childrenHtml(context.root)
+                                                    })
+                                                } }
+                                            ]
                                         }
                                     }
-                                ]
-                            }
-                        ]
-                    } }
+                                }
+                            ]
+                        }
+                    ] }
                 ]
             }
         }
