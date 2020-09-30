@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './menu-item.usage.js';
 
 export default function(discovery) {
     discovery.view.define('menu-item', function(el, config, data, context) {
@@ -25,6 +26,7 @@ export default function(discovery) {
             el.textContent = typeof data === 'string' ? data : text || 'Untitled item';
         }
     }, {
-        tag: 'a'
+        tag: 'a',
+        usage
     });
 }

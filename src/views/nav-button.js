@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './nav-button.usage.js';
 
 export default function(discovery) {
     discovery.view.define('nav-button', function(el, config, data, context) {
@@ -25,6 +26,7 @@ export default function(discovery) {
             el.textContent = text;
         }
     }, {
-        tag: 'a'
+        tag: 'a',
+        usage
     });
 }

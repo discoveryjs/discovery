@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './menu.usage.js';
 
 export default function(discovery) {
     discovery.view.define('menu', function(el, config, data, context) {
@@ -32,5 +33,5 @@ export default function(discovery) {
                 }
             });
         }
-    });
+    }, { usage });
 }

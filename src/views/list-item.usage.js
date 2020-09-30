@@ -2,9 +2,9 @@ export default [
     {
         title: 'Default usage',
         view: {
-            view: 'columns',
+            view: 'list',
             data: ['one', 'two', 'three', 'four'],
-            column: 'text'
+            item: 'list-item:$'
         }
     }
 ];

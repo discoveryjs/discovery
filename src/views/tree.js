@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './tree.usage.js';
 
 export default function(discovery) {
     function renderTreeLines(container, renderStack, data, context, offset, limit) {
@@ -141,6 +142,7 @@ export default function(discovery) {
             }
         }
     }, {
-        tag: 'ul'
+        tag: 'ul',
+        usage
     });
 }

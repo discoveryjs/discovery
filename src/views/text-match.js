@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './text-match.usage.js';
 
 const toString = Object.prototype.toString;
 
@@ -24,6 +25,7 @@ export default function(discovery) {
             }
         });
     }, {
-        tag: false
+        tag: false,
+        usage
     });
 }

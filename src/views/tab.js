@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './tab.usage.js';
 
 export default function(discovery) {
     discovery.view.define('tab', function(el, config, data, context) {
@@ -27,5 +28,5 @@ export default function(discovery) {
         } else {
             el.textContent = text;
         }
-    });
+    }, { usage });
 }

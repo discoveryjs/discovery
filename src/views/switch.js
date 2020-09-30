@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './switch.usage.js';
 
 export default function(discovery) {
     discovery.view.define('switch', function(el, config, data, context) {
@@ -24,6 +25,7 @@ export default function(discovery) {
 
         discovery.view.render(el, renderConfig, data, context);
     }, {
-        tag: false
+        tag: false,
+        usage
     });
 }
