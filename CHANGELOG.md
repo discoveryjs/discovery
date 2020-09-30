@@ -15,6 +15,7 @@
         - Don't apply `onClick` when button is disabled
         - Add `onclick` class to element when `onClick` handler is applied
         - Preserve style of hover state while triggered popup is showing
+        - Fixed styles to preserve a consistent size across variations
     - `menu-item`
         - Added support for `href` and `external` values in `data`, which ignores when item is disabled or `onClick` is specified
         - Changed to use `<a>` as a view root element

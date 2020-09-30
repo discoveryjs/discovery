@@ -42,7 +42,7 @@
 
 .view-button-primary {
     background-color: #00aaff;
-    border: none;
+    border-color: rgba(0, 0, 0, .025);
     color: white;
 }
 .view-button-primary:hover,
@@ -55,7 +55,7 @@
 
 .view-button-danger {
     background-color: #ff6163;
-    border: none;
+    border-color: rgba(0, 0, 0, .025);
     color: white;
 }
 .view-button-danger:hover,
@@ -68,7 +68,7 @@
 
 .view-button-warning {
     background-color: #ffcf21;
-    border: none;
+    border-color: rgba(0, 0, 0, .025);
     color: rgba(0, 0, 0, .84);
 }
 .view-button-warning:hover,
