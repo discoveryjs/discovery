@@ -2,7 +2,7 @@
 
 - Improved error handling in data prepare handler
 - Display data loading progress
-- Fixed loss of functions on view source formatting on report page
+- Fixed loss of functions, regexps and dates on view source formatting on report page
 - Fixed patching for `prismjs@^1.21.0`
 - Reworked navigation panel and introduced `Widget#nav` API
 - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)

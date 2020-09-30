@@ -27,10 +27,34 @@ function prettyFn(fn, ws, property) {
         .join('\n');
 }
 
+function restoreValue(value, ws, property) {
+    if (typeof value === 'function') {
+        return prettyFn(value, ws, property);
+    }
+
+    if (value instanceof Date) {
+        return `${property}new Date("${value.toISOString()}")`;
+    }
+
+    return property + String(value);
+}
+
+const { toString } = Object.prototype;
+const specialValueTypes = new Set([
+    '[object Function]',
+    '[object RegExp]',
+    '[object Date]'
+]);
+
 export function jsonStringifyAsJavaScript(value, replacer, space = 4) {
     const specials = [];
     const jsReplacer = function(key, value) {
-        if (typeof value === 'function') {
+        if (typeof value === 'string' && toString.call(this[key]) === '[object Date]') {
+            value = this[key];
+        }
+
+        if (value !== null && specialValueTypes.has(toString.call(value))) {
+            console.log('s', value);
             specials.push(value);
             return '{{{__placeholder__}}}';
         }
@@ -45,6 +69,6 @@ export function jsonStringifyAsJavaScript(value, replacer, space = 4) {
                 : `'${content.replace(/\\"/g, '"').replace(/'/g, '\\\'')}'` + colon
         )
         .replace(/(^|\n)([ \t]*)(.*?)([a-zA-Z$_][a-zA-Z0-9$_]+:\s*)?'{{{__placeholder__}}}'/g,
-            (_, rn, ws, any, property) => rn + ws + any + prettyFn(specials.shift(), ws, property)
+            (_, rn, ws, any, property) => rn + ws + any + restoreValue(specials.shift(), ws, property)
         );
 }
