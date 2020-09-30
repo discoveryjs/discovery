@@ -549,7 +549,7 @@ export default class Widget extends Emitter {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
         const [pageId, pageRef] = hash.substring(1, delimIndex).split(':').map(decodeURIComponent);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pairs = hash.substr(delimIndex + 1).split('&').map(pair => {
+        const pairs = hash.substr(delimIndex + 1).split('&').filter(Boolean).map(pair => {
             const eqIndex = pair.indexOf('=');
             return eqIndex !== -1
                 ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]

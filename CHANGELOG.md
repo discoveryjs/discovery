@@ -7,6 +7,7 @@
 - Reworked navigation panel and introduced `Widget#nav` API
 - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
 - Added `Widget#setPageRef()` method
+- Fixed empty entry (i.e. `{ "": true }`) in `#.params` when page's route has no params
 - Added optional `postRender()` method in view config, which is useful for final decoration
 - Changes in views:
     - `block`
