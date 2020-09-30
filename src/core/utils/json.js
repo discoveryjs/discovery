@@ -54,7 +54,6 @@ export function jsonStringifyAsJavaScript(value, replacer, space = 4) {
         }
 
         if (value !== null && specialValueTypes.has(toString.call(value))) {
-            console.log('s', value);
             specials.push(value);
             return '{{{__placeholder__}}}';
         }
