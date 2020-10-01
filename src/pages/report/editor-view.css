@@ -35,15 +35,43 @@
     border-color: #b9d0df;
 }
 
+.page-report > .report-editor .view-editor-form-content .view-expand {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.page-report > .report-editor .view-editor-form-content .view-expand .header {
+    background: none;
+}
+
+.page-report > .report-editor .view-editor-form-content .view-expand .header:hover {
+    background: #e4e4e4;
+}
+
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list {
-    padding-left: 10px;
-    padding-right: 25px;
+    display: none;
+    padding-left: 26px;
+    padding-right: 26px;
     font-size: 12px;
     color: #aaa;
+}
+.page-report > .report-editor .view-editor-form-content .view-editor-view-list.visible {
+    display: block;
 }
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list .item {
     color: #75a3bf;
     white-space: nowrap;
+}
+
+.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item.with-usage {
+    border-bottom: 1px dashed #75a3bf;
+    cursor: help;
+}
+
+.discovery-view-popup.view-editor-view-list-hint {
+    padding: 10px;
+    min-width: 640px;
+    min-height: 100px;
 }
 
 .discovery[data-dzen] .page-report > .report-editor {

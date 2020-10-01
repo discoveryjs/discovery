@@ -161,7 +161,7 @@ CodeMirror.defineMode('discovery-view', function(config) {
                         { pos: end, token }
                     ];
 
-                    return token;;
+                    return token;
                 }
             }
 
@@ -186,8 +186,8 @@ export default function(discovery) {
             }
             createHintPopup() {
                 return new discovery.view.Popup({
-                    className: 'view-editor-view-hint',
-                    hoverTriggers: '.cm-discovery-token-hint',
+                    className: 'view-editor-view-list-hint',
+                    hoverTriggers: '.view-editor-view-list .item.with-usage',
                     hoverPin: 'trigger-click',
                     render: function(popupEl, triggerEl) {
                         discovery.view.render(popupEl, {

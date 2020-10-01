@@ -31,11 +31,4 @@
 .discovery-editor .CodeMirror .cm-discovery-token-hint {
     background-color: #fff7e6;
     border-bottom: 1px dashed;
-    cursor: help;
-}
-
-.discovery-view-popup.view-editor-view-hint {
-    padding: 10px;
-    min-width: 640px;
-    min-height: 100px;
 }

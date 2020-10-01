@@ -42,7 +42,9 @@ export default function(discovery, updateParams) {
         : defaultViewPresets;
 
     let viewSetupEl;
-    let availableViewListEl;
+    let availableViewsEl;
+    let availableViewsTextEl;
+    let availableViewsListEl;
     // let availablePresetListEl;
     let viewModeTabsEls;
     let viewLiveEditEl;
@@ -87,9 +89,18 @@ export default function(discovery, updateParams) {
             }),
             viewEditor.el,
             createElement('div', 'editor-toolbar', [
-                createElement('div', 'view-editor-view-list', [
-                    createText('Available views: '),
-                    availableViewListEl = createElement('span')
+                availableViewsEl = createElement('div', {
+                    class: 'view-expand',
+                    onclick: () => {
+                        availableViewsEl.classList.toggle('expanded');
+                        availableViewsListEl.classList.toggle('visible');
+                    }
+                }, [
+                    createElement('div', 'header', [
+                        availableViewsTextEl = createElement('div', 'Available views:'),
+                        createElement('div', 'trigger')
+                    ]),
+                    availableViewsListEl = createElement('div', 'view-editor-view-list')
                 ]),
                 createElement('label', null, [
                     viewLiveEditEl = createElement('input', {
@@ -123,9 +134,10 @@ export default function(discovery, updateParams) {
     });
 
     // sync view list
+    availableViewsTextEl.textContent = `You can use ${[...discovery.view.entries].filter(([, view]) => view.options.usage).length} views`;
     const updateAvailableViewList = () =>
-        availableViewListEl.innerHTML = discovery.view.names.sort()
-            .map(name => `<span class="item">${name}</span>`)
+        availableViewsListEl.innerHTML = [...discovery.view.entries].sort()
+            .map(([name, view]) => `<span class="item${view.options.usage ? ' with-usage' : ''}">${name}</span>`)
             .join(', ');
 
     updateAvailableViewList();
