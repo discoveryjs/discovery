@@ -89,14 +89,14 @@ export default function(discovery, updateParams) {
             }),
             viewEditor.el,
             createElement('div', 'editor-toolbar', [
-                availableViewsEl = createElement('div', {
-                    class: 'view-expand',
-                    onclick: () => {
-                        availableViewsEl.classList.toggle('expanded');
-                        availableViewsListEl.classList.toggle('visible');
-                    }
-                }, [
-                    createElement('div', 'header', [
+                availableViewsEl = createElement('div', 'view-expand', [
+                    createElement('div', {
+                        class: 'header',
+                        onclick: () => {
+                            availableViewsEl.classList.toggle('expanded');
+                            availableViewsListEl.classList.toggle('visible');
+                        }
+                    }, [
                         availableViewsTextEl = createElement('div', 'Available views:'),
                         createElement('div', 'trigger')
                     ]),
@@ -138,7 +138,7 @@ export default function(discovery, updateParams) {
     const updateAvailableViewList = () =>
         availableViewsListEl.innerHTML = [...discovery.view.entries].sort()
             .map(([name, view]) => `<span class="item${view.options.usage ? ' with-usage' : ''}">${name}</span>`)
-            .join(', ');
+            .join(', ') + '<br><a href="#views-showcase" class="view-link">Views showcase</a>';
 
     updateAvailableViewList();
     discovery.view.on('define', updateAvailableViewList);

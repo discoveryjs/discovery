@@ -6,7 +6,7 @@ export default function(discovery) {
     //     pages: Object.fromEntries(discovery.page.entries)
     // });
 
-    discovery.page.define('view-playground', {
+    discovery.page.define('views-showcase', {
         view: 'context',
         data: () => [...discovery.view.values],
         modifiers: [
