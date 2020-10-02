@@ -89,7 +89,7 @@ class Editor extends Emitter {
 
 class QueryEditor extends Editor {
     constructor(getSuggestions) {
-        super({ hint: function(cm) {
+        super({ mode: 'discovery-query', hint: function(cm) {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),
@@ -123,11 +123,50 @@ class ViewEditor extends Editor {
     }
 }
 
-CodeMirror.defineMode('discovery-view', function(config) {
-    const jsMode = CodeMirror.getMode(config, 'javascript');
+CodeMirror.defineMode('discovery-query', function(config) {
+    const jsMode = CodeMirror.getMode(config, {
+        name: 'javascript',
+        json: true
+    });
 
     return {
         ...jsMode,
+        indent(state, textAfter) {
+            return state.indented + config.indentUnit * (
+                (state.lastType === '{' && textAfter.trim()[0] !== '}') ||
+                (state.lastType === '(' && textAfter.trim()[0] !== ')') ||
+                (state.lastType === '[' && textAfter.trim()[0] !== ']')
+            );
+        },
+        token(stream, state) {
+            const next = stream.peek();
+
+            if (next === '#' || next === '@') {
+                jsMode.token(new CodeMirror.StringStream('$', 4, stream.lineOracle), state);
+                stream.pos++;
+                return 'variable';
+            }
+
+            return jsMode.token(stream, state);
+        }
+    };
+});
+
+CodeMirror.defineMode('discovery-view', function(config) {
+    const jsMode = CodeMirror.getMode(config, {
+        name: 'javascript',
+        json: true
+    });
+
+    return {
+        ...jsMode,
+        indent(state, textAfter) {
+            return state.indented + config.indentUnit * (
+                (state.lastType === '{' && textAfter.trim()[0] !== '}') ||
+                (state.lastType === '(' && textAfter.trim()[0] !== ')') ||
+                (state.lastType === '[' && textAfter.trim()[0] !== ']')
+            );
+        },
         token: function(stream, state) {
             if (state.suspendTokens) {
                 const { pos, token } = state.suspendTokens.shift();
@@ -154,8 +193,6 @@ CodeMirror.defineMode('discovery-view', function(config) {
                         { pos: start + 1 + content.length, token: 'string discovery-token-hint' },
                         { pos: end, token }
                     ];
-
-                    return token;
                 }
             }
 
