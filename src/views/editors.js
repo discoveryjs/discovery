@@ -3,7 +3,6 @@
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
-import renderUsage from '../views/_usage.js';
 import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
 import './editors-hint.js';
 
@@ -116,16 +115,11 @@ class QueryEditor extends Editor {
     }
 }
 
-let viewHintPopup = null;
 class ViewEditor extends Editor {
     constructor() {
         super({ mode: 'discovery-view' });
 
         this.cm.isDiscoveryViewDefined = name => this.isViewDefined(name);
-
-        if (viewHintPopup === null) {
-            viewHintPopup = this.createHintPopup();
-        }
     }
 }
 
@@ -183,20 +177,6 @@ export default function(discovery) {
             }
             getIsolateStyleMarker() {
                 return discovery.isolateStyleMarker;
-            }
-            createHintPopup() {
-                return new discovery.view.Popup({
-                    className: 'view-editor-view-list-hint',
-                    hoverTriggers: '.view-editor-view-list .item.with-usage',
-                    hoverPin: 'trigger-click',
-                    render: function(popupEl, triggerEl) {
-                        discovery.view.render(popupEl, {
-                            view: 'block',
-                            className: 'content',
-                            content: renderUsage(discovery)
-                        }, discovery.view.get(triggerEl.textContent), {});
-                    }
-                });
             }
         }
     });

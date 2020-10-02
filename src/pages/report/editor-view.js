@@ -1,6 +1,7 @@
-import { createElement, createText } from '../../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
+import renderUsage from '../../views/_usage.js';
 
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
@@ -132,13 +133,27 @@ export default function(discovery, updateParams) {
             discovery.scheduleRender('page'); // force render
         }
     });
+    new discovery.view.Popup({
+        className: 'view-editor-view-list-hint',
+        hoverTriggers: '.view-editor-view-list .item.with-usage',
+        // hoverPin: 'trigger-click',
+        render: function(popupEl, triggerEl) {
+            discovery.view.render(popupEl, {
+                view: 'block',
+                className: 'content',
+                content: renderUsage(discovery)
+            }, discovery.view.get(triggerEl.textContent), {});
+        }
+    });
 
     // sync view list
-    availableViewsTextEl.textContent = `You can use ${[...discovery.view.entries].filter(([, view]) => view.options.usage).length} views`;
+    availableViewsTextEl.textContent = `Available ${[...discovery.view.entries].filter(([, view]) => view.options.usage).length} views`;
     const updateAvailableViewList = () =>
-        availableViewsListEl.innerHTML = [...discovery.view.entries].sort()
-            .map(([name, view]) => `<span class="item${view.options.usage ? ' with-usage' : ''}">${name}</span>`)
-            .join(', ') + '<br><a href="#views-showcase" class="view-link">Views showcase</a>';
+        availableViewsListEl.innerHTML =
+            '<a href="#views-showcase" class="view-link">Views showcase</a><br><br>' +
+            [...discovery.view.entries].sort()
+                .map(([name, view]) => `<div><a class="item view-link${view.options.usage ? ' with-usage' : ''}" ${view.options.usage ? 'href="#views-showcase:' + name + '"' : ''}>${name}</a></div>`)
+                .join('');
 
     updateAvailableViewList();
     discovery.view.on('define', updateAvailableViewList);
