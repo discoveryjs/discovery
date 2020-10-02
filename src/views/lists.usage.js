@@ -1,48 +1,49 @@
-export default [
-    {
-        title: 'Default usage',
-        view: {
-            view: 'list',
-            data: ['one', 'two', 'three', 'four']
-        }
+export default (view, group) => ({
+    demo: {
+        view,
+        data: ['one', 'two', 'three', 'four']
     },
-    {
-        title: 'Item config',
-        view: {
-            view: 'list',
-            item: {
-                view: 'text',
-                data: '"prefix-" + $'
-            },
-            data: ['one', 'two', 'three', 'four']
+    examples: [
+        {
+            title: 'Variations',
+            demo: {
+                view: 'context',
+                data: ['foo', 'bar', 'baz'],
+                content: group.map(view => [
+                    'header:' + JSON.stringify('# ' + view),
+                    view
+                ])
+            }
+        },
+        {
+            title: 'Configure item\'s content',
+            demo: [
+                {
+                    view,
+                    data: ['one', 'two', 'three', 'four'],
+                    item: [
+                        'text:"<item> "',
+                        {
+                            view: 'link',
+                            data: '{ href: "#" + $ }'
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            title: 'Configure item\'s config',
+            demo: {
+                view,
+                data: ['one', 'two', 'three', 'four'],
+                itemConfig: {
+                    className: 'special'
+                },
+                item: {
+                    view: 'text',
+                    data: '"prefix-" + $'
+                }
+            }
         }
-    },
-    {
-        title: 'Inline list',
-        view: {
-            view: 'inline-list',
-            data: ['one', 'two', 'three', 'four']
-        }
-    },
-    {
-        title: 'Comma list',
-        view: {
-            view: 'comma-list',
-            data: ['one', 'two', 'three', 'four']
-        }
-    },
-    {
-        title: 'Unordered list',
-        view: {
-            view: 'ul',
-            data: ['one', 'two', 'three', 'four']
-        }
-    },
-    {
-        title: 'Ordered list',
-        view: {
-            view: 'ol',
-            data: ['one', 'two', 'three', 'four']
-        }
-    }
-];
+    ]
+});

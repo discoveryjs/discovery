@@ -1,10 +1,7 @@
-export default [
-    {
-        title: 'Default usage',
-        view: {
-            view: 'columns',
-            data: ['one', 'two', 'three', 'four'],
-            column: 'text'
-        }
+export default {
+    demo: {
+        view: 'columns',
+        data: ['one', 'two', 'three', 'four'],
+        column: 'text'
     }
-];
+};

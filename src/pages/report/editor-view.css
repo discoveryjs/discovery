@@ -75,6 +75,13 @@
     min-width: 640px;
     min-height: 100px;
 }
+.discovery-view-popup.view-editor-view-list-hint > .discovery-view-usage > .view-header:first-child {
+    font-size: 16px;
+    background: #f0f0f0;
+    margin: -20px -20px 0;
+    padding: 6px 20px;
+    line-height: 24px;
+}
 
 .discovery[data-dzen] .page-report > .report-editor {
     display: none;

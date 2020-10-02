@@ -1,23 +1,17 @@
 /* eslint-env browser */
 
-export default [
-    {
-        title: 'Variations',
-        view: [
-            'button:{ text:"Default button" }',
-            'button-primary:{ text:"Primary button" }',
-            'button-danger:{ text:"Danger button" }',
-            'button-warning:{ text:"Warning button" }'
-        ]
-    },
-    {
-        title: 'Default usage',
-        view: {
-            view: 'button',
-            onClick: () => alert('Hi!'),
-            data: {
-                text: 'Hello world!'
-            }
+export default (view, group) => ({
+    demo: {
+        view,
+        onClick: () => alert('Hello world!'),
+        data: {
+            text: 'Button'
         }
-    }
-];
+    },
+    examples: [
+        {
+            title: 'Variations',
+            demo: group.map(name => `${name}:{ text: "${name}" }`)
+        }
+    ]
+});

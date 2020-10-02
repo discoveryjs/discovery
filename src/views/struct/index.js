@@ -5,7 +5,7 @@ import { jsonStringifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
 import renderAnnotations from './render-annotations.js';
-import usage from './usage.js';
+import usage from './struct.usage.js';
 import {
     stringValueProto,
     arrayValueProto,

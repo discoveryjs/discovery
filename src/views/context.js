@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './context.usage.js';
 
 export default function(discovery) {
     discovery.view.define('context', function(el, config, data, context) {
@@ -56,6 +57,7 @@ export default function(discovery) {
             renderContent();
         });
     }, {
-        tag: false
+        tag: false,
+        usage
     });
 }

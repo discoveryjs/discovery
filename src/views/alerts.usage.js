@@ -1,28 +1,22 @@
-export default [
-    {
-        title: 'Variations',
-        view: [
-            'alert:"Default alert"',
-            'alert-success:"Success alert"',
-            'alert-danger:"Danger alert"',
-            'alert-warning:"Warning alert"'
-        ]
+export default (view, group) => ({
+    demo: {
+        view,
+        data: '"Alert"'
     },
-    {
-        title: 'Default usage',
-        view: {
-            view: 'alert',
-            data: '"Hello world!"'
+    examples: [
+        {
+            title: 'Variations',
+            demo: group.map(name => `${name}:"${name}"`)
+        },
+        {
+            title: 'Complex content',
+            demo: {
+                view,
+                content: [
+                    'h3:"Some header"',
+                    'text:"Hello world!"'
+                ]
+            }
         }
-    },
-    {
-        title: 'Complex content',
-        view: {
-            view: 'alert',
-            content: [
-                'h3:"Some header"',
-                'text:"Hello world!"'
-            ]
-        }
-    }
-];
+    ]
+});

@@ -1,13 +1,12 @@
-export default [
-    {
-        title: 'Default usage',
-        view: {
-            view: 'text',
-            data: '"text data"'
-        }
+export default {
+    demo: {
+        view: 'text',
+        data: '"Hello world!"'
     },
-    {
-        title: 'Shorthand usage',
-        view: 'text:"text data"'
-    }
-];
+    examples: [
+        {
+            title: 'Shorthand usage',
+            view: 'text:"Hello world!"'
+        }
+    ]
+};

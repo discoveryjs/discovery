@@ -138,11 +138,7 @@ export default function(discovery, updateParams) {
         hoverTriggers: '.view-editor-view-list .item.with-usage',
         // hoverPin: 'trigger-click',
         render: function(popupEl, triggerEl) {
-            discovery.view.render(popupEl, {
-                view: 'block',
-                className: 'content',
-                content: renderUsage(discovery)
-            }, discovery.view.get(triggerEl.textContent), {});
+            discovery.view.render(popupEl, renderUsage(discovery), discovery.view.get(triggerEl.textContent), {});
         }
     });
 

@@ -45,75 +45,119 @@ function nodeHtml(node, level = '\n') {
 }
 
 export default function(discovery) {
-    const fixture = () => ({
-        views: Object.fromEntries(discovery.view.entries),
-        pages: Object.fromEntries(discovery.page.entries)
-    });
+    const renderDemo = {
+        view: 'context',
+        modifiers: [
+            {
+                view: 'switch',
+                when: 'beforeDemo',
+                content: [
+                    { when: ({ beforeDemo }) => typeof beforeDemo === 'string', content: 'html:"<p>" + beforeDemo + "</p>"' },
+                    { content: {
+                        view: 'render',
+                        config: 'beforeDemo',
+                        context: '{}'
+                    } }
+                ]
+            },
+            {
+                view: 'block',
+                className: 'usage-render',
+                postRender: (el, { onInit }) => onInit(el, 'root'),
+                content: {
+                    view: 'render',
+                    config: 'demo or view',
+                    context: '{}'
+                }
+            },
+            {
+                view: 'switch',
+                when: 'afterDemo',
+                content: [
+                    { when: ({ afterDemo }) => typeof afterDemo === 'string', content: 'html:"<p>" + afterDemo + "</p>"' },
+                    { content: {
+                        view: 'render',
+                        config: 'afterDemo',
+                        context: '{}'
+                    } }
+                ]
+            }
+        ],
+        content: {
+            view: 'tabs',
+            className: 'usage-sources',
+            name: 'code',
+            tabs: [
+                { value: 'config', text: 'Config (JS)' },
+                { value: 'config-json', text: 'Config (JSON)' },
+                { value: 'html', text: 'HTML' }
+            ],
+            content: {
+                view: 'switch',
+                content: [
+                    { when: '#.code="config"', content: {
+                        view: 'source',
+                        className: 'first-tab',
+                        data: (data) => ({
+                            syntax: 'discovery-view',
+                            content: jsonStringifyAsJavaScript(data.demo || data.view)
+                        })
+                    } },
+                    { when: '#.code="config-json"', content: {
+                        view: 'source',
+                        data: (data) => ({
+                            syntax: 'json',
+                            content: JSON.stringify(data.demo || data.view, null, 4)
+                        })
+                    } },
+                    { when: '#.code="html"', content: {
+                        view: 'source',
+                        data: (data, context) => ({
+                            syntax: 'html',
+                            content: childrenHtml(context.root)
+                        })
+                    } }
+                ]
+            }
+        }
+    };
 
     return {
         view: 'block',
         className: 'discovery-view-usage',
+        data: ({ name, options }) => {
+            const group = [...discovery.view.values]
+                .filter(view => view.options.usage === options.usage)
+                .map(view => view.name);
+
+            if (!group.includes(name)) {
+                group.unshift(name);
+            }
+
+            return {
+                demo: { view: name, data: '"' + name + '"' },
+                ...typeof options.usage === 'function'
+                    ? options.usage(name, group)
+                    : Array.isArray(options.usage)
+                        ? { examples: options.usage }
+                        : options.usage,
+                name,
+                group
+            };
+        },
         content: [
             'h1:name',
+            renderDemo,
             {
                 view: 'list',
-                data: 'options.usage.({ usage: $ })',
+                data: 'examples',
+                whenData: true,
                 itemConfig: {
                     className: 'usage-section'
                 },
                 item: [
-                    'h2:usage.title',
-                    {
-                        view: 'context',
-                        modifiers: {
-                            view: 'block',
-                            className: 'usage-render',
-                            postRender: (el, { onInit }) => onInit(el, 'root'),
-                            content: {
-                                view: 'render',
-                                config: 'usage.view',
-                                data: fixture,
-                                context: '{ view }'
-                            }
-                        },
-                        content: {
-                            view: 'tabs',
-                            className: 'usage-sources',
-                            name: 'code',
-                            tabs: [
-                                { value: 'config', text: 'Config (JS)' },
-                                { value: 'config-json', text: 'Config (JSON)' },
-                                { value: 'html', text: 'HTML' }
-                            ],
-                            content: {
-                                view: 'switch',
-                                content: [
-                                    { when: '#.code="config"', content: {
-                                        view: 'source',
-                                        className: 'first-tab',
-                                        data: (data) => ({
-                                            syntax: 'js',
-                                            content: jsonStringifyAsJavaScript(data.usage.view)
-                                        })
-                                    } },
-                                    { when: '#.code="config-json"', content: {
-                                        view: 'source',
-                                        data: (data) => ({
-                                            syntax: 'json',
-                                            content: JSON.stringify(data.usage.view, null, 4)
-                                        })
-                                    } },
-                                    { when: '#.code="html"', content: {
-                                        view: 'source',
-                                        data: (data, context) => ({
-                                            syntax: 'html',
-                                            content: childrenHtml(context.root)
-                                        })
-                                    } }
-                                ]
-                            }
-                        }
-                    }
+                    'h2:title',
+                    renderDemo
                 ]
             }
         ]

@@ -1,12 +1,9 @@
-export default [
-    {
-        title: 'Default usage',
-        view: {
-            view: 'text-match',
-            data: {
-                text: 'I am matched text!',
-                match: /(matched)/
-            }
+export default {
+    demo: {
+        view: 'text-match',
+        data: {
+            text: 'I am matched text or a text with matches!',
+            match: /(match)/
         }
     }
-];
+};

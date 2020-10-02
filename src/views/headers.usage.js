@@ -1,22 +1,19 @@
-export default [
-    {
-        title: 'Variations',
-        view: [
-            'h1:"Header 1st level"',
-            'h2:"Header 2nd level"',
-            'h3:"Header 3rd level"',
-            'h4:"Header 4th level"',
-            'h5:"Header 5th level"'
-        ]
-    },
-    {
-        title: 'Complex content',
-        view: {
-            view: 'h1',
-            content: [
-                'text:"Text "',
-                'link:{text:"Some header"}'
-            ]
+export default (view, group) => ({
+    demo: `${view}:"Header \\"${view}\\""`,
+    examples: [
+        {
+            title: 'Variations',
+            view: group.map(view => `${view}:"Header \\"${view}\\""`)
+        },
+        {
+            title: 'Complex content',
+            demo: {
+                view,
+                content: [
+                    'text:"Text "',
+                    'link:{text:"Link"}'
+                ]
+            }
         }
-    }
-];
+    ]
+});

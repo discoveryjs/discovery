@@ -1,49 +1,43 @@
-export default [
-    {
-        title: 'Variations',
-        view: [
-            'badge:{text:"Default badge"}',
-            'pill-badge:{text:"Pill badge"}'
-        ]
+export default (view, group) => ({
+    demo: {
+        view,
+        data: JSON.stringify(view)
     },
-    {
-        title: 'Default usage',
-        view: {
-            view: 'badge',
-            data: {
-                text: 'Hello world!'
+    examples: [
+        {
+            title: 'Variations',
+            demo: group.map(name => `${name}:"${name}"`)
+        },
+        {
+            title: 'With color',
+            demo: {
+                view,
+                data: {
+                    color: '#F9E4A9',
+                    text: 'Colored badge'
+                }
+            }
+        },
+        {
+            title: 'As a link',
+            demo: {
+                view,
+                data: {
+                    href: '#',
+                    text: 'Click me!'
+                }
+            }
+        },
+        {
+            title: 'Prefix and postfix',
+            demo: {
+                view,
+                data: {
+                    prefix: 'prefix',
+                    postfix: 'postfix',
+                    text: 'text'
+                }
             }
         }
-    },
-    {
-        title: 'With color',
-        view: {
-            view: 'badge',
-            data: {
-                color: '#F9E4A9',
-                text: 'Colored badge'
-            }
-        }
-    },
-    {
-        title: 'Badge as a link',
-        view: {
-            view: 'badge',
-            data: {
-                href: '#',
-                text: 'Link badge'
-            }
-        }
-    },
-    {
-        title: 'Badge with prefix and postfix',
-        view: {
-            view: 'badge',
-            data: {
-                prefix: 'I am prefix',
-                postfix: 'I am postfix',
-                text: 'badge'
-            }
-        }
-    }
-];
+    ]
+});

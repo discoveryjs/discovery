@@ -1,10 +1,7 @@
-export default [
-    {
-        title: 'Default usage',
-        view: {
-            view: 'expand',
-            title: 'text:"Click me!"',
-            content: 'text:"Content"'
-        }
+export default {
+    demo: {
+        view: 'expand',
+        title: 'text:"Expand me!"',
+        content: 'text:"Content"'
     }
-];
+};

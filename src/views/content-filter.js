@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './content-filter.usage.js';
 
 export default function(discovery) {
     discovery.view.define('content-filter', function(el, config, data, context) {
@@ -20,5 +21,7 @@ export default function(discovery) {
                 onChange
             }
         }, data, context);
+    }, {
+        usage
     });
 }

@@ -1,36 +1,48 @@
 /* eslint-env browser */
 
-export default [
-    {
-        title: 'Default usage',
-        view: {
-            view: 'checkbox',
-            content: 'text:"label"'
-        }
+export default {
+    demo: {
+        view: 'checkbox',
+        content: 'text:"checkbox caption"'
     },
-    {
-        title: 'Checked checkbox',
-        view: {
-            view: 'checkbox',
-            checked: true,
-            content: 'text:"label"'
+    examples: [
+        {
+            title: 'Checked state',
+            beforeDemo: 'Checked state is set up with `checked` property. Its value can be a query',
+            demo: [
+                {
+                    view: 'checkbox',
+                    checked: true,
+                    content: 'text:"should be checked"'
+                },
+                {
+                    view: 'checkbox',
+                    checked: '1 > 5',
+                    content: 'text:"shouldn\'t be checked"'
+                },
+                {
+                    view: 'checkbox',
+                    checked: '1 < 5',
+                    content: 'text:"should be checked"'
+                }
+            ]
+        },
+        {
+            title: 'Readonly checkbox',
+            demo: {
+                view: 'checkbox',
+                readonly: true,
+                content: 'text:"checkbox caption"'
+            }
+        },
+        {
+            title: 'On change',
+            demo: {
+                view: 'checkbox',
+                // eslint-disable-next-line no-unused-vars
+                onChange: (value, name, data, context) => alert(`Changed to ${value}!`),
+                content: 'text:"click me!"'
+            }
         }
-    },
-    {
-        title: 'Readonly checkbox',
-        view: {
-            view: 'checkbox',
-            readonly: true,
-            content: 'text:"label"'
-        }
-    },
-    {
-        title: 'On change',
-        view: {
-            view: 'checkbox',
-            // eslint-disable-next-line no-unused-vars
-            onChange: (value, name, data, context) => alert(`Changed to ${value}!`),
-            content: 'text:"click me!"'
-        }
-    }
-];
+    ]
+};
