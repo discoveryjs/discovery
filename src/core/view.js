@@ -173,7 +173,13 @@ function render(container, config, data, context) {
                     : placeholder.remove()
             )
             .catch(e => {
-                renderDom(this.get('alert-danger'), placeholder, {}, e);
+                renderDom(this.get('alert-danger'), placeholder, {
+                    postRender(el) {
+                        el.style.whiteSpace = 'pre-wrap';
+                        el.style.fontFamily = 'monospace';
+                        el.style.fontSize = '12px';
+                    }
+                }, e);
                 console.error(e);
             });
     } else {
