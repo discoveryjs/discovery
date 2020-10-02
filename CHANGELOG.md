@@ -17,6 +17,8 @@
     - Fixed loss of functions, regexps and dates on view source formatting on report page
     - Improved available views presentation
 - Changes in views:
+    - `alert`
+        - Changed variations to have `.view-alert` class and CSS style fixes
     - `block`
         - Removed missed styles, it affected `<h2>` by legacy reasons
     - `button`

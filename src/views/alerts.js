@@ -6,6 +6,8 @@ export default function(discovery) {
     function render(el, config, data, context) {
         const { content = 'text' } = config;
 
+        el.classList.add('view-alert');
+
         return discovery.view.render(el, content, data, context);
     }
 

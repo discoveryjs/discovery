@@ -1,7 +1,4 @@
-.view-alert,
-.view-alert-success,
-.view-alert-danger,
-.view-alert-warning {
+.view-alert {
     position: relative;
     padding: .75rem 1.25rem;
     margin-bottom: 1rem;
@@ -11,6 +8,9 @@
     color: #383d41;
     background-color: #e2e3e5;
     border-color: #d6d8db;
+}
+.view-alert:last-child {
+    margin-bottom: 0;
 }
 
 .page > .view-alert:first-child,
