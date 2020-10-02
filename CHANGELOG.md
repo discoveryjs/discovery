@@ -1,14 +1,21 @@
 ## next
 
-- Improved error handling in data prepare handler
-- Display data loading progress
-- Fixed loss of functions, regexps and dates on view source formatting on report page
 - Fixed patching for `prismjs@^1.21.0`
-- Reworked navigation panel and introduced `Widget#nav` API
-- Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
-- Added `Widget#setPageRef()` method
-- Fixed empty entry (i.e. `{ "": true }`) in `#.params` when page's route has no params
-- Added optional `postRender()` method in view config, which is useful for final decoration
+- Bumped jora to `1.0.0-beta.3`
+- Introduced view's showcase page (`#views-showcase`)
+- Core
+    - Improved error handling in data prepare handler
+    - Display data loading progress
+    - Reworked navigation panel and introduced `Widget#nav` API
+    - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
+    - Added `Widget#setPageRef()` method
+    - Added optional `postRender()` method in view config, which is useful for final decoration
+    - Fixed empty entry (i.e. `{ "": true }`) in `#.params` when page's route has no params
+- Report page
+    - Improved syntax highlighting in editors
+    - Added known view highlighting in view editor
+    - Fixed loss of functions, regexps and dates on view source formatting on report page
+    - Improved available views presentation
 - Changes in views:
     - `block`
         - Removed missed styles, it affected `<h2>` by legacy reasons
