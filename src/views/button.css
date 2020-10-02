@@ -39,10 +39,13 @@
     pointer-events: none;
     cursor: default;
 }
+.view-button + .view-button {
+    margin-left: 1ex;
+}
 
 .view-button-primary {
     background-color: #00aaff;
-    border-color: rgba(0, 0, 0, .025);
+    border-color: transparent !important;
     color: white;
 }
 .view-button-primary:hover,
@@ -55,7 +58,7 @@
 
 .view-button-danger {
     background-color: #ff6163;
-    border-color: rgba(0, 0, 0, .025);
+    border-color: transparent !important;
     color: white;
 }
 .view-button-danger:hover,
@@ -68,7 +71,7 @@
 
 .view-button-warning {
     background-color: #ffcf21;
-    border-color: rgba(0, 0, 0, .025);
+    border-color: transparent !important;
     color: rgba(0, 0, 0, .84);
 }
 .view-button-warning:hover,
