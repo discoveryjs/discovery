@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.39 (02-10-2020)
 
 - Fixed patching for `prismjs@^1.21.0`
 - Bumped jora to `1.0.0-beta.3`
