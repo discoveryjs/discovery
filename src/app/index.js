@@ -41,15 +41,15 @@ export default class App extends Widget {
                 content: 'text:"Make report"'
             });
             this.nav.menu.append({
+                name: 'download',
+                when: () => this.download,
+                data: `{text:"Download report",href:"${this.download}"}`
+            });
+            this.nav.menu.append({
                 name: 'drop-cache',
                 when: () => this.options.cache,
                 onClick: () => fetch('drop-cache').then(() => location.reload()),
                 content: 'text:"Reload with no cache"'
-            });
-            this.nav.menu.append({
-                name: 'download',
-                when: () => this.download,
-                data: `{text:"Download report",href:"${this.download}"}`
             });
             this.nav.menu.append({
                 name: 'switch-model',
