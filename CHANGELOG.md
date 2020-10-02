@@ -18,7 +18,8 @@
     - Improved available views presentation
 - Changes in views:
     - `alert`
-        - Changed variations to have `.view-alert` class and CSS style fixes
+        - Changed variations to have `.view-alert` class
+        - Fixed CSS styles
     - `block`
         - Removed missed styles, it affected `<h2>` by legacy reasons
     - `button`
@@ -27,6 +28,9 @@
         - Add `onclick` class to element when `onClick` handler is applied
         - Preserve style of hover state while triggered popup is showing
         - Fixed styles to preserve a consistent size across variations
+    - `header`
+        - Changed variations to have `.view-header` class
+        - Fixed CSS styles
     - `menu-item`
         - Added support for `href` and `external` values in `data`, which ignores when item is disabled or `onClick` is specified
         - Changed to use `<a>` as a view root element
