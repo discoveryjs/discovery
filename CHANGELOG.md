@@ -37,6 +37,8 @@
         - Changed popup content layout and styles
     - `signature`
         - Changed location path in details popup to use `[index]` instead of `pick(index)`
+    - `source`
+        - Added highlighting for `discovery-view` and `discovery-query`
     - `struct`
         - Improved estimated JSON size computation in action popup
         - Added "Copy path" to action popup

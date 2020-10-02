@@ -80,6 +80,11 @@
 .view-source .token {
     background: none;
 }
+.view-source .token.discovery-view-name {
+    background-color: rgba(183, 228, 44, 19%);
+    /* border-bottom: 1px dashed #a0be73; */
+    color: #6a9c11;
+}
 
 .view-source.error {
     margin: 0;

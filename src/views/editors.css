@@ -28,7 +28,7 @@
     background: none;
     width: 22px;
 }
-.discovery-editor .CodeMirror .cm-discovery-token-hint {
+.discovery-editor .CodeMirror .cm-discovery-view-name {
     background-color: #fff7e6;
     border-bottom: 1px dashed;
 }

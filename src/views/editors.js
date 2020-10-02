@@ -117,9 +117,12 @@ class QueryEditor extends Editor {
 
 class ViewEditor extends Editor {
     constructor() {
-        super({ mode: 'discovery-view' });
-
-        this.cm.isDiscoveryViewDefined = name => this.isViewDefined(name);
+        super({
+            mode: {
+                name: 'discovery-view',
+                isDiscoveryViewDefined: name => this.isViewDefined(name)
+            }
+        });
     }
 }
 
@@ -152,7 +155,10 @@ CodeMirror.defineMode('discovery-query', function(config) {
     };
 });
 
-CodeMirror.defineMode('discovery-view', function(config) {
+CodeMirror.defineMode('discovery-view', function(config, options) {
+    const isDiscoveryViewDefined = typeof options.isDiscoveryViewDefined === 'function'
+        ? options.isDiscoveryViewDefined
+        : () => {};
     const jsMode = CodeMirror.getMode(config, {
         name: 'javascript',
         json: true
@@ -185,12 +191,11 @@ CodeMirror.defineMode('discovery-view', function(config) {
             if (token === 'string') {
                 const end = stream.pos;
                 const content = stream.string.slice(start + 1, end - 1).split(':')[0];
-                const cm = stream.lineOracle.doc.cm;
 
-                if (cm.isDiscoveryViewDefined(content)) {
+                if (isDiscoveryViewDefined(content)) {
                     stream.pos = start + 1;
                     state.suspendTokens = [
-                        { pos: start + 1 + content.length, token: 'string discovery-token-hint' },
+                        { pos: start + 1 + content.length, token: 'string discovery-view-name' },
                         { pos: end, token }
                     ];
                 }
