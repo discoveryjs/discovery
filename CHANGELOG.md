@@ -1,3 +1,7 @@
+## next
+
+- Fixed regression of non-expandable cells with implicit details (i.e. for objects) in `table` view
+
 ## 1.0.0-beta.39 (02-10-2020)
 
 - Fixed patching for `prismjs@^1.21.0`
@@ -61,7 +65,6 @@
         - Moved `value` and `text` from data to config
         - Added `disabled` config option
         - Add `onclick` class to element when `onClick` handler is applied
-
 
 ## 1.0.0-beta.38 (19-05-2020)
 

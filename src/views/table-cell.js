@@ -4,13 +4,13 @@ const defaultDetailsRender = { view: 'struct', expanded: 1 };
 
 function defaultCellRender(el, data) {
     if (Array.isArray(data)) {
-        el.className = 'details complex';
+        el.classList.add('complex');
         el.textContent = data.length ? '[…]' : '[]';
         return;
     }
 
     if (data && typeof data === 'object') {
-        el.className = 'details complex';
+        el.classList.add('complex');
         for (let k in data) {
             if (Object.prototype.hasOwnProperty.call(data, k)) {
                 el.textContent = '{…}';
@@ -27,7 +27,7 @@ function defaultCellRender(el, data) {
     }
 
     if (typeof data === 'number') {
-        el.className = 'number';
+        el.classList.add('number');
     }
 
     el.textContent = data;
@@ -47,11 +47,8 @@ export default function(discovery) {
             content = content.content;
         }
 
-        if (details) {
+        if (details || (!content && (data && typeof data === 'object'))) {
             el.classList.add('details');
-        }
-
-        if (el.classList.contains('details')) {
             el.addEventListener('click', (e) => {
                 let node = e.target;
 
