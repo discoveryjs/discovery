@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.40 (04-10-2020)
 
 - Fixed regression of non-expandable cells with implicit details (i.e. for objects) in `table` view
 
