@@ -19,7 +19,7 @@
 }
 
 .view-h3 {
-    font-size: 130%;
+    font-size: 135%;
     font-weight: normal;
     margin: .73em 0;
 }
@@ -27,13 +27,13 @@
 .view-h4 {
     font-size: 120%;
     font-weight: normal;
-    color: rgba(0, 0, 0, .085);
+    color: rgba(0, 0, 0, .65);
     margin: .73em 0;
 }
 
 .view-h5 {
     font-size: 110%;
     font-weight: normal;
-    color: rgba(0, 0, 0, .3);
+    color: rgba(0, 0, 0, .5);
     margin: .68em 0;
 }

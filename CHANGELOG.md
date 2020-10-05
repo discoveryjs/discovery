@@ -1,3 +1,7 @@
+## next
+
+- Fixed styles for `h3`, `h4` and `h5` views
+
 ## 1.0.0-beta.40 (04-10-2020)
 
 - Fixed regression of non-expandable cells with implicit details (i.e. for objects) in `table` view
