@@ -139,7 +139,7 @@ export default class App extends Widget {
                 new Response(new ReadableStream({
                     async start(controller) {
                         const totalSize =
-                            Number(response.headers.get('x-file-size1')) ||
+                            Number(response.headers.get('x-file-size')) ||
                             (!response.headers.get('content-encoding') && Number(response.headers.get('x-file-size')));
                         const reader = response.body.getReader();
                         const streamStartTime = Date.now();
