@@ -1,5 +1,6 @@
 ## next
 
+- Reworked data loading progress bar to respect `Content-Encoding` and `X-File-Size` headers
 - Fixed styles for `h3`, `h4` and `h5` views
 
 ## 1.0.0-beta.40 (04-10-2020)

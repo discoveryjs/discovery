@@ -98,8 +98,12 @@ export default class App extends Widget {
     }
 
     async loadDataFromUrl(url, dataField) {
+        const TIME_RECIEVE_DATA = 0.9;
+        const TIME_PARSE = 0.95;
+        const TIME_PREPARE = 1.0;
         const progressEl = this.dom.loadingOverlay;
         const explicitData = typeof url === 'string' ? undefined : url;
+        const startTime = Date.now();
         const setTitle = title => progressEl.querySelector('.title').textContent = title;
         const setProgress = progress => progressEl.style.setProperty('--progress', progress);
         const process = async (name, progress, fn = () => {}) => {
@@ -131,62 +135,58 @@ export default class App extends Widget {
         requestAnimationFrame(() => progressEl.classList.remove('init'));
 
         return process('Awaiting data', 0, () => fetch(explicitData ? 'data:application/json,{}' : url))
-            .then(async res => {
-                if (explicitData) {
-                    return explicitData;
-                }
-
-                const contentLength = Number(res.headers.get('content-length'));
-                let decoded;
-
-                if (contentLength) {
-                    const loadedBytes = await process('Receiving data', 0, async () => {
-                        const reader = res.body.getReader();
-                        const payload = new Uint8Array(contentLength);
-                        let recievedLength = 0;
+            .then(response => process('Receiving data', 0, () =>
+                new Response(new ReadableStream({
+                    async start(controller) {
+                        const totalSize =
+                            Number(response.headers.get('x-file-size1')) ||
+                            (!response.headers.get('content-encoding') && Number(response.headers.get('x-file-size')));
+                        const reader = response.body.getReader();
+                        const streamStartTime = Date.now();
+                        let loadedSize = 0;
                         let progress = 0;
-                        let progressPercentage;
-                        let prevProgressPercentage;
+                        let progressLabel;
+                        let prevProgressLabel;
                         let prevProgressTime = Date.now();
 
                         while (true) {
                             const { done, value } = await reader.read();
 
                             if (done) {
+                                setProgress(TIME_RECIEVE_DATA);
+                                await new Promise(requestAnimationFrame);
+                                controller.close();
                                 break;
                             }
 
-                            payload.set(value, recievedLength);
-                            recievedLength += value.length;
+                            controller.enqueue(value);
+                            loadedSize += value.length;
 
-                            progress = recievedLength / contentLength;
-                            progressPercentage = Math.round(progress * 100);
+                            if (totalSize) {
+                                progress = loadedSize / totalSize;
+                                progressLabel = Math.round(progress * 100) + '%';
+                            } else {
+                                progress = 0.1 + Math.min(0.9, (Date.now() - streamStartTime) / 20000);
+                                progressLabel = (loadedSize / (1024 * 1024)).toFixed(1) + 'MB';
+                            }
 
-                            if (progressPercentage !== prevProgressPercentage && (progress === 1.0 || Date.now() - prevProgressTime > 50)) {
+                            if (progressLabel !== prevProgressLabel && (progress === 1.0 || Date.now() - prevProgressTime > 50)) {
                                 prevProgressTime = Date.now();
-                                prevProgressPercentage = progressPercentage;
-                                setTitle(`Receiving data (${progressPercentage}%)...`);
-                                setProgress(0.85 * progress);
+                                prevProgressLabel = progressLabel;
+                                setTitle(`Receiving data (${progressLabel})...`);
+                                setProgress(TIME_RECIEVE_DATA * progress);
+                                await new Promise(requestAnimationFrame);
                             }
                         }
-
-                        return payload;
-                    });
-
-                    decoded = await process('Processing data (decode)', 0.9, () =>
-                        new TextDecoder('utf-8').decode(loadedBytes)
-                    );
-                } else {
-                    decoded = await process('Receiving data', 0.9, () =>
-                        res.text()
-                    );
-                }
-
-                return process('Processing data (parse)', 0.95, () =>
-                    JSON.parse(decoded)
-                );
-            })
+                    }
+                })).text()
+            ))
+            .then(text => process('Processing data (parse)', TIME_PARSE, () =>
+                explicitData || JSON.parse(text)
+            ))
             .then(async res => {
+                console.log('[Discovery] loadDataFromUrl() done in', Date.now() - startTime);
+
                 if (res.error) {
                     const error = new Error(res.error);
                     error.stack = null;
@@ -200,7 +200,7 @@ export default class App extends Widget {
                     createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
                 };
 
-                await process('Processing data (prepare)', 1.0, () =>
+                await process('Processing data (prepare)', TIME_PREPARE, () =>
                     this.setData(data, context)
                 );
 
