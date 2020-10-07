@@ -60,12 +60,14 @@ function createDataExtensionApi(instance) {
     // const linkResolvers = new X(instance.pageLinkResolvers, objectMarkers);
     const linkResolvers = [];
     const annotations = [];
+    const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
+    const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
     const queryExtensions = {
         query: (...args) => instance.query(...args),
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
-        marker: (current, type) => objectMarkers.lookup(current, type),
-        markerAll: (current) => objectMarkers.lookupAll(current)
+        marker: lookupObjectMarker,
+        markerAll: lookupObjectMarkerAll
     };
     const addValueAnnotation = (query, options = false) => {
         if (typeof options === 'boolean') {
@@ -90,6 +92,8 @@ function createDataExtensionApi(instance) {
             });
         },
         methods: {
+            lookupObjectMarker,
+            lookupObjectMarkerAll,
             defineObjectMarker(name, options) {
                 const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 

@@ -1,3 +1,7 @@
+## next
+
+- Exposed `lookupObjectMarker(value, type?)` and `lookupObjectMarkerAll(value)` methods to prepare handler
+
 ## 1.0.0-beta.41 (06-10-2020)
 
 - Reworked data loading progress bar to respect `Content-Encoding` and `X-File-Size` headers
