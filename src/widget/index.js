@@ -315,13 +315,23 @@ export default class Widget extends Emitter {
     // Data query
     //
 
+    queryFn(query) {
+        switch (typeof query) {
+            case 'function':
+                return query;
+
+            case 'string':
+                return jora(query, { methods: this.queryExtensions });
+        }
+    }
+
     query(query, data, context) {
         switch (typeof query) {
             case 'function':
                 return query(data, context);
 
             case 'string':
-                return jora(query, { methods: this.queryExtensions })(data, context);
+                return this.queryFn(query)(data, context);
 
             default:
                 return query;

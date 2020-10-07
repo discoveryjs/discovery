@@ -1,6 +1,7 @@
 ## next
 
 - Exposed `lookupObjectMarker(value, type?)` and `lookupObjectMarkerAll(value)` methods to prepare handler
+- Added `Widget#queryFn(query)` method
 
 ## 1.0.0-beta.41 (06-10-2020)
 
