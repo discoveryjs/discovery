@@ -4,7 +4,7 @@ import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
-import ObjectMarker from '../core/object-maker.js';
+import ObjectMarker from '../core/object-marker.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
