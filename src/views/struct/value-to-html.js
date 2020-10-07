@@ -28,7 +28,7 @@ export default function value2html(value, linear, options) {
         }
 
         case 'symbol':
-            return token('symbol', value);
+            return token('symbol', String(value));
 
         case 'function':
             return 'ƒn';
