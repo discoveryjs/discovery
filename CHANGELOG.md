@@ -3,6 +3,7 @@
 - Exposed `lookupObjectMarker(value, type?)` and `lookupObjectMarkerAll(value)` methods to prepare handler
 - Added `Widget#queryFn(query)` method
 - Fixed symbol stringifing in `struct` view
+- Isolated view defined props with querable values supported and pass it to view's render. That means special properties (`view`, `when`, `data`, `whenData`, `className` and `postRender`) aren't passing to a view's render now. A querable value is a string that starts with `=`, e.g. `{ view: 'list', limit: '= size() | $ > 13 ? 10 : $' }` will show entire list if its size <= 13, otherwise by 10 items at once.
 
 ## 1.0.0-beta.41 (06-10-2020)
 

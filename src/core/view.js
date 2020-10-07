@@ -3,6 +3,15 @@
 import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
+const { hasOwnProperty } = Object;
+const specialConfigProps = new Set([
+    'view',
+    'when',
+    'data',
+    'whenData',
+    'postRender',
+    'className'
+]);
 
 function createDefaultConfigErrorView(view) {
     return  {
@@ -39,12 +48,12 @@ function condition(type, host, config, data, context) {
     return host.queryBool(config[type] === true ? '' : config[type], data, context);
 }
 
-function renderDom(renderer, placeholder, config, data, context) {
+function renderDom(renderer, placeholder, config, props, data, context) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
         : document.createElement(tag || 'div');
-    let pipeline = Promise.resolve(renderer.render(el, config, data, context));
+    let pipeline = Promise.resolve(renderer.render(el, props, data, context));
 
     if (typeof config.postRender === 'function') {
         pipeline = pipeline.then(() => config.postRender(el, config, data, context));
@@ -169,7 +178,14 @@ function render(container, config, data, context) {
             )
             .then(data =>
                 condition('whenData', this.host, config, data, context)
-                    ? renderDom(renderer, placeholder, config, data, context)
+                    ? renderDom(
+                        renderer,
+                        placeholder,
+                        config,
+                        this.propsFromConfig(config, data, context),
+                        data,
+                        context
+                    )
                     : placeholder.remove()
             )
             .catch(e => {
@@ -267,6 +283,22 @@ export default class ViewRenderer extends Dict {
         }
 
         return config || extension;
+    }
+
+    propsFromConfig(config, data, context) {
+        const props = {};
+
+        for (const key in config) {
+            if (hasOwnProperty.call(config, key) && !specialConfigProps.has(key)) {
+                const value = config[key];
+
+                props[key] = typeof value === 'string' && value.startsWith('=')
+                    ? this.host.query(value.slice(1), data, context)
+                    : value;
+            }
+        }
+
+        return props;
     }
 
     render(container, config, data, context) {
