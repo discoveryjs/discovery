@@ -54,16 +54,22 @@ function getOrder(data, sorting) {
     }
 
     let order = 0;
-    for (let i = 1; i < data.length; i++) {
-        const sign = Math.sign(sorting(data[i - 1], data[i]));
 
-        if (sign) {
-            if (order && sign !== order) {
-                return false;
+    try {
+        for (let i = 1; i < data.length; i++) {
+            const sign = Math.sign(sorting(data[i - 1], data[i]));
+
+            if (sign) {
+                if (order && sign !== order) {
+                    return false;
+                }
+
+                order = sign;
             }
-
-            order = sign;
         }
+    } catch (e) {
+        console.error('[Discovery] Error on column order detection in table view', e);
+        return 0;
     }
 
     return -order;
