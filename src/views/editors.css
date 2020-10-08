@@ -29,6 +29,6 @@
     width: 22px;
 }
 .discovery-editor .CodeMirror .cm-discovery-view-name {
-    background-color: #fff7e6;
+    background-color: rgba(251, 226, 172, 35%);
     border-bottom: 1px dashed;
 }
