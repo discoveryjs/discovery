@@ -9,9 +9,10 @@
 - Made header on report page sticky positioned
 - Fixed view rendering breaking on data query processing
 - Fixed `Symbol()` stringifing in `struct` view
-- Fixed view name highlighting overlap a selection in view editor
+- Fixed overlapping a selection by view name spotlighting in view editor
 - Fixed report scroll jumping on typing in an editor due to change in rendered content height
-- Fixed table view rendering crash on column order detection
+- Fixed `table` view rendering crash on column order detection
+- Fixed autosorting for a table view column with both `data` and `content` in config
 
 ## 1.0.0-beta.41 (06-10-2020)
 
