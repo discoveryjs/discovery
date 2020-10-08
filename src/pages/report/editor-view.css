@@ -12,7 +12,7 @@
 .page-report > .report-editor .report-editor-tabs.presets::before {
     content: 'View presets:'
 }
-.page-report > .report-editor .report-editor-tabs.presets .tab:first-child {
+.page-report > .report-editor .report-editor-tabs.presets .report-editor-tab:first-child {
     border-bottom-left-radius: 4px;
 }
 
@@ -20,7 +20,6 @@
     padding: 8px 40px;
     margin-bottom: 1px;
     background: #e8f5fd;
-    border-radius: 0 4px 4px 4px;
 }
 .page-report > .report-editor .view-editor-form-content .formatting {
     position: absolute;

@@ -19,6 +19,8 @@
 }
 
 .discovery-sidebar {
+    position: relative;
+    z-index: 200;
     overflow: auto;
     width: 350px;
     background: #f0f0f0;
