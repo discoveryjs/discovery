@@ -6,6 +6,9 @@
 .page-report {
     padding-top: 0;
 }
+.page-report > .report-content {
+    min-height: calc(100vh - 121px);
+}
 
 /********************************
 * Error
