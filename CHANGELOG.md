@@ -6,6 +6,7 @@
 - Isolated view defined props  and pass it to view's render. That means that special properties (`view`, `when`, `data`, `whenData`, `className` and `postRender`) aren't passing to a view's render now
 - Added querable values in view's config. A querable value is a string that starts with `=`, e.g. `{ view: 'list', limit: '= size() > 13 ? 10 : false' }` will show entire list if its size <= 13, otherwise show by chunks of 10 items
 - Added in-string configuration for views, e.g. `"list{ limit: size() > 13 ? 10 : false, item: 'auto-link' }"` will be converted into `{ view: 'list', limit: '=size() > 13 ? 10 : false', item: 'auto-link' }`
+- Fixed view rendering breaking on data query processing
 - Fixed `Symbol()` stringifing in `struct` view
 - Fixed view name highlighting overlap a selection in view editor
 - Fixed report scroll jumping on typing in an editor due to change in rendered content height

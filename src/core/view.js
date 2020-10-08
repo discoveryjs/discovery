@@ -41,7 +41,7 @@ function createDefaultConfigErrorView(view) {
 };
 
 function condition(type, host, config, data, context) {
-    if (!Object.hasOwnProperty.call(config, type) || config[type] === undefined) {
+    if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
 
@@ -167,15 +167,12 @@ function render(container, config, data, context) {
     if ('when' in config === false || condition('when', this.host, config, data, context)) {
         // immediately append a view insert point (a placeholder)
         const placeholder = container.appendChild(document.createComment(''));
+        const getData = 'data' in config
+            ? Promise.resolve().then(() => this.host.query(config.data, data, context))
+            : Promise.resolve(data);
 
         // resolve data and render a view when ready
-        return Promise
-            .resolve(
-                // change context data if necessary
-                'data' in config
-                    ? this.host.query(config.data, data, context)
-                    : data
-            )
+        return getData
             .then(data =>
                 condition('whenData', this.host, config, data, context)
                     ? renderDom(
@@ -195,7 +192,7 @@ function render(container, config, data, context) {
                         el.style.fontFamily = 'monospace';
                         el.style.fontSize = '12px';
                     }
-                }, e);
+                }, {}, e);
                 console.error(e);
             });
     } else {
