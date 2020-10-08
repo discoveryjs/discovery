@@ -1,8 +1,19 @@
 .page-report > .report-header {
     display: flex;
     flex-direction: row;
-    margin: 22px 0 25px;
     line-height: 1.2;
+    position: sticky;
+    top: -22px;
+    z-index: 100;
+    padding: 22px 40px 7px;
+    margin: 0 -40px 18px;
+    background: rgba(255, 255, 255, .92);
+}
+@supports (backdrop-filter: blur(5px)) {
+    .page-report > .report-header {
+        background: rgba(255, 255, 255, .8);
+        backdrop-filter: blur(5px);
+    }
 }
 
 /********************************
@@ -29,6 +40,7 @@
     border: 1px solid #aaa;
     border-radius: 3px;
     box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
+    background-color: rgba(255, 255, 255, .3);
 }
 .page-report > .report-header .report-header-text input:hover,
 .page-report > .report-header .report-header-text input:focus {
@@ -69,7 +81,7 @@
 .page-report > .report-header button.discovery-view-popup-active,
 .page-report > .report-header button:hover,
 .page-report > .report-header button:focus {
-    background-color: #f8f8f8;
+    background-color: rgba(0, 0, 0, .03125);
     opacity: 1;
 }
 .page-report > .report-header button.toggle-fullscreen {
