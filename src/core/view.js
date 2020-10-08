@@ -234,25 +234,45 @@ export default class ViewRenderer extends Dict {
         }
 
         if (typeof config === 'string') {
-            const [, prefix, query] = config.match(/^(\S+?):((?:.|\s)+)$/) || [];
+            const [, prefix, op, query] = config.match(/^(\S+?)([:{])((?:.|\s)+)$/) || [];
 
             if (prefix) {
-                config = {
+                if (op === '{') {
+                    try {
+                        return this.host.queryToConfig(prefix, op + query);
+                    } catch (error) {
+                        return this.badConfig(config, error);
+                    }
+                }
+
+                return {
                     view: prefix,
                     data: query
                 };
-            } else {
-                config = {
-                    view: config
-                };
             }
+
+            return {
+                view: config
+            };
         } else if (typeof config === 'function') {
-            config = {
+            return {
                 view: config
             };
         }
 
         return config;
+    }
+
+    badConfig(config, error) {
+        const errorMsg = (error && error.message) || 'Unknown error';
+
+        console.error(errorMsg, { config, error });
+
+        return {
+            view: this.defaultConfigErrorRenderer.render,
+            reason: errorMsg,
+            config
+        };
     }
 
     ensureValidConfig(config) {
@@ -261,11 +281,7 @@ export default class ViewRenderer extends Dict {
         }
 
         if (!config || !config.view) {
-            return {
-                view: this.defaultConfigErrorRenderer.render,
-                reason: !config ? 'Config is not a valid value' : 'Option `view` is missed',
-                config
-            };
+            return this.badConfig(config, new Error(!config ? 'Config is not a valid value' : 'Option `view` is missed'));
         }
 
         return config;

@@ -346,6 +346,65 @@ export default class Widget extends Emitter {
         }
     }
 
+    queryToConfig(view, query) {
+        const { ast } = jora.syntax.parse(query);
+        const config = { view };
+
+        if (ast.type !== 'Block') {
+            throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must be a "Block"');
+        }
+
+        if (ast.body.type !== 'Object') {
+            throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must return an "Object"');
+        }
+
+        for (const entry of ast.body.properties) {
+            if (entry.type !== 'ObjectEntry') {
+                throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object entry type "' + entry.type + '"');
+            }
+
+            let key;
+            switch (entry.key.type) {
+                case 'Literal':
+                    key = entry.key.value;
+                    break;
+
+                case 'Identifier':
+                    key = entry.key.name;
+                    entry.value = entry.value || entry.key;
+                    break;
+
+                case 'Reference':
+                    key = entry.key.name.name;
+                    entry.value = entry.value || entry.key;
+                    break;
+
+                default:
+                    throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object key type "' + entry.key.type + '"');
+            }
+
+            if (key === 'view' || key === 'postRender' || key === 'className') {
+                throw new SyntaxError('[Discovery] Widget#queryToConfig(): set a value for "' + key + '" property via query is prohibited');
+            }
+
+            if (key === 'when' || key === 'data' || key === 'whenData') {
+                if (entry.value.type === 'Literal') {
+                    config[key] = typeof entry.value.value === 'string'
+                        ? JSON.stringify(entry.value.value)
+                        : entry.value.value;
+                } else {
+                    config[key] = jora.syntax.stringify(entry.value);
+                }
+            } else {
+                config[key] = entry.value.type === 'Literal' && (typeof entry.value.value !== 'string' || entry.value.value[0] !== '=')
+                    ? entry.value.value
+                    : '=' + jora.syntax.stringify(entry.value);
+            }
+        }
+
+        return config;
+    }
+
     querySuggestions(query, offset, data, context) {
         const typeOrder = ['property', 'value', 'method'];
         let suggestions;

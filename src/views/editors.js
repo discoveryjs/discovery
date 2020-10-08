@@ -190,12 +190,14 @@ CodeMirror.defineMode('discovery-view', function(config, options) {
 
             if (token === 'string') {
                 const end = stream.pos;
-                const content = stream.string.slice(start + 1, end - 1).split(':')[0];
+                const [, viewName] = stream.string
+                    .slice(start + 1, end - 1)
+                    .match(/^(.+?)([:{]|$)/) || [];
 
-                if (isDiscoveryViewDefined(content)) {
+                if (isDiscoveryViewDefined(viewName)) {
                     stream.pos = start + 1;
                     state.suspendTokens = [
-                        { pos: start + 1 + content.length, token: 'string discovery-view-name' },
+                        { pos: start + 1 + viewName.length, token: 'string discovery-view-name' },
                         { pos: end, token }
                     ];
                 }
