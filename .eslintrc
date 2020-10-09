@@ -2,12 +2,19 @@
     "env": {
         "node": true,
         "mocha": true,
-        "es6": true
+        "chai": true,
+        "cypress/globals": true
+    },
+    "globals": {
+        "discovery": true
     },
     "parserOptions": {
         "ecmaVersion": 2018,
         "sourceType": "module"
     },
+    "plugins": [
+        "cypress"
+    ],
     "rules": {
         "no-duplicate-case": 2,
         "no-undef": 2,
