@@ -1,18 +1,22 @@
+## next
+
+- Changed a bit default page in model free mode
+
 ## 1.0.0-beta.42 (08-10-2020)
 
 - Exposed `lookupObjectMarker(value, type?)` and `lookupObjectMarkerAll(value)` methods to prepare handler
 - Added `Widget#queryFn(query)` method
 - Added `Widget#queryToConfig(query)` method (uses internally for extracting config from a string)
 - Isolated view defined props  and pass it to view's render. That means that special properties (`view`, `when`, `data`, `whenData`, `className` and `postRender`) aren't passing to a view's render now
-- Added querable values in view's config. A querable value is a string that starts with `=`, e.g. `{ view: 'list', limit: '= size() > 13 ? 10 : false' }` will show entire list if its size <= 13, otherwise show by chunks of 10 items
+- Added queryable values in view's config. A queryable value is a string that starts with `=`, e.g. `{ view: 'list', limit: '= size() > 13 ? 10 : false' }` will show entire list if its size <= 13, otherwise show by chunks of 10 items
 - Added in-string configuration for views, e.g. `"list{ limit: size() > 13 ? 10 : false, item: 'auto-link' }"` will be converted into `{ view: 'list', limit: '=size() > 13 ? 10 : false', item: 'auto-link' }`
 - Made header on report page sticky positioned
 - Fixed view rendering breaking on data query processing
-- Fixed `Symbol()` stringifing in `struct` view
+- Fixed `Symbol()` stringifying in `struct` view
 - Fixed overlapping a selection by view name spotlighting in view editor
 - Fixed report scroll jumping on typing in an editor due to change in rendered content height
 - Fixed `table` view rendering crash on column order detection
-- Fixed autosorting for a table view column with both `data` and `content` in config
+- Fixed auto-sorting for a table view column with both `data` and `content` in config
 
 ## 1.0.0-beta.41 (06-10-2020)
 
