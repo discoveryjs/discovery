@@ -12,9 +12,9 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
+          start: npm run start:server
+          wait-on: 'http://localhost:8123'
           record: true
         env:
-          # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
