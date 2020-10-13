@@ -66,7 +66,14 @@ export default function(discovery) {
                 postRender: (el, { onInit }) => onInit(el, 'root'),
                 content: {
                     view: 'render',
-                    config: 'demo or view',
+                    config: (data) => {
+                        let result = data.demo || data.view;
+
+                        if (!Array.isArray(result)) {
+                            result.data = data.data;
+                        }
+                        return result;
+                    },
                     context: '{}'
                 }
             },
@@ -95,21 +102,49 @@ export default function(discovery) {
             content: {
                 view: 'switch',
                 content: [
-                    { when: '#.code="config"', content: {
-                        view: 'source',
-                        className: 'first-tab',
-                        data: (data) => ({
-                            syntax: 'discovery-view',
-                            content: jsonStringifyAsJavaScript(data.demo || data.view)
-                        })
-                    } },
-                    { when: '#.code="config-json"', content: {
-                        view: 'source',
-                        data: (data) => ({
-                            syntax: 'json',
-                            content: JSON.stringify(data.demo || data.view, null, 4)
-                        })
-                    } },
+                    { when: '#.code="config"', content: [
+                        {
+                            view: 'struct',
+                            when: (data) => data.data,
+                            data: (data) => data.data
+                        },
+                        {
+                            view: 'source',
+                            className: 'first-tab',
+                            data: (data) => {
+                                let result = data.demo || data.view;
+
+                                if (!Array.isArray(result)) {
+                                    result.data = data.data;
+                                }
+                                return {
+                                    syntax: 'discovery-view',
+                                    content: jsonStringifyAsJavaScript(result)
+                                }
+                            }
+                        }
+                    ] },
+                    { when: '#.code="config-json"', content: [
+                        {
+                            view: 'struct',
+                            when: (data) => data.data,
+                            data: (data) => data.data
+                        },
+                        {
+                            view: 'source',
+                            data: (data) => {
+                                let result = data.demo || data.view;
+
+                                if (!Array.isArray(result)) {
+                                    result.data = data.data;
+                                }
+                                return {
+                                    syntax: 'json',
+                                    content: JSON.stringify(result, null, 4)
+                                }
+                            }
+                        }
+                    ] },
                     { when: '#.code="html"', content: {
                         view: 'source',
                         data: (data, context) => ({
