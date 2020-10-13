@@ -66,14 +66,8 @@ export default function(discovery) {
                 postRender: (el, { onInit }) => onInit(el, 'root'),
                 content: {
                     view: 'render',
-                    config: (data) => {
-                        let result = data.demo || data.view;
-
-                        if (!Array.isArray(result)) {
-                            result.data = data.data;
-                        }
-                        return result;
-                    },
+                    config: 'demo or view',
+                    data: 'data',
                     context: '{}'
                 }
             },
@@ -104,45 +98,31 @@ export default function(discovery) {
                 content: [
                     { when: '#.code="config"', content: [
                         {
-                            view: 'struct',
+                            view: 'block',
                             when: (data) => data.data,
-                            data: (data) => data.data
+                            content: 'struct:data'
                         },
                         {
                             view: 'source',
                             className: 'first-tab',
-                            data: (data) => {
-                                let result = data.demo || data.view;
-
-                                if (!Array.isArray(result)) {
-                                    result.data = data.data;
-                                }
-                                return {
-                                    syntax: 'discovery-view',
-                                    content: jsonStringifyAsJavaScript(result)
-                                }
-                            }
+                            data: (data) => ({
+                                syntax: 'discovery-view',
+                                content: jsonStringifyAsJavaScript(data.demo || data.view)
+                            })
                         }
                     ] },
                     { when: '#.code="config-json"', content: [
                         {
-                            view: 'struct',
+                            view: 'block',
                             when: (data) => data.data,
-                            data: (data) => data.data
+                            content: 'struct:data'
                         },
                         {
                             view: 'source',
-                            data: (data) => {
-                                let result = data.demo || data.view;
-
-                                if (!Array.isArray(result)) {
-                                    result.data = data.data;
-                                }
-                                return {
-                                    syntax: 'json',
-                                    content: JSON.stringify(result, null, 4)
-                                }
-                            }
+                            data: (data) => ({
+                                syntax: 'json',
+                                content: JSON.stringify(data.demo || data.view, null, 4)
+                            })
                         }
                     ] },
                     { when: '#.code="html"', content: {
