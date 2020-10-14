@@ -57,7 +57,6 @@ function genUniqueId(len = 16) {
 
 function createDataExtensionApi(instance) {
     const objectMarkers = new ObjectMarker();
-    // const linkResolvers = new X(instance.pageLinkResolvers, objectMarkers);
     const linkResolvers = [];
     const annotations = [];
     const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
@@ -478,6 +477,9 @@ export default class Widget extends Emitter {
 
             newContainerEl.classList.add('discovery', this.isolateStyleMarker);
             newContainerEl.dataset.discoveryInstanceId = this.instanceId;
+            if (this.darkmode) {
+                newContainerEl.dataset.darkmode = true;
+            }
 
             newContainerEl.appendChild(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar')

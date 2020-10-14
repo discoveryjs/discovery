@@ -10,9 +10,19 @@
     font-family: Consolas, Monaco, monospace;
     font-size: 11px;
     line-height: 18px;
-    background: #fafafa;
-    color: #666;
+    background: rgba(205, 205, 205, 0.1);
+    color: var(--discovery-view-struct-color, #666);
     white-space: nowrap;
+}
+.discovery[data-darkmode] .view-struct {
+    --discovery-view-struct-color: #999;
+    --discovery-view-struct-hover-color: #aaa;
+    --discovery-view-struct-property-color: #d17a8c;
+    --discovery-view-struct-keyword-color: #0f8dc2;
+    --discovery-view-struct-number-color: #0f8dc2;
+    --discovery-view-struct-string-color: #7faf20;
+    --discovery-view-struct-string-underline-color: #85ab51;
+    --discovery-view-struct-string-hover-color: #97cf26;
 }
 .view-struct.struct-expand {
     cursor: pointer;
@@ -26,12 +36,12 @@
 }
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover {
-    color: #333;
-    background: #eee;
+    color: var(--discovery-view-struct-hover-color, #333);
+    background: rgba(187, 187, 187, 0.25);
 }
 .view-struct.struct-expanded-value,
 .view-struct .struct-expanded-value {
-    background-image: linear-gradient(to bottom, #eee, #eee);
+    background-image: linear-gradient(to bottom, rgba(187, 187, 187, 0.15), rgba(187, 187, 187, 0.15));
     background-size: 1px calc(100% - 38px);
     background-position: 4.85ex 20px;
     background-repeat: no-repeat;

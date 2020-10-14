@@ -3,7 +3,7 @@
     z-index: 0;
     margin: 0 -20px 10px;
     padding: 20px;
-    border: solid #eee;
+    border: solid rgba(170, 170, 170, 0.2);
     border-width: 1px 0;
 }
 .discovery-view-usage .usage-section > .view-h2 {
@@ -17,13 +17,13 @@
     margin-left: -10px;
 }
 .discovery-view-usage .view-tabs.usage-sources .view-tabs-content {
+    margin-top: -1px;
     overflow: visible;
+    border: 1px solid rgba(170, 170, 170, 0.4);
+    padding: 2px;
 }
 .discovery-view-usage .view-tabs.usage-sources .view-source {
-    margin-top: -1px;
-    border: 1px solid #ddd;
-    background: whitesmoke;
-    box-shadow: 0 0 0 2px white inset;
+    background: rgba(155, 155, 155, 0.1);
 }
 .discovery-view-usage .view-tabs.usage-sources .view-source.first-tab {
     border-top-left-radius: 0;

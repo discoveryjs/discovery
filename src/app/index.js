@@ -40,6 +40,20 @@ export default class App extends Widget {
                 onClick: () => this.setPage(this.reportPageId),
                 content: 'text:"Make report"'
             });
+            this.darkmode = false;
+            this.nav.append({
+                name: 'dark-mode',
+                onClick: () => {
+                    (this.darkmode = !this.darkmode)
+                        ? this.dom.container.dataset.darkmode = true
+                        : delete this.dom.container.dataset.darkmode;
+                    this.nav.render();
+                },
+                content: {
+                    view: 'text',
+                    data: '#.widget.darkmode ? "Light mode" : "Dark mode"'
+                }
+            })
             this.nav.menu.append({
                 name: 'download',
                 when: () => this.download,

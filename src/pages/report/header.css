@@ -7,12 +7,22 @@
     z-index: 100;
     padding: 22px 40px 7px;
     margin: 0 -40px 18px;
-    background: rgba(255, 255, 255, .92);
+    background-color: rgba(255, 255, 255, .92);
+    transition-property: background-color;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
 }
-@supports (backdrop-filter: blur(5px)) {
+.discovery[data-darkmode] .page-report > .report-header {
+    background-color: rgba(36, 36, 36, .92);
+}
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
     .page-report > .report-header {
-        background: rgba(255, 255, 255, .8);
+        background-color: rgba(255, 255, 255, .8);
+        -webkit-backdrop-filter: blur(5px);
         backdrop-filter: blur(5px);
+    }
+    .discovery[data-darkmode] .page-report > .report-header {
+        background-color: rgba(36, 36, 36, .8);
     }
 }
 
@@ -54,7 +64,7 @@
 .page-report > .report-header .report-header-text .timestamp {
     display: block;
     font-size: 10px;
-    color: #ccc;
+    color: rgba(153, 153, 153, 0.5);
     margin-top: 4px;
 }
 

@@ -1,7 +1,7 @@
 .page-views-showcase {
     display: flex;
     flex-direction: row;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(170, 170, 170, 0.4);
     margin: 15px 0 0;
     padding: 0 !important;
     height: calc(100vh - 65px);
@@ -9,11 +9,18 @@
     overflow: hidden;
     border-radius: 3px;
     background-color: rgba(255, 255, 255, .8);
+    transition-property: background-color;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
+
+}
+.discovery[data-darkmode] .page-views-showcase {
+    background-color: rgba(36, 36, 36, .8);
 }
 
 .page-views-showcase > .sidebar {
     width: 220px;
-    border-right: 1px solid #f0f0f0;
+    border-right: 1px solid rgba(170, 170, 170, 0.2);
 }
 .page-views-showcase > .sidebar .view-content-filter {
     height: 100%;
@@ -25,8 +32,9 @@
 }
 .page-views-showcase > .sidebar .view-content-filter > .view-input input {
     border: none;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(170, 170, 170, 0.2);
     border-radius: 0;
+    box-shadow: none;
 }
 .page-views-showcase > .sidebar .view-content-filter .view-block {
     flex: 1;

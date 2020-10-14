@@ -13,8 +13,8 @@
     z-index: 10;
     margin-bottom: -1px;
     padding-bottom: 2px;
-    border-color: #ddd;
-    background: white;
+    border-color: rgba(170, 170, 170, 0.4);
+    background: var(--discovery-background-color, white);
     cursor: default;
 }
 .view-tab.disabled {

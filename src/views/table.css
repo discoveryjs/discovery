@@ -8,14 +8,15 @@
     padding: 2px 8px;
     font-weight: normal;
     text-align: left;
-    background: #eee no-repeat right 2px center;
+    background: rgba(141, 141, 141, 0.15) no-repeat right 2px center;
     background-size: 14px;
+    background-clip: padding-box;
     /*text-transform: capitalize;*/
-    border: 1px solid white;
+    border: 1px solid transparent;
     border-width: 1px 1px 1px 0;
 }
 .view-table > thead > th:last-child {
-    border-right-color: #eee;
+    border-right: none;
 }
 .view-table > thead > th.sortable {
     padding-right: 16px;
@@ -31,5 +32,5 @@
     background-size: 12px;
 }
 .view-table > thead > th.sortable:hover {
-    background-color: #ddd;
+    background-color: rgba(141, 141, 141, 0.3);
 }

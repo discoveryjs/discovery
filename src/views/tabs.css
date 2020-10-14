@@ -1,5 +1,5 @@
 .view-tabs-buttons {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(170, 170, 170, 0.4);
     padding: 2px 5px 0 5px;
 }
 .view-tabs-buttons-before,

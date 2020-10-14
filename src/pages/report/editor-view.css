@@ -19,7 +19,7 @@
 .page-report > .report-editor .view-editor-form-content {
     padding: 8px 40px;
     margin-bottom: 1px;
-    background: #e8f5fd;
+    background-color: rgba(140, 205, 245, 0.2);
 }
 .page-report > .report-editor .view-editor-form-content .formatting {
     position: absolute;

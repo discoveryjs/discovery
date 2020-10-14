@@ -97,6 +97,3 @@
     content: '(nothing selected)';
     visibility: visible;
 }
-.discovery-view-popup.view-select-popup .view-menu-item.selected {
-    background: #e8f5fd;
-}

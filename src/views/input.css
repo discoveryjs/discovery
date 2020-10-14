@@ -9,6 +9,8 @@
     line-height: 1.2;
     border: 1px solid #ccc;
     border-radius: 3px;
+    background-color: var(--discovery-input-bg-color);
+    color: inherit;
     outline: 0;
 }
 .view-input input:hover {

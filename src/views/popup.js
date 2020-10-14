@@ -163,6 +163,12 @@ export default function(discovery) {
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
 
+            if (discovery.darkmode) {
+                this.el.dataset.darkmode = true;
+            } else {
+                delete this.el.dataset.darkmode;
+            }
+
             if (typeof render === 'function') {
                 this.el.innerHTML = '';
                 render(this.el, triggerEl, this.hide);

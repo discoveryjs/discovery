@@ -6,10 +6,10 @@
     outline: none;
     margin: 0;
     
-    border: 1px solid #ccc;
-    border-radius: 3px;    
-    background-color: white;
-    color: black;
+    background-color: rgba(255, 255, 255, .1);
+    border-radius: 3px;
+    border: 1px solid rgba(127, 127, 127, 0.4);
+    color: inherit;
     
     font-family: inherit;
     font-size: inherit;
@@ -24,8 +24,8 @@
 }
 .view-button:hover,
 .view-button.discovery-view-popup-active {
-    background-color: #f5f5f5;
-    border-color: #cccccc;
+    background-color: rgba(221, 221, 221, 0.3);
+    border-color: rgba(170, 170, 170, 0.6);
 }
 .view-button:active {
     background-color: #e0e0e0;
@@ -44,7 +44,7 @@
 }
 
 .view-button-primary {
-    background-color: #00aaff;
+    background-color: #00aaff;  /* #1d7fad */
     border-color: transparent !important;
     color: white;
 }
@@ -57,7 +57,7 @@
 }
 
 .view-button-danger {
-    background-color: #ff6163;
+    background-color: #ff6163;  /* #ca3a3b */
     border-color: transparent !important;
     color: white;
 }
@@ -70,7 +70,7 @@
 }
 
 .view-button-warning {
-    background-color: #ffcf21;
+    background-color: #ffcf21;  /* #efc115 */
     border-color: transparent !important;
     color: rgba(0, 0, 0, .84);
 }

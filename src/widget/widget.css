@@ -4,6 +4,34 @@
     font-family: Tahoma, Verdana, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.6;
+    background-color: var(--discovery-background-color, white);
+    color: var(--discovery-color, black);
+    transition-property: all;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
+
+    --discovery-background-color: white;
+    --discovery-color: black;
+    --discovery-input-bg-color: white;
+    --discovery-input-color: black;
+    --discovery-button-color: black;
+    --discovery-button-bg-color: white;
+    --discovery-button-border-color: #cccccc;
+    --discovery-button-hover-color: black;
+    --discovery-button-hover-bg-color: #f5f5f5;
+    --discovery-button-hover-border-color: #cccccc;
+}
+.discovery[data-darkmode] {
+    --discovery-background-color: #242424;
+    --discovery-color: #cccccc;
+    --discovery-input-bg-color: #343434;
+    --discovery-input-color: #e8e8e8;
+    --discovery-button-color: #cccccc;
+    --discovery-button-bg-color: #3a3a3a;
+    --discovery-button-border-color: #cccccc;
+    --discovery-button-hover-color: black;
+    --discovery-button-hover-bg-color: #f5f5f5;
+    --discovery-button-hover-border-color: #cccccc;
 }
 
 .discovery-content {
@@ -23,11 +51,12 @@
     z-index: 200;
     overflow: auto;
     width: 350px;
-    background: #f0f0f0;
-    border-right: 1px solid #DDD;
+    background: rgba(105, 105, 105, 0.1);
+    border-right: 1px solid rgba(85, 85, 85, 0.2);
     box-shadow: 2px 0 5px -3px rgba(0, 0, 0, .26);
-    transform: translate3d(0,0,0);
+    transform: translate3d(0, 0, 0);
 }
+
 .discovery-sidebar:empty {
     display: none;
 }
@@ -43,7 +72,7 @@
 }
 .discovery-sidebar .view-content-filter > .view-input {
     border-bottom: 1px solid #DDD;
-    background: white;
+    /* background: white; */
     margin-bottom: -1px;
 }
 .discovery-sidebar .view-content-filter > .view-input input,
@@ -51,6 +80,7 @@
     outline: none;
     box-shadow: none;
     border: none;
+    border-radius: 0;
 }
 .discovery-sidebar .view-content-filter > .content > .view-list {
     padding: 8px 0 8px 12px;

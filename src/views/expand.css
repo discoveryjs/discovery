@@ -13,7 +13,7 @@
 .view-expand > .header {
     display: flex;
     padding: 2px;
-    background: #f4f4f4;
+    background: rgba(200, 200, 200, 0.2);
     font-size: 12px;
     cursor: pointer;
 }

@@ -17,8 +17,8 @@
     min-width: 3ex;
     padding-right: 1ex;
     margin-right: 1.5ex;
-    border-right: 1px solid #ddd;
-    color: #bbb;
+    border-right: 1px solid rgba(170, 170, 170, 0.4);
+    color: rgba(150, 150, 150, 0.65);
 }
 .view-source .lines > span {
     display: block;

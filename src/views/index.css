@@ -42,12 +42,13 @@
     vertical-align: top;
     margin-top: 4px;
     margin-right: 1ex;
-    background: white;
-    border: 1px solid #ddd;
+    background-color: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(127, 127, 127, 0.4);
     border-radius: 3px;
+    color: var(--discovery-color, black);
     padding: 4px 8px;
     font-size: 11px;
-    line-height: normal;
+    line-height: 12px;
     font-family: system-ui, Arial, sans-serif;
     min-height: 0;
     cursor: pointer;
@@ -55,7 +56,8 @@
 .more-buttons .more-button:hover,
 .more-buttons .more-button:active,
 .more-buttons .more-button:focus {
-    border-color: #ccc;
+    background-color: rgba(221, 221, 221, 0.3);
+    border-color: rgba(170, 170, 170, 0.6);
     outline: none;
 }
 .more-buttons .more-button:active {

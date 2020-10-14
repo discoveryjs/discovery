@@ -8,12 +8,15 @@
     overflow: hidden;
     overflow-y: auto;
     min-height: 20px;
-    border: 1px solid #ccc;
-    box-shadow: 3px 3px 18px rgba(0,0,0,.2);
+    border: 1px solid rgba(176, 176, 176, 0.65);
+    box-shadow: 3px 3px 18px rgba(0, 0, 0, .2);
     background: white;
     font-family: Tahoma, Verdana, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.6;
+}
+.discovery-view-popup[data-darkmode] {
+    background: #323232;
 }
 
 .discovery-view-popup.show-on-hover:not([data-pin-mode="popup-hover"]):not(.pinned) {
