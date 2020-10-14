@@ -1,6 +1,7 @@
 ## next
 
 - Changed a bit default page in model free mode
+- Fixed `href` option to work for `button` view
 
 ## 1.0.0-beta.42 (08-10-2020)
 
