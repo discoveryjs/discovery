@@ -47,7 +47,7 @@ function sortingFromConfig(col, discovery, context) {
             query = query ? `(${query} | ${viewQuery})` : `(${viewQuery})`;
         }
     }
-query && console.log(`${prefix} ${query} ascN`);
+
     return query
         ? discovery.query(`${prefix} ${query} ascN`, { dataQuery: col.data }, context)
         : false;
