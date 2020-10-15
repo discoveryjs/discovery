@@ -32,13 +32,13 @@
     vertical-align: middle;
     padding-left: 3px;
     font-size: 90%;
-    color: #ddd;
+    color: rgba(157, 157, 157, 0.35);
 }
 .view-signature .count::before {
     content: attr(data-value);
 }
 .view-signature .count:hover {
-    color: #aaa;
+    color: rgba(148, 148, 148, 0.8);
 }
 
 .view-signature .property {

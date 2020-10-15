@@ -1,9 +1,8 @@
 .view-tab {
     display: inline-block;
-    padding: 2px 10px 1px;
+    padding: 2px 10px;
     font-size: 13px;
-    border: 1px solid transparent;
-    border-bottom: none;
+    border-bottom: var(--discovery-view-tabs-border);
     border-radius: 5px 5px 0 0;
     cursor: pointer;
     white-space: nowrap;
@@ -11,10 +10,9 @@
 .view-tab.active {
     position: relative;
     z-index: 10;
-    margin-bottom: -1px;
-    padding-bottom: 2px;
-    border-color: rgba(170, 170, 170, 0.4);
-    background: var(--discovery-background-color, white);
+    margin: -1px -1px 0 -1px;
+    border: var(--discovery-view-tabs-border);
+    border-bottom-color: transparent;
     cursor: default;
 }
 .view-tab.disabled {

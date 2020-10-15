@@ -1,16 +1,27 @@
 .view-tabs-buttons {
-    border-bottom: 1px solid rgba(170, 170, 170, 0.4);
-    padding: 2px 5px 0 5px;
+    --discovery-view-tabs-border: 1px solid rgba(170, 170, 170, 0.4);
+    margin-top: 3px;
+    display: flex;
+    flex-wrap: wrap;
 }
-.view-tabs-buttons-before,
-.view-tabs-buttons-after {
-    display: inline-block;
+.view-tabs-buttons::before,
+.view-tabs-buttons::after {
+    content: '';
+    width: 6px;
+    border-bottom: var(--discovery-view-tabs-border);
+}
+.view-tabs-buttons::after {
+    flex: 1;
 }
 .view-tabs-buttons-before {
-    margin-right: 1ex;
+    display: inline-block;
+    padding-right: 1ex;
+    border-bottom: var(--discovery-view-tabs-border);
 }
 .view-tabs-buttons-after {
-    margin-left: 1ex;
+    display: inline-block;
+    padding-left: 1ex;
+    border-bottom: var(--discovery-view-tabs-border);
 }
 .view-tabs-content {
     overflow: auto;

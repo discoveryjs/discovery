@@ -13,12 +13,12 @@
 .view-expand > .header {
     display: flex;
     padding: 2px;
-    background: rgba(200, 200, 200, 0.2);
+    background: rgba(192, 192, 192, 0.175);
     font-size: 12px;
     cursor: pointer;
 }
 .view-expand > .header:hover {
-    background: #e4e4e4;
+    background: rgba(165, 165, 165, 0.3);
 }
 .view-expand > .header > :not(.trigger) {
     flex: 1;

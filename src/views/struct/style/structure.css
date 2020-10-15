@@ -7,29 +7,29 @@
     margin-left: -4ch;
 }
 .view-struct .property {
-    color: var(--discovery-view-struct-property-color, #bd6476);
+    color: var(--discovery-fmt-property-color);
 }
 .view-struct .value {
     white-space: normal;
     vertical-align: top;
 }
 .view-struct .keyword {
-    color: var(--discovery-view-struct-keyword-color, #07a);
+    color: var(--discovery-fmt-keyword-color);
 }
 .view-struct .number {
-    color: var(--discovery-view-struct-number-color, #07a);
+    color: var(--discovery-fmt-number-color);
 }
 .view-struct .num-delim {
     padding-left: 3px;
 }
 .view-struct .string,
 .view-struct .string a {
-    color: var(--discovery-view-struct-string-color, #690);
-    text-decoration-color: var(--discovery-view-struct-string-underline-color, #bfd3a3);
+    color: var(--discovery-fmt-string-color);
+    text-decoration-color: var(--discovery-fmt-string-underline-color);
     white-space: pre;
 }
 .view-struct .string a:hover {
-    color: var(--discovery-view-struct-string-hover-color, #527a00);
+    color: var(--discovery-fmt-string-hover-color);
     text-decoration-color: currentColor;
 }
 .view-struct .value-size,
@@ -47,16 +47,16 @@
 .view-struct .string-text {
     display: inline;
     white-space: pre-wrap;
-    box-shadow: 0 0 0 2px rgba(35, 165, 25, 0.1);
-    background: rgba(35, 165, 25, 0.1);
-    color: var(--discovery-view-struct-string-color, #690);
+    box-shadow: 0 0 0 2px var(--discovery-fmt-string-highlight-color);
+    background: var(--discovery-fmt-string-highlight-color);
+    color: var(--discovery-fmt-string-color);
 }
 .view-struct .string-value-as-text .string-text {
     display: block;
     white-space: pre-wrap;
     box-shadow: 0 0 0 2px rgba(145, 145, 145, 0.1);
     background: rgba(145, 145, 145, 0.1);
-    color: var(--discovery-view-struct-color, #666);
+    color: var(--discovery-fmt-color);
 }
 .view-struct .more {
     color: rgba(127, 127, 127, 0.8);

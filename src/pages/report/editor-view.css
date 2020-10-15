@@ -31,7 +31,7 @@
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: center;
-    border-color: #b9d0df;
+    border-color: rgba(21, 98, 148, 0.3);
 }
 
 .page-report > .report-editor .view-editor-form-content .view-expand {

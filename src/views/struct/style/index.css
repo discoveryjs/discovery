@@ -11,18 +11,8 @@
     font-size: 11px;
     line-height: 18px;
     background: rgba(205, 205, 205, 0.1);
-    color: var(--discovery-view-struct-color, #666);
+    color: var(--discovery-fmt-color);
     white-space: nowrap;
-}
-.discovery[data-darkmode] .view-struct {
-    --discovery-view-struct-color: #999;
-    --discovery-view-struct-hover-color: #aaa;
-    --discovery-view-struct-property-color: #d17a8c;
-    --discovery-view-struct-keyword-color: #0f8dc2;
-    --discovery-view-struct-number-color: #0f8dc2;
-    --discovery-view-struct-string-color: #7faf20;
-    --discovery-view-struct-string-underline-color: #85ab51;
-    --discovery-view-struct-string-hover-color: #97cf26;
 }
 .view-struct.struct-expand {
     cursor: pointer;
@@ -36,7 +26,7 @@
 }
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover {
-    color: var(--discovery-view-struct-hover-color, #333);
+    color: var(--discovery-fmt-hover-color);
     background: rgba(187, 187, 187, 0.25);
 }
 .view-struct.struct-expanded-value,
@@ -54,7 +44,8 @@
 
 .discovery-view-popup.view-struct-actions-popup .error {
     font-size: 11px;
-    color: #a00;
+    color: rgba(214, 31, 31, 77%);
+    text-shadow: 0.2px 0px 0.3px rgba(255, 255, 255, .8);
 }
 .discovery-view-popup.view-struct-actions-popup .num-delim {
     padding-left: 3px;

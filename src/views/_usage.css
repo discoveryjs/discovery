@@ -10,20 +10,20 @@
     margin-top: 1.2em;
     margin-bottom: .5em;
 }
-.discovery-view-usage .view-tabs.usage-sources .view-tabs-buttons {
-    margin-left: 5px;
-}
-.discovery-view-usage .view-tabs.usage-sources .view-tab:first-child {
-    margin-left: -10px;
+.discovery-view-usage .view-tabs.usage-sources .view-tabs-buttons::before {
+    display: none;
 }
 .discovery-view-usage .view-tabs.usage-sources .view-tabs-content {
-    margin-top: -1px;
     overflow: visible;
     border: 1px solid rgba(170, 170, 170, 0.4);
+    border-top: none;
+    border-radius: 0 0 3px 3px;
     padding: 2px;
 }
 .discovery-view-usage .view-tabs.usage-sources .view-source {
     background: rgba(155, 155, 155, 0.1);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 .discovery-view-usage .view-tabs.usage-sources .view-source.first-tab {
     border-top-left-radius: 0;

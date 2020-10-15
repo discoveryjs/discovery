@@ -17,7 +17,7 @@ CodeMirror.commands.autocomplete = CodeMirror.showHint;
 CodeMirror.defineOption('showHintOptions', null);
 CodeMirror.defineExtension('showHint', function(options) {
     options = {
-        closeOnUnfocus: true,
+        closeOnUnfocus: false,
         container: null,
         ...this.options.showHintOptions,
         ...options
@@ -194,7 +194,8 @@ class Widget {
         const hintsElClassNames = [
             POPUP_CLASS,
             completion.cm.options.theme,
-            completion.options.isolateStyleMarker
+            completion.options.isolateStyleMarker,
+            completion.options.darkmode
         ].filter(Boolean);
 
         this.completion = completion;

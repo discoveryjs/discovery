@@ -14,7 +14,7 @@
     text-align: right;
     box-sizing: border-box;
     font-size: 11px;
-    color: #aaa;
+    color: rgba(141, 141, 141, 0.75);
 }
 .page-report > .report-editor .report-editor-tab {
     display: inline-block;
@@ -31,7 +31,7 @@
     cursor: default;
 }
 .page-report > .report-editor .report-editor-tab:not(.active):hover {
-    background: #e4e4e4;
+    background: rgba(187, 187, 187, 0.4);
 }
 .page-report > .report-editor .report-editor-tab:first-child {
     border-top-left-radius: 4px;
@@ -65,7 +65,7 @@
 .page-report > .report-editor .editor-toolbar .syntax-hint {
     padding-left: 10px;
     flex: 1;
-    color: #aaa;
+    color: rgba(141, 141, 141, 0.75);
     font-size: 12px;
 }
 
