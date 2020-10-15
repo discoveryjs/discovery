@@ -1,6 +1,6 @@
 .view-table {
     font-size: 12px;
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
     border-spacing: 0;
 }
 
@@ -8,10 +8,9 @@
     padding: 2px 8px;
     font-weight: normal;
     text-align: left;
-    background: rgba(141, 141, 141, 0.15) no-repeat right 2px center;
-    background-size: 14px;
+    background: rgba(141, 141, 141, 0.15) no-repeat right 1px center;
+    background-size: 15px;
     background-clip: padding-box;
-    /*text-transform: capitalize;*/
     border: 1px solid transparent;
     border-width: 1px 1px 1px 0;
 }
@@ -19,17 +18,15 @@
     border-right: none;
 }
 .view-table > thead > th.sortable {
-    padding-right: 16px;
+    padding-right: 18px;
     background-image: url('./table-sortable.svg');
     cursor: pointer;
 }
 .view-table > thead > th.sortable.asc {
     background-image: url('./table-sort-asc.svg');
-    background-size: 12px;
 }
 .view-table > thead > th.sortable.desc {
     background-image: url('./table-sort-desc.svg');
-    background-size: 12px;
 }
 .view-table > thead > th.sortable:hover {
     background-color: rgba(141, 141, 141, 0.3);

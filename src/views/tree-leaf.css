@@ -1,20 +1,31 @@
 .view-tree-leaf {
+    --view-leaf-lines-offset: 0;
     position: relative;
     overflow: hidden;
     display: grid;
     grid-template-columns: 20px auto;
     grid-template-areas:
         "toggle content"
-        "children children";
+        "toggle children";
+    background-image:
+        linear-gradient(to right, rgba(153, 153, 153, 0.5), rgba(153, 153, 153, 0.5)),
+        linear-gradient(to right, rgba(153, 153, 153, 0.5), rgba(153, 153, 153, 0.5));
+    background-size:
+        1px calc(1em - 7px * var(--view-leaf-lines-offset, 0)),
+        1px 100%;
+    background-position:
+        5px top,
+        5px calc(1em + 6px * var(--view-leaf-lines-offset, 0));
+    background-repeat: no-repeat;
 }
-.view-tree-leaf:not(:last-child)::before,
-.view-tree-leaf-children.incomplete > .view-tree-leaf:not(.last)::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 5px;
-    border-left: 1px solid #ccc;
+.view-tree-leaf.has-children {
+    --view-leaf-lines-offset: 1;
+}
+.view-tree-leaf:last-child,
+.view-tree-leaf-children.incomplete > .view-tree-leaf.last {
+    background-image:
+        linear-gradient(to right, rgba(153, 153, 153, 0.5), rgba(153, 153, 153, 0.5)),
+        none;
 }
 
 .view-tree-leaf-toggle {
@@ -26,18 +37,17 @@
     margin-top: -3px;
     width: 9px;
     height: 9px;
-    background: white;
     border-radius: 2px;
     border: 1px solid currentColor;
     margin-right: 9px;
     font-size: 10px;
     line-height: 8px;
     text-align: center;
-    color: #aaa;
+    color: rgba(127, 127, 127, 0.8);
     cursor: pointer;
 }
 .view-tree-leaf-toggle:hover {
-    color: #666;
+    color: #808080;
 }
 .view-tree-leaf.has-children > .view-tree-leaf-toggle {
     visibility: visible;
@@ -55,13 +65,14 @@
     content: '';
     visibility: visible;
     position: absolute;
-    z-index: -1;
-    left: 4px;
-    bottom: 4px;
-    height: 30px;
-    width: 12px;
-    border: solid #ccc;
-    border-width: 0 0 1px 1px;
+    top: 4px;
+    left: 5px;
+    right: -8px;
+    height: 1px;
+    background-color: rgba(153, 153, 153, 0.5);
+}
+.view-tree-leaf.has-children > .view-tree-leaf-toggle::after {
+    left: 11px;
 }
 
 .view-tree-leaf-content {
@@ -74,7 +85,6 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    padding-left: 18px;
 }
 .view-tree-leaf.collapsed > .view-tree-leaf-children {
     display: none;

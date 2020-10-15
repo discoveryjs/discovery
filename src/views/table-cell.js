@@ -82,7 +82,8 @@ export default function(discovery) {
                         detailsEl = rowEl.parentNode
                             .insertBefore(document.createElement('tr'), rowEl.nextSibling)
                             .appendChild(document.createElement('td'));
-                        detailsEl.parentNode.className = 'view-table-cell-details-content';
+                        detailsEl.parentNode.className = 'view-table-cell-details-row';
+                        detailsEl.className = 'view-cell-details-content';
                         detailsEl.colSpan = 1000;
                     }
 

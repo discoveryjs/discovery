@@ -17,7 +17,7 @@ CodeMirror.commands.autocomplete = CodeMirror.showHint;
 CodeMirror.defineOption('showHintOptions', null);
 CodeMirror.defineExtension('showHint', function(options) {
     options = {
-        closeOnUnfocus: false,
+        closeOnUnfocus: true,
         container: null,
         ...this.options.showHintOptions,
         ...options

@@ -21,6 +21,7 @@
     --discovery-button-hover-bg-color: #f5f5f5;
     --discovery-button-hover-border-color: #cccccc;
 
+    --discovery-fmt-color: #666;
     --discovery-fmt-variable-color: #047d65;
     --discovery-fmt-property-color: #bd6476;
     --discovery-fmt-keyword-color: #07a;
@@ -89,7 +90,7 @@
     height: 100%;
 }
 .discovery-sidebar .view-content-filter > .view-input {
-    border-bottom: 1px solid #DDD;
+    border-bottom: 1px solid rgba(170, 170, 170, 0.4);
     /* background: white; */
     margin-bottom: -1px;
 }
@@ -116,7 +117,7 @@
     margin-left: -12px;
 }
 .discovery-sidebar .view-text-match {
-    background: white;
+    background: rgba(255, 255, 255, 0.9);
     border-bottom: 2px solid orange;
     line-height: 1.2;
     display: inline-block;
@@ -132,7 +133,7 @@
     overflow: hidden;
     user-select: none;
 }
-.view-nav-button[data-name="burger"] {
+.discovery-content-badges .view-nav-button[data-name="burger"] {
     background-image: url(hamburger-menu.svg);
     background-repeat: no-repeat;
     background-position: center;
