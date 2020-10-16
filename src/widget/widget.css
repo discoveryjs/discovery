@@ -26,6 +26,7 @@
     --discovery-fmt-property-color: #bd6476;
     --discovery-fmt-keyword-color: #07a;
     --discovery-fmt-number-color: #07a;
+    --discovery-fmt-atom-color: #07a;
     --discovery-fmt-string-color: #690;
     --discovery-fmt-string-highlight-color: rgba(35, 165, 25, 0.1);
     --discovery-fmt-comment-color: #75787b;
@@ -33,6 +34,9 @@
 .discovery[data-darkmode] {
     --discovery-background-color: #242424;
     --discovery-color: #cccccc;
+    --discovery-link-color: #25a8e2;
+    --discovery-link-hover-color: #0099dd;
+    --discovery-link-underline-color: #3d5e86;
     --discovery-input-bg-color: #343434;
     --discovery-input-color: #e8e8e8;
     --discovery-button-color: #cccccc;
@@ -48,6 +52,7 @@
     --discovery-fmt-property-color: #d17a8c;
     --discovery-fmt-keyword-color: #0f8dc2;
     --discovery-fmt-number-color: #0f8dc2;
+    --discovery-fmt-atom-color: #0f8dc2;
     --discovery-fmt-string-color: #7faf20;
     --discovery-fmt-string-underline-color: #85ab51;
     --discovery-fmt-string-hover-color: #97cf26;

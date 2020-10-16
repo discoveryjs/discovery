@@ -11,7 +11,7 @@
     top: -4px;
     margin-bottom: -2px;
     font-size: 12px;
-    color: #bd6476;
+    color: var(--discovery-fmt-property-color);
     opacity: .8;
 }
 
@@ -21,10 +21,10 @@
     font-size: 180%;
 }
 .discovery-view-popup.signature-details .view-h1.property {
-    color: #bd6476;
+    color: var(--discovery-fmt-property-color);
 }
 .discovery-view-popup.signature-details .view-h1.type {
-    color: #07a;
+    color: var(--discovery-fmt-atom-color);
     margin-bottom: 8px;
 }
 .discovery-view-popup.signature-details .path + .view-h1,
@@ -136,15 +136,16 @@
     right: 0;
     color: #aaa;
     font-size: 11px;
-    padding: 0 4px;
+    padding: 0 4px 1px;
     border-radius: 3px 0 0 3px;
-    background: rgba(255, 255, 255, .9);
+    background: var(--discovery-background-color);
+    opacity: .9;
 }
 
 .discovery-view-popup.signature-details .array-types {
     padding: 8px 0 8px 12px;
     margin-top: 4px;
-    border-left: 2px solid #07a;
+    border-left: 2px solid rgba(-45, 112, 178, 0.8);
 }
 .discovery-view-popup.signature-details .array-types::before {
     content: 'Array value types';
@@ -156,5 +157,5 @@
     color: white;
     font-size: 10px;
     line-height: 12px;
-    background: #07a;
+    background: rgba(-45, 112, 178, 0.8);
 }

@@ -19,7 +19,7 @@
 .page-report > .report-editor .view-editor-form-content {
     padding: 8px 40px;
     margin-bottom: 1px;
-    background-color: rgba(140, 205, 245, 0.2);
+    background-color: rgba(108, 188, 241, 0.15)
 }
 .page-report > .report-editor .view-editor-form-content .formatting {
     position: absolute;
@@ -60,10 +60,6 @@
 }
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list.visible {
     display: block;
-}
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item:not(:hover) {
-    color: #75a3bf;
-    white-space: nowrap;
 }
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list .item:not([href]) {
     color: #888;

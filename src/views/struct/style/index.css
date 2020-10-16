@@ -27,7 +27,7 @@
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover {
     color: var(--discovery-fmt-hover-color);
-    background: rgba(187, 187, 187, 0.25);
+    background-color: rgba(187, 187, 187, 0.25);
 }
 .view-struct.struct-expanded-value,
 .view-struct .struct-expanded-value {

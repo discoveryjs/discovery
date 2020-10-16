@@ -1,9 +1,9 @@
 .view-link {
-    color: #0099DD;
+    color: var(--discovery-link-color, #0099DD);
     text-decoration-skip: ink;
-    text-decoration-color: #92cee7;
+    text-decoration-color: var(--discovery-link-underline-color, #92cee7);
 }
 .view-link:hover {
-    color: #0077BB;
+    color: var(--discovery-link-hover-color, #0077BB);
     text-decoration-color: currentColor;
 }

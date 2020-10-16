@@ -36,12 +36,13 @@
 @import url('./tree.css');
 
 .more-buttons {
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
 }
 .more-buttons .more-button {
     vertical-align: top;
-    margin-top: 4px;
-    margin-right: 1ex;
     background-color: rgba(255, 255, 255, .1);
     border: 1px solid rgba(127, 127, 127, 0.4);
     border-radius: 3px;
@@ -52,6 +53,15 @@
     font-family: system-ui, Arial, sans-serif;
     min-height: 0;
     cursor: pointer;
+}
+@supports not (gap: 5px) {
+    .more-buttons {
+        margin-top: 0;
+    }
+    .more-buttons .more-button {
+        margin-top: 4px;
+        margin-right: 5px;
+    }
 }
 .more-buttons .more-button:hover,
 .more-buttons .more-button:active,

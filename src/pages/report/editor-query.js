@@ -38,7 +38,7 @@ export default function(discovery, updateParams) {
                         queryEngineInfo.name
                     }</a> ${queryEngineInfo.version || ''} syntax for queries`
                 ),
-                createElement('label', null, [
+                createElement('label', 'view-checkbox', [
                     queryEditorLiveEditEl = createElement('input', {
                         class: 'live-update',
                         type: 'checkbox',
@@ -51,7 +51,7 @@ export default function(discovery, updateParams) {
                             }
                         }
                     }),
-                    ' process on input'
+                    createElement('span', 'view-checkbox__label', 'process on input')
                 ]),
                 queryEditorButtonsEl
             ])

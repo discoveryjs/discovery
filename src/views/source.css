@@ -93,7 +93,8 @@
 .view-source .token.namespace {
 	opacity: .7;
 }
-.view-source .token.boolean {
+.view-source .token.boolean,
+.view-source .token.atom {
     color: var(--discovery-fmt-atom-color);
 }
 .view-source .token.number {
@@ -134,8 +135,8 @@
 	color: var(--discovery-fmt-variable-color);
 }
 .view-source .token.discovery-view-name {
-    background-color: rgba(183, 228, 44, 19%);
-    /* border-bottom: 1px dashed #a0be73; */
+    background-color: var(--discovery-fmt-string-highlight-color);
+    box-shadow: 0 0 0 1px var(--discovery-fmt-string-highlight-color);
     color: #6a9c11;
 }
 

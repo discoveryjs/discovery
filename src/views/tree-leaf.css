@@ -24,8 +24,7 @@
 .view-tree-leaf:last-child,
 .view-tree-leaf-children.incomplete > .view-tree-leaf.last {
     background-image:
-        linear-gradient(to right, rgba(153, 153, 153, 0.5), rgba(153, 153, 153, 0.5)),
-        none;
+        linear-gradient(to right, rgba(153, 153, 153, 0.5), rgba(153, 153, 153, 0.5));
 }
 
 .view-tree-leaf-toggle {
@@ -70,6 +69,7 @@
     right: -8px;
     height: 1px;
     background-color: rgba(153, 153, 153, 0.5);
+    pointer-events: none;
 }
 .view-tree-leaf.has-children > .view-tree-leaf-toggle::after {
     left: 11px;

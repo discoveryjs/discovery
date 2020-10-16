@@ -49,6 +49,7 @@
     border: 1px solid #aaa;
     border-color: transparent transparent #aaa transparent;
     background-color: transparent;
+    transition: box-shadow .15s ease-out;
 }
 .page-report > .report-header .report-header-text input:hover,
 .page-report > .report-header .report-header-text input:focus {

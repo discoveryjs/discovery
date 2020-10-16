@@ -27,7 +27,7 @@
 .page-report > .report-editor .report-editor-tab.active {
     padding-bottom: 3px;
     margin-bottom: 0;
-    background: rgba(140, 205, 245, 0.2);
+    background: rgba(108, 188, 241, 0.15);
     cursor: default;
 }
 .page-report > .report-editor .report-editor-tab:not(.active):hover {

@@ -40,6 +40,7 @@
     flex: 1;
     overflow: hidden;
     overflow-y: scroll;
+    padding: 1px;
 }
 .page-views-showcase > .sidebar .view-menu-item:not(.disabled) {
     color: #0099DD;
