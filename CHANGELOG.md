@@ -2,6 +2,8 @@
 
 - Changed a bit default page in model free mode
 - Fixed `href` option to work for `button` view
+- Fixed path generation in `signature` details
+- Added `Widget#pathToQuery(path)` method
 
 ## 1.0.0-beta.42 (08-10-2020)
 

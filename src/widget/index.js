@@ -444,6 +444,14 @@ export default class Widget extends Emitter {
         }
     }
 
+    pathToQuery(path) {
+        return path.map((part, idx) =>
+            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
+                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
+                : (idx === 0 ? part : '.' + part)
+        ).join('');
+    }
+
     getQueryEngineInfo() {
         return {
             name: 'jora',

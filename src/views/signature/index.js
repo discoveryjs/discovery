@@ -95,9 +95,7 @@ export default function(discovery) {
     discovery.view.define('signature', function(el, config, data) {
         const { expanded, path } = config;
         const stat = collectStat(data, expanded);
-        const normPath = Array.isArray(path)
-            ? path.map((value, idx) => typeof value === 'number' ? `${idx ? '' : '$'}[${value}]` : '.' + value)
-            : undefined;
+        const normPath = Array.isArray(path) ? path : undefined;
 
         renderStat(el, stat, elementToData, normPath);
     });
