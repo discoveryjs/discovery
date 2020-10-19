@@ -6,7 +6,7 @@
     bottom: 0;
     left: 0;
     padding: 20px;
-    background: white;
+    background: var(--discovery-background-color);
     font-size: 16px;
     will-change: opacity;
 }
@@ -36,7 +36,7 @@
     box-sizing: border-box;
     height: 3px;
     max-width: 300px;
-    background: #1f7ec5;
+    background: rgba(198, 198, 198, 0.3);
     border-radius: 2px;
 }
 .discovery > .loading-overlay:not(.error) .progress::before {
@@ -47,7 +47,8 @@
     position: absolute;
     left: 0;
     top: 0;
-    transform: translateX(calc(100% * var(--progress, 0)));
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
     /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
-    background-color: #eee;
+    background-color: #1f7ec5;
 }

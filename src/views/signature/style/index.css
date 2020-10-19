@@ -52,7 +52,7 @@
     background-color: rgba(170, 170, 170, 0.2);
 }
 .view-signature .optional {
-    color: #ff6e13;
+    color: var(--discovery-fmt-flag-color);
     padding-left: 2px;
 }
 

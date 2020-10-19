@@ -39,19 +39,20 @@
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    margin-top: 5px;
+    margin-top: 2px;
 }
 .more-buttons .more-button {
     vertical-align: top;
+    color: var(--discovery-color, black);
+    min-height: 0;
+    padding: 4px 8px;
+    margin: 0;
     background-color: rgba(255, 255, 255, .1);
     border: 1px solid rgba(127, 127, 127, 0.4);
     border-radius: 3px;
-    color: var(--discovery-color, black);
-    padding: 4px 8px;
     font-size: 11px;
     line-height: 12px;
     font-family: system-ui, Arial, sans-serif;
-    min-height: 0;
     cursor: pointer;
 }
 @supports not (gap: 5px) {

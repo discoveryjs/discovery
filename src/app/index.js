@@ -40,7 +40,6 @@ export default class App extends Widget {
                 onClick: () => this.setPage(this.reportPageId),
                 content: 'text:"Make report"'
             });
-            this.darkmode = false;
             this.nav.append({
                 name: 'dark-mode',
                 onClick: () => {

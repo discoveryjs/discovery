@@ -56,6 +56,8 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+    align-items: baseline;
+    gap: 10px;
 }
 .page-report > .report-editor .editor-toolbar label {
     padding: 4px;
@@ -67,6 +69,10 @@
     flex: 1;
     color: rgba(141, 141, 141, 0.75);
     font-size: 12px;
+    align-self: start;
+}
+.page-report > .report-editor .editor-toolbar .view-checkbox__label {
+    margin-right: 0;
 }
 
 .page-report > .report-editor .discovery-editor-error {

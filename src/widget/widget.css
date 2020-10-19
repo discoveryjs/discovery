@@ -6,7 +6,7 @@
     line-height: 1.6;
     background-color: var(--discovery-background-color, white);
     color: var(--discovery-color, black);
-    transition-property: all;
+    transition-property: background-color, color;
     transition-duration: .25s;
     transition-timing-function: ease-in;
 
@@ -22,6 +22,8 @@
     --discovery-button-hover-border-color: #cccccc;
 
     --discovery-fmt-color: #666;
+    --discovery-fmt-hover-color: #333;
+    --discovery-fmt-flag-color: #ff6e13;
     --discovery-fmt-variable-color: #047d65;
     --discovery-fmt-property-color: #bd6476;
     --discovery-fmt-keyword-color: #07a;
@@ -48,6 +50,7 @@
 
     --discovery-fmt-color: #999;
     --discovery-fmt-hover-color: #aaa;
+    --discovery-fmt-flag-color: #ff8030;
     --discovery-fmt-variable-color: #16a78a;
     --discovery-fmt-property-color: #d17a8c;
     --discovery-fmt-keyword-color: #0f8dc2;

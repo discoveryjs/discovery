@@ -48,6 +48,7 @@
 .view-select .view-menu-item {
     padding-top: 8px;
     padding-bottom: 8px;
+    padding-right: 8px;
 }
 .view-select:empty:not([data-placeholder])::before {
     content: '|';
@@ -57,7 +58,7 @@
 .view-select:empty[data-placeholder]::before {
     content: attr(data-placeholder);
     visibility: visible;
-    padding: 8px 0 8px 12px;
+    padding: 8px 8px 8px 12px;
     color: #bbb;
 }
 .view-select > * {
@@ -77,23 +78,20 @@
     min-width: 100%;
 }
 .discovery-view-popup.view-select-popup > .view-select__variants:not(:last-child) {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(202, 202, 202, 0.65);
 }
 .discovery-view-popup.view-select-popup > .view-select__filter {
     margin: 0;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(202, 202, 202, 0.65);
 }
 .discovery-view-popup.view-select-popup > :not(.view-tabs) + .view-select__filter {
-    border-top: 1px solid #ddd;
+    border-top: 1px solid rgba(202, 202, 202, 0.65);
 }
 .discovery-view-popup.view-select-popup > .view-select__filter input,
 .discovery-view-popup.view-select-popup > .view-select__filter input:focus {
     outline: none;
     box-shadow: none;
     border: none;
-}
-.discovery-view-popup.view-select-popup .more-buttons {
-    padding: 2px 8px 8px;
 }
 .discovery-view-popup.view-select-popup .reset-item {
     color: #aaa;

@@ -202,6 +202,7 @@ export default class Widget extends Emitter {
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
+        this.darkmode = this.options.darkmode || false;
         this.dom = {};
 
         this.apply(views);

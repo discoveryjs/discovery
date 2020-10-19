@@ -4,3 +4,7 @@
     padding: 4px 12px;
     color: #888;
 }
+
+.view-menu > .more-buttons {
+    margin: 2px 12px 8px;
+}

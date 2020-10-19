@@ -43,7 +43,7 @@
 }
 .discovery-view-popup.signature-details .usage-stat.optional::before {
     content: 'optional ';
-    color: #ff6e13;
+    color: var(--discovery-fmt-flag-color);
 }
 .discovery-view-popup.signature-details .num {
     /* padding: 2px; */
@@ -80,9 +80,9 @@
 }
 .discovery-view-popup.signature-details .pie-stat .caption:empty::before {
     content: 'empty string';
-    padding: 2px 4px;
+    padding: 2px 4px 3px;
     border-radius: 3px;
-    background: #f0f0f0;
+    background: rgba(180, 180, 180, 0.2);
     color: #888;
     font-size: 11px;
 }

@@ -10,7 +10,7 @@
     border: 1px solid rgba(153, 153, 153, 0.5);
     border-radius: 3px;
     background-color: rgba(255, 255, 255, .05);
-    color: inherit;
+    color: var(--discovery-color);
     outline: 0;
 }
 .view-input input:hover {
