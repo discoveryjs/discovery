@@ -38,6 +38,16 @@ export default (view, group) => ({
                     text: 'text'
                 }
             }
+        },
+        {
+            title: 'With a hint',
+            demo: {
+                view,
+                data: {
+                    text: 'text',
+                    hint: 'hint'
+                }
+            }
         }
     ]
 });

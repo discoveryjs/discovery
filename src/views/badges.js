@@ -15,7 +15,7 @@ function maybeFix(el, type, value) {
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content } = config;
-        let { color, text, href, prefix, postfix } = data || {};
+        let { color, text, href, prefix, postfix, hint } = data || {};
 
         if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
             text = data;
@@ -25,6 +25,10 @@ export default function(discovery) {
 
         if (href) {
             el.href = href;
+        }
+
+        if (hint) {
+            el.title = hint;
         }
 
         maybeFix(el, 'prefix', prefix);
