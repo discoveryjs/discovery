@@ -8,10 +8,12 @@ import { escapeHtml } from '../core/utils/html.js';
 
 export default class App extends Widget {
     constructor(container, options = {}) {
-        super(container, null, options);
+        super(container, null, {
+            darkmode: 'auto',
+            ...options
+        });
 
         this.mode = this.options.mode;
-
         this.download = this.options.setup.model && this.options.setup.model.download;
 
         this.apply(complexViews);
@@ -40,17 +42,16 @@ export default class App extends Widget {
                 onClick: () => this.setPage(this.reportPageId),
                 content: 'text:"Make report"'
             });
+            this.darkmode.on(() => this.nav.render());
             this.nav.append({
                 name: 'dark-mode',
+                when: () => this.darkmode.mode !== 'disabled',
                 onClick: () => {
-                    (this.darkmode = !this.darkmode)
-                        ? this.dom.container.dataset.darkmode = true
-                        : delete this.dom.container.dataset.darkmode;
-                    this.nav.render();
+                    this.darkmode.toggle(true);
                 },
                 content: {
                     view: 'text',
-                    data: '#.widget.darkmode ? "Light mode" : "Dark mode"'
+                    data: '#.widget.darkmode | mode = "auto" ? "Auto light/dark" : value ? "Dark mode" : "Light mode"'
                 }
             })
             this.nav.menu.append({

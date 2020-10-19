@@ -9,6 +9,7 @@ import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
+import { DarkModeController } from './darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
@@ -200,9 +201,11 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
+        const { darkmode = 'disabled' } = this.options;
+        this.darkmode = new DarkModeController(darkmode, true).on(value => this.applyDarkMode(value));
+
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.darkmode = this.options.darkmode || false;
         this.dom = {};
 
         this.apply(views);
@@ -486,7 +489,7 @@ export default class Widget extends Emitter {
 
             newContainerEl.classList.add('discovery', this.isolateStyleMarker);
             newContainerEl.dataset.discoveryInstanceId = this.instanceId;
-            if (this.darkmode) {
+            if (this.darkmode.value) {
                 newContainerEl.dataset.darkmode = true;
             }
 
@@ -521,6 +524,14 @@ export default class Widget extends Emitter {
 
         document.addEventListener(eventName, handlerWrapper, options);
         return () => document.removeEventListener(eventName, handlerWrapper, options);
+    }
+
+    applyDarkMode(dark) {
+        if (dark) {
+            this.dom.container.dataset.darkmode = true;
+        } else {
+            delete this.dom.container.dataset.darkmode;
+        }
     }
 
     addBadge() {
