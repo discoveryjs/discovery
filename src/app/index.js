@@ -119,16 +119,24 @@ export default class App extends Widget {
         const startTime = Date.now();
         const setTitle = title => progressEl.querySelector('.title').textContent = title;
         const setProgress = progress => progressEl.style.setProperty('--progress', progress);
+        const repaintIfNeeded = async () => {
+            if (!document.hidden) {
+                await Promise.race([
+                    // new Promise(requestAnimationFrame),
+                    new Promise(resolve => setTimeout(resolve, 16))
+                ]);
+            }
+        }
         const process = async (name, progress, fn = () => {}) => {
             try {
                 setTitle(name + '...');
-                await new Promise(requestAnimationFrame);
+                await repaintIfNeeded();
                 setProgress(progress);
 
                 return await fn();
             } finally {
                 console.log(`[Discovery] ${name} in ${elapsed.time()}ms`);
-                await new Promise(requestAnimationFrame);
+                await repaintIfNeeded();
             }
         };
         const elapsed = {
@@ -145,7 +153,8 @@ export default class App extends Widget {
         progressEl.innerHTML = '<div class="title"></div><div class="progress"></div>';
         progressEl.classList.remove('error', 'done');
         progressEl.classList.add('init');
-        requestAnimationFrame(() => progressEl.classList.remove('init'));
+        await repaintIfNeeded();
+        progressEl.classList.remove('init');
 
         return process('Awaiting data', 0, () => fetch(explicitData ? 'data:application/json,{}' : url))
             .then(response => process('Receiving data', 0, () =>
@@ -167,7 +176,7 @@ export default class App extends Widget {
 
                             if (done) {
                                 setProgress(TIME_RECIEVE_DATA);
-                                await new Promise(requestAnimationFrame);
+                                await repaintIfNeeded();
                                 controller.close();
                                 break;
                             }
@@ -188,7 +197,7 @@ export default class App extends Widget {
                                 prevProgressLabel = progressLabel;
                                 setTitle(`Receiving data (${progressLabel})...`);
                                 setProgress(TIME_RECIEVE_DATA * progress);
-                                await new Promise(requestAnimationFrame);
+                                await repaintIfNeeded();
                             }
                         }
                     }
@@ -198,7 +207,7 @@ export default class App extends Widget {
                 explicitData || JSON.parse(text)
             ))
             .then(async res => {
-                console.log('[Discovery] loadDataFromUrl() done in', Date.now() - startTime);
+                console.log('[Discovery] loadDataFromUrl() received data in', Date.now() - startTime);
 
                 if (res.error) {
                     const error = new Error(res.error);

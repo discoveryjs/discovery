@@ -1,5 +1,6 @@
 ## next
 
+- Improved loading progress overlay repaints to avoid freezing when document became inactive
 - Changed a bit default page in model free mode
 - Fixed `href` option to work for `button` view
 - Fixed path generation in `signature` details
