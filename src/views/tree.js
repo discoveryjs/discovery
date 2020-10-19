@@ -56,10 +56,10 @@ export default function(discovery) {
             );
     }
 
-    function buildTreeLines(data, context, childrenGetter, expanded) {
-        function processChildren(array, expanded, popCount = 0) {
+    function buildTreeLines(data, context, itemConfig, expanded) {
+        function processChildren(array, expanded, itemConfig, popCount = 0) {
             array.forEach((data, index, array) => {
-                const children = discovery.query(childrenGetter, data, context);
+                const children = discovery.query(itemConfig.children, data, context);
                 const hasChildren = Array.isArray(children) && children.length > 0;
                 const last = index === array.length - 1;
                 const leafExpanded =
@@ -75,7 +75,7 @@ export default function(discovery) {
                     expanded: leafExpanded,
                     last,
                     hasChildren,
-                    children: leafExpanded ? null : childrenGetter,
+                    children: leafExpanded ? null : itemConfig.children,
                     shift: last && (!leafExpanded || !hasChildren) ? popCount + 1 : 0
                 });
 
@@ -83,6 +83,7 @@ export default function(discovery) {
                     processChildren(
                         children,
                         typeof expanded === 'number' ? expanded - 1 : expanded,
+                        discovery.view.composeConfig(itemConfig, itemConfig.itemConfig),
                         last ? popCount + 1 : 0
                     );
                 }
@@ -92,7 +93,7 @@ export default function(discovery) {
         const leafs = [];
         const visited = new Set();
 
-        processChildren(data, expanded);
+        processChildren(data, expanded, itemConfig);
 
         return leafs;
     }
@@ -115,7 +116,7 @@ export default function(discovery) {
             expanded = typeof expanded === 'function' ? expanded : discovery.view.listLimit(expanded, 1);
 
             if (limitLines) {
-                const lines = buildTreeLines(data, context, children, expanded);
+                const lines = buildTreeLines(data, context, this.composeConfig({ children }, itemConfig), expanded);
                 const renderStack = {
                     container: el,
                     itemConfig: this.composeConfig({
