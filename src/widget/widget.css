@@ -36,9 +36,9 @@
 .discovery[data-darkmode] {
     --discovery-background-color: #242424;
     --discovery-color: #cccccc;
-    --discovery-link-color: #25a8e2;
+    --discovery-link-color: #1c87d4;
+    --discovery-link-underline-color: rgb(37, 146, 226, 50%);
     --discovery-link-hover-color: #0099dd;
-    --discovery-link-underline-color: #3d5e86;
     --discovery-input-bg-color: #343434;
     --discovery-input-color: #e8e8e8;
     --discovery-button-color: #cccccc;
