@@ -103,13 +103,23 @@
 .discovery-sidebar .view-tabs {
     height: 100%;
 }
+.discovery-sidebar .view-tab.active::before {
+    background-color: white;
+}
+.discovery[data-darkmode] .discovery-sidebar .view-tab.active::before {
+    background-color: rgba(255, 255, 255, .05);
+}
 .discovery-sidebar .view-content-filter > .view-input {
     border-bottom: 1px solid rgba(170, 170, 170, 0.4);
-    /* background: white; */
+    background-color: white;
     margin-bottom: -1px;
+}
+.discovery[data-darkmode] .discovery-sidebar .view-content-filter > .view-input {
+    background-color: rgba(255, 255, 255, .05);
 }
 .discovery-sidebar .view-content-filter > .view-input input,
 .discovery-sidebar .view-content-filter > .view-input input:focus {
+    background-color: transparent;
     outline: none;
     box-shadow: none;
     border: none;

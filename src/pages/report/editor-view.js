@@ -98,7 +98,7 @@ export default function(discovery, updateParams) {
                             availableViewsListEl.classList.toggle('visible');
                         }
                     }, [
-                        availableViewsTextEl = createElement('div', 'Available views:'),
+                        availableViewsTextEl = createElement('div', 'header-content'),
                         createElement('div', 'trigger')
                     ]),
                     availableViewsListEl = createElement('div', 'view-editor-view-list')

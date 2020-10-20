@@ -1,7 +1,7 @@
 .view-link {
     color: var(--discovery-link-color, #0099DD);
     text-decoration-skip: ink;
-    text-decoration-color: var(--discovery-link-underline-color, #92cee7);
+    text-decoration-color: var(--discovery-link-underline-color, rgba(0, 153, 221, 0.4));
 }
 .view-link:hover {
     color: var(--discovery-link-hover-color, #0077BB);
