@@ -1,3 +1,9 @@
+## next
+
+- `text-match` view
+    - Added support for a string as match pattern
+    - Removed requirement for parentheses in regexp patterns
+
 ## 1.0.0-beta.43 (20-10-2020)
 
 - Introduced dark color scheme a.k.a. dark mode. Various fixes and improvements in views markup and styles
