@@ -1,6 +1,6 @@
-## next
+## 1.0.0-beta.43 (20-10-2020)
 
-- Implemented dark color scheme a.k.a. dark mode. Various fixes and improvements in views markup and styles
+- Introduced dark color scheme a.k.a. dark mode. Various fixes and improvements in views markup and styles
 - Improved loading progress overlay repaints to avoid freezing when document became inactive
 - Added `Widget#pathToQuery(path)` method
 - Added `toggle` and `toggle-group` views
