@@ -1,6 +1,5 @@
 /* isolate-style-root: discovery-view-popup */
 .discovery-view-popup {
-    all: reset;
     position: fixed;
     min-width: 200px;
     box-sizing: border-box;
@@ -10,10 +9,7 @@
     min-height: 20px;
     border: 1px solid rgba(176, 176, 176, 0.65);
     box-shadow: 3px 3px 18px rgba(0, 0, 0, .2);
-    background-color: var(--discovery-background-color);
-    font-family: Tahoma, Verdana, Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
+
     --discovery-background-color: white;
 }
 .discovery-view-popup[data-darkmode] {

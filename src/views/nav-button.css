@@ -23,5 +23,5 @@
 }
 
 .discovery[data-darkmode] .view-nav-button {
-    color: #ccc;
+    color: var(--discovery-color);
 }

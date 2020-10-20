@@ -8,8 +8,9 @@
     display: inline-block;
     vertical-align: top;
     margin: 1px;
-    border: 1px solid #e99;
-    background: #ffe8e8;
+    border: 1px solid rgba(212, 0, 0, 0.4);
+    background-image: linear-gradient(to bottom, rgba(255, 25, 25, 0.1) 19px, transparent 0);
+    background-clip: padding-box;
     color: #c66;
     border-radius: 4px;
     padding: 4px;
@@ -18,10 +19,12 @@
 }
 .discovery .buildin-view-config-error::before {
     content: 'CONFIG ERROR';
+    display: inline-block;
     margin: -4px 1ex -4px -4px;
-    border-radius: 4px 0 0 4px;
-    background: #e99;
-    color: white;
+    border-radius: 3px 0 0 3px;
+    background: rgb(226, 36, 36, .4);
+    color: rgba(255, 255, 255, .85);
+    text-shadow: 1px 1px rgb(0, 0, 0, .2);
     padding: 4px;
 }
 .discovery .buildin-view-config-error.expanded::before {
@@ -37,6 +40,6 @@
     opacity: 1;
 }
 .discovery .buildin-view-config-error .view-struct {
-    margin: 4px -4px -4px;
-    border-radius: 0 0 4px 4px;
+    margin: 5px -4px -4px;
+    border-radius: 0 0 3px 3px;
 }

@@ -202,7 +202,7 @@ export default class Widget extends Emitter {
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
         const { darkmode = 'disabled' } = this.options;
-        this.darkmode = new DarkModeController(darkmode, true).on(value => this.applyDarkMode(value));
+        this.darkmode = new DarkModeController(darkmode, true);
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
@@ -483,21 +483,23 @@ export default class Widget extends Emitter {
 
         // reset old refs
         this.dom = {};
+        if (typeof oldDomRefs.detachDarkMode === 'function') {
+            oldDomRefs.detachDarkMode();
+        }
 
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
-
-            newContainerEl.classList.add('discovery', this.isolateStyleMarker);
-            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
-            if (this.darkmode.value) {
-                newContainerEl.dataset.darkmode = true;
-            }
-
-            newContainerEl.appendChild(
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar')
+            this.dom.detachDarkMode = this.darkmode.on(
+                dark => dark
+                    ? newContainerEl.dataset.darkmode = true
+                    : delete newContainerEl.dataset.darkmode,
+                true
             );
 
-            newContainerEl.appendChild(
+            newContainerEl.classList.add('discovery-root', 'discovery', this.isolateStyleMarker);
+            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
+            newContainerEl.append(
+                this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
                 createElement('main', 'discovery-content', [
                     this.dom.nav = createElement('div', 'discovery-content-badges'),
                     this.dom.pageContent = createElement('article')

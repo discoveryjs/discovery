@@ -37,16 +37,10 @@ function onLocalStorageChange(e) {
     }
 }
 
-function attach() {
-    applyLocalStorageValue(localStorage[storageKey]);
-    addEventListener('storage', onLocalStorageChange);
-    prefersDarkModeMedia.addEventListener('change', applyPrefersColorScheme);
-}
-
-function detach() {
-    removeEventListener('storage', onLocalStorageChange);
-    prefersDarkModeMedia.removeEventListener('change', applyPrefersColorScheme);
-}
+// attach
+applyLocalStorageValue(localStorage[storageKey]);
+addEventListener('storage', onLocalStorageChange);
+prefersDarkModeMedia.addListener(applyPrefersColorScheme);
 
 // input value | controller internal state
 //             | -------------------------
@@ -71,20 +65,19 @@ export class DarkModeController {
         instances.add(this);
     }
 
-    on(fn) {
-        this.handlers.push(fn);
+    on(fn, fire) {
+        let entry = { fn };
+        this.handlers.push(entry);
+        entry.fn(this.value, this.mode);
 
-        return this;
-    }
+        return () => {
+            const index = this.handlers.indexOf(entry);
+            entry = null;
 
-    off(fn) {
-        const index = this.handlers.indexOf(fn);
-
-        if (index !== -1) {
-            this.handlers.splice(index, 1);
-        }
-
-        return this;
+            if (index !== -1) {
+                this.handlers.splice(index, 1);
+            }
+        };
     }
 
     destroy() {
@@ -102,7 +95,6 @@ export class DarkModeController {
 
         this.mode = typeof value === 'boolean' ? 'manual' : value;
         this.value = this.mode === 'auto' ? prefersDarkModeMedia.matches : value === true;
-        console.log({ mode: oldMode, value: oldValue}, '->', { mode: this.mode, value: this.value });
 
         if (this.persistent) {
             if (this.mode === 'manual') {
@@ -114,19 +106,7 @@ export class DarkModeController {
 
         if (this.mode !== 'disabled') {
             if (this.value !== oldValue || this.mode !== oldMode) {
-                this.handlers.forEach(fn => fn(this.value, this.mode));
-            }
-        }
-
-        if (this.mode === 'disabled' && instances.has(this)) {
-            instances.delete(this);
-            if (instances.size === 0) {
-                detach();
-            }
-        } else if (this.mode !== 'disabled' && !instances.has(this)) {
-            instances.add(this);
-            if (instances.size === 1) {
-                attach();
+                this.handlers.forEach(({ fn }) => fn(this.value, this.mode));
             }
         }
     }

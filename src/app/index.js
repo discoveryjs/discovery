@@ -42,16 +42,19 @@ export default class App extends Widget {
                 onClick: () => this.setPage(this.reportPageId),
                 content: 'text:"Make report"'
             });
-            this.darkmode.on(() => this.nav.render());
+
+            let detachDarkMode = () => {};
             this.nav.append({
                 name: 'dark-mode',
                 when: () => this.darkmode.mode !== 'disabled',
-                onClick: () => {
-                    this.darkmode.toggle(true);
-                },
-                content: {
-                    view: 'text',
-                    data: '#.widget.darkmode | mode = "auto" ? "Auto light/dark" : value ? "Dark mode" : "Light mode"'
+                onClick: () => this.darkmode.toggle(true),
+                postRender: el => {
+                    detachDarkMode();
+                    detachDarkMode = this.darkmode.on((value, mode) => {
+                        el.classList.toggle('dark', value);
+                        el.classList.toggle('auto', mode === 'auto');
+                        el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
+                    }, true);
                 }
             })
             this.nav.menu.append({
