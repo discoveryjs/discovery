@@ -18,6 +18,7 @@ function applyLocalStorageValue(value) {
     const newValue =
         value === 'true' ? true :
         value === 'false' ? false :
+        value === 'auto' ? 'auto' :
         null;
 
     if (localStorageValue !== newValue) {
@@ -56,10 +57,11 @@ export class DarkModeController {
         this.persistent = Boolean(persistent);
         this.handlers = [];
         this.set(
-            // sync with localStorage on init if necessary
-            value === 'auto' && this.persistent && localStorageValue !== null
+            // use value from a localStorage when persistent
+            value !== 'disabled' && this.persistent && localStorageValue !== null
                 ? localStorageValue
-                : value
+                : value,
+            true
         );
 
         instances.add(this);
@@ -84,7 +86,7 @@ export class DarkModeController {
         instances.delete(this);
     }
 
-    set(value) {
+    set(value, init) {
         const oldValue = this.value;
         const oldMode = this.mode;
 
@@ -96,15 +98,11 @@ export class DarkModeController {
         this.mode = typeof value === 'boolean' ? 'manual' : value;
         this.value = this.mode === 'auto' ? prefersDarkModeMedia.matches : value === true;
 
-        if (this.persistent) {
-            if (this.mode === 'manual') {
-                localStorage.setItem(storageKey, this.value);
-            } else {
-                localStorage.removeItem(storageKey);
-            }
-        }
-
         if (this.mode !== 'disabled') {
+            if (this.persistent && !init) {
+                localStorage.setItem(storageKey, this.mode === 'auto' ? 'auto' : this.value);
+            }
+
             if (this.value !== oldValue || this.mode !== oldMode) {
                 this.handlers.forEach(({ fn }) => fn(this.value, this.mode));
             }
