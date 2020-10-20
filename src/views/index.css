@@ -32,6 +32,8 @@
 @import url('./tabs.css');
 @import url('./text-match.css');
 @import url('./toc-section.css');
+@import url('./toggle.css');
+@import url('./toggle-group.css');
 @import url('./tree-leaf.css');
 @import url('./tree.css');
 

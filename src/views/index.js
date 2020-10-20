@@ -37,5 +37,7 @@ export { default as tabs } from './tabs.js';
 export { default as text } from './text.js';
 export { default as textMatch } from './text-match.js';
 export { default as tocSection } from './toc-section.js';
+export { default as toggle } from './toggle.js';
+export { default as toggleGroup } from './toggle-group.js';
 export { default as treeItem } from './tree-leaf.js';
 export { default as tree } from './tree.js';

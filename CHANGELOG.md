@@ -6,6 +6,7 @@
 - Fixed `href` option to work for `button` view
 - Fixed path generation in `signature` details
 - Added `Widget#pathToQuery(path)` method
+- Added `toggle` and `toggle-group` view
 
 ## 1.0.0-beta.42 (08-10-2020)
 

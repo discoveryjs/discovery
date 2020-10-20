@@ -1,0 +1,23 @@
+.view-toggle-group {
+    margin-top: 2px;
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+.view-toggle-group-before {
+    padding-right: 1ex;
+}
+.view-toggle-group-after {
+    padding-left: 1ex;
+    order: 1000;
+}
+
+.view-toggle-group .view-toggle + .view-toggle {
+    margin-left: 1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.view-toggle-group .view-toggle:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
