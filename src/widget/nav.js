@@ -60,7 +60,7 @@ export class WidgetNavigation {
                 data: () => {
                     const fragment = createFragment();
 
-                    return this.host.view.render(fragment, this.menu, this.host.data, this.host.context)
+                    return this.host.view.render(fragment, this.menu, this.host.data, { ...this.host.context, widget: this.host })
                         .then(() => [...fragment.childNodes]);
                 },
                 whenData: true,

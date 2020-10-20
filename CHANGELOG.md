@@ -4,7 +4,8 @@
 - Changed a bit default page in model free mode
 - Fixed `children` option ignorance in `itemConfig` when `limitLines` is used for `tree` view
 - Fixed `href` option to work for `button` view
-- Fixed path generation in `signature` details
+- Fixed path generation in `signature` details 
+- Fixed context for `Widget#nav.menu` item rendering
 - Added `Widget#pathToQuery(path)` method
 - Added `toggle` and `toggle-group` view
 
