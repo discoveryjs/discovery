@@ -2,6 +2,11 @@
 import usage from './text-match.usage.js';
 
 const toString = Object.prototype.toString;
+const rxChars = /[\\^$.*+?()[\]{}|]/g;
+
+function prepare(string) {
+    return string.replace(rxChars, '\\$&')
+}
 
 export default function(discovery) {
     const matchWrapperEl = document.createElement('span');
@@ -9,8 +14,14 @@ export default function(discovery) {
 
     discovery.view.define('text-match', function(el, config, data) {
         const { text, match } = data;
-        const parts = toString.call(match) === '[object RegExp]'
-            ? String(text).split(match)
+        let regexp = match;
+
+        if (toString.call(match) !== '[object RegExp]' && match) {
+            regexp = new RegExp(`(${prepare(String(match))})`);
+        }
+
+        const parts = regexp
+            ? String(text).split(regexp)
             : [String(text)];
 
         parts.forEach((text, idx) => {
