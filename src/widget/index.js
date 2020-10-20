@@ -506,6 +506,10 @@ export default class Widget extends Emitter {
                 ])
             );
 
+            // cancel transitions on attach
+            newContainerEl.style.transition = 'none';
+            requestAnimationFrame(() => newContainerEl.style.transition = '');
+
             this.nav.render(this.dom.nav);
         }
 
