@@ -30,13 +30,14 @@
 .discovery .buildin-view-config-error.expanded::before {
     border-bottom-left-radius: 0;
 }
-.discovery .buildin-view-config-error .show-config {
+.discovery .buildin-view-config-error .toggle-config {
     margin-left: 1ex;
     cursor: pointer;
     opacity: .65;
     color: #888;
+    user-select: none;
 }
-.discovery .buildin-view-config-error .show-config:hover {
+.discovery .buildin-view-config-error .toggle-config:hover {
     opacity: 1;
 }
 .discovery .buildin-view-config-error .view-struct {
