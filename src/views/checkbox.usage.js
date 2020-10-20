@@ -40,7 +40,7 @@ export default {
             demo: {
                 view: 'checkbox',
                 // eslint-disable-next-line no-unused-vars
-                onChange: (value, name, data, context) => alert(`Changed to ${value}!`),
+                onChange: new Function('return (value, name, data, context) => alert(`Changed to ${value}!`)')(),
                 content: 'text:"click me!"'
             }
         }
