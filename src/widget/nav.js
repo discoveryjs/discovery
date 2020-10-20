@@ -60,13 +60,19 @@ export class WidgetNavigation {
                 data: () => {
                     const fragment = createFragment();
 
-                    return this.host.view.render(fragment, this.menu, this.host.data, { ...this.host.context, widget: this.host })
+                    return this.host.view.render(fragment, this.menu, this.host.data, {
+                        ...this.host.context,
+                        widget: this.host,
+                        hide: () => this.popup && this.popup.hide()
+                    })
                         .then(() => [...fragment.childNodes]);
                 },
                 whenData: true,
                 onClick: (el, nodes) => {
                     if (!this.popup) {
-                        this.popup = new this.host.view.Popup();
+                        this.popup = new this.host.view.Popup({
+                            className: 'discovery-nav-popup'
+                        });
                     }
 
                     this.popup.toggle(el, (el) => el.append(...nodes));

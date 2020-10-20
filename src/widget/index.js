@@ -490,9 +490,11 @@ export default class Widget extends Emitter {
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
             this.dom.detachDarkMode = this.darkmode.on(
-                dark => dark
-                    ? newContainerEl.dataset.darkmode = true
-                    : delete newContainerEl.dataset.darkmode,
+                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id="' + this.instanceId + '"]')])
+                    .forEach(rootEl => dark
+                        ? rootEl.dataset.darkmode = true
+                        : delete rootEl.dataset.darkmode
+                    ),
                 true
             );
 

@@ -43,20 +43,59 @@ export default class App extends Widget {
                 content: 'text:"Make report"'
             });
 
-            let detachDarkMode = () => {};
-            this.nav.append({
+            // let detachDarkMode = () => {};
+            // this.nav.append({
+            //     name: 'dev-dark-mode',
+            //     when: () => this.darkmode.mode !== 'disabled',
+            //     onClick: () => this.darkmode.toggle(true),
+            //     postRender: el => {
+            //         detachDarkMode();
+            //         detachDarkMode = this.darkmode.on((value, mode) => {
+            //             el.classList.toggle('dark', value);
+            //             el.classList.toggle('auto', mode === 'auto');
+            //             el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
+            //         }, true);
+            //     }
+            // });
+
+            let detachToggleDarkMode = () => {};
+            this.nav.menu.append({
+                view: 'block',
+                className: 'dark-mode-switcher',
                 name: 'dark-mode',
                 when: () => this.darkmode.mode !== 'disabled',
-                onClick: () => this.darkmode.toggle(true),
-                postRender: el => {
-                    detachDarkMode();
-                    detachDarkMode = this.darkmode.on((value, mode) => {
-                        el.classList.toggle('dark', value);
-                        el.classList.toggle('auto', mode === 'auto');
-                        el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
+                postRender: (el, opts, data, { hide }) => {
+                    let selfValue;
+
+                    detachToggleDarkMode();
+                    detachToggleDarkMode = this.darkmode.on((value, mode) => {
+                        const newValue = mode === 'auto' ? 'auto' : value;
+
+                        if (newValue === selfValue) {
+                            return;
+                        }
+
+                        el.innerHTML = '';
+                        selfValue = newValue;
+                        this.view.render(el, {
+                            view: 'toggle-group',
+                            beforeToggles: 'text:"Color schema"',
+                            onChange: value => {
+                                selfValue = value;
+                                this.darkmode.set(value)
+                                hide();
+                            },
+                            value: newValue,
+                            data: [
+                                { value: false, text: 'Light' },
+                                { value: true, text: 'Dark' },
+                                { value: 'auto', text: 'Auto' }
+                            ]
+                        }, null, { widget: this })
                     }, true);
                 }
-            })
+            });
+
             this.nav.menu.append({
                 name: 'download',
                 when: () => this.download,
@@ -71,7 +110,7 @@ export default class App extends Widget {
             this.nav.menu.append({
                 name: 'switch-model',
                 when: () => this.mode === 'multi',
-                onClick: () => location.href = '..',
+                data: { href: '..' },
                 content: 'text:"Switch model"'
             });
         }

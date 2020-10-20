@@ -52,3 +52,10 @@
     /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
     background-color: #1f7ec5;
 }
+
+.discovery-nav-popup .dark-mode-switcher {
+    padding: 4px 6px 4px 12px;
+}
+.discovery-nav-popup .dark-mode-switcher .view-toggle {
+    font-size: 11px;
+}
