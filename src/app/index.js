@@ -165,7 +165,7 @@ export default class App extends Widget {
         const repaintIfNeeded = async () => {
             if (!document.hidden) {
                 await Promise.race([
-                    // new Promise(requestAnimationFrame),
+                    new Promise(requestAnimationFrame),
                     new Promise(resolve => setTimeout(resolve, 16))
                 ]);
             }
