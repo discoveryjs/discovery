@@ -21,7 +21,8 @@
 .view-tree-leaf.has-children {
     --view-leaf-lines-offset: 1;
 }
-.view-tree-leaf.last {
+.view-tree-leaf.last,
+:not(.incomplete) > .view-tree-leaf:last-child {
     background-image:
         linear-gradient(to right, rgba(153, 153, 153, 0.5), rgba(153, 153, 153, 0.5));
 }

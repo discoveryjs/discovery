@@ -7,6 +7,7 @@ export default function(discovery) {
             limit = data.length;
         }
 
+        container.classList.add('incomplete');
         data
             .slice(offset, offset + limit)
             .reduce(
@@ -44,16 +45,14 @@ export default function(discovery) {
                 }),
                 Promise.resolve()
             )
-            .then(() =>
-                discovery.view.maybeMoreButtons(
-                    container,
-                    null,
-                    data.length,
-                    offset + limit,
-                    limit,
-                    (offset, limit) => renderTreeLines(container, renderStack, data, context, offset, limit)
-                )
-            );
+            .then(() => discovery.view.maybeMoreButtons(
+                container,
+                null,
+                data.length,
+                offset + limit,
+                limit,
+                (offset, limit) => renderTreeLines(container, renderStack, data, context, offset, limit)
+            ) || container.classList.remove('incomplete'));
     }
 
     function buildTreeLines(data, context, itemConfig, expanded) {
