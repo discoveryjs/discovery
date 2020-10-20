@@ -1,12 +1,14 @@
 .view-badge,
 .view-pill-badge {
+    --discovery-view-badge-color: rgba(177, 177, 177, 0.3);
+    --discovery-view-badge-text-color: var(--discovery-color);
     padding: 1px 6px 3px;
     margin-right: 1ex;
     text-shadow: 1px 1px rgba(255, 255, 255, .35);
-    background: rgba(177, 177, 177, 0.3);
+    background: var(--discovery-view-badge-color);
     border-radius: 3px;
     font-size: 85%;
-    color: var(--discovery-color);
+    color: var(--discovery-view-badge-text-color);
     text-decoration: none;
     white-space: nowrap;
 }
@@ -15,6 +17,8 @@
 }
 .discovery[data-darkmode] .view-badge,
 .discovery[data-darkmode] .view-pill-badge {
+    background: var(--discovery-view-badge-dark-color, var(--discovery-view-badge-color));
+    color: var(--discovery-view-badge-dark-text-color, var(--discovery-view-badge-text-color));
     text-shadow: 1px 1px rgba(0, 0, 0, .1);
 }
 

@@ -13,8 +13,31 @@ export default (view, group) => ({
             demo: {
                 view,
                 data: {
-                    color: '#F9E4A9',
+                    color: 'rgba(237, 177, 9, 0.35)',
                     text: 'Colored badge'
+                }
+            }
+        },
+        {
+            title: 'With text color',
+            demo: {
+                view,
+                data: {
+                    textColor: 'red',
+                    text: 'Badge with colored text'
+                }
+            }
+        },
+        {
+            title: 'With explicit dark-mode colors',
+            demo: {
+                view,
+                data: {
+                    color: 'blue',
+                    textColor: 'white',
+                    darkColor: 'yellow',
+                    darkTextColor: 'black',
+                    text: 'Badge with colored text'
                 }
             }
         },
