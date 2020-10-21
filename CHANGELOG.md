@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.44 (21-10-2020)
 
 - Added option to control localStorage usage for darkmode state
 - Fixed dark mode switching in editor's hint popups
