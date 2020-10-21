@@ -201,8 +201,10 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
-        const { darkmode = 'disabled' } = this.options;
-        const { darkmodePersistent = true } = this.options;
+        const {
+            darkmode = 'disabled',
+            darkmodePersistent = false
+        } = this.options;
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
 
         this.instanceId = genUniqueId();

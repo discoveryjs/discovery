@@ -10,6 +10,7 @@ export default class App extends Widget {
     constructor(container, options = {}) {
         super(container, null, {
             darkmode: 'auto',
+            darkmodePersistent: true,
             ...options
         });
 
