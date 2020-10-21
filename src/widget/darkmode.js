@@ -1,9 +1,10 @@
 /* eslint-env browser */
+import { localStorageEntry } from '../core/utils/persistent.js';
 
-const storageKey = 'discoveryjs:darkmode';
 const validValues = new Set([true, false, 'auto', 'disabled']);
 const instances = new Set();
 const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
+const localStorage = localStorageEntry('discoveryjs:darkmode');
 let localStorageValue = null;
 
 function applyPrefersColorScheme() {
@@ -23,7 +24,6 @@ function applyLocalStorageValue(value) {
 
     if (localStorageValue !== newValue) {
         localStorageValue = newValue;
-
         for (const instance of instances) {
             if (instance.persistent && instance.mode !== 'disabled') {
                 instance.set(newValue !== null ? newValue : 'auto');
@@ -32,15 +32,9 @@ function applyLocalStorageValue(value) {
     }
 }
 
-function onLocalStorageChange(e) {  
-    if (e.key === storageKey) {
-        applyLocalStorageValue(e.newValue);
-    }
-}
-
 // attach
-applyLocalStorageValue(localStorage[storageKey]);
-addEventListener('storage', onLocalStorageChange);
+applyLocalStorageValue(localStorage.value);
+localStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme);
 
 // input value | controller internal state
@@ -54,12 +48,12 @@ prefersDarkModeMedia.addListener(applyPrefersColorScheme);
 
 export class DarkModeController {
     constructor(value, persistent) {
-        this.persistent = Boolean(persistent);
+        this.persistent = persistent ? localStorage : null;
         this.handlers = [];
         this.set(
             // use value from a localStorage when persistent
-            value !== 'disabled' && this.persistent && localStorageValue !== null
-                ? localStorageValue
+            value !== 'disabled' && this.persistent !== null && this.persistent.value !== null
+                ? this.persistent.value
                 : value,
             true
         );
@@ -70,7 +64,10 @@ export class DarkModeController {
     on(fn, fire) {
         let entry = { fn };
         this.handlers.push(entry);
-        entry.fn(this.value, this.mode);
+
+        if (fire) {
+            entry.fn(this.value, this.mode);
+        }
 
         return () => {
             const index = this.handlers.indexOf(entry);
@@ -100,7 +97,7 @@ export class DarkModeController {
 
         if (this.mode !== 'disabled') {
             if (this.persistent && !init) {
-                localStorage.setItem(storageKey, this.mode === 'auto' ? 'auto' : this.value);
+                this.persistent.set(this.mode === 'auto' ? 'auto' : this.value);
             }
 
             if (this.value !== oldValue || this.mode !== oldMode) {
@@ -112,7 +109,7 @@ export class DarkModeController {
     toggle(useAutoForManual) {
         switch (this.mode) {
             case 'auto':
-                this.set(prefersDarkModeMedia.matches ? false : true);
+                this.set(!prefersDarkModeMedia.matches);
                 break;
 
             case 'manual':
