@@ -3,6 +3,7 @@
 - `text-match` view
     - Added support for a string as match pattern
     - Removed requirement for parentheses in regexp patterns
+- Added option for disabling darkmode localStorage settings storage in `Widget`
 
 ## 1.0.0-beta.43 (20-10-2020)
 

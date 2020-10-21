@@ -53,7 +53,6 @@ export default function(discovery) {
                 : name in context
                     ? context[name]
                     : undefined;
-console.log({ initValue }, config);
         toggleConfig = discovery.view.composeConfig({
             view: 'toggle',
             onToggle: render
