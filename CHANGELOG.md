@@ -1,3 +1,7 @@
+## next
+
+- Changed index and report page buttons to behave like a link (#34)
+
 ## 1.0.0-beta.45 (21-10-2020)
 
 - Fixed crash when `localStorage` is not available (e.g. due CSP restrictions)

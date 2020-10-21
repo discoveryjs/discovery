@@ -42,7 +42,7 @@ export default class App extends Widget {
             view: 'block',
             className: 'dark-mode-switcher',
             name: 'dark-mode',
-            when: () => this.darkmode.mode !== 'disabled',
+            when: '#.widget | darkmode.mode != "disabled"',
             postRender: (el, opts, data, { hide }) => {
                 let selfValue;
 
@@ -78,40 +78,38 @@ export default class App extends Widget {
         if (this.mode === 'modelfree') {
             this.nav.append({
                 name: 'load-data',
+                content: 'text:"Load data"',
                 onClick: () => createElement('input', {
                     type: 'file',
                     accept: 'application/json,.json',
                     onchange: e => this.loadDataFromEvent(e)
-                }).click(),
-                content: 'text:"Load data"'
+                }).click()
             });
         } else {
             this.nav.append({
                 name: 'index-page',
-                when: () => this.pageId !== this.defaultPageId,
-                onClick: () => this.setPage(this.defaultPageId),
-                content: 'text:"Index"'
+                when: '#.widget | pageId != defaultPageId',
+                data: '{ text: "Index", href: pageLink(#.widget.defaultPageId) }'
             });
             this.nav.append({
                 name: 'report-page',
-                when: () => this.pageId !== this.reportPageId,
-                onClick: () => this.setPage(this.reportPageId),
-                content: 'text:"Make report"'
+                when: '#.widget | pageId != reportPageId',
+                data: '{ text: "Make report", href: pageLink(#.widget.reportPageId) }'
             });
             this.nav.menu.append({
                 name: 'download',
-                when: () => this.download,
-                data: `{text:"Download report",href:"${this.download}"}`
+                when: '#.widget | download',
+                data: `{ text: "Download report", href: #.widget.download }`
             });
             this.nav.menu.append({
                 name: 'drop-cache',
-                when: () => this.options.cache,
-                onClick: () => fetch('drop-cache').then(() => location.reload()),
-                content: 'text:"Reload with no cache"'
+                when: '#.widget | options.cache',
+                content: 'text:"Reload with no cache"',
+                onClick: () => fetch('drop-cache').then(() => location.reload())
             });
             this.nav.menu.append({
                 name: 'switch-model',
-                when: () => this.mode === 'multi',
+                when: '#.widget | mode = "multi"',
                 data: { href: '..' },
                 content: 'text:"Switch model"'
             });
