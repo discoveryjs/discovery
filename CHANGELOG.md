@@ -1,9 +1,12 @@
 ## next
 
 - Added option to control localStorage usage for darkmode state
+- Fixed dark mode switching in editor's hint popups
 - `text-match` view
     - Added support for a string as match pattern
     - Removed requirement for parentheses in regexp patterns
+- `badge` views
+    - Added `hint` data option to show tooltip with a hint
 
 ## 1.0.0-beta.43 (20-10-2020)
 

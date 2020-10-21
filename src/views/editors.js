@@ -43,7 +43,7 @@ class Editor extends Emitter {
                 hint,
                 isolateStyleMarker: this.isolateStyleMarker,
                 get darkmode() {
-                    return self.darkmode ? 'darkmode' : false;
+                    return self.darkmode.value ? 'darkmode' : false;
                 }
             }
         });
