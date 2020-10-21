@@ -6,12 +6,14 @@ import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 
+const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
+
 export default class App extends Widget {
     constructor(container, options = {}) {
         super(container, null, {
-            darkmode: 'auto',
-            darkmodePersistent: true,
-            ...options
+            ...options,
+            darkmode: coalesceOption(options.darkmode, 'auto'),
+            darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
 
         this.mode = this.options.mode;
