@@ -2,6 +2,7 @@
 
 - Fixed crash when `localStorage` is not available (e.g. due CSP restrictions)
 - Fixed `darkmode` and `darkmodePersistent` settings for `App` to use defaults when coresponding values in options are `undefined`
+- Fixes for modelfree and dark mode
 
 ## 1.0.0-beta.44 (21-10-2020)
 

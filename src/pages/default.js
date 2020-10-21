@@ -15,7 +15,7 @@ export default function(discovery) {
                             'badge:{ text: "model free mode" }'
                         ]
                     },
-                    'html:"<p>Running in <b>model free mode</b>, because no config or models are set up. Please, read <a href=\\"https://github.com/discoveryjs/discovery/blob/master/README.md\\" href=\\"_blank\\">documention</a> for more details."',
+                    'html:"<p>Running in <b>model free mode</b>, because no config or models are set up. Please, read <a class=\\"view-link\\" href=\\"https://github.com/discoveryjs/discovery/blob/master/README.md\\" href=\\"_blank\\">documention</a> for more details."',
                     'html:"<p>Load data (JSON) with a button or just drop a file on the page.</p>"',
                     'html:"<br>"',
                     {
