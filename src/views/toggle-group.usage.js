@@ -2,26 +2,29 @@
 
 export default {
     demo: {
-        view: 'tabs',
-        name: 'tabs',
-        tabs: [
-            { value: 'one', text: 'One' },
-            { value: 'two', text: 'Two' },
-            { value: 'three', text: 'Three' }
-        ],
+        view: 'context',
+        modifiers: {
+            view: 'toggle-group',
+            name: 'toggleValue',
+            data: [
+                { value: 'one', text: 'One' },
+                { value: 'two', text: 'Two' },
+                { value: 'three', text: 'Three' }
+            ]
+        },
         content: {
             view: 'switch',
             content: [
                 {
-                    when: '#.tabs="one"',
+                    when: '#.toggleValue="one"',
                     content: 'text:"One"'
                 },
                 {
-                    when: '#.tabs="two"',
+                    when: '#.toggleValue="two"',
                     content: 'text:"Two"'
                 },
                 {
-                    when: '#.tabs="three"',
+                    when: '#.toggleValue="three"',
                     content: 'text:"Three"'
                 }
             ]
@@ -31,30 +34,27 @@ export default {
         {
             title: 'With before and after content',
             demo: {
-                view: 'tabs',
-                name: 'example',
-                tabs: [
+                view: 'toggle-group',
+                data: [
                     { value: 'one', text: 'One' },
                     { value: 'two', text: 'Two' },
                     { value: 'three', text: 'Three' }
                 ],
-                beforeTabs: 'text:"<Content before tabs>"',
-                afterTabs: 'text:"<Content after tabs>"',
-                content: 'text:"Selected: " + #.example'
+                beforeToggles: 'text:"<Content before toggles>"',
+                afterToggles: 'text:"<Content after toggles>"'
             }
         },
         {
             title: 'On change handler',
             demo: {
-                view: 'tabs',
+                view: 'toggle-group',
                 name: 'example',
-                tabs: [
+                onChange: new Function('return (value) => alert("changed to " + value)')(),
+                data: [
                     { value: 'one', text: 'One' },
                     { value: 'two', text: 'Two' },
                     { value: 'three', text: 'Three' }
-                ],
-                onChange: new Function('return (value) => alert("changed to " + value)')(),
-                content: 'text:"Selected: " + #.example'
+                ]
             }
         }
     ]

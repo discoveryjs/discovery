@@ -205,7 +205,7 @@ export default function(discovery) {
         );
     }
 
-    function buildPathForElement(el, raw) {
+    function buildPathForElement(el) {
         let path = [];
         let context = elementContext.get(el);
 
@@ -214,15 +214,7 @@ export default function(discovery) {
             context = context.parent;
         }
 
-        if (raw) {
-            return path;
-        }
-
-        return path.map((part, idx) =>
-            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
-                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
-                : (idx === 0 ? part : '.' + part)
-        );
+        return path;
     }
 
     function applyAnnotations(el, value, options, context) {
@@ -289,7 +281,7 @@ export default function(discovery) {
                     }
                 ];
             } else {
-                const path = buildPathForElement(el).join('');
+                const path = discovery.pathToQuery(buildPathForElement(el));
                 const maxAllowedSize = 1024 * 1024 * 1024;
                 const { minLength: compactSize, circular } = jsonStringifyInfo(data);
                 let jsonFormattedStringifyError = false;
@@ -367,7 +359,7 @@ export default function(discovery) {
             discovery.view.render(popupEl, {
                 view: 'signature',
                 expanded: 2,
-                path: buildPathForElement(el, true)
+                path: buildPathForElement(el)
             }, data);
         }
     });

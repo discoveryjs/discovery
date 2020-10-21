@@ -18,8 +18,9 @@
 .page-report > .report-content > .report-error {
     display: block;
     overflow: hidden;
-    border-left: 3px solid #f33;
-    background: #f9dbdb;
+    border-left: 3px solid rgba(255, 0, 0, 0.8);
+    background: rgba(225, 75, 75, 0.2);
+    background-clip: padding-box;
     padding: 8px 12px;
     font-size: 12px;
     white-space: pre-wrap;

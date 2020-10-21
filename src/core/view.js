@@ -22,17 +22,23 @@ function createDefaultConfigErrorView(view) {
 
             if ('config' in config) {
                 const configEl = el.appendChild(document.createElement('span'));
-                configEl.className = 'show-config';
+                let expanded = false;
+
+                configEl.className = 'toggle-config';
                 configEl.textContent = 'show config...';
                 configEl.addEventListener('click', () => {
-                    configEl.remove();
+                    expanded = !expanded;
 
-                    const buffer = document.createDocumentFragment();
-                    view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
-                        .then(() => {
-                            el.appendChild(buffer);
-                            el.classList.add('expanded');
-                        });
+                    el.classList.toggle('expanded', expanded);
+                    configEl.textContent = expanded ? 'hide config...' : 'show config...';
+
+                    if (expanded) {
+                        const buffer = document.createDocumentFragment();
+                        view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
+                            .then(() => el.appendChild(buffer));
+                    } else {
+                        el.lastChild.remove();
+                    }
                 });
             }
         },

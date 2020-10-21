@@ -69,11 +69,11 @@ export function renderPropertyDetails(el, data, discovery) {
 
     discovery.view.render(el, [
         {
-            view: 'inline-list',
+            view: 'block',
             when: 'path',
             className: 'path',
-            data: 'path',
-            item: 'text'
+            data: data => discovery.pathToQuery(data.path),
+            content: 'text:$'
         },
         {
             view: 'h1',
@@ -390,11 +390,11 @@ export function renderTypeDetails(el, data, discovery) {
 
     discovery.view.render(el, [
         {
-            view: 'inline-list',
+            view: 'block',
             when: 'path',
             className: 'path',
-            data: 'path',
-            item: 'text:"." + $'
+            data: data => discovery.pathToQuery(data.path),
+            content: 'text'
         },
         {
             view: 'h1',

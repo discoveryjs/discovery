@@ -2,22 +2,26 @@
     vertical-align: top;
     display: inline-block;
     min-height: 1.6em;
-    font-size: 12px;
-    color: #444;
-    background: #f0f0f0;
     padding: 5px 15px 6px;
+    color: #444;
+    background-color: rgba(155, 155, 155, 0.15);
+    font-size: 12px;
     text-decoration: none;
     cursor: pointer;
 }
 .view-nav-button:hover,
 .view-nav-button.discovery-view-popup-active {
     color: black;
-    background-color: #e0e0e0;
+    background-color: rgba(151, 151, 151, 0.3);
 }
 .view-nav-button + .view-nav-button {
-    border-left: 1px solid #d8d8d8;
+    margin-left: 1px
 }
 .view-nav-button.disabled,
 .view-nav-button:not(.onclick):not([href]) {
     pointer-events: none;
+}
+
+.discovery[data-darkmode] .view-nav-button {
+    color: var(--discovery-color);
 }

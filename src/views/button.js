@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import usage from './button.usage.js';
+import { createElement } from '../core/utils/dom.js';
 
 export default function(discovery) {
     function render(el, config, data, context) {
@@ -15,8 +16,10 @@ export default function(discovery) {
             el.addEventListener('click', () => onClick(el, data, context));
             el.classList.add('onclick');
         } else if (href) {
-            el.href = href;
-            el.target = external ? '_blank' : '';
+            el.addEventListener('click', (e) => createElement('a', {
+                href,
+                target: external ? '_blank' : ''
+            }).click(e));
         }
 
         if (content) {

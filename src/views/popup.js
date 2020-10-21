@@ -33,7 +33,7 @@ export default function(discovery) {
             };
 
             this.el = document.createElement('div');
-            this.el.classList.add('discovery-view-popup', discovery.isolateStyleMarker);
+            this.el.classList.add('discovery-root', 'discovery-view-popup', discovery.isolateStyleMarker);
             this.el.dataset.discoveryInstanceId = discovery.instanceId;
 
             this.hide = this.hide.bind(this);
@@ -162,6 +162,12 @@ export default function(discovery) {
 
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
+
+            if (discovery.darkmode.value) {
+                this.el.dataset.darkmode = true;
+            } else {
+                delete this.el.dataset.darkmode;
+            }
 
             if (typeof render === 'function') {
                 this.el.innerHTML = '';

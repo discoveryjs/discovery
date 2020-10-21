@@ -8,10 +8,13 @@ import { escapeHtml } from '../core/utils/html.js';
 
 export default class App extends Widget {
     constructor(container, options = {}) {
-        super(container, null, options);
+        super(container, null, {
+            darkmode: 'auto',
+            darkmodePersistent: true,
+            ...options
+        });
 
         this.mode = this.options.mode;
-
         this.download = this.options.setup.model && this.options.setup.model.download;
 
         this.apply(complexViews);
@@ -40,6 +43,60 @@ export default class App extends Widget {
                 onClick: () => this.setPage(this.reportPageId),
                 content: 'text:"Make report"'
             });
+
+            // let detachDarkMode = () => {};
+            // this.nav.append({
+            //     name: 'dev-dark-mode',
+            //     when: () => this.darkmode.mode !== 'disabled',
+            //     onClick: () => this.darkmode.toggle(true),
+            //     postRender: el => {
+            //         detachDarkMode();
+            //         detachDarkMode = this.darkmode.on((value, mode) => {
+            //             el.classList.toggle('dark', value);
+            //             el.classList.toggle('auto', mode === 'auto');
+            //             el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
+            //         }, true);
+            //     }
+            // });
+
+            let detachToggleDarkMode = () => {};
+            this.nav.menu.append({
+                view: 'block',
+                className: 'dark-mode-switcher',
+                name: 'dark-mode',
+                when: () => this.darkmode.mode !== 'disabled',
+                postRender: (el, opts, data, { hide }) => {
+                    let selfValue;
+
+                    detachToggleDarkMode();
+                    detachToggleDarkMode = this.darkmode.on((value, mode) => {
+                        const newValue = mode === 'auto' ? 'auto' : value;
+
+                        if (newValue === selfValue) {
+                            return;
+                        }
+
+                        el.innerHTML = '';
+                        selfValue = newValue;
+                        this.view.render(el, {
+                            view: 'toggle-group',
+                            beforeToggles: 'text:"Color schema"',
+                            onChange: value => {
+                                selfValue = value;
+                                this.darkmode.set(value)
+                                hide();
+                            },
+                            value: newValue,
+                            data: [
+                                { value: false, text: 'Light' },
+                                { value: true, text: 'Dark' },
+                                { value: 'auto', text: 'Auto' }
+                            ]
+                        }, null, { widget: this })
+                    }, true);
+                }
+            });
+
             this.nav.menu.append({
                 name: 'download',
                 when: () => this.download,
@@ -54,7 +111,7 @@ export default class App extends Widget {
             this.nav.menu.append({
                 name: 'switch-model',
                 when: () => this.mode === 'multi',
-                onClick: () => location.href = '..',
+                data: { href: '..' },
                 content: 'text:"Switch model"'
             });
         }
@@ -106,16 +163,24 @@ export default class App extends Widget {
         const startTime = Date.now();
         const setTitle = title => progressEl.querySelector('.title').textContent = title;
         const setProgress = progress => progressEl.style.setProperty('--progress', progress);
+        const repaintIfNeeded = async () => {
+            if (!document.hidden) {
+                await Promise.race([
+                    new Promise(requestAnimationFrame),
+                    new Promise(resolve => setTimeout(resolve, 16))
+                ]);
+            }
+        }
         const process = async (name, progress, fn = () => {}) => {
             try {
                 setTitle(name + '...');
-                await new Promise(requestAnimationFrame);
+                await repaintIfNeeded();
                 setProgress(progress);
 
                 return await fn();
             } finally {
                 console.log(`[Discovery] ${name} in ${elapsed.time()}ms`);
-                await new Promise(requestAnimationFrame);
+                await repaintIfNeeded();
             }
         };
         const elapsed = {
@@ -132,7 +197,8 @@ export default class App extends Widget {
         progressEl.innerHTML = '<div class="title"></div><div class="progress"></div>';
         progressEl.classList.remove('error', 'done');
         progressEl.classList.add('init');
-        requestAnimationFrame(() => progressEl.classList.remove('init'));
+        await repaintIfNeeded();
+        progressEl.classList.remove('init');
 
         return process('Awaiting data', 0, () => fetch(explicitData ? 'data:application/json,{}' : url))
             .then(response => process('Receiving data', 0, () =>
@@ -154,7 +220,7 @@ export default class App extends Widget {
 
                             if (done) {
                                 setProgress(TIME_RECIEVE_DATA);
-                                await new Promise(requestAnimationFrame);
+                                await repaintIfNeeded();
                                 controller.close();
                                 break;
                             }
@@ -175,7 +241,7 @@ export default class App extends Widget {
                                 prevProgressLabel = progressLabel;
                                 setTitle(`Receiving data (${progressLabel})...`);
                                 setProgress(TIME_RECIEVE_DATA * progress);
-                                await new Promise(requestAnimationFrame);
+                                await repaintIfNeeded();
                             }
                         }
                     }
@@ -185,7 +251,7 @@ export default class App extends Widget {
                 explicitData || JSON.parse(text)
             ))
             .then(async res => {
-                console.log('[Discovery] loadDataFromUrl() done in', Date.now() - startTime);
+                console.log('[Discovery] loadDataFromUrl() received data in', Date.now() - startTime);
 
                 if (res.error) {
                     const error = new Error(res.error);

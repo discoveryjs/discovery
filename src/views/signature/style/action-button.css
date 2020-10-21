@@ -2,17 +2,21 @@
     margin-left: 2px;
     padding: 1px 4px;
     font-size: 8px;
-    color: #ddd;
-    background: #fcfcfc;
-    border: 1px solid #eee;
+    color: rgba(170, 170, 170, 0.4);
+    background: rgba(195, 195, 195, 0.05);
+    border: 1px solid rgba(141, 141, 141, 0.15);
     border-radius: 3px;
     cursor: pointer;
 }
+.discovery[data-darkmode] .view-signature [data-action] {
+    --discovery-view-signature-hover-color: #aaa;
+    --discovery-view-signature-toggle-color: #72b372;
+}
 .view-signature [data-action][data-enabled=true],
 .view-signature [data-action][data-enabled=true]:hover {
-    color: #686;
-    background: #e5f7e5;
-    border-color: #d0e0d0;
+    color: var(--discovery-view-signature-toggle-color, #333);
+    background: rgba(151, 223, 151, 0.25);
+    border-color: rgba(137, 177, 137, 0.4);
 }
 .view-signature [data-action="collapse"]::before {
     content: "–";
@@ -24,7 +28,7 @@
     content: "keys ↓";
 }
 .view-signature [data-action]:hover {
-    color: #333;
-    background: #eee;
-    border-color: #d0d0d0;
+    color: var(--discovery-view-signature-hover-color, #333);
+    background: rgba(187, 187, 187, 0.25);
+    border-color: rgba(137, 137, 137, 0.4);
 }

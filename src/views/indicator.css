@@ -3,20 +3,19 @@
     margin: 0 1px 1px 0;
     width: 150px;
     height: 100px;
-    background: #f4f4f4;
+    background: rgba(181, 181, 181, 0.15);
     flex-direction: column;
     justify-content: center;
     text-align: center;
     text-decoration: none;
 }
 .view-indicator[href]:hover {
-    background: #e4e4e4;
+    background: rgba(165, 165, 165, 0.3);
 }
 
 .view-indicator > .value {
     color: #666;
     font-size: 40px;
-    text-shadow: 1px 1px 0 rgba(255, 255, 255, .5);
     line-height: 1.2;
 }
 .view-indicator[href] > .value {

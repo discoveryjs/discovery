@@ -1,7 +1,7 @@
 .view-menu-item {
     display: block;
     padding: 4px 12px;
-    color: inherit;
+    color: var(--discovery-color);
     text-decoration: none;
     cursor: pointer;
 }
@@ -11,10 +11,10 @@
 }
 .view-menu-item:hover,
 .view-menu-item.discovery-view-popup-active {
-    background: #e0e0e0;
+    background: rgba(131, 131, 131, 0.25);
 }
 .view-menu-item.selected {
-    background: #c6dee7;
+    background: rgba(178, 221, 248, 0.3);
     cursor: default;
 }
 .view-menu-item.disabled {

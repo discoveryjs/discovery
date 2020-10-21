@@ -19,7 +19,7 @@
 .page-report > .report-editor .view-editor-form-content {
     padding: 8px 40px;
     margin-bottom: 1px;
-    background: #e8f5fd;
+    background-color: rgba(108, 188, 241, 0.15)
 }
 .page-report > .report-editor .view-editor-form-content .formatting {
     position: absolute;
@@ -31,7 +31,7 @@
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: center;
-    border-color: #b9d0df;
+    border-color: rgba(21, 98, 148, 0.3);
 }
 
 .page-report > .report-editor .view-editor-form-content .view-expand {
@@ -48,22 +48,16 @@
 
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list {
     display: none;
-    padding-top: 15px;
-    padding-left: 26px;
-    padding-right: 26px;
+    padding: 15px 8px;
     font-size: 12px;
     color: #aaa;
     column-count: 8;
-    column-width: 120px;
+    column-width: 150px;
     column-gap: 20px;
     margin-right: -190px;
 }
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list.visible {
     display: block;
-}
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item:not(:hover) {
-    color: #75a3bf;
-    white-space: nowrap;
 }
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list .item:not([href]) {
     color: #888;
@@ -76,7 +70,7 @@
 }
 .discovery-view-popup.view-editor-view-list-hint > .discovery-view-usage > .view-header:first-child {
     font-size: 16px;
-    background: #f0f0f0;
+    background: rgba(180, 180, 180, 0.2);
     margin: -20px -20px 0;
     padding: 6px 20px;
     line-height: 24px;

@@ -98,12 +98,12 @@ export default function(discovery, updateParams) {
                             availableViewsListEl.classList.toggle('visible');
                         }
                     }, [
-                        availableViewsTextEl = createElement('div', 'Available views:'),
+                        availableViewsTextEl = createElement('div', 'header-content'),
                         createElement('div', 'trigger')
                     ]),
                     availableViewsListEl = createElement('div', 'view-editor-view-list')
                 ]),
-                createElement('label', null, [
+                createElement('label', 'view-checkbox', [
                     viewLiveEditEl = createElement('input', {
                         class: 'live-update',
                         type: 'checkbox',
@@ -114,7 +114,7 @@ export default function(discovery, updateParams) {
                             }
                         }
                     }),
-                    ' build on input'
+                    createElement('span', 'view-checkbox__label', 'build on input')
                 ]),
                 viewEditorButtonsEl
             ])

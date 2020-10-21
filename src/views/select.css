@@ -11,9 +11,9 @@
     line-height: 1.2;
 
     border-radius: 3px;
-    border: 1px solid #ccc;
-    background-color: white;
-    color: black;
+    border: 1px solid rgba(127, 127, 127, 0.4);
+    background-color: rgba(255, 255, 255, .1);
+    color: var(--discovery-color);
     outline: none;
 }
 .view-select::after {
@@ -30,19 +30,25 @@
     background-image: url('select-arrow.svg');
     background-size: 1em;
     background-position: center;
-}
-.view-select:hover {
-    border-color: #b3b3b3;
+    cursor: pointer;
 }
 .view-select.discovery-view-popup-active,
 .view-select:focus {
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2);
-    border-color: #b3b3b3;
+    border-color: rgba(128, 128, 128, 0.6);
     z-index: 1;
+}
+.view-select:hover {
+    background-color: rgba(221, 221, 221, 0.3);
+    border-color: rgba(170, 170, 170, 0.6);
+}
+.view-select:active {
+    background-color: rgba(131, 131, 131, 0.25);
 }
 .view-select .view-menu-item {
     padding-top: 8px;
     padding-bottom: 8px;
+    padding-right: 8px;
 }
 .view-select:empty:not([data-placeholder])::before {
     content: '|';
@@ -52,7 +58,7 @@
 .view-select:empty[data-placeholder]::before {
     content: attr(data-placeholder);
     visibility: visible;
-    padding: 8px 0 8px 12px;
+    padding: 8px 8px 8px 12px;
     color: #bbb;
 }
 .view-select > * {
@@ -72,14 +78,14 @@
     min-width: 100%;
 }
 .discovery-view-popup.view-select-popup > .view-select__variants:not(:last-child) {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(202, 202, 202, 0.65);
 }
 .discovery-view-popup.view-select-popup > .view-select__filter {
     margin: 0;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(202, 202, 202, 0.65);
 }
 .discovery-view-popup.view-select-popup > :not(.view-tabs) + .view-select__filter {
-    border-top: 1px solid #ddd;
+    border-top: 1px solid rgba(202, 202, 202, 0.65);
 }
 .discovery-view-popup.view-select-popup > .view-select__filter input,
 .discovery-view-popup.view-select-popup > .view-select__filter input:focus {
@@ -87,16 +93,10 @@
     box-shadow: none;
     border: none;
 }
-.discovery-view-popup.view-select-popup .more-buttons {
-    padding: 2px 8px 8px;
-}
 .discovery-view-popup.view-select-popup .reset-item {
     color: #aaa;
 }
 .discovery-view-popup.view-select-popup .reset-item:empty::before {
     content: '(nothing selected)';
     visibility: visible;
-}
-.discovery-view-popup.view-select-popup .view-menu-item.selected {
-    background: #e8f5fd;
 }

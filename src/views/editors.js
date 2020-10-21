@@ -33,6 +33,7 @@ class Editor extends Emitter {
         this.el = document.createElement('div');
         this.el.className = 'discovery-editor';
 
+        const self = this;
         const cm = CodeMirror(this.el, {
             extraKeys: { 'Alt-Space': 'autocomplete' },
             mode: mode || 'javascript',
@@ -40,7 +41,10 @@ class Editor extends Emitter {
             indentUnit: 0,
             showHintOptions: {
                 hint,
-                isolateStyleMarker: this.getIsolateStyleMarker()
+                isolateStyleMarker: this.isolateStyleMarker,
+                get darkmode() {
+                    return self.darkmode ? 'darkmode' : false;
+                }
             }
         });
 
@@ -84,7 +88,8 @@ class Editor extends Emitter {
         this.cm.focus();
     }
 
-    getIsolateStyleMarker() {}
+    get isolateStyleMarker() {}
+    get darkmode() {}
 }
 
 class QueryEditor extends Editor {
@@ -211,16 +216,22 @@ CodeMirror.defineMode('discovery-view', function(config, options) {
 export default function(discovery) {
     Object.assign(discovery.view, {
         QueryEditor: class extends QueryEditor {
-            getIsolateStyleMarker() {
+            get isolateStyleMarker() {
                 return discovery.isolateStyleMarker;
+            }
+            get darkmode() {
+                return discovery.darkmode;
             }
         },
         ViewEditor: class extends ViewEditor {
             isViewDefined(name) {
                 return discovery.view.isDefined(name);
             }
-            getIsolateStyleMarker() {
+            get isolateStyleMarker() {
                 return discovery.isolateStyleMarker;
+            }
+            get darkmode() {
+                return discovery.darkmode;
             }
         }
     });

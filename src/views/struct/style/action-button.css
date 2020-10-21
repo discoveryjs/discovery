@@ -2,24 +2,28 @@
     vertical-align: middle;
     margin-left: 2px;
     padding: 1px 4px;
-    border: 1px solid #eee;
+    color: rgba(170, 170, 170, 0.4);
+    background: rgba(195, 195, 195, 0.05);
+    border: 1px solid rgba(141, 141, 141, 0.15);
     border-radius: 3px;
     font-size: 8px;
-    color: #ddd;
-    background: #fcfcfc;
     cursor: pointer;
+}
+.discovery[data-darkmode] .view-struct .struct-action-button {
+    --discovery-view-struct-hover-color: #aaa;
+    --discovery-view-struct-toggle-color: #72b372;
 }
 .view-struct .struct-action-button:hover,
 .view-struct .discovery-view-popup-active {
-    color: #333;
-    background: #eee;
-    border-color: #d0d0d0;
+    color: var(--discovery-view-struct-hover-color, #333);
+    background: rgba(187, 187, 187, 0.25);
+    border-color: rgba(137, 137, 137, 0.4);
 }
 .view-struct .sort-keys > .struct-action-button[data-action="toggle-sort-keys"],
 .view-struct .string-value-as-text > .struct-action-button[data-action="toggle-string-mode"] {
-    color: #686;
-    background: #e5f7e5;
-    border-color: #d0e0d0;
+    color: var(--discovery-view-struct-toggle-color, #686);
+    background: rgba(151, 223, 151, 0.25);
+    border-color: rgba(137, 177, 137, 0.4);
 }
 .view-struct .struct-action-button[data-action="show-signature"] {
     cursor: default;

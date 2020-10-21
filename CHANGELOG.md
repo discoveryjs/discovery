@@ -1,6 +1,21 @@
 ## next
 
+- Added option to control localStorage usage for darkmode state
+- `text-match` view
+    - Added support for a string as match pattern
+    - Removed requirement for parentheses in regexp patterns
+
+## 1.0.0-beta.43 (20-10-2020)
+
+- Introduced dark color scheme a.k.a. dark mode. Various fixes and improvements in views markup and styles
+- Improved loading progress overlay repaints to avoid freezing when document became inactive
+- Added `Widget#pathToQuery(path)` method
+- Added `toggle` and `toggle-group` views
 - Changed a bit default page in model free mode
+- Fixed `children` option ignorance in `itemConfig` when `limitLines` is used for `tree` view
+- Fixed `href` option to work for `button` view
+- Fixed path generation in `signature` details 
+- Fixed context for `Widget#nav.menu` item rendering
 
 ## 1.0.0-beta.42 (08-10-2020)
 

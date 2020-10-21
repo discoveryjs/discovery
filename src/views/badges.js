@@ -15,13 +15,27 @@ function maybeFix(el, type, value) {
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content } = config;
-        let { color, text, href, prefix, postfix, hint } = data || {};
+        let { color, textColor, darkColor, darkTextColor, text, href, prefix, postfix, hint } = data || {};
 
         if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
             text = data;
         }
 
-        el.style.backgroundColor = color;
+        if (color) {
+            el.style.setProperty('--discovery-view-badge-color', color);
+        }
+
+        if (darkColor) {
+            el.style.setProperty('--discovery-view-badge-dark-color', darkColor);
+        }
+
+        if (textColor) {
+            el.style.setProperty('--discovery-view-badge-text-color', textColor);
+        }
+
+        if (darkTextColor) {
+            el.style.setProperty('--discovery-view-badge-dark-text-color', darkTextColor);
+        }
 
         if (href) {
             el.href = href;

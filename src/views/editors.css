@@ -9,9 +9,19 @@
     margin-bottom: 5px;
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
-    border: 1px solid #aaa;
+    background-color: var(--discovery-input-bg-color);
+    transition: .25s ease-in;
+    transition-property: background-color, color;
+    border: 1px solid rgba(124, 124, 124, 0.65);
     border-radius: 3px;
     box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
+}
+.discovery[data-darkmode] .discovery-editor .CodeMirror {
+    color: #d1c7c3;
+}
+.discovery-editor .CodeMirror-focused {
+    border-color: rgba(0, 141, 255, 0.75);
+    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
 }
 .discovery-editor .CodeMirror-scroll {
     min-height: 6.5em;
@@ -19,16 +29,45 @@
     overflow-y: visible !important;
     cursor: text;
 }
-.discovery-editor .CodeMirror-focused {
-    border-color: #0af;
-    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
-}
+
 .discovery-editor .CodeMirror-cursor {
-    border-left: 1px solid black;
+    border-left: 1px solid var(--discovery-color, black);
     background: none;
-    width: 22px;
+}
+.discovery-editor .CodeMirror-focused .CodeMirror-selected {
+    background-color: rgba(0, 170, 255, 0.22);
+}
+.discovery-editor .CodeMirror-selected {
+    background-color: rgba(126, 126, 126, 0.3);
+}
+
+.discovery-editor .CodeMirror .cm-comment {
+    color: var(--discovery-fmt-comment-color);
+}
+.discovery-editor .CodeMirror .cm-keyword {
+    color: var(--discovery-fmt-keyword-color);
+}
+.discovery-editor .CodeMirror .cm-property {
+    color: var(--discovery-fmt-property-color);
+}
+.discovery-editor .CodeMirror .cm-atom {
+    color: var(--discovery-fmt-atom-color);
+}
+.discovery-editor .CodeMirror .cm-number {
+    color: var(--discovery-fmt-number-color);
+}
+.discovery-editor .CodeMirror .cm-node,
+.discovery-editor .CodeMirror .cm-tag {
+    color: #9c3328;
+}
+.discovery-editor .CodeMirror .cm-string {
+    color: var(--discovery-fmt-string-color);
+}
+.discovery-editor .CodeMirror .cm-variable,
+.discovery-editor .CodeMirror .cm-qualifier {
+    color: var(--discovery-fmt-variable-color);
 }
 .discovery-editor .CodeMirror .cm-discovery-view-name {
-    background-color: rgba(251, 226, 172, 35%);
+    background-color: var(--discovery-fmt-string-highlight-color);
     border-bottom: 1px dashed;
 }

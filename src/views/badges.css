@@ -1,22 +1,30 @@
 .view-badge,
 .view-pill-badge {
+    --discovery-view-badge-color: rgba(135, 135, 135, 0.2);
+    --discovery-view-badge-text-color: var(--discovery-color);
     padding: 1px 6px 3px;
     margin-right: 1ex;
     text-shadow: 1px 1px rgba(255, 255, 255, .35);
-    background: #e4e4e4;
+    background: var(--discovery-view-badge-color);
+    color: var(--discovery-view-badge-text-color);
     border-radius: 3px;
     font-size: 85%;
-    color: black;
     text-decoration: none;
     white-space: nowrap;
 }
 .view-pill-badge {
     border-radius: 9px;
 }
+.discovery[data-darkmode] .view-badge,
+.discovery[data-darkmode] .view-pill-badge {
+    background: var(--discovery-view-badge-dark-color, var(--discovery-view-badge-color));
+    color: var(--discovery-view-badge-dark-text-color, var(--discovery-view-badge-text-color));
+    text-shadow: 1px 1px rgba(0, 0, 0, .1);
+}
 
 .view-badge:hover,
 .view-pill-badge:hover {
-    color: black;
+    color: var(--discovery-color);
 }
 
 .view-badge[href]:hover,

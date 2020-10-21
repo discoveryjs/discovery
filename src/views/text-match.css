@@ -1,5 +1,5 @@
 .view-text-match {
-    background: #fbfa98;
-    border-bottom: 2px solid #decb3f;
+    background: rgba(255, 232, 5, 0.22);
+    border-bottom: 2px solid rgba(213, 190, 15, 0.8);
     line-height: 1.2;
 }

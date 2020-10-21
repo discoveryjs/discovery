@@ -1,9 +1,70 @@
-/* isolate-style-root: discovery */
+/* isolate-style-root: discovery, discovery-root */
 .discovery {
     display: flex;
+}
+
+.discovery-root {
+    all: reset;
+
     font-family: Tahoma, Verdana, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.6;
+
+    background-color: var(--discovery-background-color, white);
+    color: var(--discovery-color, black);
+    transition-property: background-color, color;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
+
+    --discovery-background-color: white;
+    --discovery-color: black;
+    --discovery-input-bg-color: white;
+    --discovery-input-color: black;
+    --discovery-button-color: black;
+    --discovery-button-bg-color: white;
+    --discovery-button-border-color: #cccccc;
+    --discovery-button-hover-color: black;
+    --discovery-button-hover-bg-color: #f5f5f5;
+    --discovery-button-hover-border-color: #cccccc;
+
+    --discovery-fmt-color: #666;
+    --discovery-fmt-hover-color: #333;
+    --discovery-fmt-flag-color: #ff6e13;
+    --discovery-fmt-variable-color: #047d65;
+    --discovery-fmt-property-color: #bd6476;
+    --discovery-fmt-keyword-color: #07a;
+    --discovery-fmt-number-color: #07a;
+    --discovery-fmt-atom-color: #07a;
+    --discovery-fmt-string-color: #690;
+    --discovery-fmt-string-highlight-color: rgba(35, 165, 25, 0.1);
+    --discovery-fmt-comment-color: #75787b;
+}
+.discovery-root[data-darkmode] {
+    --discovery-background-color: #242424;
+    --discovery-color: #cccccc;
+    --discovery-link-color: #1c87d4;
+    --discovery-link-underline-color: rgb(37, 146, 226, 50%);
+    --discovery-link-hover-color: #4aa6e8;
+    --discovery-input-bg-color: #343434;
+    --discovery-input-color: #e8e8e8;
+    --discovery-button-color: #cccccc;
+    --discovery-button-bg-color: #3a3a3a;
+    --discovery-button-border-color: #cccccc;
+    --discovery-button-hover-color: black;
+    --discovery-button-hover-bg-color: #f5f5f5;
+    --discovery-button-hover-border-color: #cccccc;
+
+    --discovery-fmt-color: #999;
+    --discovery-fmt-hover-color: #aaa;
+    --discovery-fmt-flag-color: #ff8030;
+    --discovery-fmt-variable-color: #16a78a;
+    --discovery-fmt-property-color: #d17a8c;
+    --discovery-fmt-keyword-color: #0f8dc2;
+    --discovery-fmt-number-color: #0f8dc2;
+    --discovery-fmt-atom-color: #0f8dc2;
+    --discovery-fmt-string-color: #7faf20;
+    --discovery-fmt-string-underline-color: #85ab51;
+    --discovery-fmt-string-hover-color: #97cf26;
 }
 
 .discovery-content {
@@ -23,11 +84,12 @@
     z-index: 200;
     overflow: auto;
     width: 350px;
-    background: #f0f0f0;
-    border-right: 1px solid #DDD;
+    background: rgba(105, 105, 105, 0.1);
+    border-right: 1px solid rgba(85, 85, 85, 0.2);
     box-shadow: 2px 0 5px -3px rgba(0, 0, 0, .26);
-    transform: translate3d(0,0,0);
+    transform: translate3d(0, 0, 0);
 }
+
 .discovery-sidebar:empty {
     display: none;
 }
@@ -41,16 +103,27 @@
 .discovery-sidebar .view-tabs {
     height: 100%;
 }
+.discovery-sidebar .view-tab.active::before {
+    background-color: white;
+}
+.discovery[data-darkmode] .discovery-sidebar .view-tab.active::before {
+    background-color: rgba(255, 255, 255, .05);
+}
 .discovery-sidebar .view-content-filter > .view-input {
-    border-bottom: 1px solid #DDD;
-    background: white;
+    border-bottom: 1px solid rgba(170, 170, 170, 0.4);
+    background-color: white;
     margin-bottom: -1px;
+}
+.discovery[data-darkmode] .discovery-sidebar .view-content-filter > .view-input {
+    background-color: rgba(255, 255, 255, .05);
 }
 .discovery-sidebar .view-content-filter > .view-input input,
 .discovery-sidebar .view-content-filter > .view-input input:focus {
+    background-color: transparent;
     outline: none;
     box-shadow: none;
     border: none;
+    border-radius: 0;
 }
 .discovery-sidebar .view-content-filter > .content > .view-list {
     padding: 8px 0 8px 12px;
@@ -68,7 +141,7 @@
     margin-left: -12px;
 }
 .discovery-sidebar .view-text-match {
-    background: white;
+    background: rgba(255, 255, 255, 0.9);
     border-bottom: 2px solid orange;
     line-height: 1.2;
     display: inline-block;
@@ -80,11 +153,20 @@
     position: absolute;
     top: 0;
     right: 40px;
-    border-radius: 0 0 5px 5px;
-    overflow: hidden;
     user-select: none;
 }
-.view-nav-button[data-name="burger"] {
+.discovery-content-badges :first-child {
+    border-bottom-left-radius: 5px;
+    transition: border-radius .25s ease-in-out;
+}
+.discovery-content-badges :last-child {
+    border-bottom-right-radius: 5px;
+    transition: border-radius .25s ease-in-out;
+}
+.discovery-content-badges .view-nav-button.discovery-view-popup-active {
+    border-radius: 0;
+}
+.discovery-content-badges .view-nav-button[data-name="burger"] {
     background-image: url(hamburger-menu.svg);
     background-repeat: no-repeat;
     background-position: center;

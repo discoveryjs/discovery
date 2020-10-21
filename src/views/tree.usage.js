@@ -1,5 +1,19 @@
 /* eslint-env browser */
 const onToggle = () => alert('toggled!');
+const createTree = ([len, ...rest], path = '') => {
+    const result = [];
+    
+    for (let i = 0; i < len; i++) {
+        const leafPath = path + '.' + (i + 1);
+
+        result.push({
+            title: leafPath,
+            children: rest.length ? createTree(rest, leafPath) : null
+        });
+    }
+
+    return result;
+}
 
 export default {
     demo: {
@@ -59,6 +73,15 @@ export default {
                         ] }
                     ]
                 }
+            }
+        },
+        {
+            title: 'limitLines',
+            demo: {
+                view: 'tree',
+                item: 'text:title',
+                limitLines: 7,
+                data: createTree([5, 3, 3])
             }
         }
     ]

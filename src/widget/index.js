@@ -9,6 +9,7 @@ import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
+import { DarkModeController } from './darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
@@ -57,7 +58,6 @@ function genUniqueId(len = 16) {
 
 function createDataExtensionApi(instance) {
     const objectMarkers = new ObjectMarker();
-    // const linkResolvers = new X(instance.pageLinkResolvers, objectMarkers);
     const linkResolvers = [];
     const annotations = [];
     const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
@@ -200,6 +200,12 @@ export default class Widget extends Emitter {
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
+
+        const {
+            darkmode = 'disabled',
+            darkmodePersistent = false
+        } = this.options;
+        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
@@ -445,6 +451,14 @@ export default class Widget extends Emitter {
         }
     }
 
+    pathToQuery(path) {
+        return path.map((part, idx) =>
+            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
+                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
+                : (idx === 0 ? part : '.' + part)
+        ).join('');
+    }
+
     getQueryEngineInfo() {
         return {
             name: 'jora',
@@ -472,23 +486,34 @@ export default class Widget extends Emitter {
 
         // reset old refs
         this.dom = {};
+        if (typeof oldDomRefs.detachDarkMode === 'function') {
+            oldDomRefs.detachDarkMode();
+        }
 
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
-
-            newContainerEl.classList.add('discovery', this.isolateStyleMarker);
-            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
-
-            newContainerEl.appendChild(
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar')
+            this.dom.detachDarkMode = this.darkmode.on(
+                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id="' + this.instanceId + '"]')])
+                    .forEach(rootEl => dark
+                        ? rootEl.dataset.darkmode = true
+                        : delete rootEl.dataset.darkmode
+                    ),
+                true
             );
 
-            newContainerEl.appendChild(
+            newContainerEl.classList.add('discovery-root', 'discovery', this.isolateStyleMarker);
+            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
+            newContainerEl.append(
+                this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
                 createElement('main', 'discovery-content', [
                     this.dom.nav = createElement('div', 'discovery-content-badges'),
                     this.dom.pageContent = createElement('article')
                 ])
             );
+
+            // cancel transitions on attach
+            newContainerEl.style.transition = 'none';
+            requestAnimationFrame(() => newContainerEl.style.transition = '');
 
             this.nav.render(this.dom.nav);
         }
@@ -510,6 +535,14 @@ export default class Widget extends Emitter {
 
         document.addEventListener(eventName, handlerWrapper, options);
         return () => document.removeEventListener(eventName, handlerWrapper, options);
+    }
+
+    applyDarkMode(dark) {
+        if (dark) {
+            this.dom.container.dataset.darkmode = true;
+        } else {
+            delete this.dom.container.dataset.darkmode;
+        }
     }
 
     addBadge() {

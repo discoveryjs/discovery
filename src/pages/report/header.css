@@ -7,12 +7,20 @@
     z-index: 100;
     padding: 22px 40px 7px;
     margin: 0 -40px 18px;
-    background: rgba(255, 255, 255, .92);
+    background-color: rgba(255, 255, 255, .92);
+    transition: background-color .25s ease-in;
 }
-@supports (backdrop-filter: blur(5px)) {
+.discovery[data-darkmode] .page-report > .report-header {
+    background-color: rgba(36, 36, 36, .92);
+}
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
     .page-report > .report-header {
-        background: rgba(255, 255, 255, .8);
+        background-color: rgba(255, 255, 255, .8);
+        -webkit-backdrop-filter: blur(5px);
         backdrop-filter: blur(5px);
+    }
+    .discovery[data-darkmode] .page-report > .report-header {
+        background-color: rgba(36, 36, 36, .8);
     }
 }
 
@@ -30,6 +38,7 @@
 }
 .page-report > .report-header .report-header-text input {
     font: inherit;
+    color: inherit;
     position: absolute;
     top: 0;
     left: 0;
@@ -38,23 +47,23 @@
     padding: 0;
     opacity: .0001;
     border: 1px solid #aaa;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
-    background-color: rgba(255, 255, 255, .3);
+    border-color: transparent transparent #aaa transparent;
+    background-color: transparent;
+    transition: box-shadow .15s ease-out;
 }
 .page-report > .report-header .report-header-text input:hover,
 .page-report > .report-header .report-header-text input:focus {
     opacity: 1;
 }
 .page-report > .report-header .report-header-text input:focus {
-    border-color: #0af;
-    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
+    border-bottom-color: #0af;
+    box-shadow: 0 3px 0 0 rgba(0, 170, 255, .2) !important;
     outline: 0;
 }
 .page-report > .report-header .report-header-text .timestamp {
     display: block;
     font-size: 10px;
-    color: #ccc;
+    color: rgba(153, 153, 153, 0.5);
     margin-top: 4px;
 }
 
