@@ -1,7 +1,7 @@
 export default {
     demo: {
         view: 'expand',
-        title: 'text:"Expand me!"',
+        header: 'text:"Expand me!"',
         content: 'text:"Content"'
     }
 };

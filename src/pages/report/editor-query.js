@@ -127,7 +127,7 @@ export default function(discovery, updateParams) {
                 queryEditorResultEl.innerHTML = '';
                 discovery.view.render(queryEditorResultEl, {
                     view: 'expand',
-                    title: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
+                    header: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
                     expanded: expandQueryResults,
                     onToggle: state => expandQueryResults = state,
                     content: { view: 'struct', expanded: 1 }
