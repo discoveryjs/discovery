@@ -493,12 +493,12 @@ export default class Widget extends Emitter {
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
             this.dom.detachDarkMode = this.darkmode.on(
-                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id="' + this.instanceId + '"]')])
-                    .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark)),
-                true
+                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id=' + CSS.escape(this.instanceId) + ']')])
+                    .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
             );
 
             newContainerEl.classList.add('discovery-root', 'discovery', this.isolateStyleMarker);
+            newContainerEl.classList.toggle('discovery-root-darkmode', this.darkmode.value);
             newContainerEl.dataset.discoveryInstanceId = this.instanceId;
             newContainerEl.append(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
