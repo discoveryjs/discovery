@@ -1,5 +1,6 @@
 ## next
 
+- Added `dropdown` view
 - Changed index and report page buttons to behave like a link (#34)
 - Changed marker of darkmode is enabled from attribute `data-darkmode` to class `.discovery-root-darkmode`
 - Fixed darkmode state restoring from localStorage on init

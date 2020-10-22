@@ -56,7 +56,7 @@ export default function(discovery) {
                     { content: {
                         view: 'render',
                         config: 'beforeDemo',
-                        context: '{}'
+                        context: '{ __demoContext: true }'
                     } }
                 ]
             },
@@ -67,7 +67,7 @@ export default function(discovery) {
                 content: {
                     view: 'render',
                     config: 'demo or view',
-                    context: '{}'
+                    context: '{ __demoContext: true }'
                 }
             },
             {
@@ -78,7 +78,7 @@ export default function(discovery) {
                     { content: {
                         view: 'render',
                         config: 'afterDemo',
-                        context: '{}'
+                        context: '{ __demoContext: true }'
                     } }
                 ]
             }
