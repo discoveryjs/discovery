@@ -87,7 +87,7 @@ export default function(discovery) {
                     },
                     {
                         view: 'button',
-                        when: () => resetValue && !isEqual(resetValue, sessionContext),
+                        when: () => resetValue && !isEqual(resetValue, currentValue),
                         content: 'text:"Reset"',
                         onClick() {
                             applyNewValue(resetValue);
