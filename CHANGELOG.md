@@ -1,6 +1,7 @@
 ## next
 
 - Changed index and report page buttons to behave like a link (#34)
+- Fixed darkmode state restoring from localStorage on init
 
 ## 1.0.0-beta.45 (21-10-2020)
 

@@ -52,8 +52,8 @@ export class DarkModeController {
         this.handlers = [];
         this.set(
             // use value from a localStorage when persistent
-            value !== 'disabled' && this.persistent !== null && this.persistent.value !== null
-                ? this.persistent.value
+            value !== 'disabled' && this.persistent !== null && localStorageValue !== null
+                ? localStorageValue
                 : value,
             true
         );
