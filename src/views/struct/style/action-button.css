@@ -9,7 +9,7 @@
     font-size: 8px;
     cursor: pointer;
 }
-.discovery[data-darkmode] .view-struct .struct-action-button {
+.discovery-root-darkmode .view-struct .struct-action-button {
     --discovery-view-struct-hover-color: #aaa;
     --discovery-view-struct-toggle-color: #72b372;
 }

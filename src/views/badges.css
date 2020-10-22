@@ -15,8 +15,8 @@
 .view-pill-badge {
     border-radius: 9px;
 }
-.discovery[data-darkmode] .view-badge,
-.discovery[data-darkmode] .view-pill-badge {
+.discovery-root-darkmode .view-badge,
+.discovery-root-darkmode .view-pill-badge {
     background: var(--discovery-view-badge-dark-color, var(--discovery-view-badge-color));
     color: var(--discovery-view-badge-dark-text-color, var(--discovery-view-badge-text-color));
     text-shadow: 1px 1px rgba(0, 0, 0, .1);

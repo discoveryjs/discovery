@@ -8,7 +8,7 @@
     border-radius: 3px;
     cursor: pointer;
 }
-.discovery[data-darkmode] .view-signature [data-action] {
+.discovery-root-darkmode .view-signature [data-action] {
     --discovery-view-signature-hover-color: #aaa;
     --discovery-view-signature-toggle-color: #72b372;
 }

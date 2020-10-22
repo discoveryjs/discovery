@@ -22,6 +22,6 @@
     pointer-events: none;
 }
 
-.discovery[data-darkmode] .view-nav-button {
+.discovery-root-darkmode .view-nav-button {
     color: var(--discovery-color);
 }

@@ -1,4 +1,5 @@
 /* isolate-style-root: discovery-view-popup */
+
 .discovery-view-popup {
     position: fixed;
     min-width: 200px;
@@ -12,7 +13,7 @@
 
     --discovery-background-color: white;
 }
-.discovery-view-popup[data-darkmode] {
+.discovery-view-popup.discovery-root-darkmode {
     --discovery-background-color: #323232;
 }
 

@@ -494,10 +494,7 @@ export default class Widget extends Emitter {
             this.dom.container = newContainerEl;
             this.dom.detachDarkMode = this.darkmode.on(
                 dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id="' + this.instanceId + '"]')])
-                    .forEach(rootEl => dark
-                        ? rootEl.dataset.darkmode = true
-                        : delete rootEl.dataset.darkmode
-                    ),
+                    .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark)),
                 true
             );
 
@@ -535,14 +532,6 @@ export default class Widget extends Emitter {
 
         document.addEventListener(eventName, handlerWrapper, options);
         return () => document.removeEventListener(eventName, handlerWrapper, options);
-    }
-
-    applyDarkMode(dark) {
-        if (dark) {
-            this.dom.container.dataset.darkmode = true;
-        } else {
-            delete this.dom.container.dataset.darkmode;
-        }
     }
 
     addBadge() {

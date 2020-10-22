@@ -65,7 +65,7 @@
     --discovery-view-button-active-background-color: #008ee0;
     --discovery-view-button-focus-border-color: transparent;
 }
-.discovery[data-darkmode] .view-button-primary {
+.discovery-root-darkmode .view-button-primary {
     --discovery-view-button-color: #fffd;
     --discovery-view-button-background-color: #006aa3e6;
     --discovery-view-button-hover-background-color: #0074b3e6;
@@ -81,7 +81,7 @@
     --discovery-view-button-active-background-color: #e34449;
     --discovery-view-button-focus-border-color: transparent;
 }
-.discovery[data-darkmode] .view-button-danger {
+.discovery-root-darkmode .view-button-danger {
     --discovery-view-button-color: #fffd;
     --discovery-view-button-background-color: #c32224bf;
     --discovery-view-button-hover-background-color: #d02528bf;
@@ -97,7 +97,7 @@
     --discovery-view-button-active-background-color: #f7ad00;
     --discovery-view-button-focus-border-color: transparent;
 }
-.discovery[data-darkmode] .view-button-warning {
+.discovery-root-darkmode .view-button-warning {
     --discovery-view-button-color: #eeee;
     --discovery-view-button-background-color: #ffd40199;
     --discovery-view-button-hover-background-color: #ffd91aa6;

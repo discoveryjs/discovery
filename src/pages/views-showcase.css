@@ -14,7 +14,7 @@
     transition-timing-function: ease-in;
 
 }
-.discovery[data-darkmode] .page-views-showcase {
+.discovery-root-darkmode .page-views-showcase {
     background-color: rgba(36, 36, 36, .8);
 }
 
