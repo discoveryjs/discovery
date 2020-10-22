@@ -8,7 +8,8 @@ export default {
             view: 'dropdown',
             name: 'demo',
             value: { foo: 'two', bar: 'hello' },
-            caption: 'struct:#',
+            resetValue: { foo: 'one', bar: '' },
+            caption: { view: 'struct', expanded: 1, data: '#' },
             content: [
                 { view: 'select', name: 'foo', data: ['one', 'two', 'three', 'four'] },
                 { view: 'input', name: 'bar' }
