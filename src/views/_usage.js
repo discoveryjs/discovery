@@ -67,6 +67,7 @@ export default function(discovery) {
                 content: {
                     view: 'render',
                     config: 'demo or view',
+                    data: 'data',
                     context: '{}'
                 }
             },
@@ -95,21 +96,35 @@ export default function(discovery) {
             content: {
                 view: 'switch',
                 content: [
-                    { when: '#.code="config"', content: {
-                        view: 'source',
-                        className: 'first-tab',
-                        data: (data) => ({
-                            syntax: 'discovery-view',
-                            content: jsonStringifyAsJavaScript(data.demo || data.view)
-                        })
-                    } },
-                    { when: '#.code="config-json"', content: {
-                        view: 'source',
-                        data: (data) => ({
-                            syntax: 'json',
-                            content: JSON.stringify(data.demo || data.view, null, 4)
-                        })
-                    } },
+                    { when: '#.code="config"', content: [
+                        {
+                            view: 'block',
+                            when: (data) => data.data,
+                            content: 'struct:data'
+                        },
+                        {
+                            view: 'source',
+                            className: 'first-tab',
+                            data: (data) => ({
+                                syntax: 'discovery-view',
+                                content: jsonStringifyAsJavaScript(data.demo || data.view)
+                            })
+                        }
+                    ] },
+                    { when: '#.code="config-json"', content: [
+                        {
+                            view: 'block',
+                            when: (data) => data.data,
+                            content: 'struct:data'
+                        },
+                        {
+                            view: 'source',
+                            data: (data) => ({
+                                syntax: 'json',
+                                content: JSON.stringify(data.demo || data.view, null, 4)
+                            })
+                        }
+                    ] },
                     { when: '#.code="html"', content: {
                         view: 'source',
                         data: (data, context) => ({

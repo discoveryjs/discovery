@@ -1,7 +1,7 @@
 export default (view, group) => ({
+    data: '"Alert"',
     demo: {
-        view,
-        data: '"Alert"'
+        view
     },
     examples: [
         {
