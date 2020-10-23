@@ -8,6 +8,8 @@ const defaultOptions = {
     position: 'trigger',
     hoverTriggers: null,
     hoverPin: false,
+    hideIfEventOutside: true,
+    hideOnResize: true,
     render: undefined
 };
 
@@ -24,6 +26,9 @@ function findTargetRelatedPopup(popup, target) {
 
 function hideIfEventOutside(event) {
     openedPopups.slice().forEach(popup => popup.hideIfEventOutside(event));
+}
+function hideOnResize(event) {
+    openedPopups.slice().forEach(popup => popup.hideOnResize(event));
 }
 
 export default function(discovery) {
@@ -183,9 +188,8 @@ export default function(discovery) {
             if (!this.visible) {
                 openedPopups.push(this);
 
-                window.addEventListener('resize', this.hide);
-
                 if (openedPopups.length === 1) {
+                    window.addEventListener('resize', hideOnResize);
                     document.addEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);
                     document.addEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
                     document.addEventListener('click', hideIfEventOutside, true);
@@ -266,10 +270,9 @@ export default function(discovery) {
                     this.lastTriggerEl.classList.remove('discovery-view-popup-active');
                     this.lastTriggerEl = null;
                 }
-
-                window.removeEventListener('resize', this.hide);
-
+                
                 if (openedPopups.length === 0) {
+                    window.removeEventListener('resize', hideOnResize);
                     document.removeEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);
                     document.removeEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
                     document.removeEventListener('click', hideIfEventOutside, true);
@@ -278,6 +281,10 @@ export default function(discovery) {
         }
 
         hideIfEventOutside({ target }) {
+            if (!this.options.hideIfEventOutside) {
+                return;
+            }
+
             // event inside a trigger element
             if (this.lastTriggerEl && this.lastTriggerEl.contains(target)) {
                 return;
@@ -289,6 +296,14 @@ export default function(discovery) {
             }
 
             // otherwise hide a popup
+            this.hide();
+        }
+
+        hideOnResize() {
+            if (!this.options.hideOnResize) {
+                return;
+            }
+
             this.hide();
         }
     };
