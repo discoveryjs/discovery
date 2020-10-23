@@ -1,5 +1,4 @@
 /* isolate-style-root: discovery, discovery-root, discovery-root-darkmode */
-@import url('./view-inspector.css');
 .discovery {
     display: flex;
 }

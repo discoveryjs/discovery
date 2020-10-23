@@ -6,7 +6,7 @@
     bottom: 0;
     background-color: rgba(0, 0, 255, .1);
     z-index: 2000;
-    pointer-events: none;
+    /* pointer-events: none; */
 }
 .discovery-view-inspector-overlay.pick-element {
     pointer-events: auto;
@@ -14,8 +14,6 @@
 .discovery-view-inspector-overlay .overlay {
     position: absolute;
     background-color: rgba(0, 255, 0, 0.001);
-    /* background-color: rgba(0, 255, 0, 0.1);
-    border: 1px solid rgba(0, 128, 0, .2); */
     transition: background-color 15ms 25ms;
     box-sizing: border-box;
 }
@@ -23,7 +21,7 @@
     background-color: rgba(0, 255, 0, .25);
     -webkit-backdrop-filter: grayscale(1);
     backdrop-filter: grayscale(1);
-    border: 1px dashed rgba(0, 128, 0, .4);
+    outline: 1px dashed rgba(0, 128, 0, .4);
 }
 .discovery-root-darkmode .discovery-view-inspector-overlay .overlay.hovered {
     background-color: rgba(0, 255, 0, .2);
@@ -37,24 +35,67 @@
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     background: rgba(255, 255, 255, .65);
+    display: grid;
+    grid-template:
+        "sidebar stack"
+        "sidebar content";
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    padding: 1px;
+    gap: 1px;
+
+    --discovery-mate-background: rgba(240, 240, 240, .5);
 }
 .discovery-root-darkmode.discovery-inspect-details-popup {
     background: rgba(36, 36, 36, .4);
+    --discovery-mate-background: rgba(52, 52, 52, .5);
+}
+.discovery-inspect-details-popup.has-selected-view {
+    pointer-events: all;
+    top: 20px !important;
+    left: 20px !important;
+    right: 20px !important;
+    bottom: 20px !important;
+    max-height: none !important;
+    max-width: none !important;
+    transition: .1s ease-in-out;
+    transition-property: top, left, right, bottom;
 }
 
 .discovery-inspect-details-popup .stack-view-chain {
-    padding: 4px;
+    grid-area: stack;
 }
-.discovery-inspect-details-popup .stack-view-chain .view-list-item:not(:last-child) {
-    color: #aaa;
+.discovery-inspect-details-popup .stack-view-chain .view-toggle {
+    border-radius: 0;
 }
-.discovery-inspect-details-popup .stack-view-chain .view-list-item:not(:first-child)::before {
-    content: '\a0→\a0';
-    color: #888;
-}
+
 .discovery-inspect-details-popup .view-struct {
-    background-color: rgba(240, 240, 240, .5);
+    background-color: transparent;
 }
-.discovery-root-darkmode.discovery-inspect-details-popup .view-struct {
-    background-color: rgba(52, 52, 52, .5);
+.discovery-inspect-details-popup .inspect-details-content {
+    grid-area: content;
+
+    overflow: hidden;
+    display: grid;
+    grid-template:
+        "config data"
+        "config context";
+    grid-template-columns: minmax(200px, 30%) 1fr;
+    grid-template-rows: 50% 50%;
+    gap: 1px;
+}
+.discovery-inspect-details-popup .inspect-details-content .config {
+    grid-area: config;
+    overflow: auto;
+    background-color: var(--discovery-mate-background);
+}
+.discovery-inspect-details-popup .inspect-details-content .data {
+    grid-area: data;
+    background-color: var(--discovery-mate-background);
+    overflow: auto;
+}
+.discovery-inspect-details-popup .inspect-details-content .context {
+    grid-area: context;
+    background-color: var(--discovery-mate-background);
+    overflow: auto;
 }

@@ -21,16 +21,27 @@ function isBoxChanged(oldBox, newBox) {
 export default (host) => {
     let enabled = false;
     let lastOverlayEl = null;
-    let lastView = null;
+    let lastHoverView = null;
     let hideTimer = null;
     let syncOverlayTimer;
     let lastPointerX;
     let lastPointerY;
+    let selectedView = null;
 
-    const overlayLayerEl = createElement('div', 'discovery-view-inspector-overlay');
-    const overlayByViewNode = new Map();
     const viewByEl = new Map();
+    const overlayByViewNode = new Map();
+    const overlayLayerEl = createElement('div', {
+        class: 'discovery-view-inspector-overlay',
+        onclick() {
+            selectView(lastHoverView && !selectedView ? lastHoverView : null);
+        }
+    });
     const syncOverlayState = debounce(() => {
+        // don't sync change a view selected
+        if (!enabled || selectedView !== null) {
+            return;
+        }
+
         // console.time('syncOverlayState');
         const tree = host.view.getViewTree([popup.el]);
         const overlayToRemove = new Set([...overlayByViewNode.keys()]);
@@ -64,7 +75,7 @@ export default (host) => {
                 }
             }
         };
-
+        
         walk(tree, overlayLayerEl);
 
         for (const node of overlayToRemove) {
@@ -91,7 +102,7 @@ export default (host) => {
         if (!enabled) {
             enabled = true;
             syncOverlayTimer = setInterval(syncOverlayState, 500);
-            document.body.append(overlayLayerEl);
+            host.dom.container.append(overlayLayerEl);
             document.addEventListener('pointermove', mouseMoveEventListener, passiveCaptureOptions);
             document.addEventListener('scroll', syncOverlayState, passiveCaptureOptions);
         }
@@ -105,17 +116,28 @@ export default (host) => {
             document.removeEventListener('scroll', syncOverlayState, passiveCaptureOptions);
         }
     };
+    const selectView = (view) => {
+        selectedView = view || null;
+        popup.el.classList.toggle('has-selected-view', selectedView !== null);
+
+        if (!view) {
+            popup.hide();
+            syncOverlayState();
+        }
+    };
 
     const popup = new host.view.Popup({
         className: 'discovery-inspect-details-popup',
-        position: 'pointer'
+        position: 'pointer',
+        hideIfEventOutside: false,
+        hideOnResize: false
     });
     const hide = () => {
         if (lastOverlayEl) {
             lastOverlayEl.classList.remove('hovered');
         }
 
-        lastView = null;
+        lastHoverView = null;
         lastOverlayEl = null;
 
         popup.hide();
@@ -140,11 +162,11 @@ export default (host) => {
 
         const leaf = viewByEl.get(overlayEl) || null;
 
-        if (leaf.view === lastView) {
+        if (leaf.view === lastHoverView) {
             return;
         }
 
-        lastView = leaf.view;
+        lastHoverView = leaf.view;
         clearTimeout(hideTimer);
 
         const stack = [];
@@ -156,18 +178,59 @@ export default (host) => {
         }
 
         popup.show(null, (el) => {
-            host.view.render(el, [
-                {
-                    view: 'inline-list',
+            host.view.render(el, {
+                view: 'context',
+                modifiers: {
+                    view: 'toggle-group',
                     className: 'stack-view-chain',
-                    item: 'text:config.view'
+                    name: 'view',
+                    data: '.({ text: config.view, value: $ })',
+                    value: '=$[-1].value'
                 },
-                {
-                    view: 'struct',
-                    data: 'pick(size() - 1).({ config, data, context})',
-                    expanded: 1
+                content: {
+                    view: 'block',
+                    className: 'inspect-details-content',
+                    data: '#.view',
+                    content: [
+                        {
+                            view: 'block',
+                            className: 'config',
+                            content: [
+                                'h5:"config"',
+                                {
+                                    view: 'struct',
+                                    expanded: 1,
+                                    data: 'config'
+                                }
+                            ]
+                        },
+                        {
+                            view: 'block',
+                            className: 'data',
+                            content: [
+                                'h5:"data"',
+                                {
+                                    view: 'struct',
+                                    expanded: 1,
+                                    data: 'data'
+                                }
+                            ]
+                        },
+                        {
+                            view: 'block',
+                            className: 'context',
+                            content: [
+                                'h5:"context"',
+                                {
+                                    view: 'struct',
+                                    expanded: 1,
+                                    data: 'context'
+                                }
+                            ]
+                        }
+                    ]
                 }
-            ], stack, {});
+            }, stack, {});
         });
     };
 
