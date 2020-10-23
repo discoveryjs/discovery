@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.46 (23-10-2020)
 
 - Added `dropdown` view
 - Changed index and report page buttons to behave like a link (#34)
