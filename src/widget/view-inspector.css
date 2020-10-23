@@ -36,12 +36,11 @@
     backdrop-filter: blur(5px);
     background: rgba(255, 255, 255, .65);
     display: grid;
-    grid-template:
-        "sidebar stack"
-        "sidebar content";
-    grid-template-columns: auto 1fr;
+    grid-template-areas:
+        "stack"
+        "content";
+    grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
-    padding: 1px 1px 1px 0;
     gap: 1px;
 
     --discovery-mate-background: rgba(240, 240, 240, .5);
@@ -58,9 +57,35 @@
     bottom: 20px !important;
     max-height: none !important;
     max-width: none !important;
-    padding-left: 1px;
     transition: .1s ease-in-out;
     transition-property: top, left, right, bottom;
+    grid-template-areas:
+        "sidebar stack"
+        "sidebar content";
+    grid-template-rows: auto minmax(20%, 1fr);
+    grid-template-columns: minmax(290px, 25%) 1fr;
+}
+
+.discovery-inspect-details-popup .sidebar {
+    grid-area: sidebar;
+    overflow: auto;
+    padding: 4px;
+    background-color: var(--discovery-mate-background);
+}
+.discovery-inspect-details-popup.has-selected-view .view-tree {
+    display: block;
+}
+.discovery-inspect-details-popup .view-tree {
+    display: none;
+    color: #ccc;
+}
+.discovery-inspect-details-popup .view-tree-leaf-content {
+    white-space: nowrap;
+}
+.discovery-inspect-details-popup .view-tree-leaf-content .selected {
+    background-color: rgba(78, 187, 255, .3);
+    box-shadow: 0 0 0 3px rgba(78, 187, 255, .3);
+    display: inline-block;
 }
 
 .discovery-inspect-details-popup .stack-view-chain {
@@ -70,21 +95,20 @@
     border-radius: 0;
 }
 
-.discovery-inspect-details-popup .view-struct {
-    overflow: visible;
-    background-color: transparent;
-}
 .discovery-inspect-details-popup .inspect-details-content {
     grid-area: content;
 
     overflow: hidden;
     display: grid;
-    grid-template:
+    grid-template-areas:
         "config data"
         "config context";
     grid-template-columns: minmax(200px, 30%) 1fr;
-    grid-template-rows: auto minmax(20%, 1fr);
     gap: 1px;
+}
+.discovery-inspect-details-popup .inspect-details-content .view-struct {
+    overflow: visible;
+    background-color: transparent;
 }
 .discovery-inspect-details-popup .inspect-details-content > * {
     overflow: auto;
@@ -109,18 +133,4 @@
 .discovery-inspect-details-popup .inspect-details-content .context {
     grid-area: context;
     --header: 'Context';
-}
-.discovery-inspect-details-popup .sidebar {
-    grid-area: sidebar;
-}
-.discovery-inspect-details-popup.has-selected-view .view-tree {
-    display: block;
-}
-.discovery-inspect-details-popup .view-tree {
-    display: none;
-    color: #ccc;
-}
-.discovery-inspect-details-popup .view-tree .tree-path-selected {
-    color: #000;
-    font-weight: bold;
 }

@@ -21,24 +21,26 @@ function isBoxChanged(oldBox, newBox) {
 export default (host) => {
     let enabled = false;
     let lastOverlayEl = null;
-    let lastHoverView = null;
+    let lastHoverViewTreeLeaf = null;
     let hideTimer = null;
     let syncOverlayTimer;
     let lastPointerX;
     let lastPointerY;
-    let selectedView = null;
+    let selectedTreeViewLeaf = null;
 
     const viewByEl = new Map();
     const overlayByViewNode = new Map();
     const overlayLayerEl = createElement('div', {
         class: 'discovery-view-inspector-overlay',
         onclick() {
-            selectView(lastHoverView && !selectedView ? lastHoverView : null);
+            selectTreeViewLeaf(
+                lastHoverViewTreeLeaf && !selectedTreeViewLeaf ? lastHoverViewTreeLeaf : null
+            );
         }
     });
     const syncOverlayState = debounce(() => {
         // don't sync change a view selected
-        if (!enabled || selectedView !== null) {
+        if (!enabled || selectedTreeViewLeaf !== null) {
             return;
         }
 
@@ -87,11 +89,11 @@ export default (host) => {
         updateState();
     }, { maxWait: 0, wait: 50 });
     const updateState = () => {
-        overlayLayerEl.classList.add('pick-element');
+        // overlayLayerEl.classList.add('pick-element');
         onHover([...document.elementsFromPoint(lastPointerX | 0, lastPointerY | 0) || []]
             .find(el => viewByEl.has(el)) || null
         );
-        overlayLayerEl.classList.remove('pick-element');
+        // overlayLayerEl.classList.remove('pick-element');
     };
     const mouseMoveEventListener = ({ x, y }) => {
         lastPointerX = x;
@@ -124,11 +126,13 @@ export default (host) => {
             document.removeEventListener('keydown', keyPressedEventListener, true);
         }
     };
-    const selectView = (view) => {
-        selectedView = view || null;
-        popup.el.classList.toggle('has-selected-view', selectedView !== null);
+    const selectTreeViewLeaf = (leaf) => {
+        selectedTreeViewLeaf = leaf || null;
+        popup.el.classList.toggle('has-selected-view', selectedTreeViewLeaf !== null);
 
-        if (!view) {
+        if (leaf) {
+            popup.show();
+        } else {
             popup.hide();
             syncOverlayState();
         }
@@ -138,14 +142,108 @@ export default (host) => {
         className: 'discovery-inspect-details-popup',
         position: 'pointer',
         hideIfEventOutside: false,
-        hideOnResize: false
+        hideOnResize: false,
+        render(el) {
+            const targetLeaf = selectedTreeViewLeaf || lastHoverViewTreeLeaf;
+            const stack = [];
+            const expanded = new Set();
+            let cursor = targetLeaf;
+    
+            while (cursor !== null && cursor.view) {
+                stack.unshift(cursor);
+                expanded.add(cursor.node);
+                cursor = cursor.parent;
+            }
+
+            expanded.delete(targetLeaf.node);
+
+            host.view.render(el, {
+                view: 'context',
+                modifiers: {
+                    view: 'tree',
+                    when: selectedTreeViewLeaf !== null,
+                    className: 'sidebar',
+                    expanded: leaf => !leaf.parent || expanded.has(leaf.node),
+                    data: '$[0]',
+                    item: {
+                        view: 'switch',
+                        content: [
+                            {
+                                when: '$ = #.selected',
+                                content: {
+                                    view: 'block',
+                                    className: 'selected',
+                                    content: 'text:(view.config.view or "#root")',
+                                    postRender(el) {
+                                        requestAnimationFrame(() => el.scrollIntoView());
+                                    }
+                                }
+                            },
+                            {
+                                content: {
+                                    view: 'link',
+                                    data: '{ text: view.config.view or "#root", href: false, leaf: $ }',
+                                    onClick(_, data) {
+                                        selectTreeViewLeaf(data.leaf);
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                content: {
+                    view: 'context',
+                    modifiers: {
+                        view: 'toggle-group',
+                        className: 'stack-view-chain',
+                        name: 'view',
+                        data: '.({ text: view.config.view, value: $ })',
+                        value: '=$[-1].value'
+                    },
+                    content: {
+                        view: 'block',
+                        className: 'inspect-details-content',
+                        data: '#.view',
+                        content: [
+                            {
+                                view: 'block',
+                                className: 'config',
+                                content: {
+                                    view: 'struct',
+                                    expanded: 1,
+                                    data: 'view.config'
+                                }
+                            },
+                            {
+                                view: 'block',
+                                className: 'data',
+                                content: {
+                                    view: 'struct',
+                                    expanded: 1,
+                                    data: 'view.data'
+                                }
+                            },
+                            {
+                                view: 'block',
+                                className: 'context',
+                                content: {
+                                    view: 'struct',
+                                    expanded: 1,
+                                    data: 'view.context'
+                                }
+                            }
+                        ]
+                    }
+                }
+            }, stack, { selected: targetLeaf });
+        }
     });
     const hide = () => {
         if (lastOverlayEl) {
             lastOverlayEl.classList.remove('hovered');
         }
 
-        lastHoverView = null;
+        lastHoverViewTreeLeaf = null;
         lastOverlayEl = null;
 
         popup.hide();
@@ -170,87 +268,19 @@ export default (host) => {
 
         const leaf = viewByEl.get(overlayEl) || null;
 
-        if (leaf.view === lastHoverView) {
+        if (leaf === null) {
+            lastHoverViewTreeLeaf = null;
             return;
         }
 
-        lastHoverView = leaf.view;
+        if (lastHoverViewTreeLeaf !== null && leaf.view === lastHoverViewTreeLeaf.view) {
+            return;
+        }
+
+        lastHoverViewTreeLeaf = leaf;
         clearTimeout(hideTimer);
 
-        const stack = [];
-        let cursor = leaf;
-
-        while (cursor !== null && cursor.view) {
-            stack.unshift(cursor);
-            cursor = cursor.parent;
-        }
-        popup.show(null, (el) => {
-            host.view.render(el, {
-                view: 'context',
-                modifiers: [
-                    {
-                        view: 'tree',
-                        className: 'sidebar',
-                        expanded: currentLeaf => !currentLeaf.parent || stack.find(item => item.node === currentLeaf.node),
-                        item: 'text:view.config.view or "Root"',
-                        itemConfig: {
-                            className: currentLeaf => currentLeaf === leaf ? 'tree-path-selected' : ''
-                        },
-                        data: '.pick(size() - 1)..parent[:-1][-1]'
-                    }
-                ],
-                content: {
-                    view: 'context',
-                    modifiers: {
-                        view: 'toggle-group',
-                        className: 'stack-view-chain',
-                        name: 'view',
-                        data: '.({ text: view.config.view, value: $ })',
-                        value: '=$[-1].value'
-                    },
-                    content: {
-                        view: 'block',
-                        className: 'inspect-details-content',
-                        data: '#.view',
-                        content: [
-                            {
-                                view: 'block',
-                                className: 'config',
-                                content: [
-                                    {
-                                        view: 'struct',
-                                        expanded: 1,
-                                        data: 'view.config'
-                                    }
-                                ]
-                            },
-                            {
-                                view: 'block',
-                                className: 'data',
-                                content: [
-                                    {
-                                        view: 'struct',
-                                        expanded: 1,
-                                        data: 'view.data'
-                                    }
-                                ]
-                            },
-                            {
-                                view: 'block',
-                                className: 'context',
-                                content: [
-                                    {
-                                        view: 'struct',
-                                        expanded: 1,
-                                        data: 'view.context'
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                }
-            }, stack, {});
-        });
+        popup.show();
     };
 
     host
