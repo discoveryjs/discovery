@@ -3,6 +3,7 @@
 - Added `passive` option support detection test and `passiveCaptureOptions` for `addEventListener()` in `utils.dom`
 - Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
 - Added `hideOnResize` and `hideIfEventOutside` options for `popup` view (both `true` by default)
+- Added `onClick` option for link view
 
 ## 1.0.0-beta.46 (23-10-2020)
 

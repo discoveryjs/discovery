@@ -3,6 +3,10 @@
     text-decoration-skip: ink;
     text-decoration-color: var(--discovery-link-underline-color, rgba(0, 153, 221, 0.4));
 }
+.view-link.onclick {
+    text-decoration-style: underline;
+    cursor: pointer;
+}
 .view-link:hover {
     color: var(--discovery-link-hover-color, #0077BB);
     text-decoration-color: currentColor;
