@@ -110,3 +110,17 @@
     grid-area: context;
     --header: 'Context';
 }
+.discovery-inspect-details-popup .sidebar {
+    grid-area: sidebar;
+}
+.discovery-inspect-details-popup.has-selected-view .view-tree {
+    display: block;
+}
+.discovery-inspect-details-popup .view-tree {
+    display: none;
+    color: #ccc;
+}
+.discovery-inspect-details-popup .view-tree .tree-path-selected {
+    color: #000;
+    font-weight: bold;
+}

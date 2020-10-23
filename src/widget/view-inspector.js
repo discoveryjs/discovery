@@ -181,59 +181,73 @@ export default (host) => {
         let cursor = leaf;
 
         while (cursor !== null && cursor.view) {
-            stack.unshift(cursor.view);
+            stack.unshift(cursor);
             cursor = cursor.parent;
         }
-
         popup.show(null, (el) => {
             host.view.render(el, {
                 view: 'context',
-                modifiers: {
-                    view: 'toggle-group',
-                    className: 'stack-view-chain',
-                    name: 'view',
-                    data: '.({ text: config.view, value: $ })',
-                    value: '=$[-1].value'
-                },
+                modifiers: [
+                    {
+                        view: 'tree',
+                        className: 'sidebar',
+                        expanded: currentLeaf => !currentLeaf.parent || stack.find(item => item.node === currentLeaf.node),
+                        item: 'text:view.config.view or "Root"',
+                        itemConfig: {
+                            className: currentLeaf => currentLeaf === leaf ? 'tree-path-selected' : ''
+                        },
+                        data: '.pick(size() - 1)..parent[:-1][-1]'
+                    }
+                ],
                 content: {
-                    view: 'block',
-                    className: 'inspect-details-content',
-                    data: '#.view',
-                    content: [
-                        {
-                            view: 'block',
-                            className: 'config',
-                            content: [
-                                {
-                                    view: 'struct',
-                                    expanded: 1,
-                                    data: 'config'
-                                }
-                            ]
-                        },
-                        {
-                            view: 'block',
-                            className: 'data',
-                            content: [
-                                {
-                                    view: 'struct',
-                                    expanded: 1,
-                                    data: 'data'
-                                }
-                            ]
-                        },
-                        {
-                            view: 'block',
-                            className: 'context',
-                            content: [
-                                {
-                                    view: 'struct',
-                                    expanded: 1,
-                                    data: 'context'
-                                }
-                            ]
-                        }
-                    ]
+                    view: 'context',
+                    modifiers: {
+                        view: 'toggle-group',
+                        className: 'stack-view-chain',
+                        name: 'view',
+                        data: '.({ text: view.config.view, value: $ })',
+                        value: '=$[-1].value'
+                    },
+                    content: {
+                        view: 'block',
+                        className: 'inspect-details-content',
+                        data: '#.view',
+                        content: [
+                            {
+                                view: 'block',
+                                className: 'config',
+                                content: [
+                                    {
+                                        view: 'struct',
+                                        expanded: 1,
+                                        data: 'view.config'
+                                    }
+                                ]
+                            },
+                            {
+                                view: 'block',
+                                className: 'data',
+                                content: [
+                                    {
+                                        view: 'struct',
+                                        expanded: 1,
+                                        data: 'view.data'
+                                    }
+                                ]
+                            },
+                            {
+                                view: 'block',
+                                className: 'context',
+                                content: [
+                                    {
+                                        view: 'struct',
+                                        expanded: 1,
+                                        data: 'view.context'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 }
             }, stack, {});
         });
