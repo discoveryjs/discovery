@@ -98,6 +98,11 @@ export default (host) => {
         lastPointerY = y;
         syncOverlayState();
     };
+    const keyPressedEventListener = (e) => {
+        if (e.keyCode === 27 || e.which === 27) {
+            host.inspect(false);
+        }
+    };
     const enableInspect = () => {
         if (!enabled) {
             enabled = true;
@@ -105,15 +110,18 @@ export default (host) => {
             host.dom.container.append(overlayLayerEl);
             document.addEventListener('pointermove', mouseMoveEventListener, passiveCaptureOptions);
             document.addEventListener('scroll', syncOverlayState, passiveCaptureOptions);
+            document.addEventListener('keydown', keyPressedEventListener, true);
         }
     };
     const disableInspect = () => {
         if (enabled) {
+            hide();
             enabled = false;
             clearInterval(syncOverlayTimer);
             overlayLayerEl.remove();
             document.removeEventListener('pointermove', mouseMoveEventListener, passiveCaptureOptions);
             document.removeEventListener('scroll', syncOverlayState, passiveCaptureOptions);
+            document.removeEventListener('keydown', keyPressedEventListener, true);
         }
     };
     const selectView = (view) => {
@@ -196,7 +204,6 @@ export default (host) => {
                             view: 'block',
                             className: 'config',
                             content: [
-                                'h5:"config"',
                                 {
                                     view: 'struct',
                                     expanded: 1,
@@ -208,7 +215,6 @@ export default (host) => {
                             view: 'block',
                             className: 'data',
                             content: [
-                                'h5:"data"',
                                 {
                                     view: 'struct',
                                     expanded: 1,
@@ -220,7 +226,6 @@ export default (host) => {
                             view: 'block',
                             className: 'context',
                             content: [
-                                'h5:"context"',
                                 {
                                     view: 'struct',
                                     expanded: 1,

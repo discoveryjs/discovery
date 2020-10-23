@@ -41,7 +41,7 @@
         "sidebar content";
     grid-template-columns: auto 1fr;
     grid-template-rows: auto 1fr;
-    padding: 1px;
+    padding: 1px 1px 1px 0;
     gap: 1px;
 
     --discovery-mate-background: rgba(240, 240, 240, .5);
@@ -58,6 +58,7 @@
     bottom: 20px !important;
     max-height: none !important;
     max-width: none !important;
+    padding-left: 1px;
     transition: .1s ease-in-out;
     transition-property: top, left, right, bottom;
 }
@@ -70,6 +71,7 @@
 }
 
 .discovery-inspect-details-popup .view-struct {
+    overflow: visible;
     background-color: transparent;
 }
 .discovery-inspect-details-popup .inspect-details-content {
@@ -81,21 +83,30 @@
         "config data"
         "config context";
     grid-template-columns: minmax(200px, 30%) 1fr;
-    grid-template-rows: 50% 50%;
+    grid-template-rows: auto minmax(20%, 1fr);
     gap: 1px;
+}
+.discovery-inspect-details-popup .inspect-details-content > * {
+    overflow: auto;
+    background-color: var(--discovery-mate-background);
+    font-size: 12px;
+    line-height: 14px;
+}
+.discovery-inspect-details-popup .inspect-details-content > ::before {
+    content: var(--header);
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: rgba(0, 0, 0, .15);
 }
 .discovery-inspect-details-popup .inspect-details-content .config {
     grid-area: config;
-    overflow: auto;
-    background-color: var(--discovery-mate-background);
+    --header: 'View config';
 }
 .discovery-inspect-details-popup .inspect-details-content .data {
     grid-area: data;
-    background-color: var(--discovery-mate-background);
-    overflow: auto;
+    --header: 'Data';
 }
 .discovery-inspect-details-popup .inspect-details-content .context {
     grid-area: context;
-    background-color: var(--discovery-mate-background);
-    overflow: auto;
+    --header: 'Context';
 }
