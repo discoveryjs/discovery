@@ -5,14 +5,30 @@
     padding: 9px 12px;
     line-height: 1;
     font-size: 14px;
-    border: 1px solid #DDD;
+    border: 1px solid rgba(85, 85, 85, 0.2);
     border-width: 1px 0;
-    background: #F8F8F8;
-    opacity: .95;
+    background-color: rgba(250, 250, 250, .92);
     text-transform: capitalize;
     margin: 0;
     margin-bottom: -1px;
+    transition: background-color .25s ease-in;
 }
+.discovery-root-darkmode .view-toc-section > .header {
+    background-color: rgba(50, 50, 50, .92);
+    border-color: rgba(0, 0, 0, .25);
+}
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
+    .view-toc-section > .header {
+        background-color: rgba(250, 250, 250, .8);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    .discovery-root-darkmode .view-toc-section > .header {
+        background-color: rgba(50, 50, 50, .8);
+        border-color: rgba(0, 0, 0, .25);
+    }
+}
+
 .view-toc-section > .header .view-badge,
 .view-toc-section > .header .view-pill-badge {
     text-transform: none;

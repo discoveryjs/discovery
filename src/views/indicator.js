@@ -1,22 +1,26 @@
 /* eslint-env browser */
+import usage from './indicator.usage.js';
 
 export default function(discovery) {
     discovery.view.define('indicator', function(el, config, data, context) {
         const { value, label } = config;
         const { href } = data || {};
-        const valueEl = el.appendChild(document.createElement('div'));
-        const labelEl = el.appendChild(document.createElement('div'));
+        const valueEl = document.createElement('div');
+        const labelEl = document.createElement('div');
 
-        valueEl.className = 'value';
-        discovery.view.render(valueEl, value || 'text:value', data, context);
-
+        valueEl.className = 'value';        
         labelEl.className = 'label';
-        discovery.view.render(labelEl, label || 'text:label', data, context);
-
+        
         if (href) {
             el.href = href;
         }
+
+        return Promise.all([
+            discovery.view.render(valueEl, value || 'text:value', data, context),
+            discovery.view.render(labelEl, label || 'text:label', data, context)
+        ]).then(() => el.append(valueEl, labelEl));
     }, {
-        tag: 'a'
+        tag: 'a',
+        usage
     });
 }

@@ -12,15 +12,14 @@
 .page-report > .report-editor .report-editor-tabs.presets::before {
     content: 'View presets:'
 }
-.page-report > .report-editor .report-editor-tabs.presets .tab:first-child {
+.page-report > .report-editor .report-editor-tabs.presets .report-editor-tab:first-child {
     border-bottom-left-radius: 4px;
 }
 
 .page-report > .report-editor .view-editor-form-content {
     padding: 8px 40px;
     margin-bottom: 1px;
-    background: #e8f5fd;
-    border-radius: 0 4px 4px 4px;
+    background-color: rgba(108, 188, 241, 0.15)
 }
 .page-report > .report-editor .view-editor-form-content .formatting {
     position: absolute;
@@ -32,18 +31,49 @@
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: center;
-    border-color: #b9d0df;
+    border-color: rgba(21, 98, 148, 0.3);
+}
+
+.page-report > .report-editor .view-editor-form-content .view-expand {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.page-report > .report-editor .view-editor-form-content .view-expand .header {
+    background: none;
+}
+.page-report > .report-editor .view-editor-form-content .view-expand .header:hover {
+    background: rgba(0, 0, 0, .05);
 }
 
 .page-report > .report-editor .view-editor-form-content .view-editor-view-list {
-    padding-left: 10px;
-    padding-right: 25px;
+    display: none;
+    padding: 15px 8px;
     font-size: 12px;
     color: #aaa;
+    column-count: 8;
+    column-width: 150px;
+    column-gap: 20px;
+    margin-right: -190px;
 }
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item {
-    color: #75a3bf;
-    white-space: nowrap;
+.page-report > .report-editor .view-editor-form-content .view-editor-view-list.visible {
+    display: block;
+}
+.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item:not([href]) {
+    color: #888;
+}
+
+.discovery-view-popup.view-editor-view-list-hint {
+    padding: 20px;
+    min-width: 640px;
+    min-height: 100px;
+}
+.discovery-view-popup.view-editor-view-list-hint > .discovery-view-usage > .view-header:first-child {
+    font-size: 16px;
+    background: rgba(180, 180, 180, 0.2);
+    margin: -20px -20px 0;
+    padding: 6px 20px;
+    line-height: 24px;
 }
 
 .discovery[data-dzen] .page-report > .report-editor {

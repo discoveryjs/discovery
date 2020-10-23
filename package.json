@@ -1,6 +1,6 @@
 {
     "name": "@discoveryjs/discovery",
-    "version": "1.0.0-beta.38",
+    "version": "1.0.0-beta.46",
     "description": "Hackable JSON discovery tool",
     "author": "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)",
     "license": "MIT",
@@ -11,6 +11,7 @@
     "jsdelivr": "dist/discovery.umd.js",
     "browser": {
         "/gen/jora.js": "./dist/gen/jora.js",
+        "/gen/@discoveryjs/json-ext.js": "./dist/gen/@discoveryjs/json-ext.js",
         "/gen/hitext": "./dist/gen/hitext.js",
         "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
         "/gen/prismjs": "./dist/gen/prismjs.js",
@@ -19,17 +20,20 @@
     "scripts": {
         "lint": "eslint libs scripts src",
         "build": "npm run build:esm && npm run build:css",
-        "build-docs": "npm run build && discovery-build -o docs",
+        "build-docs": "npm run build && discovery-build -o docs --isolate-styles",
         "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
-        "build:umd": "node scripts/build-client-libs && browserify src/lib.js --standalone discovery --im -t [ babelify --presets [ @babel/preset-env ] ] | terser --compress --mangle -o dist/discovery.umd.js",
+        "build:umd": "node scripts/build-js | terser --compress --mangle -o dist/discovery.umd.js",
         "build:css": "node scripts/build-css",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "cypress": "npx cypress open",
+        "start:server": "npx discovery -c ./cypress/fixtures/single-model/.discoveryrc.js",
+        "test": "./cypress/test.sh"
     },
     "engines": {
         "node": ">=8.0.0"
     },
     "dependencies": {
-        "@discoveryjs/json-ext": "^0.1.0",
+        "@discoveryjs/json-ext": "^0.3.0",
         "codemirror": "^5.52.2",
         "hitext": "^1.0.0-beta.1",
         "hitext-prismjs": "^1.1.0",
@@ -39,11 +43,13 @@
     "devDependencies": {
         "@babel/core": "^7.9.0",
         "@babel/preset-env": "^7.9.0",
-        "@discoveryjs/cli": "^1.5.0",
+        "@discoveryjs/cli": "^1.13.0",
         "babelify": "^10.0.0",
         "browserify": "^16.5.0",
+        "cypress": "^5.3.0",
         "eslint": "^6.8.0",
-        "terser": "^4.6.7"
+        "eslint-plugin-cypress": "^2.11.2",
+        "terser": "^5.3.3"
     },
     "files": [
         "dist",

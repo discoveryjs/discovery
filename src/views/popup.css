@@ -1,19 +1,20 @@
 /* isolate-style-root: discovery-view-popup */
+
 .discovery-view-popup {
-    all: reset;
     position: fixed;
     min-width: 200px;
     box-sizing: border-box;
-    z-index: 100;
+    z-index: 300;
     overflow: hidden;
     overflow-y: auto;
     min-height: 20px;
-    border: 1px solid #ccc;
-    box-shadow: 3px 3px 18px rgba(0,0,0,.2);
-    background: white;
-    font-family: Tahoma, Verdana, Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
+    border: 1px solid rgba(176, 176, 176, 0.65);
+    box-shadow: 3px 3px 18px rgba(0, 0, 0, .2);
+
+    --discovery-background-color: white;
+}
+.discovery-view-popup.discovery-root-darkmode {
+    --discovery-background-color: #323232;
 }
 
 .discovery-view-popup.show-on-hover:not([data-pin-mode="popup-hover"]):not(.pinned) {
@@ -22,17 +23,18 @@
 
 .discovery-view-popup:not(.pinned)[data-pin-mode="trigger-click"]::before,
 .discovery-view-popup:not(.pinned)[data-pin-mode="trigger-click"]::after {
+    content: "Click to pin this popup";
     display: block;
     visibility: hidden;
-    content: "Click to pin this popup";
-    padding: 2px 8px;
-    font-size: 10px;
-    text-align: center;
-    color: #888;
-    background: #f0f0f0;
     left: 0;
     right: 0;
     z-index: 100;
+    padding: 2px 8px;
+    background-color: var(--discovery-background-color);
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, .05), rgba(0, 0, 0, .05));
+    color: #888;
+    font-size: 10px;
+    text-align: center;
 }
 .discovery-view-popup:not(.pinned)[data-v-to="top"]::before {
     position: absolute;

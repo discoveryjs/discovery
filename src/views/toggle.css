@@ -1,0 +1,24 @@
+.view-toggle {
+    display: inline-block;
+    position: relative;
+    padding: 3px 11px;
+    background: rgba(200, 200, 200, 0.2);
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.view-toggle:hover {
+    background-color: rgba(78, 187, 255, .2);
+}
+.view-toggle.checked {
+    background-color: rgba(78, 187, 255, .3);
+    cursor: default;
+}
+.view-toggle.disabled {
+    color: #aaa;
+}
+.view-toggle.disabled,
+.view-toggle:not(.onclick) {
+    pointer-events: none;
+}

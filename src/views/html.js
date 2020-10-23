@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './html.usage.js';
 
 export default function(discovery) {
     const buffer = document.createElement('div');
@@ -10,6 +11,7 @@ export default function(discovery) {
             el.appendChild(buffer.firstChild);
         }
     }, {
-        tag: null
+        tag: null,
+        usage
     });
 }

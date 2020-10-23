@@ -1,11 +1,13 @@
+@import url('./_usage.css');
 @import url('./alerts.css');
 @import url('./badges.css');
-@import url('./block.css');
 @import url('./button.css');
 @import url('./checkbox-list.css');
 @import url('./checkbox.css');
+@import url('./column.css');
 @import url('./columns.css');
 @import url('./content-filter.css');
+@import url('./dropdown.css');
 @import url('./editors.css');
 @import url('./expand.css');
 @import url('./headers.css');
@@ -18,6 +20,7 @@
 @import url('./lists.css');
 @import url('./menu-item.css');
 @import url('./menu.css');
+@import url('./nav-button.css');
 @import url('./popup.css');
 @import url('./section.css');
 @import url('./select.css');
@@ -30,30 +33,45 @@
 @import url('./tabs.css');
 @import url('./text-match.css');
 @import url('./toc-section.css');
+@import url('./toggle.css');
+@import url('./toggle-group.css');
 @import url('./tree-leaf.css');
 @import url('./tree.css');
 
 .more-buttons {
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
 }
 .more-buttons .more-button {
     vertical-align: top;
-    margin-top: 4px;
-    margin-right: 1ex;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    padding: 4px 8px;
-    font-size: 11px;
-    line-height: normal;
-    font-family: system-ui, Arial, sans-serif;
+    color: var(--discovery-color, black);
     min-height: 0;
+    padding: 4px 8px;
+    margin: 0;
+    background-color: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(127, 127, 127, 0.4);
+    border-radius: 3px;
+    font-size: 11px;
+    line-height: 12px;
+    font-family: system-ui, Arial, sans-serif;
     cursor: pointer;
+}
+@supports not (gap: 5px) {
+    .more-buttons {
+        margin-top: 0;
+    }
+    .more-buttons .more-button {
+        margin-top: 4px;
+        margin-right: 5px;
+    }
 }
 .more-buttons .more-button:hover,
 .more-buttons .more-button:active,
 .more-buttons .more-button:focus {
-    border-color: #ccc;
+    background-color: rgba(221, 221, 221, 0.3);
+    border-color: rgba(170, 170, 170, 0.6);
     outline: none;
 }
 .more-buttons .more-button:active {

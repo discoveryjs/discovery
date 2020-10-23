@@ -27,20 +27,24 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
 }
 
 class Editor extends Emitter {
-    constructor(hint) {
+    constructor({ hint, mode }) {
         super();
 
         this.el = document.createElement('div');
         this.el.className = 'discovery-editor';
 
+        const self = this;
         const cm = CodeMirror(this.el, {
             extraKeys: { 'Alt-Space': 'autocomplete' },
-            mode: 'javascript',
+            mode: mode || 'javascript',
             theme: 'neo',
             indentUnit: 0,
             showHintOptions: {
                 hint,
-                isolateStyleMarker: this.getIsolateStyleMarker()
+                isolateStyleMarker: this.isolateStyleMarker,
+                get darkmode() {
+                    return self.darkmode.value ? 'darkmode' : false;
+                }
             }
         });
 
@@ -84,12 +88,13 @@ class Editor extends Emitter {
         this.cm.focus();
     }
 
-    getIsolateStyleMarker() {}
+    get isolateStyleMarker() {}
+    get darkmode() {}
 }
 
 class QueryEditor extends Editor {
     constructor(getSuggestions) {
-        super(function(cm) {
+        super({ mode: 'discovery-query', hint: function(cm) {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),
@@ -111,26 +116,122 @@ class QueryEditor extends Editor {
                     };
                 })
             };
-        });
+        } });
     }
 }
 
 class ViewEditor extends Editor {
     constructor() {
-        super();
+        super({
+            mode: {
+                name: 'discovery-view',
+                isDiscoveryViewDefined: name => this.isViewDefined(name)
+            }
+        });
     }
 }
+
+CodeMirror.defineMode('discovery-query', function(config) {
+    const jsMode = CodeMirror.getMode(config, {
+        name: 'javascript',
+        json: true
+    });
+
+    return {
+        ...jsMode,
+        indent(state, textAfter) {
+            return state.indented + config.indentUnit * (
+                (state.lastType === '{' && textAfter.trim()[0] !== '}') ||
+                (state.lastType === '(' && textAfter.trim()[0] !== ')') ||
+                (state.lastType === '[' && textAfter.trim()[0] !== ']')
+            );
+        },
+        token(stream, state) {
+            const next = stream.peek();
+
+            if (next === '#' || next === '@') {
+                jsMode.token(new CodeMirror.StringStream('$', 4, stream.lineOracle), state);
+                stream.pos++;
+                return 'variable';
+            }
+
+            return jsMode.token(stream, state);
+        }
+    };
+});
+
+CodeMirror.defineMode('discovery-view', function(config, options) {
+    const isDiscoveryViewDefined = typeof options.isDiscoveryViewDefined === 'function'
+        ? options.isDiscoveryViewDefined
+        : () => {};
+    const jsMode = CodeMirror.getMode(config, {
+        name: 'javascript',
+        json: true
+    });
+
+    return {
+        ...jsMode,
+        indent(state, textAfter) {
+            return state.indented + config.indentUnit * (
+                (state.lastType === '{' && textAfter.trim()[0] !== '}') ||
+                (state.lastType === '(' && textAfter.trim()[0] !== ')') ||
+                (state.lastType === '[' && textAfter.trim()[0] !== ']')
+            );
+        },
+        token: function(stream, state) {
+            if (state.suspendTokens) {
+                const { pos, token } = state.suspendTokens.shift();
+
+                stream.pos = pos;
+                if (state.suspendTokens.length === 0) {
+                    state.suspendTokens = null;
+                }
+
+                return token;
+            }
+
+            const start = stream.pos;
+            const token = jsMode.token(stream, state);
+
+            if (token === 'string') {
+                const end = stream.pos;
+                const [, viewName] = stream.string
+                    .slice(start + 1, end - 1)
+                    .match(/^(.+?)([:{]|$)/) || [];
+
+                if (isDiscoveryViewDefined(viewName)) {
+                    stream.pos = start + 1;
+                    state.suspendTokens = [
+                        { pos: start + 1 + viewName.length, token: 'string discovery-view-name' },
+                        { pos: end, token }
+                    ];
+                }
+            }
+
+            return token;
+        }
+    };
+});
 
 export default function(discovery) {
     Object.assign(discovery.view, {
         QueryEditor: class extends QueryEditor {
-            getIsolateStyleMarker() {
+            get isolateStyleMarker() {
                 return discovery.isolateStyleMarker;
+            }
+            get darkmode() {
+                return discovery.darkmode;
             }
         },
         ViewEditor: class extends ViewEditor {
-            getIsolateStyleMarker() {
+            isViewDefined(name) {
+                return discovery.view.isDefined(name);
+            }
+            get isolateStyleMarker() {
                 return discovery.isolateStyleMarker;
+            }
+            get darkmode() {
+                return discovery.darkmode;
             }
         }
     });

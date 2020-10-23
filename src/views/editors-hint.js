@@ -194,7 +194,8 @@ class Widget {
         const hintsElClassNames = [
             POPUP_CLASS,
             completion.cm.options.theme,
-            completion.options.isolateStyleMarker
+            completion.options.isolateStyleMarker,
+            completion.options.darkmode
         ].filter(Boolean);
 
         this.completion = completion;

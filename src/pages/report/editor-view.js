@@ -1,39 +1,31 @@
-import { createElement, createText } from '../../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
+import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
+import renderUsage from '../../views/_usage.js';
 
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
 const defaultViewPresets = [
     {
         name: 'Table',
-        content: toFormattedViewSource({
+        content: jsonStringifyAsJavaScript({
             view: 'table'
         })
     },
     {
         name: 'Auto-link list',
-        content: toFormattedViewSource({
+        content: jsonStringifyAsJavaScript({
             view: 'ol',
             item: 'auto-link'
         })
     },
     {
         name: 'Signature',
-        content: toFormattedViewSource({
+        content: jsonStringifyAsJavaScript({
             view: 'signature',
             expanded: 2
         })
     }
 ];
-
-function toFormattedViewSource(value) {
-    return JSON
-        .stringify(value, null, 4)
-        .replace(/"((?:\\.|[^"])*)"(:?)/g,
-            (_, content, colon) => colon && /^[a-z$_][a-z$_\d]*$/i.test(content)
-                ? content + colon
-                : `'${content.replace(/\\"/g, '"').replace(/'/g, '\\\'')}'` + colon
-        );
-}
 
 function createPresetTab(name, content, updateParams) {
     return createElement('div', {
@@ -51,7 +43,9 @@ export default function(discovery, updateParams) {
         : defaultViewPresets;
 
     let viewSetupEl;
-    let availableViewListEl;
+    let availableViewsEl;
+    let availableViewsTextEl;
+    let availableViewsListEl;
     // let availablePresetListEl;
     let viewModeTabsEls;
     let viewLiveEditEl;
@@ -87,7 +81,7 @@ export default function(discovery, updateParams) {
                         const json = new Function('return 0,' + currentText)();
 
                         updateParams({
-                            view: toFormattedViewSource(json)
+                            view: jsonStringifyAsJavaScript(json)
                         });
                     } catch (e) {
                         console.error('[Discovery] Prettify failed', e);
@@ -96,11 +90,20 @@ export default function(discovery, updateParams) {
             }),
             viewEditor.el,
             createElement('div', 'editor-toolbar', [
-                createElement('div', 'view-editor-view-list', [
-                    createText('Available views: '),
-                    availableViewListEl = createElement('span')
+                availableViewsEl = createElement('div', 'view-expand', [
+                    createElement('div', {
+                        class: 'header',
+                        onclick: () => {
+                            availableViewsEl.classList.toggle('expanded');
+                            availableViewsListEl.classList.toggle('visible');
+                        }
+                    }, [
+                        availableViewsTextEl = createElement('div', 'header-content'),
+                        createElement('div', 'trigger')
+                    ]),
+                    availableViewsListEl = createElement('div', 'view-editor-view-list')
                 ]),
-                createElement('label', null, [
+                createElement('label', 'view-checkbox', [
                     viewLiveEditEl = createElement('input', {
                         class: 'live-update',
                         type: 'checkbox',
@@ -111,7 +114,7 @@ export default function(discovery, updateParams) {
                             }
                         }
                     }),
-                    ' build on input'
+                    createElement('span', 'view-checkbox__label', 'build on input')
                 ]),
                 viewEditorButtonsEl
             ])
@@ -130,12 +133,23 @@ export default function(discovery, updateParams) {
             discovery.scheduleRender('page'); // force render
         }
     });
+    new discovery.view.Popup({
+        className: 'view-editor-view-list-hint',
+        hoverTriggers: '.view-editor-view-list .item.with-usage',
+        // hoverPin: 'trigger-click',
+        render: function(popupEl, triggerEl) {
+            discovery.view.render(popupEl, renderUsage(discovery), discovery.view.get(triggerEl.textContent), {});
+        }
+    });
 
     // sync view list
+    availableViewsTextEl.textContent = `Available ${[...discovery.view.entries].filter(([, view]) => view.options.usage).length} views`;
     const updateAvailableViewList = () =>
-        availableViewListEl.innerHTML = discovery.view.names.sort()
-            .map(name => `<span class="item">${name}</span>`)
-            .join(', ');
+        availableViewsListEl.innerHTML =
+            '<a href="#views-showcase" class="view-link">Views showcase</a><br><br>' +
+            [...discovery.view.entries].sort()
+                .map(([name, view]) => `<div><a class="item view-link${view.options.usage ? ' with-usage' : ''}" ${view.options.usage ? 'href="#views-showcase:' + name + '"' : ''}>${name}</a></div>`)
+                .join('');
 
     updateAvailableViewList();
     discovery.view.on('define', updateAvailableViewList);

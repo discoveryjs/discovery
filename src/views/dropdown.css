@@ -1,0 +1,90 @@
+.view-dropdown {
+    box-sizing: border-box;
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    flex-shrink: 0;
+    align-items: center;
+    min-width: 10ex;
+    max-width: 100%;
+    padding-right: 1.2em;
+    line-height: 1.2;
+
+    border-radius: 3px;
+    border: 1px solid rgba(127, 127, 127, 0.4);
+    background-color: rgba(255, 255, 255, .1);
+    color: var(--discovery-color);
+    outline: none;
+}
+.view-dropdown::after {
+    content: '';
+    right: 7px;
+    color: #999999;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    pointer-events: none;
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    background-image: url('select-arrow.svg');
+    background-size: 1em;
+    background-position: center;
+    cursor: pointer;
+}
+.view-dropdown.discovery-view-popup-active,
+.view-dropdown:focus {
+    box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2);
+    border-color: rgba(128, 128, 128, 0.6);
+    z-index: 1;
+}
+.view-dropdown:hover {
+    background-color: rgba(221, 221, 221, 0.3);
+    border-color: rgba(170, 170, 170, 0.6);
+}
+.view-dropdown:active {
+    background-color: rgba(131, 131, 131, 0.25);
+}
+.view-dropdown__caption {
+    padding: 8px 8px 8px 12px;
+}
+.view-dropdown:not([data-placeholder]):empty .view-dropdown__caption::before {
+    content: '|';
+    visibility: hidden;
+    padding: 8px 0;
+}
+.view-dropdown[data-placeholder]:empty .view-dropdown__caption::before {
+    content: attr(data-placeholder);
+    visibility: visible;
+    padding: 8px 8px 8px 12px;
+    color: #bbb;
+}
+.view-dropdown > * {
+    pointer-events: none;
+}
+
+.discovery-view-popup.view-dropdown-popup {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.discovery-view-popup.view-dropdown-popup > .content {
+    gap: 5px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+.discovery-view-popup.view-dropdown-popup > .confirm {
+    padding: 8px;
+    background-color: rgba(0, 0, 0, .2);
+    font-size: 80%;
+    text-align: right;
+}
+.discovery-view-popup.view-dropdown-popup > .confirm .view-button {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}

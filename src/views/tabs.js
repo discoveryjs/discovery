@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './tabs.usage.js';
 
 export default function(discovery) {
     discovery.view.define('tabs', function(el, config, data, context) {
@@ -26,10 +27,9 @@ export default function(discovery) {
                 }
 
                 tabs.forEach(tab =>
-                    discovery.view.render(tabsEl, discovery.view.composeConfig(tabConfig, {
-                        active: tab.value === currentValue,
-                        content: tab.content || tabConfig.content
-                    }), tab, context)
+                    discovery.view.render(tabsEl, discovery.view.composeConfig(tab, {
+                        active: tab.value === currentValue
+                    }), data, context)
                 );
 
                 if (afterTabs) {
@@ -103,12 +103,15 @@ export default function(discovery) {
                     initValue = tab.value;
                 }
 
-                return tab;
+                return {
+                    ...tabConfig,
+                    ...tab
+                };
             });
         } else {
             tabs = [];
         }
 
         renderContent(initValue);
-    });
+    }, { usage });
 }

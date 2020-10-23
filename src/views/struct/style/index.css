@@ -10,8 +10,8 @@
     font-family: Consolas, Monaco, monospace;
     font-size: 11px;
     line-height: 18px;
-    background: #fafafa;
-    color: #666;
+    background: rgba(205, 205, 205, 0.1);
+    color: var(--discovery-fmt-color);
     white-space: nowrap;
 }
 .view-struct.struct-expand {
@@ -26,12 +26,12 @@
 }
 .view-struct.struct-expand:hover,
 .view-struct .struct-expand-value:hover {
-    color: #333;
-    background: #eee;
+    color: var(--discovery-fmt-hover-color);
+    background-color: rgba(187, 187, 187, 0.25);
 }
 .view-struct.struct-expanded-value,
 .view-struct .struct-expanded-value {
-    background-image: linear-gradient(to bottom, #eee, #eee);
+    background-image: linear-gradient(to bottom, rgba(187, 187, 187, 0.15), rgba(187, 187, 187, 0.15));
     background-size: 1px calc(100% - 38px);
     background-position: 4.85ex 20px;
     background-repeat: no-repeat;
@@ -44,7 +44,8 @@
 
 .discovery-view-popup.view-struct-actions-popup .error {
     font-size: 11px;
-    color: #a00;
+    color: rgba(214, 31, 31, 77%);
+    text-shadow: 0.2px 0px 0.3px rgba(255, 255, 255, .8);
 }
 .discovery-view-popup.view-struct-actions-popup .num-delim {
     padding-left: 3px;

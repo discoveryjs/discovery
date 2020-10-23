@@ -1,0 +1,7 @@
+.view-column {
+    padding-right: 40px;
+    min-width: 150px;
+}
+.view-column:last-child {
+    padding-right: 0;
+}

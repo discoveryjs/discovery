@@ -2,9 +2,10 @@
 
 import hitext from '/gen/hitext.js';
 import hitextPrismjs from '/gen/hitext-prismjs.js';
+import CodeMirror from '/gen/codemirror.js';
 
 const maxSourceSizeToHighlight = 100 * 1024;
-const mimeToSyntax = {
+const mimeToSyntax = new Map(Object.entries({
     'application/javascript': 'javascript',
     'application/x-httpd-php': 'php',
     'application/xml': 'xml',
@@ -14,6 +15,28 @@ const mimeToSyntax = {
     'text/stylus': 'stylus',
     'text/yaml': 'yaml',
     'image/svg+xml': 'svg'
+}));
+
+function codeMirrorHighlight(modespec, discovery) {
+    const mode = CodeMirror.getMode(CodeMirror.defaults, {
+        name: modespec,
+        isDiscoveryViewDefined: name => discovery.view.isDefined(name)
+    });
+
+    return (source, createRange) => {
+        const stream = new CodeMirror.StringStream(source, null);
+        const state = CodeMirror.startState(mode);
+
+        while (!stream.eol()) {
+            const style = mode.token(stream, state);
+
+            if (style) {
+                createRange(stream.start, stream.pos, style);
+            }
+
+            stream.start = stream.pos;
+        }
+    };
 };
 
 function classNames(options, defaultClassNames) {
@@ -56,19 +79,40 @@ export default function(discovery) {
 
         if (disabled) {
             el.classList.add('disabled');
-            el.innerText = error;
+            el.textContent = error;
             return;
         }
 
         if (error) {
             el.classList.add('error');
-            el.innerText = error;
+            el.textContent = error;
+            return;
+        }
+
+        if (typeof content !== 'string') {
             return;
         }
 
         // prevent syntax highlighting for sources over maxSourceSizeToHighlight to avoid page freeze
-        if (content.length < maxSourceSizeToHighlight && (syntax || mimeToSyntax.hasOwnProperty(mime))) {
-            decorators.push(hitextPrismjs(syntax || mimeToSyntax[mime]));
+        if (content.length < maxSourceSizeToHighlight) {
+            let highlightSyntax = syntax || mimeToSyntax.get(mime);
+
+            if (highlightSyntax) {
+                decorators.push(
+                    highlightSyntax === 'discovery-view' || highlightSyntax === 'discovery-query'
+                        ? [codeMirrorHighlight(highlightSyntax, discovery), {
+                            html: {
+                                open({ data: type }) {
+                                    return '<span class="token ' + type + '">';
+                                },
+                                close() {
+                                    return '</span>';
+                                }
+                            }
+                        }]
+                        : hitextPrismjs(highlightSyntax)
+                );
+            }
         }
 
         if (Array.isArray(refs)) {

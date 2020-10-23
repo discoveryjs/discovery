@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './input.usage.js';
 
 import safeFilterRx from '../core/utils/safe-filter-rx.js';
 import debounceFn from '../core/utils/debounce.js';
@@ -60,5 +61,5 @@ export default function(discovery) {
         if (typeof onInit === 'function') {
             onInit(factory(inputEl.value.trim()), name, data, context);
         }
-    });
+    }, { usage });
 }

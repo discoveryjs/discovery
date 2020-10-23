@@ -3,7 +3,16 @@
 import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
+const { hasOwnProperty } = Object;
 const viewEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
+const specialConfigProps = new Set([
+    'view',
+    'when',
+    'data',
+    'whenData',
+    'postRender',
+    'className'
+]);
 
 function collectViewTree(node, parent, ignoreNodes) {
     if (ignoreNodes.has(node)) {
@@ -24,7 +33,7 @@ function collectViewTree(node, parent, ignoreNodes) {
             collectViewTree(child, parent, ignoreNodes);
         }
     }
-};
+}
 
 function createDefaultConfigErrorView(view) {
     return  {
@@ -35,17 +44,23 @@ function createDefaultConfigErrorView(view) {
 
             if ('config' in config) {
                 const configEl = el.appendChild(document.createElement('span'));
-                configEl.className = 'show-config';
+                let expanded = false;
+
+                configEl.className = 'toggle-config';
                 configEl.textContent = 'show config...';
                 configEl.addEventListener('click', () => {
-                    configEl.remove();
+                    expanded = !expanded;
 
-                    const buffer = document.createDocumentFragment();
-                    view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
-                        .then(() => {
-                            el.appendChild(buffer);
-                            el.classList.add('expanded');
-                        });
+                    el.classList.toggle('expanded', expanded);
+                    configEl.textContent = expanded ? 'hide config...' : 'show config...';
+
+                    if (expanded) {
+                        const buffer = document.createDocumentFragment();
+                        view.render(buffer, { view: 'struct', expanded: 1 }, config.config)
+                            .then(() => el.appendChild(buffer));
+                    } else {
+                        el.lastChild.remove();
+                    }
                 });
             }
         },
@@ -54,21 +69,25 @@ function createDefaultConfigErrorView(view) {
 };
 
 function condition(type, host, config, data, context) {
-    if (!Object.hasOwnProperty.call(config, type) || config[type] === undefined) {
+    if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
 
     return host.queryBool(config[type] === true ? '' : config[type], data, context);
 }
 
-function renderDom(renderer, placeholder, config, data, context) {
+function renderDom(renderer, placeholder, config, props, data, context) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
         : document.createElement(tag || 'div');
+    let pipeline = Promise.resolve(renderer.render(el, props, data, context));
 
-    return Promise
-        .resolve(renderer.render(el, config, data, context))
+    if (typeof config.postRender === 'function') {
+        pipeline = pipeline.then(() => config.postRender(el, config, data, context));
+    }
+
+    return pipeline
         .then(function() {
             if (el.classList) {
                 if (renderer.name) {
@@ -103,7 +122,7 @@ function renderDom(renderer, placeholder, config, data, context) {
             };
 
             info.nodes.forEach(node => viewEls.set(node, info));
-            placeholder.parentNode.replaceChild(el, placeholder);
+            placeholder.replaceWith(el);
         });
 }
 
@@ -125,9 +144,26 @@ function render(container, config, data, context) {
 
         case 'string':
             if (config.view === 'render') {
+                const {
+                    config: configQuery = '',
+                    context: contextQuery = ''
+                } = config;
+
                 renderer = {
-                    render: (el, _, config, context) =>
-                        this.render(el, config, data, context),
+                    render: (el, _, _data) => {
+                        const _config = configQuery !== '' ? this.host.query(configQuery, data, context) : _data;
+                        const _context = this.host.query(contextQuery, context, data);
+                        // config only   -> _config=query(data) _data=data
+                        // data only     -> _config=query(data) _data=query(data)
+                        // config & data -> _config=query(data) _data=query(data)
+
+                        return this.render(
+                            el,
+                            _config,
+                            _data !== _config ? _data : data,
+                            _context
+                        );
+                    },
                     name: false,
                     options: { tag: false }
                 };
@@ -167,22 +203,32 @@ function render(container, config, data, context) {
     if ('when' in config === false || condition('when', this.host, config, data, context)) {
         // immediately append a view insert point (a placeholder)
         const placeholder = container.appendChild(document.createComment(''));
+        const getData = 'data' in config
+            ? Promise.resolve().then(() => this.host.query(config.data, data, context))
+            : Promise.resolve(data);
 
         // resolve data and render a view when ready
-        return Promise
-            .resolve(
-                // change context data if necessary
-                'data' in config
-                    ? this.host.query(config.data, data, context)
-                    : data
-            )
+        return getData
             .then(data =>
                 condition('whenData', this.host, config, data, context)
-                    ? renderDom(renderer, placeholder, config, data, context)
+                    ? renderDom(
+                        renderer,
+                        placeholder,
+                        config,
+                        this.propsFromConfig(config, data, context),
+                        data,
+                        context
+                    )
                     : placeholder.remove()
             )
             .catch(e => {
-                renderDom(this.get('alert-danger'), placeholder, {}, e);
+                renderDom(this.get('alert-danger'), placeholder, {
+                    postRender(el) {
+                        el.style.whiteSpace = 'pre-wrap';
+                        el.style.fontFamily = 'monospace';
+                        el.style.fontSize = '12px';
+                    }
+                }, {}, e);
                 console.error(e);
             });
     } else {
@@ -221,25 +267,45 @@ export default class ViewRenderer extends Dict {
         }
 
         if (typeof config === 'string') {
-            const [, prefix, query] = config.match(/^(\S+?):((?:.|\s)+)$/) || [];
+            const [, prefix, op, query] = config.match(/^(\S+?)([:{])((?:.|\s)+)$/) || [];
 
             if (prefix) {
-                config = {
+                if (op === '{') {
+                    try {
+                        return this.host.queryToConfig(prefix, op + query);
+                    } catch (error) {
+                        return this.badConfig(config, error);
+                    }
+                }
+
+                return {
                     view: prefix,
                     data: query
                 };
-            } else {
-                config = {
-                    view: config
-                };
             }
+
+            return {
+                view: config
+            };
         } else if (typeof config === 'function') {
-            config = {
+            return {
                 view: config
             };
         }
 
         return config;
+    }
+
+    badConfig(config, error) {
+        const errorMsg = (error && error.message) || 'Unknown error';
+
+        console.error(errorMsg, { config, error });
+
+        return {
+            view: this.defaultConfigErrorRenderer.render,
+            reason: errorMsg,
+            config
+        };
     }
 
     ensureValidConfig(config) {
@@ -248,11 +314,7 @@ export default class ViewRenderer extends Dict {
         }
 
         if (!config || !config.view) {
-            return {
-                view: this.defaultConfigErrorRenderer.render,
-                reason: !config ? 'Config is not a valid value' : 'Option `view` is missed',
-                config
-            };
+            return this.badConfig(config, new Error(!config ? 'Config is not a valid value' : 'Option `view` is missed'));
         }
 
         return config;
@@ -270,6 +332,22 @@ export default class ViewRenderer extends Dict {
         }
 
         return config || extension;
+    }
+
+    propsFromConfig(config, data, context) {
+        const props = {};
+
+        for (const key in config) {
+            if (hasOwnProperty.call(config, key) && !specialConfigProps.has(key)) {
+                const value = config[key];
+
+                props[key] = typeof value === 'string' && value.startsWith('=')
+                    ? this.host.query(value.slice(1), data, context)
+                    : value;
+            }
+        }
+
+        return props;
     }
 
     render(container, config, data, context) {
@@ -357,11 +435,11 @@ export default class ViewRenderer extends Dict {
         const moreButton = document.createElement('button');
 
         moreButton.className = 'more-button';
+        moreButton.innerHTML = caption;
         moreButton.addEventListener('click', () => {
             container.remove();
             fn();
         });
-        moreButton.innerHTML = caption;
 
         container.appendChild(moreButton);
     }

@@ -1,23 +1,25 @@
 /* eslint-env browser */
+import usage from './context.usage.js';
 
 export default function(discovery) {
     discovery.view.define('context', function(el, config, data, context) {
         function renderContent() {
-            const container = contentStartMarker.parentNode;
-            let cursor = contentEndMarker.previousSibling;
-
             // clear old content
-            // TODO: replace for Range
+            let cursor = contentEndMarker.previousSibling;
             while (cursor && cursor !== contentStartMarker) {
                 cursor = cursor.previousSibling;
-                container.removeChild(cursor.nextSibling);
+                cursor.nextSibling.remove();
             }
 
             // render new content
-            const buffer = document.createDocumentFragment();
-            discovery.view
+            const buffer = lastRender = document.createDocumentFragment();
+            return discovery.view
                 .render(buffer, content, data, localContext)
-                .then(() => contentEndMarker.parentNode.insertBefore(buffer, contentEndMarker));
+                .then(() => {
+                    if (buffer === lastRender) {
+                        contentStartMarker.after(buffer);
+                    }
+                });
         }
 
         function updateContext(value, name) {
@@ -33,27 +35,29 @@ export default function(discovery) {
         let localContext = { ...context };
         let contentStartMarker = null;
         let contentEndMarker = null;
+        let lastRender = null;
         let inited = false;
         let { modifiers = [] } = config;
-        const { content } = config;
-        const handlers = {
-            onInit: updateContext,
-            onChange: updateContext
-        };
+        const { content = [] } = config;
 
         if (!Array.isArray(modifiers)) {
             modifiers = [modifiers];
         }
 
-        const awaitRender = discovery.view.render(el, this.composeConfig(modifiers, handlers), data, context);
+        const awaitRender = discovery.view.render(el, this.composeConfig(modifiers, {
+            onInit: updateContext,
+            onChange: updateContext
+        }), data, context);
 
-        contentStartMarker = el.appendChild(document.createComment('context view content start'));
-        contentEndMarker = el.appendChild(document.createComment('context view content end'));
-        awaitRender.then(() => {
+        contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
+        contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
+
+        return awaitRender.then(() => {
             inited = true;
             renderContent();
         });
     }, {
-        tag: false
+        tag: false,
+        usage
     });
 }

@@ -14,5 +14,5 @@ h1.modelfree .view-badge {
     font-size: 50%;
     vertical-align: middle;
     border: 2px solid transparent;
-    background-color: #e7f1c2;
+    background-color: rgba(159, 199, 11, 0.25);
 }

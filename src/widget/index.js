@@ -4,12 +4,14 @@ import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
-import ObjectMarker from '../core/object-maker.js';
+import ObjectMarker from '../core/object-marker.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import attachViewInspector from './view-inspector.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
+import { DarkModeController } from './darkmode.js';
+import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
 
@@ -57,15 +59,16 @@ function genUniqueId(len = 16) {
 
 function createDataExtensionApi(instance) {
     const objectMarkers = new ObjectMarker();
-    // const linkResolvers = new X(instance.pageLinkResolvers, objectMarkers);
     const linkResolvers = [];
     const annotations = [];
+    const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
+    const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
     const queryExtensions = {
         query: (...args) => instance.query(...args),
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
-        marker: (current, type) => objectMarkers.lookup(current, type),
-        markerAll: (current) => objectMarkers.lookupAll(current)
+        marker: lookupObjectMarker,
+        markerAll: lookupObjectMarkerAll
     };
     const addValueAnnotation = (query, options = false) => {
         if (typeof options === 'boolean') {
@@ -90,6 +93,8 @@ function createDataExtensionApi(instance) {
             });
         },
         methods: {
+            lookupObjectMarker,
+            lookupObjectMarkerAll,
             defineObjectMarker(name, options) {
                 const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 
@@ -160,6 +165,7 @@ export default class Widget extends Emitter {
 
         this.options = options || {};
         this.view = new ViewRenderer(this);
+        this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this.view);
         this.page.on('define', (pageId, page) => {
@@ -177,6 +183,7 @@ export default class Widget extends Emitter {
                 this.cancelScheduledRender();
             }
         });
+        renderScheduler.set(this, new Set());
 
         this.prepare = data => data;
         this.objectMarkers = [];
@@ -195,10 +202,15 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
+        const {
+            darkmode = 'disabled',
+            darkmodePersistent = false
+        } = this.options;
+        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
+
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
         this.inspectMode = false;
-        this.badges = [];
         this.dom = {};
 
         this.apply(views);
@@ -311,13 +323,23 @@ export default class Widget extends Emitter {
     // Data query
     //
 
+    queryFn(query) {
+        switch (typeof query) {
+            case 'function':
+                return query;
+
+            case 'string':
+                return jora(query, { methods: this.queryExtensions });
+        }
+    }
+
     query(query, data, context) {
         switch (typeof query) {
             case 'function':
                 return query(data, context);
 
             case 'string':
-                return jora(query, { methods: this.queryExtensions })(data, context);
+                return this.queryFn(query)(data, context);
 
             default:
                 return query;
@@ -330,6 +352,65 @@ export default class Widget extends Emitter {
         } catch (e) {
             return false;
         }
+    }
+
+    queryToConfig(view, query) {
+        const { ast } = jora.syntax.parse(query);
+        const config = { view };
+
+        if (ast.type !== 'Block') {
+            throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must be a "Block"');
+        }
+
+        if (ast.body.type !== 'Object') {
+            throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must return an "Object"');
+        }
+
+        for (const entry of ast.body.properties) {
+            if (entry.type !== 'ObjectEntry') {
+                throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object entry type "' + entry.type + '"');
+            }
+
+            let key;
+            switch (entry.key.type) {
+                case 'Literal':
+                    key = entry.key.value;
+                    break;
+
+                case 'Identifier':
+                    key = entry.key.name;
+                    entry.value = entry.value || entry.key;
+                    break;
+
+                case 'Reference':
+                    key = entry.key.name.name;
+                    entry.value = entry.value || entry.key;
+                    break;
+
+                default:
+                    throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object key type "' + entry.key.type + '"');
+            }
+
+            if (key === 'view' || key === 'postRender' || key === 'className') {
+                throw new SyntaxError('[Discovery] Widget#queryToConfig(): set a value for "' + key + '" property via query is prohibited');
+            }
+
+            if (key === 'when' || key === 'data' || key === 'whenData') {
+                if (entry.value.type === 'Literal') {
+                    config[key] = typeof entry.value.value === 'string'
+                        ? JSON.stringify(entry.value.value)
+                        : entry.value.value;
+                } else {
+                    config[key] = jora.syntax.stringify(entry.value);
+                }
+            } else {
+                config[key] = entry.value.type === 'Literal' && (typeof entry.value.value !== 'string' || entry.value.value[0] !== '=')
+                    ? entry.value.value
+                    : '=' + jora.syntax.stringify(entry.value);
+            }
+        }
+
+        return config;
     }
 
     querySuggestions(query, offset, data, context) {
@@ -372,6 +453,14 @@ export default class Widget extends Emitter {
         }
     }
 
+    pathToQuery(path) {
+        return path.map((part, idx) =>
+            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
+                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
+                : (idx === 0 ? part : '.' + part)
+        ).join('');
+    }
+
     getQueryEngineInfo() {
         return {
             name: 'jora',
@@ -405,28 +494,33 @@ export default class Widget extends Emitter {
 
         // reset old refs
         this.dom = {};
+        if (typeof oldDomRefs.detachDarkMode === 'function') {
+            oldDomRefs.detachDarkMode();
+        }
 
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
-
-            newContainerEl.classList.add('discovery', this.isolateStyleMarker);
-            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
-
-            newContainerEl.appendChild(
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar')
+            this.dom.detachDarkMode = this.darkmode.on(
+                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id=' + CSS.escape(this.instanceId) + ']')])
+                    .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
             );
 
-            newContainerEl.appendChild(
+            newContainerEl.classList.add('discovery-root', 'discovery', this.isolateStyleMarker);
+            newContainerEl.classList.toggle('discovery-root-darkmode', this.darkmode.value);
+            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
+            newContainerEl.append(
+                this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
                 createElement('main', 'discovery-content', [
-                    this.dom.badges = createElement('div', 'discovery-content-badges'),
+                    this.dom.nav = createElement('div', 'discovery-content-badges'),
                     this.dom.pageContent = createElement('article')
                 ])
             );
 
-            this.badges.forEach(badge =>
-                this.dom.badges.appendChild(badge.el)
-            );
+            // cancel transitions on attach
+            newContainerEl.style.transition = 'none';
+            requestAnimationFrame(() => newContainerEl.style.transition = '');
 
+            this.nav.render(this.dom.nav);
             attachViewInspector(this);
         } else {
             for (let key in this.dom) {
@@ -453,29 +547,8 @@ export default class Widget extends Emitter {
         return () => document.removeEventListener(eventName, handlerWrapper, options);
     }
 
-    addBadge(caption, action, visible) {
-        const badge = {
-            el: document.createElement('div'),
-            visible: typeof visible === 'function' ? visible : () => true
-        };
-
-        badge.el.className = 'badge';
-        badge.el.addEventListener('click', action);
-        badge.el.hidden = !badge.visible(this);
-
-        if (typeof caption === 'function') {
-            caption(badge.el);
-        } else {
-            badge.el.innerHTML = caption;
-        }
-
-        if (this.dom.badges) {
-            this.dom.badges.appendChild(badge.el);
-        }
-
-        this.badges.push(badge);
-
-        return badge;
+    addBadge() {
+        console.error('Widget#addBadge() is obsoleted, use Widget#nav API instead');
     }
 
     inspect(state) {
@@ -492,24 +565,32 @@ export default class Widget extends Emitter {
     //
 
     scheduleRender(subject) {
-        if (!renderScheduler.has(this)) {
-            const subjects = new Set();
+        const scheduler = renderScheduler.get(this);
 
-            renderScheduler.set(this, subjects);
-            Promise.resolve().then(() => {
-                renderScheduler.delete(this);
-
-                if (subjects.has('sidebar')) {
-                    this.renderSidebar();
-                }
-
-                if (subjects.has('page')) {
-                    this.renderPage();
-                }
-            });
+        if (scheduler.has(subject)) {
+            return;
         }
 
-        renderScheduler.get(this).add(subject);
+        scheduler.add(subject);
+
+        if (scheduler.timer) {
+            return;
+        }
+
+        scheduler.timer = Promise.resolve().then(async () => {
+            for (const subject of scheduler) {
+                switch (subject) {
+                    case 'sidebar':
+                        await this.renderSidebar();
+                        break;
+                    case 'page':
+                        await this.renderPage();
+                        break;
+                }
+            }
+
+            scheduler.timer = null;
+        });
     }
 
     cancelScheduledRender(subject) {
@@ -539,15 +620,13 @@ export default class Widget extends Emitter {
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('sidebar');
-        }
+        renderScheduler.get(this).delete('sidebar');
 
         if (this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
 
             this.dom.sidebar.innerHTML = '';
-            this.view.render(
+            return this.view.render(
                 this.dom.sidebar,
                 'sidebar',
                 this.data,
@@ -587,7 +666,7 @@ export default class Widget extends Emitter {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
         const [pageId, pageRef] = hash.substring(1, delimIndex).split(':').map(decodeURIComponent);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pairs = hash.substr(delimIndex + 1).split('&').map(pair => {
+        const pairs = hash.substr(delimIndex + 1).split('&').filter(Boolean).map(pair => {
             const eqIndex = pair.indexOf('=');
             return eqIndex !== -1
                 ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]
@@ -606,6 +685,10 @@ export default class Widget extends Emitter {
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
         );
+    }
+
+    setPageRef(pageRef, replace = false) {
+        return this.setPage(this.pageId, pageRef, this.pageParams, replace);
     }
 
     setPageParams(pageParams, replace = false) {
@@ -637,9 +720,7 @@ export default class Widget extends Emitter {
 
     renderPage() {
         // cancel scheduled renderPage
-        if (renderScheduler.has(this)) {
-            renderScheduler.get(this).delete('page');
-        }
+        renderScheduler.get(this).delete('page');
 
         const { pageEl, renderState } = this.page.render(
             this.dom.pageContent,
@@ -649,7 +730,7 @@ export default class Widget extends Emitter {
         );
 
         this.dom.pageContent = pageEl;
-        this.badges.forEach(badge => badge.el.hidden = !badge.visible(this));
+        this.nav.render(this.dom.nav);
 
         setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
         setDatasetValue(this.dom.container, 'compact', this.options.compact);

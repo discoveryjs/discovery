@@ -1,20 +1,132 @@
 ## next
 
-- Improved error handling in data prepare handler
-- Changed location path in signature details popup to use `[index]` instead of `pick(index)`
-- Improved estimated JSON size computation in `struct` action popup
-- Added "Copy path" to `struct` action popup
 - Added `passive` option support detection test and `passiveCaptureOptions` for `addEventListener()` in `utils.dom`
 - Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
+
+## 1.0.0-beta.46 (23-10-2020)
+
+- Added `dropdown` view
+- Changed index and report page buttons to behave like a link (#34)
+- Changed marker of darkmode is enabled from attribute `data-darkmode` to class `.discovery-root-darkmode`
+- Fixed darkmode state restoring from localStorage on init
+- CSS fixes
+
+## 1.0.0-beta.45 (21-10-2020)
+
+- Fixed crash when `localStorage` is not available (e.g. due CSP restrictions)
+- Fixed `darkmode` and `darkmodePersistent` settings for `App` to use defaults when coresponding values in options are `undefined`
+- Fixes for modelfree and dark mode
+
+## 1.0.0-beta.44 (21-10-2020)
+
+- Added option to control localStorage usage for darkmode state
+- Fixed dark mode switching in editor's hint popups
+- `text-match` view
+    - Added support for a string as match pattern
+    - Removed requirement for parentheses in regexp patterns
+- `badge` views
+    - Added `hint` data option to show tooltip with a hint
+
+## 1.0.0-beta.43 (20-10-2020)
+
+- Introduced dark color scheme a.k.a. dark mode. Various fixes and improvements in views markup and styles
+- Improved loading progress overlay repaints to avoid freezing when document became inactive
+- Added `Widget#pathToQuery(path)` method
+- Added `toggle` and `toggle-group` views
+- Changed a bit default page in model free mode
+- Fixed `children` option ignorance in `itemConfig` when `limitLines` is used for `tree` view
+- Fixed `href` option to work for `button` view
+- Fixed path generation in `signature` details 
+- Fixed context for `Widget#nav.menu` item rendering
+
+## 1.0.0-beta.42 (08-10-2020)
+
+- Exposed `lookupObjectMarker(value, type?)` and `lookupObjectMarkerAll(value)` methods to prepare handler
+- Added `Widget#queryFn(query)` method
+- Added `Widget#queryToConfig(query)` method (uses internally for extracting config from a string)
+- Isolated view defined props  and pass it to view's render. That means that special properties (`view`, `when`, `data`, `whenData`, `className` and `postRender`) aren't passing to a view's render now
+- Added queryable values in view's config. A queryable value is a string that starts with `=`, e.g. `{ view: 'list', limit: '= size() > 13 ? 10 : false' }` will show entire list if its size <= 13, otherwise show by chunks of 10 items
+- Added in-string configuration for views, e.g. `"list{ limit: size() > 13 ? 10 : false, item: 'auto-link' }"` will be converted into `{ view: 'list', limit: '=size() > 13 ? 10 : false', item: 'auto-link' }`
+- Made header on report page sticky positioned
+- Fixed view rendering breaking on data query processing
+- Fixed `Symbol()` stringifying in `struct` view
+- Fixed overlapping a selection by view name spotlighting in view editor
+- Fixed report scroll jumping on typing in an editor due to change in rendered content height
+- Fixed `table` view rendering crash on column order detection
+- Fixed auto-sorting for a table view column with both `data` and `content` in config
+
+## 1.0.0-beta.41 (06-10-2020)
+
+- Reworked data loading progress bar to respect `Content-Encoding` and `X-File-Size` headers
+- Fixed styles for `h3`, `h4` and `h5` views
+
+## 1.0.0-beta.40 (04-10-2020)
+
+- Fixed regression of non-expandable cells with implicit details (i.e. for objects) in `table` view
+
+## 1.0.0-beta.39 (02-10-2020)
+
 - Fixed patching for `prismjs@^1.21.0`
-- Changes in `tabs` view:
-    - Changed `tabs` config option to take a query
-    - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
-- Changes in `table` view:
-    - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
-    - Make column non-sortable when all its values are equal, since sorting have no effect
-    - Used natural sorting approach for generated sorting functions
-    - Inverted icons for sorting direction
+- Bumped jora to `1.0.0-beta.3`
+- Introduced view's showcase page (`#views-showcase`)
+- Core
+    - Improved error handling in data prepare handler
+    - Display data loading progress
+    - Reworked navigation panel and introduced `Widget#nav` API
+    - Removed `Widget#addBadge()` method (use `Widget#nav` API instead)
+    - Added `Widget#setPageRef()` method
+    - Added optional `postRender()` method in view config, which is useful for final decoration
+    - Fixed empty entry (i.e. `{ "": true }`) in `#.params` when page's route has no params
+- Report page
+    - Improved syntax highlighting in editors
+    - Added known view highlighting in view editor
+    - Fixed loss of functions, regexps and dates on view source formatting on report page
+    - Improved available views presentation
+- Changes in views:
+    - `alert`
+        - Changed variations to have `.view-alert` class
+        - Fixed CSS styles
+    - `block`
+        - Removed missed styles, it affected `<h2>` by legacy reasons
+    - `button`
+        - Added support for `href` and `external` values in `data`, which ignores when button is disabled or `onClick` is specified
+        - Don't apply `onClick` when button is disabled
+        - Add `onclick` class to element when `onClick` handler is applied
+        - Preserve style of hover state while triggered popup is showing
+        - Fixed styles to preserve a consistent size across variations
+    - `header`
+        - Changed variations to have `.view-header` class
+        - Fixed CSS styles
+    - `menu-item`
+        - Added support for `href` and `external` values in `data`, which ignores when item is disabled or `onClick` is specified
+        - Changed to use `<a>` as a view root element
+        - Add `onclick` class to element when `onClick` handler is applied
+        - Preserve style of hover state while triggered popup is showing
+    - `select`
+        - Added `beforeItems` and `afterItems` options to specify content before/after items
+        - Added `limit` option to limit items count on first render
+        - Added `minItemsFilter` option to specify minimal items count (excluding reset item) required to apply filter input (default `10`)
+        - Changed popup content layout and styles
+    - `signature`
+        - Changed location path in details popup to use `[index]` instead of `pick(index)`
+    - `source`
+        - Added highlighting for `discovery-view` and `discovery-query`
+    - `struct`
+        - Improved estimated JSON size computation in action popup
+        - Added "Copy path" to action popup
+    - `table`
+        - Added auto detection for column sorting state, i.e. determine an order of values in a column and mark column coresponding to the order if any
+        - Make column non-sortable when all its values are equal, since sorting have no effect
+        - Used natural sorting approach for generated sorting functions
+        - Inverted icons for sorting direction
+    - `tabs`
+        - Changed `tabs` config option to take a query
+        - Fixed `tab.content` overriding by `tabConfig.content` (`tab.content` wins as intended now)
+        - Apply tabs configuration to tab's config instead of data
+    - `tab`
+        - Moved `value` and `text` from data to config
+        - Added `disabled` config option
+        - Add `onclick` class to element when `onClick` handler is applied
 
 ## 1.0.0-beta.38 (19-05-2020)
 

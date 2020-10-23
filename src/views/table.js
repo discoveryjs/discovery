@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './table.usage.js';
 
 import { createElement } from '../core/utils/dom.js';
 const hasOwnProperty = Object.hasOwnProperty;
@@ -12,22 +13,44 @@ function configFromName(name) {
     };
 }
 
-function sortingFromString(query, view) {
-    if (typeof query !== 'string') {
-        return;
+function sortingFromConfig(col, discovery, context) {
+    let prefix = '';
+    let query = '';
+
+    if ('data' in col && col.data !== undefined) {
+        switch (typeof col.data) {
+            case 'string':
+                query = `(${col.data})`;
+                break;
+
+            case 'function':
+                prefix = '$dataQuery;';
+                query = '$dataQuery(#)';
+                break;
+
+            default:
+                prefix = '$dataQuery;';
+                query = '$dataQuery';
+        }
     }
 
-    if (view) {
-        const colonIndex = query.indexOf(':');
+    if (typeof col.content === 'string') {
+        const colonIndex = col.content.indexOf(':');
 
         if (colonIndex === -1) {
             return;
         }
 
-        query = query.slice(colonIndex + 1);
+        const viewQuery = col.content.slice(colonIndex + 1);
+
+        if (viewQuery) {
+            query = query ? `(${query} | ${viewQuery})` : `(${viewQuery})`;
+        }
     }
 
-    return `(${query || '$'}) ascN`;
+    return query
+        ? discovery.query(`${prefix} ${query} ascN`, { dataQuery: col.data }, context)
+        : false;
 }
 
 function resolveColConfig(name, config) {
@@ -53,16 +76,22 @@ function getOrder(data, sorting) {
     }
 
     let order = 0;
-    for (let i = 1; i < data.length; i++) {
-        const sign = Math.sign(sorting(data[i - 1], data[i]));
 
-        if (sign) {
-            if (order && sign !== order) {
-                return false;
+    try {
+        for (let i = 1; i < data.length; i++) {
+            const sign = Math.sign(sorting(data[i - 1], data[i]));
+
+            if (sign) {
+                if (order && sign !== order) {
+                    return false;
+                }
+
+                order = sign;
             }
-
-            order = sign;
         }
+    } catch (e) {
+        console.error('[Discovery] Error on column order detection in table view', e);
+        return 0;
     }
 
     return -order;
@@ -168,13 +197,9 @@ export default function(discovery) {
             headerCells.push(headerCell);
             headerCellEl.textContent = col.header;
 
-            const sorting = discovery.query(
-                hasOwnProperty.call(col, 'sorting')
-                    ? col.sorting
-                    : sortingFromString(col.content, true) || sortingFromString(col.data),
-                null,
-                context
-            );
+            const sorting = hasOwnProperty.call(col, 'sorting')
+                ? discovery.query(col.sorting, null, context)
+                : sortingFromConfig(col, discovery, context);
             const defaultOrder = typeof sorting === 'function'
                 ? getOrder(data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
                 : 0;
@@ -200,6 +225,7 @@ export default function(discovery) {
         moreEl.colSpan = cols.length;
         render(data);
     }, {
-        tag: 'table'
+        tag: 'table',
+        usage
     });
 }

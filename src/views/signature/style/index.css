@@ -9,8 +9,8 @@
     font-family: Consolas, Monaco, monospace;
     font-size: 11px;
     line-height: 18px;
-    background: #fafafa;
-    color: #666;
+    background: rgba(205, 205, 205, 0.1);
+    color: var(--discovery-fmt-color);
     white-space: pre;
 }
 .discovery-view-popup .view-signature {
@@ -22,9 +22,9 @@
     margin: 0 -2px;
 }
 .view-signature .expand:hover {
+    color: var(--discovery-fmt-hover-color);
+    background-color: rgba(187, 187, 187, 0.25);
     border-radius: 4px;
-    background-color: #eee;
-    color: #333;
     cursor: pointer;
 }
 
@@ -32,37 +32,37 @@
     vertical-align: middle;
     padding-left: 3px;
     font-size: 90%;
-    color: #ddd;
+    color: rgba(157, 157, 157, 0.35);
 }
 .view-signature .count::before {
     content: attr(data-value);
 }
 .view-signature .count:hover {
-    color: #aaa;
+    color: rgba(148, 148, 148, 0.8);
 }
 
 .view-signature .property {
     padding: 2px;
     margin: 0 -2px;
-    color: #bd6476;
+    color: var(--discovery-fmt-property-color);
     cursor: pointer;
 }
 .view-signature .property.discovery-view-popup-active,
 .view-signature .property:hover {
-    background-color: #eee;
+    background-color: rgba(170, 170, 170, 0.2);
 }
 .view-signature .optional {
-    color: #ff6e13;
+    color: var(--discovery-fmt-flag-color);
     padding-left: 2px;
 }
 
 .view-signature .type {
     padding: 2px;
     margin: 0 -2px 0 -2px;
-    color: #07a;
+    color: var(--discovery-fmt-atom-color);
     cursor: pointer;
 }
 .view-signature .type.discovery-view-popup-active,
 .view-signature .type:hover {
-    background-color: #eee;
+    background-color: rgba(170, 170, 170, 0.2);
 }

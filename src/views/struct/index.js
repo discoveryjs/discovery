@@ -1,10 +1,11 @@
 /* eslint-env browser */
 
 import { escapeHtml } from '../../core/utils/html.js';
-import { jsonStrinifyInfo } from '../../core/utils/json.js';
+import { jsonStringifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
 import renderAnnotations from './render-annotations.js';
+import usage from './struct.usage.js';
 import {
     stringValueProto,
     arrayValueProto,
@@ -204,7 +205,7 @@ export default function(discovery) {
         );
     }
 
-    function buildPathForElement(el, raw) {
+    function buildPathForElement(el) {
         let path = [];
         let context = elementContext.get(el);
 
@@ -213,15 +214,7 @@ export default function(discovery) {
             context = context.parent;
         }
 
-        if (raw) {
-            return path;
-        }
-
-        return path.map((part, idx) =>
-            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
-                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
-                : (idx === 0 ? part : '.' + part)
-        );
+        return path;
     }
 
     function applyAnnotations(el, value, options, context) {
@@ -288,9 +281,9 @@ export default function(discovery) {
                     }
                 ];
             } else {
-                const path = buildPathForElement(el).join('');
+                const path = discovery.pathToQuery(buildPathForElement(el));
                 const maxAllowedSize = 1024 * 1024 * 1024;
-                const { minLength: compactSize, circular } = jsonStrinifyInfo(data);
+                const { minLength: compactSize, circular } = jsonStringifyInfo(data);
                 let jsonFormattedStringifyError = false;
                 let jsonCompactStringifyError = false;
                 let formattedSize = 0;
@@ -302,7 +295,7 @@ export default function(discovery) {
                     jsonCompactStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
                     jsonFormattedStringifyError = jsonCompactStringifyError;
                 } else {
-                    formattedSize = jsonStrinifyInfo(data, null, 4).minLength;
+                    formattedSize = jsonStringifyInfo(data, null, 4).minLength;
                     if (formattedSize > maxAllowedSize) {
                         jsonFormattedStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
                     }
@@ -366,7 +359,7 @@ export default function(discovery) {
             discovery.view.render(popupEl, {
                 view: 'signature',
                 expanded: 2,
-                path: buildPathForElement(el, true)
+                path: buildPathForElement(el)
             }, data);
         }
     });
@@ -466,6 +459,8 @@ export default function(discovery) {
         if (expandable && !expanded) {
             el.classList.add('struct-expand');
         }
+    }, {
+        usage
     });
 
     // FIXME: this function never call

@@ -1,10 +1,15 @@
+.view-header {  /* the same as h4 */
+    font-size: 120%;
+    font-weight: normal;
+}
+.view-header:first-child {
+    margin-top: 0;
+}
+
 .view-h1 {
     font-size: 220%;
     font-weight: normal;
     margin: .812em 0 .65em;
-}
-.view-h1:first-child {
-    margin-top: 0;
 }
 
 .view-h2 {
@@ -14,22 +19,19 @@
 }
 
 .view-h3 {
-    font-size: 130%;
+    font-size: 135%;
     font-weight: normal;
     margin: .73em 0;
 }
 
-.view-h4,
-.view-header {
+.view-h4 {
     font-size: 120%;
     font-weight: normal;
-    color: #222;
     margin: .73em 0;
 }
 
 .view-h5 {
     font-size: 110%;
     font-weight: normal;
-    color: #777;
     margin: .68em 0;
 }

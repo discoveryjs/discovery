@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import usage from './badges.usage.js';
 
 function maybeFix(el, type, value) {
     if (!value) {
@@ -8,22 +9,40 @@ function maybeFix(el, type, value) {
     const prefixEl = el.appendChild(document.createElement('span'));
 
     prefixEl.className = type;
-    prefixEl.innerText = value;
+    prefixEl.textContent = value;
 }
 
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content } = config;
-        let { color, text, href, prefix, postfix } = data || {};
+        let { color, textColor, darkColor, darkTextColor, text, href, prefix, postfix, hint } = data || {};
 
         if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
             text = data;
         }
 
-        el.style.backgroundColor = color;
+        if (color) {
+            el.style.setProperty('--discovery-view-badge-color', color);
+        }
+
+        if (darkColor) {
+            el.style.setProperty('--discovery-view-badge-dark-color', darkColor);
+        }
+
+        if (textColor) {
+            el.style.setProperty('--discovery-view-badge-text-color', textColor);
+        }
+
+        if (darkTextColor) {
+            el.style.setProperty('--discovery-view-badge-dark-text-color', darkTextColor);
+        }
 
         if (href) {
             el.href = href;
+        }
+
+        if (hint) {
+            el.title = hint;
         }
 
         maybeFix(el, 'prefix', prefix);
@@ -37,6 +56,6 @@ export default function(discovery) {
         maybeFix(el, 'postfix', postfix);
     }
 
-    discovery.view.define('badge', render, { tag: 'a' });
-    discovery.view.define('pill-badge', render, { tag: 'a' });
+    discovery.view.define('badge', render, { tag: 'a', usage });
+    discovery.view.define('pill-badge', render, { tag: 'a', usage });
 }

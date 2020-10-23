@@ -1,27 +1,36 @@
 /* eslint-env browser */
 
+import usage from './button.usage.js';
+import { createElement } from '../core/utils/dom.js';
+
 export default function(discovery) {
     function render(el, config, data, context) {
         const { content, disabled = false, onClick } = config;
-        const { text = '' } = data || {};
+        const { text = '', href, external } = data || {};
 
         el.classList.add('view-button');
-        el.disabled = discovery.query(disabled, data, context);
-        el.addEventListener('click', () => {
-            if (typeof onClick === 'function') {
-                onClick(el, data, context);
-            }
-        });
+
+        if (discovery.query(disabled, data, context)) {
+            el.disabled = true;
+        } else if (typeof onClick === 'function') {
+            el.addEventListener('click', () => onClick(el, data, context));
+            el.classList.add('onclick');
+        } else if (href) {
+            el.addEventListener('click', (e) => createElement('a', {
+                href,
+                target: external ? '_blank' : ''
+            }).click(e));
+        }
 
         if (content) {
-            discovery.view.render(el, content, data, context);
+            return discovery.view.render(el, content, data, context);
         } else {
-            el.innerText = text;
+            el.textContent = text;
         }
     }
 
-    discovery.view.define('button', render, { tag: 'button' });
-    discovery.view.define('button-primary', render, { tag: 'button' });
-    discovery.view.define('button-danger', render, { tag: 'button' });
-    discovery.view.define('button-warning', render, { tag: 'button' });
+    discovery.view.define('button', render, { tag: 'button', usage });
+    discovery.view.define('button-primary', render, { tag: 'button', usage });
+    discovery.view.define('button-danger', render, { tag: 'button', usage });
+    discovery.view.define('button-warning', render, { tag: 'button', usage });
 }
