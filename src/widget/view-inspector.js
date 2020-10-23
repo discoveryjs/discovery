@@ -77,7 +77,7 @@ export default (host) => {
     }, { maxWait: 0, wait: 50 });
     const updateState = () => {
         overlayLayerEl.classList.add('pick-element');
-        onHover([...document.elementsFromPoint(lastPointerX, lastPointerY) || []]
+        onHover([...document.elementsFromPoint(lastPointerX | 0, lastPointerY | 0) || []]
             .find(el => viewByEl.has(el)) || null
         );
         overlayLayerEl.classList.remove('pick-element');
@@ -107,7 +107,7 @@ export default (host) => {
     };
 
     const popup = new host.view.Popup({
-        className: 'view-stack-trace',
+        className: 'discovery-inspect-details-popup',
         position: 'pointer'
     });
     const hide = () => {

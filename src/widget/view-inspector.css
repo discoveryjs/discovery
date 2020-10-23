@@ -5,7 +5,7 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 255, .1);
-    z-index: 200;
+    z-index: 2000;
     pointer-events: none;
 }
 .discovery-view-inspector-overlay.pick-element {
@@ -25,26 +25,36 @@
     backdrop-filter: grayscale(1);
     border: 1px dashed rgba(0, 128, 0, .4);
 }
+.discovery-root-darkmode .discovery-view-inspector-overlay .overlay.hovered {
+    background-color: rgba(0, 255, 0, .2);
+    border-color: rgba(128, 200, 128, .65);
+}
 
-.discovery-view-popup.view-stack-trace {
+.discovery-inspect-details-popup {
     pointer-events: none;
-    z-index: 1001;
+    z-index: 2001;
     max-width: 650px !important;
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     background: rgba(255, 255, 255, .65);
 }
+.discovery-root-darkmode.discovery-inspect-details-popup {
+    background: rgba(36, 36, 36, .4);
+}
 
-.discovery-view-popup.view-stack-trace .stack-view-chain {
+.discovery-inspect-details-popup .stack-view-chain {
     padding: 4px;
 }
-.discovery-view-popup.view-stack-trace .stack-view-chain .view-list-item:not(:last-child) {
+.discovery-inspect-details-popup .stack-view-chain .view-list-item:not(:last-child) {
     color: #aaa;
 }
-.discovery-view-popup.view-stack-trace .stack-view-chain .view-list-item:not(:first-child)::before {
+.discovery-inspect-details-popup .stack-view-chain .view-list-item:not(:first-child)::before {
     content: '\a0→\a0';
     color: #888;
 }
-.discovery-view-popup.view-stack-trace .view-struct {
+.discovery-inspect-details-popup .view-struct {
     background-color: rgba(240, 240, 240, .5);
+}
+.discovery-root-darkmode.discovery-inspect-details-popup .view-struct {
+    background-color: rgba(52, 52, 52, .5);
 }
