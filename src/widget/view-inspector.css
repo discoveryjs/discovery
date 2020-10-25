@@ -44,10 +44,15 @@
     gap: 1px;
 
     --discovery-mate-background: rgba(240, 240, 240, .5);
+    --discovery-link-color: #333;
+    --discovery-link-underline-color: #0002;
 }
 .discovery-root-darkmode.discovery-inspect-details-popup {
     background: rgba(36, 36, 36, .4);
+
     --discovery-mate-background: rgba(52, 52, 52, .5);
+    --discovery-link-color: #aaa;
+    --discovery-link-underline-color: #aaa2;
 }
 .discovery-inspect-details-popup.has-selected-view {
     pointer-events: all;
@@ -71,13 +76,6 @@
     overflow: auto;
     padding: 4px;
     background-color: var(--discovery-mate-background);
-}
-.discovery-inspect-details-popup.has-selected-view .view-tree {
-    display: block;
-}
-.discovery-inspect-details-popup .view-tree {
-    display: none;
-    color: #ccc;
 }
 .discovery-inspect-details-popup .view-tree-leaf-content {
     white-space: nowrap;
@@ -121,6 +119,9 @@
     display: inline-block;
     padding: 4px 12px;
     background-color: rgba(0, 0, 0, .15);
+}
+.discovery-inspect-details-popup .inspect-details-content > .config::before {
+    grid-area: data;
 }
 .discovery-inspect-details-popup .inspect-details-content .config {
     grid-area: config;

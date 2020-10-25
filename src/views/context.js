@@ -44,7 +44,7 @@ export default function(discovery) {
             modifiers = [modifiers];
         }
 
-        const awaitRender = discovery.view.render(el, this.composeConfig(modifiers, {
+        const renderModifiers = discovery.view.render(el, this.composeConfig(modifiers, {
             onInit: updateContext,
             onChange: updateContext
         }), data, context);
@@ -52,9 +52,9 @@ export default function(discovery) {
         contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
         contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
 
-        return awaitRender.then(() => {
+        return renderModifiers.then(() => {
             inited = true;
-            renderContent();
+            return renderContent();
         });
     }, {
         tag: false,

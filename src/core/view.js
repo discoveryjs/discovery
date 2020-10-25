@@ -4,7 +4,8 @@ import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
 const { hasOwnProperty } = Object;
-const viewEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
+const viewEls = new WeakMap();      // FIXME: should be isolated by ViewRenderer instance
+const fragmentEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
 const specialConfigProps = new Set([
     'view',
     'when',
@@ -17,6 +18,22 @@ const specialConfigProps = new Set([
 function collectViewTree(node, parent, ignoreNodes) {
     if (ignoreNodes.has(node)) {
         return;
+    }
+
+    if (fragmentEls.has(node)) {
+        const info = fragmentEls.get(node);
+        const child = parent.children.find(child => child.view === info);
+
+        if (child) {
+            parent = child;
+        } else {
+            parent.children.push(parent = {
+                node,
+                parent,
+                view: info,
+                children: []
+            });
+        }
     }
 
     if (viewEls.has(node)) {
@@ -115,13 +132,22 @@ function renderDom(renderer, placeholder, config, props, data, context) {
             }
 
             const info = {
-                nodes: el.nodeType === 1 || el.nodeType === 3 ? [el] : [...el.children],
+                root: null,
                 config,
+                props,
                 data,
                 context
             };
 
-            info.nodes.forEach(node => viewEls.set(node, info));
+            if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+                info.root = el;
+                viewEls.set(el, info);
+            } else {
+                for (let child of [...el.children]) {
+                    fragmentEls.set(child, info);
+                }
+            }
+
             placeholder.replaceWith(el);
         });
 }

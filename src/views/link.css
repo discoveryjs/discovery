@@ -4,7 +4,7 @@
     text-decoration-color: var(--discovery-link-underline-color, rgba(0, 153, 221, 0.4));
 }
 .view-link.onclick {
-    text-decoration-style: underline;
+    text-decoration-line: underline;
     cursor: pointer;
 }
 .view-link:hover {
