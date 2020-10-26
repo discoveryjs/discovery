@@ -1,3 +1,7 @@
+## next
+
+- Exposed internal helpers as `utils`: `debounce`, `jsonStringifyInfo`, `jsonStringifyAsJavaScript` and `persistent` module
+
 ## 1.0.0-beta.46 (23-10-2020)
 
 - Added `dropdown` view

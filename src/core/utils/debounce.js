@@ -1,6 +1,7 @@
 /**
  * Copyright Lodash
  * https://github.com/lodash/lodash/blob/master/debounce.js
+ * Adopted for Discovery.js project
  */
 
 function isObject(value) {
@@ -69,7 +70,7 @@ function isObject(value) {
  * // Check for pending invocations.
  * const status = debounced.pending() ? "Pending..." : "Ready"
  */
-function debounce(func, options) {
+export default function debounce(func, options) {
     if (typeof options === 'number') {
         options = { wait: options };
     }
@@ -214,5 +215,3 @@ function debounce(func, options) {
     debounced.pending = pending;
     return debounced;
 }
-
-export default debounce;
