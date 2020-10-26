@@ -42,3 +42,5 @@ export { default as toggle } from './toggle.js';
 export { default as toggleGroup } from './toggle-group.js';
 export { default as treeItem } from './tree-leaf.js';
 export { default as tree } from './tree.js';
+// temporary
+export { default as preact } from './preact.js';
