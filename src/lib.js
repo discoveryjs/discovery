@@ -1,5 +1,5 @@
-import Widget from './widget/index.js';
 import App from './app/index.js';
+import Widget from './widget/index.js';
 import * as views from './views/index.js';
 import * as complexViews from './views/index-complex.js';
 import * as pages from './pages/index.js';
