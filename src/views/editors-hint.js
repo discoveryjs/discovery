@@ -5,7 +5,7 @@
 
 /* eslint-env browser */
 
-import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
+import CodeMirror from 'codemirror'; // FIXME: generated file to make it local
 
 const POPUP_CLASS = 'discovery-view-editor-hints-popup';
 const HINT_CLASS = 'discovery-view-editor-hint';

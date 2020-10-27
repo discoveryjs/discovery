@@ -12,7 +12,7 @@ import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from './darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
-import jora from '/gen/jora.js'; // FIXME: generated file to make it local
+import jora from 'jora' // FIXME: generated file to make it local
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();

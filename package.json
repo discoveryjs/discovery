@@ -18,11 +18,10 @@
         "/gen/codemirror": "./dist/gen/codemirror.js"
     },
     "scripts": {
-        "lint": "eslint libs scripts src",
-        "build": "npm run build:esm && npm run build:css",
+        "lint": "eslint scripts src",
+        "build:js": "esbuild src/lib.js --outfile=dist/lib.js --bundle --define:global=window --format=esm --minify --sourcemap",
+        "build": "npm run build:js && npm run build:css",
         "build-docs": "npm run build && discovery-build -o docs --isolate-styles",
-        "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
-        "build:umd": "node scripts/build-js | terser --compress --mangle -o dist/discovery.umd.js",
         "build:css": "node scripts/build-css",
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
@@ -33,7 +32,7 @@
         "node": ">=8.0.0"
     },
     "dependencies": {
-        "@discoveryjs/json-ext": "^0.3.0",
+        "@discoveryjs/json-ext": "^0.3.2",
         "codemirror": "^5.52.2",
         "hitext": "^1.0.0-beta.1",
         "hitext-prismjs": "^1.1.0",
@@ -47,8 +46,10 @@
         "babelify": "^10.0.0",
         "browserify": "^16.5.0",
         "cypress": "^5.3.0",
+        "esbuild": "^0.7.21",
         "eslint": "^6.8.0",
         "eslint-plugin-cypress": "^2.11.2",
+        "eswatch": "^0.6.0",
         "terser": "^5.3.3"
     },
     "files": [

@@ -1,8 +1,8 @@
 /* eslint-env browser */
 
-import hitext from '/gen/hitext.js';
-import hitextPrismjs from '/gen/hitext-prismjs.js';
-import CodeMirror from '/gen/codemirror.js';
+import hitext from 'hitext';
+import hitextPrismjs from 'hitext-prismjs';
+import CodeMirror from 'codemirror';
 
 const maxSourceSizeToHighlight = 100 * 1024;
 const mimeToSyntax = new Map(Object.entries({

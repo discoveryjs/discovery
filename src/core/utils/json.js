@@ -1,4 +1,4 @@
-import jsonExt from '/gen/@discoveryjs/json-ext.js';
+import jsonExt from '@discoveryjs/json-ext';
 
 export const {
     stringifyInfo: jsonStringifyInfo
