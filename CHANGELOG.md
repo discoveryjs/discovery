@@ -1,6 +1,8 @@
 ## next
 
-- Exposed internal helpers as `utils`: `debounce`, `jsonStringifyInfo`, `jsonStringifyAsJavaScript` and `persistent` module
+- Added `ignoreCase` option to `text-match` view
+- Fixed various edge cases for `text-match` view
+- Exposed internal helpers as `utils`: `debounce`, `jsonStringifyInfo`, `jsonStringifyAsJavaScript`, `persistent` and `pattern` modules
 
 ## 1.0.0-beta.46 (23-10-2020)
 
