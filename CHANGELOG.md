@@ -3,6 +3,7 @@
 - Added `passive` option support detection test and `passiveCaptureOptions` for `addEventListener()` in `utils.dom`
 - Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
 - Added `hideOnResize` and `hideIfEventOutside` options for `popup` view (both `true` by default)
+- Added `Popup#freeze()` and `Popup#unfreeze()` methods
 - Added `onClick` option for link view
 - Added `ignoreCase` option to `text-match` view
 - Fixed various edge cases for `text-match` view

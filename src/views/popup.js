@@ -103,7 +103,7 @@ export default function(discovery) {
         lastMouseY = y;
 
         for (const instance of instances) {
-            if (instance.options.position === 'pointer' && !instance.hoverPinned) {
+            if (instance.options.position === 'pointer' && !instance.hoverPinned && !instance.frozen) {
                 instance.updatePosition();
             }
         }
@@ -128,6 +128,7 @@ export default function(discovery) {
             this.lastTriggerEl = null;
             this.lastHoverTriggerEl = null;
             this.hoverPinned = false;
+            this.frozen = false;
 
             if (this.options.className) {
                 this.el.classList.add(this.options.className);
@@ -255,6 +256,16 @@ export default function(discovery) {
             this.relatedPopups.forEach(related => related.updatePosition());
         }
 
+        freeze() {
+            this.frozen = true;
+            this.el.classList.add('frozen');
+        }
+        unfreeze() {
+            this.frozen = false;
+            this.el.classList.remove('frozen');
+            this.updatePosition();
+        }
+
         hide() {
             this.hideTimer = clearTimeout(this.hideTimer);
 
@@ -265,6 +276,7 @@ export default function(discovery) {
                 // hide popup itself
                 openedPopups.splice(openedPopups.indexOf(this), 1);
                 this.el.remove();
+                this.unfreeze();
 
                 if (this.lastTriggerEl) {
                     this.lastTriggerEl.classList.remove('discovery-view-popup-active');
