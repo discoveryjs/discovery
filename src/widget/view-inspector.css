@@ -83,7 +83,7 @@
 .discovery-inspect-details-popup .view-tree-leaf-content .selected {
     background-color: rgba(78, 187, 255, .3);
     box-shadow: 0 0 0 3px rgba(78, 187, 255, .3);
-    display: inline-block;
+    display: inline;
 }
 
 .discovery-inspect-details-popup .stack-view-chain {
@@ -123,7 +123,7 @@
 }
 .discovery-inspect-details-popup .inspect-details-content .config {
     grid-area: config;
-    --header: 'View props';
+    --header: 'Render props';
 }
 .discovery-inspect-details-popup .inspect-details-content .raw-config {
     --header: 'Config';

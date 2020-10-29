@@ -4,6 +4,7 @@ import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
 const { hasOwnProperty } = Object;
+const rootViewEls = new WeakMap();
 const viewEls = new WeakMap();      // FIXME: should be isolated by ViewRenderer instance
 const fragmentEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
 const configTransitions = new WeakMap();
@@ -47,6 +48,13 @@ function collectViewTree(node, parent, ignoreNodes) {
             node,
             parent,
             view: viewEls.get(node),
+            children: []
+        });
+    } else if (rootViewEls.has(node)) {
+        parent.children.push(parent = {
+            node,
+            parent,
+            viewRoot: rootViewEls.get(node),
             children: []
         });
     }
@@ -138,7 +146,6 @@ function renderDom(renderer, placeholder, config, props, data, context) {
             }
 
             const info = {
-                root: null,
                 config,
                 props,
                 data,
@@ -146,7 +153,6 @@ function renderDom(renderer, placeholder, config, props, data, context) {
             };
 
             if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
-                info.root = el;
                 viewEls.set(el, info);
             } else {
                 for (let child of [...el.children]) {
@@ -480,6 +486,13 @@ export default class ViewRenderer extends Dict {
         });
 
         container.appendChild(moreButton);
+    }
+
+    addViewRoot(node, name, props) {
+        rootViewEls.set(node, {
+            name,
+            ...props
+        });
     }
 
     getViewTree(ignore) {

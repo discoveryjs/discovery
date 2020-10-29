@@ -501,7 +501,7 @@ export default class Widget extends Emitter {
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
             this.dom.detachDarkMode = this.darkmode.on(
-                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id=' + CSS.escape(this.instanceId) + ']')])
+                dark => new Set([newContainerEl, ...this.getDomRoots()])
                     .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
             );
 
@@ -624,13 +624,17 @@ export default class Widget extends Emitter {
 
         if (this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
+            const data = this.data;
+            const context = this.getRenderContext();
+
+            this.view.addViewRoot(this.dom.sidebar, 'sidebar', { data, context });
 
             this.dom.sidebar.innerHTML = '';
             return this.view.render(
                 this.dom.sidebar,
                 'sidebar',
-                this.data,
-                this.getRenderContext()
+                data,
+                context
             ).then(() => console.log(`[Discovery] Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
@@ -722,12 +726,20 @@ export default class Widget extends Emitter {
         // cancel scheduled renderPage
         renderScheduler.get(this).delete('page');
 
-        const { pageEl, renderState } = this.page.render(
+        const data = this.data;
+        const context = this.getRenderContext();
+        const { pageEl, renderState, config } = this.page.render(
             this.dom.pageContent,
             this.pageId,
-            this.data,
-            this.getRenderContext()
+            data,
+            context
         );
+
+        this.view.addViewRoot(pageEl, 'Page: ' + this.pageId, {
+            config,
+            data,
+            context
+        });
 
         this.dom.pageContent = pageEl;
         this.nav.render(this.dom.nav);

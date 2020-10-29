@@ -49,7 +49,7 @@ export default (host) => {
         const overlayToRemove = new Set([...overlayByViewNode.keys()]);
         const walk = function walk(leafs, parentEl) {
             for (const leaf of leafs) {
-                if (!leaf.node) {
+                if (!leaf.node || !leaf.view) {
                     if (leaf.children.length) {
                         walk(leaf.children, parentEl);
                     }
@@ -157,11 +157,13 @@ export default (host) => {
             const expanded = new Set();
             let cursor = targetLeaf;
 
-            while (cursor !== null && cursor.view) {
+            while (cursor !== null && (cursor.view || cursor.viewRoot)) {
                 stack.unshift(cursor);
                 expanded.add(cursor);
                 cursor = cursor.parent;
             }
+
+            console.log(stack);
 
             expanded.delete(targetLeaf);
 
@@ -171,11 +173,19 @@ export default (host) => {
                     view: 'tree',
                     when: selectedTreeViewLeaf !== null,
                     className: 'sidebar',
-                    expanded: leaf => !leaf.parent || expanded.has(leaf),
+                    limitLines: false,
                     data: '$[0]',
+                    itemConfig: {
+                        expanded: leaf => !leaf.parent || expanded.has(leaf),
+                        collapsible: '=not viewRoot'
+                    },
                     item: {
                         view: 'switch',
                         content: [
+                            {
+                                when: 'viewRoot',
+                                content: 'text:viewRoot.name'
+                            },
                             {
                                 when: '$ = #.selected',
                                 content: {
@@ -205,13 +215,13 @@ export default (host) => {
                         view: 'toggle-group',
                         className: 'stack-view-chain',
                         name: 'view',
-                        data: '.({ text: view.config.view, value: $ })',
+                        data: '.({ text: viewRoot.name or view.config.view, value: $ })',
                         value: '=$[-1].value'
                     },
                     content: {
                         view: 'block',
                         className: 'inspect-details-content',
-                        data: '#.view',
+                        data: '#.view | view or viewRoot',
                         content: [
                             {
                                 view: 'block',
@@ -220,7 +230,7 @@ export default (host) => {
                                     {
                                         view: 'struct',
                                         expanded: 2,
-                                        data: 'view.props'
+                                        data: 'props'
                                     },
                                     {
                                         view: 'block',
@@ -229,11 +239,11 @@ export default (host) => {
                                     {
                                         view: 'struct',
                                         expanded: 1,
-                                        data: 'view.config'
+                                        data: 'config'
                                     },
                                     {
                                         view: 'tree',
-                                        data: data => host.view.getViewConfigTransitionTree(data.view.config).deps,
+                                        data: data => host.view.getViewConfigTransitionTree(data.config).deps,
                                         whenData: true,
                                         expanded: 3,
                                         children: 'deps',
@@ -251,7 +261,7 @@ export default (host) => {
                                 content: {
                                     view: 'struct',
                                     expanded: 1,
-                                    data: 'view.data'
+                                    data: 'data'
                                 }
                             },
                             {
@@ -260,7 +270,7 @@ export default (host) => {
                                 content: {
                                     view: 'struct',
                                     expanded: 1,
-                                    data: 'view.context'
+                                    data: 'context'
                                 }
                             }
                         ]

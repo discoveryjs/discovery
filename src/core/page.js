@@ -2,6 +2,7 @@
 
 import Dict from './dict.js';
 
+const CONFIG = Symbol('config');
 const BUILDIN_NOT_FOUND = {
     name: 'not-found',
     render: (el, { name }) => {
@@ -25,7 +26,8 @@ export default class PageRenderer extends Dict {
             render: typeof render === 'function'
                 ? render.bind(this.view)
                 : (el, data, context) => this.view.render(el, render, data, context),
-            options: Object.freeze({ ...options })
+            options: Object.freeze({ ...options }),
+            [CONFIG]: render
         }));
     }
 
@@ -73,6 +75,7 @@ export default class PageRenderer extends Dict {
 
         return {
             pageEl: newPageEl,
+            config: page[CONFIG],
             renderState: Promise.resolve(rendered).then(() =>
                 console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
             )
