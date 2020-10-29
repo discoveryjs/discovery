@@ -5,6 +5,11 @@ const validValues = new Set([true, false, 'auto', 'disabled']);
 const instances = new Set();
 const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
 const localStorage = localStorageEntry('discoveryjs:darkmode');
+const localStorageToValue = new Map([
+    ['true', true],
+    ['false', false],
+    ['auto', 'auto']
+]);
 let localStorageValue = null;
 
 function applyPrefersColorScheme() {
@@ -16,11 +21,10 @@ function applyPrefersColorScheme() {
 }
 
 function applyLocalStorageValue(value) {
-    const newValue =
-        value === 'true' ? true :
-        value === 'false' ? false :
-        value === 'auto' ? 'auto' :
-        null;
+    // eslint-disable-next-statement operator-linebreak
+    const newValue = localStorageToValue.has(value)
+        ? localStorageToValue.get(value)
+        : null;
 
     if (localStorageValue !== newValue) {
         localStorageValue = newValue;

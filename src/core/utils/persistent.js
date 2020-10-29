@@ -6,14 +6,14 @@ function getStorage(type) {
 
     try {
         storage = window[type];
-    } catch(e) {
+    } catch (e) {
         return null;
     }
 
     try {
         storage.setItem(key, key);
         storage.removeItem(key);
-    } catch(e) {
+    } catch (e) {
         const ok = e instanceof DOMException && (
             // everything except Firefox
             e.code === 22 ||

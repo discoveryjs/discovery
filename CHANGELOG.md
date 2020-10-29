@@ -4,6 +4,9 @@
 - Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
 - Added `hideOnResize` and `hideIfEventOutside` options for `popup` view (both `true` by default)
 - Added `onClick` option for link view
+- Added `ignoreCase` option to `text-match` view
+- Fixed various edge cases for `text-match` view
+- Exposed internal helpers as `utils`: `debounce`, `jsonStringifyInfo`, `jsonStringifyAsJavaScript`, `persistent` and `pattern` modules
 
 ## 1.0.0-beta.46 (23-10-2020)
 

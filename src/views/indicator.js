@@ -8,9 +8,9 @@ export default function(discovery) {
         const valueEl = document.createElement('div');
         const labelEl = document.createElement('div');
 
-        valueEl.className = 'value';        
+        valueEl.className = 'value';
         labelEl.className = 'label';
-        
+
         if (href) {
             el.href = href;
         }

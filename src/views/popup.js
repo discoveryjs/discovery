@@ -168,7 +168,7 @@ export default function(discovery) {
 
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
-            this.el.classList.toggle('discovery-root-darkmode', discovery.darkmode.value)
+            this.el.classList.toggle('discovery-root-darkmode', discovery.darkmode.value);
 
             if (typeof render === 'function') {
                 this.el.innerHTML = '';
@@ -270,7 +270,7 @@ export default function(discovery) {
                     this.lastTriggerEl.classList.remove('discovery-view-popup-active');
                     this.lastTriggerEl = null;
                 }
-                
+
                 if (openedPopups.length === 0) {
                     window.removeEventListener('resize', hideOnResize);
                     document.removeEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);

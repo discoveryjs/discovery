@@ -27,18 +27,6 @@ function simpleCompare(a, b) {
     return true;
 }
 
-function getDelta(current, init, data, context) {
-    const delta = {};
-
-    for (let k in current) {
-        if (current[k] !== init[k] || !hasOwnProperty.call(context, k)) {
-            delta[k] = current[k];
-        }
-    }
-
-    return delta;
-}
-
 export default function(discovery) {
     discovery.view.define('dropdown', function(el, config, data, context) {
         function isEqual(a, b) {
@@ -163,7 +151,7 @@ export default function(discovery) {
                     initContext = { ...sessionContext };
                     renderButtons(initContext, sessionContext);
                 })
-            )
+            );
         });
 
         captionEl.className = 'view-dropdown__caption';

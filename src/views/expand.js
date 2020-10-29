@@ -21,7 +21,6 @@ export default function(discovery) {
         let { expanded, header, content, onToggle } = config;
         const headerEl = el.appendChild(createElement('div', 'header'));
         const headerContentEl = headerEl.appendChild(createElement('div', 'header-content'));
-        const triggerEl = headerEl.appendChild(createElement('div', 'trigger'));
         let contentEl = null;
 
         if (!header && config.title) {
@@ -30,6 +29,7 @@ export default function(discovery) {
         }
 
         expanded = discovery.queryBool(expanded, data, context);
+        headerEl.appendChild(createElement('div', 'trigger'));
         headerEl.addEventListener('click', () => {
             expanded = !expanded;
             renderState();
