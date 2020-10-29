@@ -103,10 +103,10 @@ export default function(discovery) {
                     initValue = tab.value;
                 }
 
-                return {
-                    ...tabConfig,
-                    ...tab
-                };
+                return discovery.view.composeConfig(
+                    tabConfig,
+                    tab
+                );
             });
         } else {
             tabs = [];

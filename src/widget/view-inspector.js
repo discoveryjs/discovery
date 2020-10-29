@@ -22,11 +22,11 @@ export default (host) => {
     let enabled = false;
     let lastOverlayEl = null;
     let lastHoverViewTreeLeaf = null;
+    let selectedTreeViewLeaf = null;
     let hideTimer = null;
     let syncOverlayTimer;
     let lastPointerX;
     let lastPointerY;
-    let selectedTreeViewLeaf = null;
 
     const viewByEl = new Map();
     const overlayByViewNode = new Map();
@@ -49,6 +49,14 @@ export default (host) => {
         const overlayToRemove = new Set([...overlayByViewNode.keys()]);
         const walk = function walk(leafs, parentEl) {
             for (const leaf of leafs) {
+                if (!leaf.node) {
+                    if (leaf.children.length) {
+                        walk(leaf.children, parentEl);
+                    }
+
+                    continue;
+                }
+
                 const box = getBoundingRect(leaf.node, parentEl);
                 let overlay = overlayByViewNode.get(leaf.node) || null;
 
@@ -77,7 +85,7 @@ export default (host) => {
                 }
             }
         };
-        
+
         walk(tree, overlayLayerEl);
 
         for (const node of overlayToRemove) {
@@ -128,10 +136,10 @@ export default (host) => {
     };
     const selectTreeViewLeaf = (leaf) => {
         selectedTreeViewLeaf = leaf || null;
-        popup.el.classList.toggle('has-selected-view', selectedTreeViewLeaf !== null);
 
         if (leaf) {
             popup.show();
+            popup.freeze();
         } else {
             popup.hide();
             syncOverlayState();
@@ -148,14 +156,14 @@ export default (host) => {
             const stack = [];
             const expanded = new Set();
             let cursor = targetLeaf;
-    
+
             while (cursor !== null && cursor.view) {
                 stack.unshift(cursor);
-                expanded.add(cursor.node);
+                expanded.add(cursor);
                 cursor = cursor.parent;
             }
 
-            expanded.delete(targetLeaf.node);
+            expanded.delete(targetLeaf);
 
             host.view.render(el, {
                 view: 'context',
@@ -163,7 +171,7 @@ export default (host) => {
                     view: 'tree',
                     when: selectedTreeViewLeaf !== null,
                     className: 'sidebar',
-                    expanded: leaf => !leaf.parent || expanded.has(leaf.node),
+                    expanded: leaf => !leaf.parent || expanded.has(leaf),
                     data: '$[0]',
                     item: {
                         view: 'switch',
@@ -208,11 +216,34 @@ export default (host) => {
                             {
                                 view: 'block',
                                 className: 'config',
-                                content: {
-                                    view: 'struct',
-                                    expanded: 1,
-                                    data: 'view.config'
-                                }
+                                content: [
+                                    {
+                                        view: 'struct',
+                                        expanded: 2,
+                                        data: 'view.props'
+                                    },
+                                    {
+                                        view: 'block',
+                                        className: 'raw-config'
+                                    },
+                                    {
+                                        view: 'struct',
+                                        expanded: 1,
+                                        data: 'view.config'
+                                    },
+                                    {
+                                        view: 'tree',
+                                        data: data => host.view.getViewConfigTransitionTree(data.view.config).deps,
+                                        whenData: true,
+                                        expanded: 3,
+                                        children: 'deps',
+                                        item: {
+                                            view: 'struct',
+                                            expanded: 1,
+                                            data: 'value'
+                                        }
+                                    }
+                                ]
                             },
                             {
                                 view: 'block',
@@ -243,6 +274,7 @@ export default (host) => {
             lastOverlayEl.classList.remove('hovered');
         }
 
+        selectedTreeViewLeaf = null;
         lastHoverViewTreeLeaf = null;
         lastOverlayEl = null;
 

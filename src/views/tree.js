@@ -18,13 +18,12 @@ export default function(discovery) {
                     } = renderStack;
 
                     return discovery.view
-                        .render(targetContainer, {
-                            ...itemConfig,
+                        .render(targetContainer, discovery.view.composeConfig(itemConfig, {
                             expanded: entry.expanded,
                             last: entry.last,
                             hasChildren: entry.hasChildren,
                             children: entry.children
-                        }, entry.data, context)
+                        }), entry.data, context)
                         .then(() => {
                             if (entry.expanded && entry.hasChildren) {
                                 const container = targetContainer.lastChild.querySelector('.view-tree-leaf-children');

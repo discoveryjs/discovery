@@ -54,7 +54,7 @@
     --discovery-link-color: #aaa;
     --discovery-link-underline-color: #aaa2;
 }
-.discovery-inspect-details-popup.has-selected-view {
+.discovery-inspect-details-popup.frozen {
     pointer-events: all;
     top: 20px !important;
     left: 20px !important;
@@ -101,7 +101,7 @@
     grid-template-areas:
         "config data"
         "config context";
-    grid-template-columns: minmax(200px, 30%) 1fr;
+    grid-template-columns: minmax(200px, 40%) 1fr;
     gap: 1px;
 }
 .discovery-inspect-details-popup .inspect-details-content .view-struct {
@@ -114,18 +114,25 @@
     font-size: 12px;
     line-height: 14px;
 }
-.discovery-inspect-details-popup .inspect-details-content > ::before {
+.discovery-inspect-details-popup .inspect-details-content > ::before,
+.discovery-inspect-details-popup .inspect-details-content .raw-config::before {
     content: var(--header);
     display: inline-block;
     padding: 4px 12px;
-    background-color: rgba(0, 0, 0, .15);
-}
-.discovery-inspect-details-popup .inspect-details-content > .config::before {
-    grid-area: data;
+    background-color: rgba(100, 100, 100, .125);
 }
 .discovery-inspect-details-popup .inspect-details-content .config {
     grid-area: config;
-    --header: 'View config';
+    --header: 'View props';
+}
+.discovery-inspect-details-popup .inspect-details-content .raw-config {
+    --header: 'Config';
+}
+.discovery-inspect-details-popup .inspect-details-content .config > .view-tree {
+    margin-left: 6px;
+}
+.discovery-inspect-details-popup .inspect-details-content .config .view-tree-leaf-content > .view-struct {
+    margin: -4px;
 }
 .discovery-inspect-details-popup .inspect-details-content .data {
     grid-area: data;

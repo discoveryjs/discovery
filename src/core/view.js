@@ -6,6 +6,7 @@ const STUB_OBJECT = Object.freeze({});
 const { hasOwnProperty } = Object;
 const viewEls = new WeakMap();      // FIXME: should be isolated by ViewRenderer instance
 const fragmentEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
+const configTransitions = new WeakMap();
 const specialConfigProps = new Set([
     'view',
     'when',
@@ -14,6 +15,11 @@ const specialConfigProps = new Set([
     'postRender',
     'className'
 ]);
+
+function regConfigTransition(res, from) {
+    configTransitions.set(res, from);
+    return res;
+}
 
 function collectViewTree(node, parent, ignoreNodes) {
     if (ignoreNodes.has(node)) {
@@ -28,7 +34,7 @@ function collectViewTree(node, parent, ignoreNodes) {
             parent = child;
         } else {
             parent.children.push(parent = {
-                node,
+                node: null,
                 parent,
                 view: info,
                 children: []
@@ -298,25 +304,31 @@ export default class ViewRenderer extends Dict {
             if (prefix) {
                 if (op === '{') {
                     try {
-                        return this.host.queryToConfig(prefix, op + query);
+                        return regConfigTransition(
+                            this.host.queryToConfig(prefix, op + query),
+                            config
+                        );
                     } catch (error) {
-                        return this.badConfig(config, error);
+                        return regConfigTransition(
+                            this.badConfig(config, error),
+                            config
+                        );
                     }
                 }
 
-                return {
+                return regConfigTransition({
                     view: prefix,
                     data: query
-                };
+                }, config);
             }
 
-            return {
+            return regConfigTransition({
                 view: config
-            };
+            }, config);
         } else if (typeof config === 'function') {
-            return {
+            return regConfigTransition({
                 view: config
-            };
+            }, config);
         }
 
         return config;
@@ -353,15 +365,15 @@ export default class ViewRenderer extends Dict {
         // mix
         if (config && extension) {
             return Array.isArray(config)
-                ? config.map(item => ({ ...item, ...extension }))
-                : { ...config, ...extension };
+                ? config.map(item => regConfigTransition({ ...item, ...extension }, [item, extension]))
+                : regConfigTransition({ ...config, ...extension }, [config, extension]);
         }
 
         return config || extension;
     }
 
     propsFromConfig(config, data, context) {
-        const props = {};
+        const props = regConfigTransition({}, config);
 
         for (const key in config) {
             if (hasOwnProperty.call(config, key) && !specialConfigProps.has(key)) {
@@ -504,6 +516,18 @@ export default class ViewRenderer extends Dict {
         }
 
         return stack.reverse();
+    }
 
+    getViewConfigTransitionTree(value) {
+        let deps = configTransitions.get(value) || [];
+
+        if (!Array.isArray(deps)) {
+            deps = [deps];
+        }
+
+        return {
+            value,
+            deps: deps.map(this.getViewConfigTransitionTree, this)
+        };
     }
 }
