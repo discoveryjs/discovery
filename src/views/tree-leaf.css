@@ -18,7 +18,8 @@
         5px calc(1em + 6px * var(--view-leaf-lines-offset, 0));
     background-repeat: no-repeat;
 }
-.view-tree-leaf.has-children {
+.view-tree-leaf.has-children:not(.non-collapsible),
+.view-tree-leaf.has-children.collapsed {
     --view-leaf-lines-offset: 1;
 }
 .view-tree-leaf.last,
@@ -51,7 +52,7 @@
 .view-tree-leaf.has-children > .view-tree-leaf-toggle {
     visibility: visible;
 }
-.view-tree-leaf.non-collapsible:not(.collapsed) .view-tree-leaf-toggle {
+.view-tree-leaf.non-collapsible:not(.collapsed) > .view-tree-leaf-toggle {
     visibility: hidden;
 }
 .view-tree-leaf-toggle::before {
@@ -71,7 +72,8 @@
     background-color: rgba(153, 153, 153, 0.5);
     pointer-events: none;
 }
-.view-tree-leaf.has-children > .view-tree-leaf-toggle::after {
+.view-tree-leaf.has-children:not(.non-collapsible) > .view-tree-leaf-toggle::after,
+.view-tree-leaf.has-children.collapsed > .view-tree-leaf-toggle::after {
     left: 11px;
 }
 
