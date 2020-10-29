@@ -162,7 +162,7 @@ export default function(discovery) {
 
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
-            this.el.classList.toggle('discovery-root-darkmode', discovery.darkmode.value)
+            this.el.classList.toggle('discovery-root-darkmode', discovery.darkmode.value);
 
             if (typeof render === 'function') {
                 this.el.innerHTML = '';

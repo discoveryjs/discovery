@@ -61,7 +61,7 @@ export default class App extends Widget {
                         beforeToggles: 'text:"Color schema"',
                         onChange: value => {
                             selfValue = value;
-                            this.darkmode.set(value)
+                            this.darkmode.set(value);
                             hide();
                         },
                         value: newValue,
@@ -70,7 +70,7 @@ export default class App extends Widget {
                             { value: true, text: 'Dark' },
                             { value: 'auto', text: 'Auto' }
                         ]
-                    }, null, { widget: this })
+                    }, null, { widget: this });
                 }, true);
             }
         });
@@ -99,7 +99,7 @@ export default class App extends Widget {
             this.nav.menu.append({
                 name: 'download',
                 when: '#.widget | download',
-                data: `{ text: "Download report", href: #.widget.download }`
+                data: '{ text: "Download report", href: #.widget.download }'
             });
             this.nav.menu.append({
                 name: 'drop-cache',
@@ -169,7 +169,7 @@ export default class App extends Widget {
                     new Promise(resolve => setTimeout(resolve, 16))
                 ]);
             }
-        }
+        };
         const process = async (name, progress, fn = () => {}) => {
             try {
                 setTitle(name + '...');

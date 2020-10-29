@@ -68,7 +68,7 @@ export default {
                         match: /test/g,
                         ignoreCase: true
                     }
-                ].map((item, idx) => idx > 1 ? { text: "test Test", ...item } : item)
+                ].map((item, idx) => idx > 1 ? { text: 'test Test', ...item } : item)
             }
         }
     ]

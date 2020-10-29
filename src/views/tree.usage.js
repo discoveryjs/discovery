@@ -2,7 +2,7 @@
 const onToggle = () => alert('toggled!');
 const createTree = ([len, ...rest], path = '') => {
     const result = [];
-    
+
     for (let i = 0; i < len; i++) {
         const leafPath = path + '.' + (i + 1);
 
@@ -13,7 +13,7 @@ const createTree = ([len, ...rest], path = '') => {
     }
 
     return result;
-}
+};
 
 export default {
     demo: {

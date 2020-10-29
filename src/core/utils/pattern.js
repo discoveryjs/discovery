@@ -1,14 +1,14 @@
 const { toString } = Object.prototype;
 const matchWithRx = (str, pattern, lastIndex) => {
     const offset = str.slice(lastIndex).search(pattern);
-    
+
     return offset !== -1 ? { offset: lastIndex + offset, length: RegExp.lastMatch.length } : null;
-}
+};
 const matchWithString = (str, pattern, lastIndex) => {
     const offset = str.indexOf(pattern, lastIndex);
-    
+
     return offset !== -1 ? { offset, length: pattern.length } : null;
-}
+};
 
 export function has(text, pattern, ignoreCase) {
     if (toString.call(pattern) === '[object RegExp]') {
