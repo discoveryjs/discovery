@@ -8,6 +8,7 @@ import * as json from './json.js';
 import * as layout from './layout.js';
 import * as pattern from './pattern.js';
 import * as persistent from './persistent.js';
+import * as pointer from './pointer.js';
 import safeFilterRx from './safe-filter-rx.js';
 
 export default {
@@ -21,5 +22,6 @@ export default {
     ...layout,
     pattern,
     persistent,
+    ...pointer,
     safeFilterRx
 };
