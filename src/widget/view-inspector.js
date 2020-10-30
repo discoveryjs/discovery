@@ -2,6 +2,7 @@
 
 import { createElement, passiveCaptureOptions } from '../core/utils/dom.js';
 import { getBoundingRect } from '../core/utils/layout.js';
+import { pointerXY } from '../core/utils/pointer.js';
 import debounce from '../core/utils/debounce.js';
 
 function isBoxChanged(oldBox, newBox) {
@@ -25,8 +26,6 @@ export default (host) => {
     let selectedTreeViewLeaf = null;
     let hideTimer = null;
     let syncOverlayTimer;
-    let lastPointerX;
-    let lastPointerY;
 
     const detailsSidebarLeafExpanded = new Set();
     const viewByEl = new Map();
@@ -99,51 +98,49 @@ export default (host) => {
     }, { maxWait: 0, wait: 50 });
     const updateState = () => {
         // overlayLayerEl.classList.add('pick-element');
-        onHover([...document.elementsFromPoint(lastPointerX | 0, lastPointerY | 0) || []]
+        const { x, y } = pointerXY.value;
+        onHover([...document.elementsFromPoint(x | 0, y | 0) || []]
             .find(el => viewByEl.has(el)) || null
         );
         // overlayLayerEl.classList.remove('pick-element');
     };
-    const mouseMoveEventListener = ({ x, y }) => {
-        lastPointerX = x;
-        lastPointerY = y;
-        syncOverlayState();
-    };
     const keyPressedEventListener = (e) => {
-        if (e.keyCode === 27 || e.which === 27) { // Escape
+        if (e.key === 'Escase' || e.keyCode === 27 || e.which === 27) {
             host.inspect(false);
         }
     };
     const enableInspect = () => {
         if (!enabled) {
             enabled = true;
-            syncOverlayTimer = setInterval(syncOverlayState, 500);
-            host.dom.container.append(overlayLayerEl);
-            document.addEventListener('pointermove', mouseMoveEventListener, passiveCaptureOptions);
             document.addEventListener('scroll', syncOverlayState, passiveCaptureOptions);
             document.addEventListener('keydown', keyPressedEventListener, true);
+            pointerXY.subscribe(syncOverlayState);
+            syncOverlayTimer = setInterval(syncOverlayState, 500);
+            host.dom.container.append(overlayLayerEl);
+            syncOverlayState();
         }
     };
     const disableInspect = () => {
         if (enabled) {
-            hide();
             enabled = false;
             clearInterval(syncOverlayTimer);
-            overlayLayerEl.remove();
-            document.removeEventListener('pointermove', mouseMoveEventListener, passiveCaptureOptions);
             document.removeEventListener('scroll', syncOverlayState, passiveCaptureOptions);
             document.removeEventListener('keydown', keyPressedEventListener, true);
+            pointerXY.unsubscribe(syncOverlayState);
+            overlayLayerEl.remove();
+            hide();
         }
     };
     const selectTreeViewLeaf = (leaf) => {
         selectedTreeViewLeaf = leaf || null;
 
         if (leaf) {
+            inspectByQuick = false;
             popup.show();
             popup.freeze();
         } else {
             detailsSidebarLeafExpanded.clear();
-            popup.hide();
+            hide();
             syncOverlayState();
         }
     };
@@ -294,9 +291,9 @@ export default (host) => {
             lastOverlayEl.classList.remove('hovered');
         }
 
-        selectedTreeViewLeaf = null;
-        lastHoverViewTreeLeaf = null;
         lastOverlayEl = null;
+        lastHoverViewTreeLeaf = null;
+        selectedTreeViewLeaf = null;
 
         popup.hide();
     };
@@ -341,5 +338,24 @@ export default (host) => {
 
     if (host.inspectMode) {
         enableInspect();
+    }
+
+    let inspectByQuick = false;
+    document.addEventListener('keydown', quickInspect, true);
+    document.addEventListener('keyup', quickInspect, true);
+    function quickInspect(e) {
+        if (e.key === 'Alt' || e.keyCode === 18 || e.which === 18) {
+            if (e.type === 'keydown') {
+                if (!host.inspectMode) {
+                    inspectByQuick = true;
+                    host.inspect(true);
+                }
+            } else {
+                if (inspectByQuick) {
+                    inspectByQuick = false;
+                    host.inspect(false);
+                }
+            }
+        }
     }
 };

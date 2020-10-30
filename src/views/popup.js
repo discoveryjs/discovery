@@ -1,6 +1,7 @@
 /* eslint-env browser */
 import { getOffsetParent, getBoundingRect, getViewportRect } from '../core/utils/layout.js';
 import { passiveCaptureOptions } from '../core/utils/dom.js';
+import { pointerXY } from '../core/utils/pointer.js';
 
 const openedPopups = [];
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
@@ -34,8 +35,6 @@ function hideOnResize(event) {
 export default function(discovery) {
     const instances = [];
     const hoverTriggerInstances = [];
-    let lastMouseX = 0;
-    let lastMouseY = 0;
     let globalListeners = null;
     const addGlobalHoverListeners = () => {
         if (globalListeners !== null) {
@@ -98,16 +97,14 @@ export default function(discovery) {
             }, true)
         ];
     };
-    const updatePointerRelatedPositions = ({ x, y}) => {
-        lastMouseX = x;
-        lastMouseY = y;
 
-        for (const instance of instances) {
-            if (instance.options.position === 'pointer' && !instance.hoverPinned && !instance.frozen) {
-                instance.updatePosition();
+    pointerXY.subscribe(() => {
+        for (const popup of openedPopups) {
+            if (popup.options.position === 'pointer' && !popup.hoverPinned && !popup.frozen) {
+                popup.updatePosition();
             }
         }
-    };
+    });
 
     discovery.view.Popup = class Popup {
         constructor(options) {
@@ -191,7 +188,6 @@ export default function(discovery) {
 
                 if (openedPopups.length === 1) {
                     window.addEventListener('resize', hideOnResize);
-                    document.addEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);
                     document.addEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
                     document.addEventListener('click', hideIfEventOutside, true);
                 }
@@ -211,14 +207,15 @@ export default function(discovery) {
             const hostEl = document.body;
             const offsetParent = getOffsetParent(hostEl.firstChild);
             const viewport = getViewportRect(window, offsetParent);
+            const { x: pointerX, y: pointerY } = pointerXY.value;
             const pointerOffset = 3;
             const box = this.options.position !== 'pointer'
                 ? getBoundingRect(this.lastTriggerEl, hostEl)
                 : {
-                    left: lastMouseX + pointerOffset,
-                    right: lastMouseX - pointerOffset,
-                    top: lastMouseY - pointerOffset,
-                    bottom: lastMouseY + pointerOffset
+                    left: pointerX + pointerOffset,
+                    right: pointerX - pointerOffset,
+                    top: pointerY - pointerOffset,
+                    bottom: pointerY + pointerOffset
                 };
             const availHeightTop = box.top - viewport.top - 3;
             const availHeightBottom = viewport.bottom - box.bottom - 3;
@@ -285,7 +282,6 @@ export default function(discovery) {
 
                 if (openedPopups.length === 0) {
                     window.removeEventListener('resize', hideOnResize);
-                    document.removeEventListener('mousemove', updatePointerRelatedPositions, passiveCaptureOptions);
                     document.removeEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
                     document.removeEventListener('click', hideIfEventOutside, true);
                 }
