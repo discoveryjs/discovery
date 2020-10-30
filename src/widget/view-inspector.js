@@ -28,6 +28,7 @@ export default (host) => {
     let lastPointerX;
     let lastPointerY;
 
+    const detailsSidebarLeafExpanded = new Set();
     const viewByEl = new Map();
     const overlayByViewNode = new Map();
     const overlayLayerEl = createElement('div', {
@@ -141,6 +142,7 @@ export default (host) => {
             popup.show();
             popup.freeze();
         } else {
+            detailsSidebarLeafExpanded.clear();
             popup.hide();
             syncOverlayState();
         }
@@ -154,37 +156,42 @@ export default (host) => {
         render(el) {
             const targetLeaf = selectedTreeViewLeaf || lastHoverViewTreeLeaf;
             const stack = [];
-            const expanded = new Set();
             let cursor = targetLeaf;
 
             while (cursor !== null && (cursor.view || cursor.viewRoot)) {
+                if (cursor !== targetLeaf && selectedTreeViewLeaf !== null) {
+                    detailsSidebarLeafExpanded.add(cursor);
+                }
+
                 stack.unshift(cursor);
-                expanded.add(cursor);
                 cursor = cursor.parent;
             }
-
-            console.log(stack);
-
-            expanded.delete(targetLeaf);
 
             host.view.render(el, {
                 view: 'context',
                 modifiers: {
                     view: 'tree',
                     when: selectedTreeViewLeaf !== null,
+                    data: '$[0]',
                     className: 'sidebar',
                     limitLines: false,
-                    data: '$[0]',
                     itemConfig: {
-                        expanded: leaf => !leaf.parent || expanded.has(leaf),
-                        collapsible: '=not viewRoot'
+                        collapsible: '=not viewRoot',
+                        expanded: leaf => detailsSidebarLeafExpanded.has(leaf),
+                        onToggle: (state, _, leaf) => state
+                            ? detailsSidebarLeafExpanded.add(leaf)
+                            : detailsSidebarLeafExpanded.delete(leaf)
                     },
                     item: {
                         view: 'switch',
                         content: [
                             {
                                 when: 'viewRoot',
-                                content: 'text:viewRoot.name'
+                                content: {
+                                    view: 'block',
+                                    className: 'view-root',
+                                    content: 'text:viewRoot.name'
+                                }
                             },
                             {
                                 when: '$ = #.selected',
@@ -216,7 +223,10 @@ export default (host) => {
                         className: 'stack-view-chain',
                         name: 'view',
                         data: '.({ text: viewRoot.name or view.config.view, value: $ })',
-                        value: '=$[-1].value'
+                        value: '=$[-1].value',
+                        toggleConfig: {
+                            className: data => data.value.viewRoot ? 'view-root' : ''
+                        }
                     },
                     content: {
                         view: 'block',

@@ -60,6 +60,7 @@
     left: 20px !important;
     right: 20px !important;
     bottom: 20px !important;
+    padding: 1px;
     max-height: none !important;
     max-width: none !important;
     transition: .1s ease-in-out;
@@ -80,6 +81,11 @@
 .discovery-inspect-details-popup .view-tree-leaf-content {
     white-space: nowrap;
 }
+.discovery-inspect-details-popup .view-tree-leaf-content .view-root {
+    background-color: rgba(85, 204, 0, .25);
+    box-shadow: 0 0 0 3px rgba(85, 204, 0, .25);
+    display: inline;
+}
 .discovery-inspect-details-popup .view-tree-leaf-content .selected {
     background-color: rgba(78, 187, 255, .3);
     box-shadow: 0 0 0 3px rgba(78, 187, 255, .3);
@@ -91,6 +97,9 @@
 }
 .discovery-inspect-details-popup .stack-view-chain .view-toggle {
     border-radius: 0;
+}
+.discovery-inspect-details-popup .stack-view-chain .view-root:not(.checked):not(:hover) {
+    background-color: rgba(85, 204, 0, .25);
 }
 
 .discovery-inspect-details-popup .inspect-details-content {
