@@ -28,10 +28,10 @@ export default function(discovery) {
                     el.appendChild(afterTogglesEl);
                 }
 
-                toggles.forEach(toggle =>
+                toggles.forEach((toggle, idx) =>
                     discovery.view.render(el, discovery.view.composeConfig(toggle, {
                         checked: toggle.value === currentValue
-                    }), data, context)
+                    }), data[idx], context)
                 );
             }
 
@@ -84,10 +84,10 @@ export default function(discovery) {
                     initValue = toggle.value;
                 }
 
-                return {
-                    ...toggleConfig,
-                    ...toggle
-                };
+                return discovery.view.composeConfig(
+                    toggleConfig,
+                    toggle
+                );
             });
         }
 

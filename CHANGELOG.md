@@ -8,6 +8,7 @@
 - Added `ignoreCase` option to `text-match` view
 - Fixed various edge cases for `text-match` view
 - Fixed markup for `tree-leaf` view in non-collapsible state
+- Fixed data for `toggle` view when used in `toggle-group`
 - Exposed internal helpers as `utils`: `debounce`, `jsonStringifyInfo`, `jsonStringifyAsJavaScript`, `persistent` and `pattern` modules
 
 ## 1.0.0-beta.46 (23-10-2020)
