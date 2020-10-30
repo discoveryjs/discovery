@@ -118,7 +118,7 @@ export default class App extends Widget {
         this.nav.append({
             name: 'inspect',
             content: 'text:"Inspect"',
-            onClick: () => this.inspect(!this.inspectMode)
+            onClick: () => this.inspectMode.set(!this.inspectMode.value)
         });
     }
 

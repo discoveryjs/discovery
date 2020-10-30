@@ -16,6 +16,9 @@
 .discovery-view-popup.discovery-root-darkmode {
     --discovery-background-color: #323232;
 }
+.discovery-view-popup.inspect {
+    z-index: 2002;
+}
 
 .discovery-view-popup.show-on-hover:not([data-pin-mode="popup-hover"]):not(.pinned) {
     pointer-events: none;

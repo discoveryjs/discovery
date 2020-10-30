@@ -39,7 +39,7 @@ export default function(discovery) {
             el.classList.add('non-collapsible');
         }
 
-        this.render(contentEl, content, data, context);
+        let renderState = this.render(contentEl, content, data, context);
 
         if (children) {
             childrenData = discovery.query(children, data, context);
@@ -71,7 +71,7 @@ export default function(discovery) {
 
             if (typeof expanded === 'function' ? expanded(data, context) : expanded) {
                 if (childrenData) {
-                    renderChildren(childrenData, expanded);
+                    renderState = renderState.then(() => renderChildren(childrenData, expanded));
                 }
             } else {
                 el.classList.add('collapsed');
@@ -84,6 +84,8 @@ export default function(discovery) {
                 }
             }
         }
+
+        return renderState;
     }, {
         tag: 'li'
     });

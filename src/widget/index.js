@@ -14,6 +14,7 @@ import { DarkModeController } from './darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
+import Publisher from '../core/publisher.js';
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
@@ -210,7 +211,7 @@ export default class Widget extends Emitter {
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.inspectMode = false;
+        this.inspectMode = new Publisher(false);
         this.dom = {};
 
         this.apply(views);
@@ -551,15 +552,6 @@ export default class Widget extends Emitter {
         console.error('Widget#addBadge() is obsoleted, use Widget#nav API instead');
     }
 
-    inspect(state) {
-        state = Boolean(state);
-
-        if (this.inspectMode !== state) {
-            this.inspectMode = state;
-            this.emit(state ? 'inspect-enabled' : 'inspect-disabled');
-        }
-    }
-
     //
     // Render common
     //
@@ -627,7 +619,7 @@ export default class Widget extends Emitter {
             const data = this.data;
             const context = this.getRenderContext();
 
-            this.view.addViewRoot(this.dom.sidebar, 'sidebar', { data, context });
+            this.view.setViewRoot(this.dom.sidebar, 'sidebar', { data, context });
 
             this.dom.sidebar.innerHTML = '';
             return this.view.render(
@@ -735,7 +727,7 @@ export default class Widget extends Emitter {
             context
         );
 
-        this.view.addViewRoot(pageEl, 'Page: ' + this.pageId, {
+        this.view.setViewRoot(pageEl, 'Page: ' + this.pageId, {
             config,
             data,
             context

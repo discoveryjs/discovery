@@ -9,6 +9,7 @@ export default class Publisher {
         const host = this;
         return {
             subscribe: this.subscribe.bind(this),
+            subscribeSync: this.subscribeSync.bind(this),
             unsubscribe: this.unsubscribe.bind(this),
             get value() {
                 return host.value;
@@ -24,6 +25,15 @@ export default class Publisher {
         };
 
         return () => this.unsubscribe(callback, thisArg);
+    }
+
+    subscribeSync(callback, thisArg) {
+        const subscription = this.subscribe(callback, thisArg);
+
+        // sync
+        callback.call(thisArg, this.value);
+
+        return subscription;
     }
 
     unsubscribe(callback, thisArg) {
@@ -47,7 +57,7 @@ export default class Publisher {
         return newValue !== oldValue;
     }
 
-    publish(value) {
+    set(value) {
         if (!this.shouldPublish(value, this.value)) {
             return false;
         }

@@ -488,7 +488,7 @@ export default class ViewRenderer extends Dict {
         container.appendChild(moreButton);
     }
 
-    addViewRoot(node, name, props) {
+    setViewRoot(node, name, props) {
         rootViewEls.set(node, {
             name,
             ...props

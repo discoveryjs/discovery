@@ -8,7 +8,7 @@ export default function(discovery) {
         }
 
         container.classList.add('incomplete');
-        data
+        return data
             .slice(offset, offset + limit)
             .reduce(
                 (pipeline, entry) => pipeline.then(() => {
@@ -126,19 +126,19 @@ export default function(discovery) {
                     }, itemConfig)
                 };
 
-                renderTreeLines(el, renderStack, lines, context, 0, limitLines);
-            } else {
-                this.renderList(el, this.composeConfig({
-                    view: 'tree-leaf',
-                    itemConfig,
-                    content: item,
-                    collapsible,
-                    expanded,
-                    children,
-                    limit,
-                    onToggle
-                }, itemConfig), data, context, 0, limit);
+                return renderTreeLines(el, renderStack, lines, context, 0, limitLines);
             }
+
+            return this.renderList(el, this.composeConfig({
+                view: 'tree-leaf',
+                itemConfig,
+                content: item,
+                collapsible,
+                expanded,
+                children,
+                limit,
+                onToggle
+            }, itemConfig), data, context, 0, limit);
         }
     }, {
         tag: 'ul',

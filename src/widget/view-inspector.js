@@ -20,7 +20,7 @@ function isBoxChanged(oldBox, newBox) {
 }
 
 export default (host) => {
-    let enabled = false;
+    let inspectorActivated = false;
     let lastOverlayEl = null;
     let lastHoverViewTreeLeaf = null;
     let selectedTreeViewLeaf = null;
@@ -40,7 +40,7 @@ export default (host) => {
     });
     const syncOverlayState = debounce(() => {
         // don't sync change a view selected
-        if (!enabled || selectedTreeViewLeaf !== null) {
+        if (!inspectorActivated || selectedTreeViewLeaf !== null) {
             return;
         }
 
@@ -49,7 +49,7 @@ export default (host) => {
         const overlayToRemove = new Set([...overlayByViewNode.keys()]);
         const walk = function walk(leafs, parentEl) {
             for (const leaf of leafs) {
-                if (!leaf.node || !leaf.view) {
+                if (!leaf.node || (!leaf.view && !leaf.viewRoot)) {
                     if (leaf.children.length) {
                         walk(leaf.children, parentEl);
                     }
@@ -62,7 +62,7 @@ export default (host) => {
 
                 if (overlay === null) {
                     overlay = {
-                        el: parentEl.appendChild(createElement('div', 'overlay')),
+                        el: parentEl.appendChild(createElement('div', leaf.viewRoot ? 'overlay view-root' : 'overlay')),
                         box: null
                     };
                     overlayByViewNode.set(leaf.node, overlay);
@@ -97,21 +97,19 @@ export default (host) => {
         updateState();
     }, { maxWait: 0, wait: 50 });
     const updateState = () => {
-        // overlayLayerEl.classList.add('pick-element');
         const { x, y } = pointerXY.value;
         onHover([...document.elementsFromPoint(x | 0, y | 0) || []]
             .find(el => viewByEl.has(el)) || null
         );
-        // overlayLayerEl.classList.remove('pick-element');
     };
     const keyPressedEventListener = (e) => {
         if (e.key === 'Escase' || e.keyCode === 27 || e.which === 27) {
-            host.inspect(false);
+            host.inspectMode.set(false);
         }
     };
     const enableInspect = () => {
-        if (!enabled) {
-            enabled = true;
+        if (!inspectorActivated) {
+            inspectorActivated = true;
             document.addEventListener('scroll', syncOverlayState, passiveCaptureOptions);
             document.addEventListener('keydown', keyPressedEventListener, true);
             pointerXY.subscribe(syncOverlayState);
@@ -121,8 +119,8 @@ export default (host) => {
         }
     };
     const disableInspect = () => {
-        if (enabled) {
-            enabled = false;
+        if (inspectorActivated) {
+            inspectorActivated = false;
             clearInterval(syncOverlayTimer);
             document.removeEventListener('scroll', syncOverlayState, passiveCaptureOptions);
             document.removeEventListener('keydown', keyPressedEventListener, true);
@@ -135,9 +133,11 @@ export default (host) => {
         selectedTreeViewLeaf = leaf || null;
 
         if (leaf) {
-            inspectByQuick = false;
             popup.show();
             popup.freeze();
+        } else if (inspectByQuick) {
+            inspectByQuick = false;
+            host.inspectMode.set(false);
         } else {
             detailsSidebarLeafExpanded.clear();
             hide();
@@ -332,28 +332,27 @@ export default (host) => {
         popup.show();
     };
 
-    host
-        .on('inspect-enabled', enableInspect)
-        .on('inspect-disabled', disableInspect);
+    host.inspectMode.subscribeSync(
+        enabled => enabled ? enableInspect() : disableInspect()
+    );
 
-    if (host.inspectMode) {
-        enableInspect();
-    }
-
+    //
+    // quick inspection
+    //
     let inspectByQuick = false;
     document.addEventListener('keydown', quickInspect, true);
     document.addEventListener('keyup', quickInspect, true);
     function quickInspect(e) {
         if (e.key === 'Alt' || e.keyCode === 18 || e.which === 18) {
             if (e.type === 'keydown') {
-                if (!host.inspectMode) {
+                if (!inspectorActivated) {
                     inspectByQuick = true;
-                    host.inspect(true);
+                    host.inspectMode.set(true);
                 }
             } else {
-                if (inspectByQuick) {
+                if (inspectByQuick && !selectedTreeViewLeaf) {
                     inspectByQuick = false;
-                    host.inspect(false);
+                    host.inspectMode.set(false);
                 }
             }
         }

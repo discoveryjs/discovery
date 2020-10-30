@@ -12,6 +12,7 @@ function createNavArray(host, defaults) {
                     position++;
                 }
                 break;
+
             case 'before':
                 position = items.findIndex(item => item.name === ref);
                 if (position === -1) {
@@ -84,12 +85,20 @@ export class WidgetNavigation {
         Object.assign(this, this.secondary);
     }
     render() {
-        const { view, data, context, dom } = this.host;
+        const { data, context, dom } = this.host;
         const el = dom && dom.nav;
 
         if (el) {
+            const renderContext = { ...context, widget: this.host };
+
+            this.host.view.setViewRoot(el, 'nav', {
+                config: this.config,
+                data,
+                context: renderContext
+            });
+
             el.innerHTML = '';
-            view.render(el, this.config, data, { ...context, widget: this.host });
+            this.host.view.render(el, this.config, data, renderContext);
         }
     }
 };

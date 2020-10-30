@@ -33,8 +33,8 @@ function hideOnResize(event) {
 }
 
 export default function(discovery) {
-    const instances = [];
     const hoverTriggerInstances = [];
+    const inspectorLockedInstances = new Set();
     let globalListeners = null;
     const addGlobalHoverListeners = () => {
         if (globalListeners !== null) {
@@ -106,10 +106,14 @@ export default function(discovery) {
         }
     });
 
+    discovery.inspectMode.subscribe(
+        enabled => enabled
+            ? openedPopups.forEach(popup => inspectorLockedInstances.add(popup))
+            : inspectorLockedInstances.clear()
+    );
+
     discovery.view.Popup = class Popup {
         constructor(options) {
-            instances.push(this);
-
             this.options = {
                 ...defaultOptions,
                 ...options
@@ -167,6 +171,7 @@ export default function(discovery) {
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
             this.el.classList.toggle('discovery-root-darkmode', discovery.darkmode.value);
+            this.el.classList.toggle('inspect', discovery.inspectMode.value);
 
             if (typeof render === 'function') {
                 this.el.innerHTML = '';
@@ -185,6 +190,7 @@ export default function(discovery) {
 
             if (!this.visible) {
                 openedPopups.push(this);
+                discovery.view.setViewRoot(this.el, 'popup', { props: this.options });
 
                 if (openedPopups.length === 1) {
                     window.addEventListener('resize', hideOnResize);
@@ -266,7 +272,7 @@ export default function(discovery) {
         hide() {
             this.hideTimer = clearTimeout(this.hideTimer);
 
-            if (this.visible) {
+            if (this.visible && !inspectorLockedInstances.has(this)) {
                 // hide related popups first
                 this.relatedPopups.forEach(related => related.hide());
 
@@ -289,7 +295,7 @@ export default function(discovery) {
         }
 
         hideIfEventOutside({ target }) {
-            if (!this.options.hideIfEventOutside) {
+            if (!this.options.hideIfEventOutside || inspectorLockedInstances.has(this)) {
                 return;
             }
 
@@ -308,7 +314,7 @@ export default function(discovery) {
         }
 
         hideOnResize() {
-            if (!this.options.hideOnResize) {
+            if (!this.options.hideOnResize || inspectorLockedInstances.has(this)) {
                 return;
             }
 

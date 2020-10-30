@@ -7,7 +7,7 @@ const lastPointerXYPublisher = new Publisher({ x: 0, y: 0 }, (newCoords, oldCoor
 
 document.addEventListener(
     'pointermove',
-    ({ x, y}) => lastPointerXYPublisher.publish({ x, y }),
+    ({ x, y}) => lastPointerXYPublisher.set({ x, y }),
     passiveCaptureOptions
 );
 
