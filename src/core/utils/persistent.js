@@ -63,7 +63,7 @@ addEventListener('storage', (e) => {
 
 function createPersistentKey(key, map) {
     let currentValue = null;
-    const emitter = new Emitter();
+    const emitter = new Emitter(); // TODO: Change for Publisher
     const updateCurrentValue = (newValue = map.storage.getItem(key)) => {
         if (currentValue !== newValue) {
             emitter.emit('change', currentValue = newValue);
