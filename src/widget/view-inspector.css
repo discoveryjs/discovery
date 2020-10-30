@@ -18,23 +18,20 @@
     box-sizing: border-box;
 }
 .discovery-view-inspector-overlay .overlay.hovered {
-    background-color: rgba(0, 255, 0, .25);
-    -webkit-backdrop-filter: grayscale(1);
-    backdrop-filter: grayscale(1);
+    background-color: rgba(0, 255, 0, var(--discovery-background-alpha));
     outline: 1px dashed rgba(0, 128, 0, .4);
+    --discovery-background-alpha: .3;
 }
 .discovery-root-darkmode .discovery-view-inspector-overlay .overlay.hovered {
-    background-color: rgba(0, 255, 0, .2);
-    border-color: rgba(128, 200, 128, .65);
+    outline-color: rgba(128, 200, 128, .65);
+    --discovery-background-alpha: .2;
 }
 
 .discovery-inspect-details-popup {
     pointer-events: none;
     z-index: 2001;
     max-width: 650px !important;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    background: rgba(255, 255, 255, .65);
+    background: rgba(255, 255, 255, var(--discovery-background-alpha));
     display: grid;
     grid-template-areas:
         "stack"
@@ -43,13 +40,15 @@
     grid-template-rows: auto 1fr;
     gap: 1px;
 
+    --discovery-background-alpha: .95;
     --discovery-mate-background: rgba(240, 240, 240, .5);
     --discovery-link-color: #333;
     --discovery-link-underline-color: #0002;
 }
 .discovery-root-darkmode.discovery-inspect-details-popup {
-    background: rgba(36, 36, 36, .4);
+    background: rgba(36, 36, 36, var(--discovery-background-alpha));
 
+    --discovery-background-alpha: .92;
     --discovery-mate-background: rgba(52, 52, 52, .5);
     --discovery-link-color: #aaa;
     --discovery-link-underline-color: #aaa2;
@@ -60,6 +59,7 @@
     left: 20px !important;
     right: 20px !important;
     bottom: 20px !important;
+    height: calc(100vh - 40px); /* Safari scrolls popup content otherwise */
     padding: 1px;
     max-height: none !important;
     max-width: none !important;
@@ -118,10 +118,13 @@
     background-color: transparent;
 }
 .discovery-inspect-details-popup .inspect-details-content > * {
-    overflow: auto;
+    overflow: hidden; /* use auto only when popup is frozen to avoid flicking scrollbars */
     background-color: var(--discovery-mate-background);
     font-size: 12px;
     line-height: 14px;
+}
+.discovery-inspect-details-popup.frozen .inspect-details-content > * {
+    overflow: auto; /* use auto only when popup is frozen to avoid flicking scrollbars */
 }
 .discovery-inspect-details-popup .inspect-details-content > ::before,
 .discovery-inspect-details-popup .inspect-details-content .raw-config::before {
@@ -150,4 +153,20 @@
 .discovery-inspect-details-popup .inspect-details-content .context {
     grid-area: context;
     --header: 'Context';
+}
+
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
+    .discovery-inspect-details-popup {
+        --discovery-background-alpha: .65;
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    .discovery-root-darkmode.discovery-inspect-details-popup {
+        --discovery-background-alpha: .4;
+    }
+    .discovery-view-inspector-overlay .overlay.hovered {
+        --discovery-background-alpha: .25;
+        -webkit-backdrop-filter: grayscale(1);
+        backdrop-filter: grayscale(1);
+    }
 }

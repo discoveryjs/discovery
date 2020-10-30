@@ -110,7 +110,7 @@ export default (host) => {
         syncOverlayState();
     };
     const keyPressedEventListener = (e) => {
-        if (e.keyCode === 27 || e.which === 27) {
+        if (e.keyCode === 27 || e.which === 27) { // Escape
             host.inspect(false);
         }
     };
