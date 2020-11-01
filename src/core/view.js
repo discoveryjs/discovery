@@ -155,7 +155,7 @@ function renderDom(renderer, placeholder, config, props, data, context) {
             if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
                 viewEls.set(el, info);
             } else {
-                for (let child of [...el.children]) {
+                for (let child of el.childNodes) {
                     fragmentEls.set(child, info);
                 }
             }
