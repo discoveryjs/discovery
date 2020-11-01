@@ -4,7 +4,7 @@
 @import url('./report/editor-view.css');
 
 .page-report {
-    padding-top: 0;
+    padding-top: 20px !important;
 }
 .discovery:not([data-dzen]) .page-report > .report-content {
     min-height: calc(100vh - 121px);

@@ -35,6 +35,37 @@ export default function(discovery, updateParams) {
         })
     });
 
+    const reportActions = createElement('div', 'report-actions', [
+        noeditToggleEl = createElement('button', {
+            class: 'edit-mode',
+            title: 'Toggle edit mode',
+            onclick: ({ target }) => {
+                target.blur();
+                updateParams({
+                    noedit: !discovery.pageParams.noedit
+                });
+            }
+        }),
+        createElement('button', {
+            class: 'share',
+            title: 'Share ...',
+            onclick: ({ target }) => {
+                target.blur();
+                shareOptionsPopup.show(target);
+            }
+        }),
+        createElement('button', {
+            class: 'toggle-fullscreen',
+            title: 'Toggle full page mode',
+            onclick: ({ target }) => {
+                target.blur();
+                updateParams({
+                    dzen: !discovery.pageParams.dzen
+                });
+            }
+        })
+    ]);
+
     const headerEl = createElement('div', 'report-header', [
         createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
@@ -52,41 +83,14 @@ export default function(discovery, updateParams) {
                 dataDateTimeEl = createElement('span', null, '&nbsp;'),
                 viewDateTimeEl = createElement('span')
             ])
-        ]),
-        createElement('div', 'report-actions', [
-            noeditToggleEl = createElement('button', {
-                class: 'edit-mode',
-                title: 'Toggle edit mode',
-                onclick: ({ target }) => {
-                    target.blur();
-                    updateParams({
-                        noedit: !discovery.pageParams.noedit
-                    });
-                }
-            }),
-            createElement('button', {
-                class: 'share',
-                title: 'Share ...',
-                onclick: ({ target }) => {
-                    target.blur();
-                    shareOptionsPopup.show(target);
-                }
-            }),
-            createElement('button', {
-                class: 'toggle-fullscreen',
-                title: 'Toggle fullscreen mode',
-                onclick: ({ target }) => {
-                    target.blur();
-                    updateParams({
-                        dzen: !discovery.pageParams.dzen
-                    });
-                }
-            })
         ])
     ]);
 
     return {
-        el: headerEl,
+        el: [
+            reportActions,
+            headerEl
+        ],
         render(data, context) {
             const { title, noedit } = context.params;
 

@@ -1,5 +1,7 @@
 ## next
 
+- Changed nav block to be fixed positioned
+- Changed nav block class name `.discovery-content-badges` -> `.discovery-nav`
 - Added `passive` option support detection test and `passiveCaptureOptions` for `addEventListener()` in `utils.dom`
 - Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
 - Added `hideOnResize` and `hideIfEventOutside` options for `popup` view (both `true` by default)

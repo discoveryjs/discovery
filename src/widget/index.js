@@ -512,7 +512,7 @@ export default class Widget extends Emitter {
             newContainerEl.append(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
                 createElement('main', 'discovery-content', [
-                    this.dom.nav = createElement('div', 'discovery-content-badges'),
+                    this.dom.nav = createElement('div', 'discovery-nav'),
                     this.dom.pageContent = createElement('article')
                 ])
             );

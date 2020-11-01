@@ -1,4 +1,5 @@
 import { createFragment } from '../core/utils/dom.js';
+import { ContentRect } from '../core/utils/size.js';
 
 function createNavArray(host, defaults) {
     const items = [];
@@ -83,10 +84,19 @@ export class WidgetNavigation {
         ];
 
         Object.assign(this, this.secondary);
+        this.contentRect = new ContentRect();
+        this.contentRect.subscribe(({ width }) => {
+            if (host.dom.container) {
+                host.dom.container.style.setProperty('--discovery-nav-width', width + 'px');
+            }
+        });
     }
+
     render() {
         const { data, context, dom } = this.host;
         const el = dom && dom.nav;
+
+        this.contentRect.observe(el);
 
         if (el) {
             const renderContext = { ...context, widget: this.host };
