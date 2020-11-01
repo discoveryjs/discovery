@@ -269,9 +269,9 @@ function render(container, config, data, context) {
                 }, {}, e);
                 console.error(e);
             });
-    } else {
-        return Promise.resolve();
     }
+
+    return Promise.resolve();
 }
 
 export default class ViewRenderer extends Dict {

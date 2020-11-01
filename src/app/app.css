@@ -53,9 +53,15 @@
     background-color: #1f7ec5;
 }
 
-.discovery-nav-popup .dark-mode-switcher {
+.discovery-nav-popup > .toggle-menu-item {
     padding: 4px 4px 4px 12px;
 }
-.discovery-nav-popup .dark-mode-switcher .view-toggle {
+.discovery-nav-popup > .toggle-menu-item .view-toggle-group {
+    display: flex;
+}
+.discovery-nav-popup > .toggle-menu-item .view-toggle-group-before {
+    flex: 1;
+}
+.discovery-nav-popup > .toggle-menu-item .view-toggle {
     font-size: 11px;
 }

@@ -39,7 +39,7 @@ function applyLocalStorageValue(value) {
 // attach
 applyLocalStorageValue(localStorage.value);
 localStorage.on(applyLocalStorageValue);
-prefersDarkModeMedia.addListener(applyPrefersColorScheme);
+prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
 // input value | controller internal state
 //             | -------------------------

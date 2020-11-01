@@ -40,7 +40,7 @@ export default class App extends Widget {
         let detachToggleDarkMode = () => {};
         this.nav.menu.append({
             view: 'block',
-            className: 'dark-mode-switcher',
+            className: ['toggle-menu-item', 'dark-mode-switcher'],
             name: 'dark-mode',
             when: '#.widget | darkmode.mode != "disabled"',
             postRender: (el, opts, data, { hide }) => {
