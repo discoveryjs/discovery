@@ -168,7 +168,7 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
-        this.page = new PageRenderer(this.view);
+        this.page = new PageRenderer(this);
         this.page.on('define', (pageId, page) => {
             const { resolveLink } = page.options;
 
@@ -511,7 +511,7 @@ export default class Widget extends Emitter {
             newContainerEl.dataset.discoveryInstanceId = this.instanceId;
             newContainerEl.append(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
-                createElement('main', 'discovery-content', [
+                this.dom.content = createElement('main', 'discovery-content', [
                     this.dom.nav = createElement('div', 'discovery-nav'),
                     this.dom.pageContent = createElement('article')
                 ])

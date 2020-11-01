@@ -1,6 +1,8 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import Publisher from './publisher.js';
+import { createElement } from '../core/utils/dom.js';
 
 const CONFIG = Symbol('config');
 const BUILDIN_NOT_FOUND = {
@@ -12,12 +14,34 @@ const BUILDIN_NOT_FOUND = {
 };
 
 export default class PageRenderer extends Dict {
-    constructor(view) {
+    constructor(host) {
         super();
 
-        this.view = view;
+        this.view = host.view;
         this.lastPage = null;
         this.lastPageId = null;
+
+        this.pageOverscrolled = new Publisher(false);
+        this.pageOverscrolledUnsubscribe = () => {};
+        this.pageOverscrollTriggerEl = createElement('div', { style: 'position:absolute' });
+
+        if (typeof IntersectionObserver === 'function') {
+            let overscrollObserver = null;
+            host.on('container-changed', ({ content: root }) => {
+                if (overscrollObserver) {
+                    overscrollObserver.disconnect();
+                    overscrollObserver = null;
+                }
+
+                if (root) {
+                    overscrollObserver = new IntersectionObserver(
+                        entries => this.pageOverscrolled.set(!entries[0].isIntersecting),
+                        { root }
+                    );
+                    overscrollObserver.observe(this.pageOverscrollTriggerEl);
+                }
+            });
+        }
     }
 
     define(name, render, options) {
@@ -65,12 +89,17 @@ export default class PageRenderer extends Dict {
             console.error(e);
         }
 
-        if (newPageEl !== prevPageEl) {
-            parentEl.replaceChild(newPageEl, prevPageEl);
-        }
-
         if (pageChanged || pageRefChanged || !keepScrollOffset) {
             parentEl.scrollTop = 0;
+        }
+
+        if (newPageEl !== prevPageEl) {
+            prevPageEl.replaceWith(newPageEl);
+            newPageEl.prepend(this.pageOverscrollTriggerEl);
+            this.pageOverscrolledUnsubscribe();
+            this.pageOverscrolledUnsubscribe = this.pageOverscrolled.subscribeSync(overscrolled =>
+                newPageEl.classList.toggle('overscrolled', overscrolled)
+            );
         }
 
         return {
