@@ -1,0 +1,46 @@
+.discovery-inspect-details-popup .content {
+    overflow: hidden; /* use auto only when popup is frozen to avoid flicking scrollbars */
+    background-color: var(--discovery-mate-background);
+    font-size: 12px;
+    line-height: 14px;
+}
+.discovery-inspect-details-popup.frozen .content {
+    overflow: auto; /* use auto only when popup is frozen to avoid flicking scrollbars */
+}
+.discovery-inspect-details-popup .content .view-struct {
+    overflow: visible;
+    background-color: transparent;
+}
+
+.discovery-inspect-details-popup .content.props-config {
+    grid-area: props-config;
+}
+.discovery-inspect-details-popup .content.data-context {
+    grid-area: data-context;
+}
+
+.discovery-inspect-details-popup .content-section::before {
+    content: var(--header);
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: rgba(100, 100, 100, .125);
+}
+.discovery-inspect-details-popup .content-section.props {
+    --header: 'Render props';
+}
+.discovery-inspect-details-popup .content-section.config {
+    --header: 'Config';
+}
+.discovery-inspect-details-popup .content-section.config > .view-tree {
+    margin-left: 6px;
+}
+.discovery-inspect-details-popup .content-section.config .view-tree-leaf-content > .view-struct {
+    margin: -4px;
+}
+.discovery-inspect-details-popup .content-section.data {
+    --header: 'Data';
+}
+.discovery-inspect-details-popup .content-section.context {
+    --header: 'Context';
+}
+

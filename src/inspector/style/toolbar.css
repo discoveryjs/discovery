@@ -1,0 +1,11 @@
+.discovery-inspect-details-popup .stack-view-chain {
+    grid-area: toolbar;
+    gap: 1px;
+}
+.discovery-inspect-details-popup .stack-view-chain .view-toggle {
+    border-radius: 0;
+    margin: 0;
+}
+.discovery-inspect-details-popup .stack-view-chain .view-root:not(.checked):not(:hover) {
+    background-color: var(--discovery-view-root-highlight-color);
+}

@@ -144,7 +144,55 @@ export default (host) => {
             syncOverlayState();
         }
     };
+    const hide = () => {
+        if (lastOverlayEl) {
+            lastOverlayEl.classList.remove('hovered');
+        }
 
+        lastOverlayEl = null;
+        lastHoverViewTreeLeaf = null;
+        selectedTreeViewLeaf = null;
+
+        popup.hide();
+    };
+    const onHover = overlayEl => {
+        if (overlayEl === lastOverlayEl) {
+            return;
+        }
+
+        if (lastOverlayEl !== null) {
+            lastOverlayEl.classList.remove('hovered');
+        }
+
+        lastOverlayEl = overlayEl;
+
+        if (overlayEl === null) {
+            hideTimer = setTimeout(hide, 100);
+            return;
+        }
+
+        overlayEl.classList.add('hovered');
+
+        const leaf = viewByEl.get(overlayEl) || null;
+
+        if (leaf === null) {
+            lastHoverViewTreeLeaf = null;
+            return;
+        }
+
+        if (lastHoverViewTreeLeaf !== null && leaf.view === lastHoverViewTreeLeaf.view) {
+            return;
+        }
+
+        lastHoverViewTreeLeaf = leaf;
+        clearTimeout(hideTimer);
+
+        popup.show();
+    };
+
+    //
+    // popup
+    //
     const popup = new host.view.Popup({
         className: 'discovery-inspect-details-popup',
         position: 'pointer',
@@ -225,113 +273,78 @@ export default (host) => {
                             className: data => data.value.viewRoot ? 'view-root' : ''
                         }
                     },
-                    content: {
-                        view: 'block',
-                        className: 'inspect-details-content',
-                        data: '#.view | view or viewRoot',
-                        content: [
-                            {
-                                view: 'block',
-                                className: 'config',
-                                content: [
-                                    {
+                    content: [
+                        {
+                            view: 'block',
+                            className: ['content', 'props-config'],
+                            data: '#.view | view or viewRoot',
+                            content: [
+                                {
+                                    view: 'block',
+                                    className: ['content-section', 'props'],
+                                    content: {
                                         view: 'struct',
                                         expanded: 2,
                                         data: 'props'
-                                    },
-                                    {
-                                        view: 'block',
-                                        className: 'raw-config'
-                                    },
-                                    {
-                                        view: 'struct',
-                                        expanded: 1,
-                                        data: 'config'
-                                    },
-                                    {
-                                        view: 'tree',
-                                        data: data => host.view.getViewConfigTransitionTree(data.config).deps,
-                                        whenData: true,
-                                        expanded: 3,
-                                        children: 'deps',
-                                        item: {
+                                    }
+                                },
+                                {
+                                    view: 'block',
+                                    className: ['content-section', 'config'],
+                                    content: [
+                                        {
                                             view: 'struct',
                                             expanded: 1,
-                                            data: 'value'
+                                            data: 'config'
+                                        },
+                                        {
+                                            view: 'tree',
+                                            data: data => host.view.getViewConfigTransitionTree(data.config).deps,
+                                            whenData: true,
+                                            expanded: 3,
+                                            children: 'deps',
+                                            item: {
+                                                view: 'struct',
+                                                expanded: 1,
+                                                data: 'value'
+                                            }
                                         }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            view: 'block',
+                            className: ['content', 'data-context'],
+                            data: '#.view | view or viewRoot',
+                            content: [
+                                {
+                                    view: 'block',
+                                    className: ['content-section', 'data'],
+                                    content: {
+                                        view: 'struct',
+                                        expanded: 1,
+                                        data: 'data'
                                     }
-                                ]
-                            },
-                            {
-                                view: 'block',
-                                className: 'data',
-                                content: {
-                                    view: 'struct',
-                                    expanded: 1,
-                                    data: 'data'
+                                },
+                                {
+                                    view: 'block',
+                                    className: ['content-section', 'context'],
+                                    content: {
+                                        view: 'struct',
+                                        expanded: 1,
+                                        data: 'context'
+                                    }
                                 }
-                            },
-                            {
-                                view: 'block',
-                                className: 'context',
-                                content: {
-                                    view: 'struct',
-                                    expanded: 1,
-                                    data: 'context'
-                                }
-                            }
-                        ]
-                    }
+                            ]
+                        }
+                    ]
                 }
             }, stack, { selected: targetLeaf });
         }
     });
-    const hide = () => {
-        if (lastOverlayEl) {
-            lastOverlayEl.classList.remove('hovered');
-        }
 
-        lastOverlayEl = null;
-        lastHoverViewTreeLeaf = null;
-        selectedTreeViewLeaf = null;
-
-        popup.hide();
-    };
-    const onHover = overlayEl => {
-        if (overlayEl === lastOverlayEl) {
-            return;
-        }
-
-        if (lastOverlayEl !== null) {
-            lastOverlayEl.classList.remove('hovered');
-        }
-
-        lastOverlayEl = overlayEl;
-
-        if (overlayEl === null) {
-            hideTimer = setTimeout(hide, 100);
-            return;
-        }
-
-        overlayEl.classList.add('hovered');
-
-        const leaf = viewByEl.get(overlayEl) || null;
-
-        if (leaf === null) {
-            lastHoverViewTreeLeaf = null;
-            return;
-        }
-
-        if (lastHoverViewTreeLeaf !== null && leaf.view === lastHoverViewTreeLeaf.view) {
-            return;
-        }
-
-        lastHoverViewTreeLeaf = leaf;
-        clearTimeout(hideTimer);
-
-        popup.show();
-    };
-
+    // attach to host
     host.inspectMode.subscribeSync(
         enabled => enabled ? enableInspect() : disableInspect()
     );

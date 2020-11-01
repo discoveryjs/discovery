@@ -1,0 +1,19 @@
+.discovery-inspect-details-popup .sidebar {
+    grid-area: sidebar;
+    overflow: auto;
+    padding: 4px;
+    background-color: var(--discovery-mate-background);
+}
+.discovery-inspect-details-popup .view-tree-leaf-content {
+    white-space: nowrap;
+}
+.discovery-inspect-details-popup .view-tree-leaf-content .view-root {
+    background-color: var(--discovery-view-root-highlight-color);
+    box-shadow: 0 0 0 3px var(--discovery-view-root-highlight-color);
+    display: inline;
+}
+.discovery-inspect-details-popup .view-tree-leaf-content .selected {
+    background-color: rgba(78, 187, 255, .3);
+    box-shadow: 0 0 0 3px rgba(78, 187, 255, .3);
+    display: inline;
+}

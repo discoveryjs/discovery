@@ -5,16 +5,16 @@ import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
 import ObjectMarker from '../core/object-marker.js';
+import Publisher from '../core/publisher.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
-import attachViewInspector from './view-inspector.js';
+import attachViewInspector from '../inspector/index.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from './darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from '/gen/jora.js'; // FIXME: generated file to make it local
-import Publisher from '../core/publisher.js';
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();

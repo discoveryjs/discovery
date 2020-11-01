@@ -1,7 +1,7 @@
 @import url('./pages/index.css');
 @import url('./views/index.css');
 @import url('./widget/widget.css');
-@import url('./widget/view-inspector.css');
+@import url('./inspector/index.css');
 @import url('./views/index-complex.css');
 @import url('./app/app.css');
 
