@@ -10,6 +10,7 @@ import * as pattern from './pattern.js';
 import * as persistent from './persistent.js';
 import * as pointer from './pointer.js';
 import safeFilterRx from './safe-filter-rx.js';
+import * as size from './size.js';
 
 export default {
     base64,
@@ -23,5 +24,6 @@ export default {
     pattern,
     persistent,
     ...pointer,
-    safeFilterRx
+    safeFilterRx,
+    ...size
 };
