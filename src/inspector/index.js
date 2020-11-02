@@ -30,14 +30,13 @@ export default (host) => {
     const detailsSidebarLeafExpanded = new Set();
     const viewByEl = new Map();
     const overlayByViewNode = new Map();
+    const cancelHintEl = createElement('div', 'cancel-hint view-alert view-alert-warning');
     const overlayLayerEl = createElement('div', {
         class: 'discovery-view-inspector-overlay',
-        onclick() {
-            selectTreeViewLeaf(
-                lastHoverViewTreeLeaf && !selectedTreeViewLeaf ? lastHoverViewTreeLeaf : null
-            );
-        }
-    });
+        onclick: () => selectTreeViewLeaf(
+            lastHoverViewTreeLeaf && !selectedTreeViewLeaf ? lastHoverViewTreeLeaf : null
+        )
+    }, [cancelHintEl]);
     const syncOverlayState = debounce(() => {
         // don't sync change a view selected
         if (!inspectorActivated || selectedTreeViewLeaf !== null) {
@@ -360,11 +359,13 @@ export default (host) => {
             if (e.type === 'keydown') {
                 if (!inspectorActivated) {
                     inspectByQuick = true;
+                    cancelHintEl.dataset.alt = true;
                     host.inspectMode.set(true);
                 }
             } else {
                 if (inspectByQuick && !selectedTreeViewLeaf) {
                     inspectByQuick = false;
+                    delete cancelHintEl.dataset.alt;
                     host.inspectMode.set(false);
                 }
             }
