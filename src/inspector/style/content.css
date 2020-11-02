@@ -11,6 +11,11 @@
     overflow: visible;
     background-color: transparent;
 }
+.discovery-inspect-details-popup .content .view-source {
+    font-size: 11px;
+    line-height: 15px;
+    background-color: #25252585;
+}
 
 .discovery-inspect-details-popup .content.props-config {
     grid-area: props-config;

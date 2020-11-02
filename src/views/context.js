@@ -23,8 +23,11 @@ export default function(discovery) {
         }
 
         function updateContext(value, name) {
-            if (name) {
-                localContext[name] = value;
+            if (name && (!hasOwnProperty.call(localContext, name) || localContext[name] !== value)) {
+                localContext = {
+                    ...localContext,
+                    [name]: value
+                };
 
                 if (inited) {
                     renderContent();
@@ -32,7 +35,7 @@ export default function(discovery) {
             }
         }
 
-        let localContext = { ...context };
+        let localContext = context;
         let contentStartMarker = null;
         let contentEndMarker = null;
         let lastRender = null;

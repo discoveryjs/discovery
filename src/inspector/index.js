@@ -270,10 +270,29 @@ export default (host) => {
                                 view: 'toggle-group',
                                 className: 'stack-view-chain',
                                 name: 'view',
-                                data: '.({ text: viewRoot.name or view.config.view, value: $ })',
+                                data: '.({ value: $ })',
                                 value: '=$[-1].value',
                                 toggleConfig: {
-                                    className: data => data.value.viewRoot ? 'view-root' : ''
+                                    className: data => data.value.viewRoot ? 'view-root' : '',
+                                    content: [
+                                        'text:value | viewRoot.name or view.config.view',
+                                        {
+                                            view: 'list',
+                                            when: false, // postponed to next release
+                                            className: 'data-flow-changes',
+                                            data: `
+                                                $self: value | viewRoot or view;
+                                                $parent: value.parent | viewRoot or view or #.host;
+                                                ['data', 'context'].[$parent[$] != $self[$]]
+                                            `,
+                                            whenData: true,
+                                            itemConfig: {
+                                                view: 'block',
+                                                className: data => data,
+                                                content: 'text:$[0]'
+                                            }
+                                        }
+                                    ]
                                 }
                             },
                             {
@@ -329,7 +348,7 @@ export default (host) => {
                         {
                             view: 'block',
                             className: ['content', 'data-context'],
-                            data: '#.view | view or viewRoot',
+                            data: '$map: => parent and { ..., v: view or viewRoot, parent: parent.$map() }; #.view.$map()',
                             content: [
                                 {
                                     view: 'block',
@@ -337,8 +356,17 @@ export default (host) => {
                                     content: {
                                         view: 'struct',
                                         expanded: 1,
-                                        data: 'data'
+                                        data: 'v.data'
                                     }
+                                },
+                                {
+                                    view: 'tree',
+                                    when: false, // postponed to next release
+                                    children: '[..parent[=>v.data != @.v.data]].[]',
+                                    item: [
+                                        'struct:v.data',
+                                        'source:{ content: v | config.data or "???", syntax: "discovery-query" }'
+                                    ]
                                 },
                                 {
                                     view: 'block',
@@ -346,14 +374,14 @@ export default (host) => {
                                     content: {
                                         view: 'struct',
                                         expanded: 1,
-                                        data: 'context'
+                                        data: 'v.context'
                                     }
                                 }
                             ]
                         }
                     ]
                 }
-            }, stack, { selected: targetLeaf });
+            }, stack, { selected: targetLeaf, host });
         }
     });
 

@@ -34,7 +34,7 @@
     left: 20px !important;
     right: 20px !important;
     bottom: 20px !important;
-    height: calc(100vh - 40px); /* Safari scrolls popup content otherwise */
+    height: calc(100vh - 52px); /* Safari scrolls popup content otherwise */
     max-height: none !important;
     max-width: none !important;
     transition: .1s ease-in-out;
