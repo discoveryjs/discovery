@@ -10,6 +10,7 @@
     grid-template-rows: auto 1fr;
     gap: 1px;
     padding: 1px;
+    border-radius: 2px;
     background: rgba(255, 255, 255, var(--discovery-background-alpha));
 
     --discovery-background-alpha: .95;

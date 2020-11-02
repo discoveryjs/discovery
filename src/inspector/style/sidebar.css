@@ -4,16 +4,28 @@
     padding: 4px;
     background-color: var(--discovery-mate-background);
 }
-.discovery-inspect-details-popup .view-tree-leaf-content {
+.discovery-inspect-details-popup .sidebar .view-tree-leaf-content {
     white-space: nowrap;
 }
-.discovery-inspect-details-popup .view-tree-leaf-content .view-root {
+.discovery-inspect-details-popup .sidebar .view-root {
+    display: inline-block;
+    margin-bottom: 1px;
+    margin-left: -4px;
+    border: 4px solid transparent;
+    border-width: 1px 8px;
     background-color: var(--discovery-view-root-highlight-color);
-    box-shadow: 0 0 0 3px var(--discovery-view-root-highlight-color);
-    display: inline;
 }
-.discovery-inspect-details-popup .view-tree-leaf-content .selected {
+.discovery-inspect-details-popup .sidebar .selected {
     background-color: rgba(78, 187, 255, .3);
     box-shadow: 0 0 0 3px rgba(78, 187, 255, .3);
     display: inline;
+}
+
+.discovery-inspect-details-popup .sidebar > .view-tree-leaf:only-child {
+    margin: -4px 0 0 -4px;
+    grid-template-columns: 4px auto;
+    background: none;
+}
+.discovery-inspect-details-popup .sidebar > .view-tree-leaf:only-child > .view-tree-leaf-toggle {
+    display: none;
 }
