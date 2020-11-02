@@ -37,10 +37,6 @@
     width: var(--discovery-nav-width, 200px);
 }
 
-.view-page-header__prelude {
-    /* min-height: 25px;
-    margin-bottom: -2px; */
-}
 .view-page-header__prelude .view-badge,
 .view-page-header__prelude .view-pill-badge {
     display: inline-block;

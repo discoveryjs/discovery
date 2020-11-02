@@ -1,5 +1,6 @@
-## next
+## 1.0.0-beta.47 (02-11-2020)
 
+- Added view inspector
 - Changed nav block to be fixed positioned
 - Changed nav block class name `.discovery-content-badges` -> `.discovery-nav`
 - Added `.overscrolled` class name that's adding to a page element when page's content scrolled over viewport top side
