@@ -2,8 +2,8 @@
     position: sticky;
     z-index: 100;
     top: 0px;
-    padding: 6px 40px 0 40px;
-    margin: -20px -40px 18px;
+    padding: 8px 40px 6px 40px;
+    margin: -20px -40px 20px;
     background-color: rgba(255, 255, 255, .92);
     transition: background-color .25s ease-in;
 }
@@ -28,16 +28,18 @@
     }
 }
 
-.view-page-header__prelude {
-    min-height: 25px;
-    position: relative;
-    top: 2px;
-}
-.view-page-header__prelude::before {
-    content: '';
+/* to avoid over/underlay nav block */
+.view-page-header::before {
+    content: 'x';
+    visibility: hidden;
     float: right;
     margin-left: 10px;
     width: var(--discovery-nav-width, 200px);
+}
+
+.view-page-header__prelude {
+    /* min-height: 25px;
+    margin-bottom: -2px; */
 }
 .view-page-header__prelude .view-badge,
 .view-page-header__prelude .view-pill-badge {
@@ -52,5 +54,5 @@
     margin: -3px 6px -3px -8px;
 }
 .view-page-header .view-header {
-    margin-top: 0;
+    margin: 0;
 }

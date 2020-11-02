@@ -263,14 +263,28 @@ export default (host) => {
                 content: {
                     view: 'context',
                     modifiers: {
-                        view: 'toggle-group',
-                        className: 'stack-view-chain',
-                        name: 'view',
-                        data: '.({ text: viewRoot.name or view.config.view, value: $ })',
-                        value: '=$[-1].value',
-                        toggleConfig: {
-                            className: data => data.value.viewRoot ? 'view-root' : ''
-                        }
+                        view: 'block',
+                        className: 'toolbar',
+                        content: [
+                            {
+                                view: 'toggle-group',
+                                className: 'stack-view-chain',
+                                name: 'view',
+                                data: '.({ text: viewRoot.name or view.config.view, value: $ })',
+                                value: '=$[-1].value',
+                                toggleConfig: {
+                                    className: data => data.value.viewRoot ? 'view-root' : ''
+                                }
+                            },
+                            {
+                                view: 'button',
+                                when: selectedTreeViewLeaf !== null,
+                                content: 'text:"Close inspector"',
+                                onClick() {
+                                    host.inspectMode.set(false);
+                                }
+                            }
+                        ]
                     },
                     content: [
                         {

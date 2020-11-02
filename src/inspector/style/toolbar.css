@@ -1,11 +1,24 @@
-.discovery-inspect-details-popup .stack-view-chain {
+.discovery-inspect-details-popup .toolbar {
     grid-area: toolbar;
+    display: flex;
+    gap: 1px;
+}
+
+.discovery-inspect-details-popup .stack-view-chain {
+    flex: 1;
     gap: 1px;
 }
 .discovery-inspect-details-popup .stack-view-chain .view-toggle {
     border-radius: 0;
     margin: 0;
+    padding: 3px 8px;
 }
 .discovery-inspect-details-popup .stack-view-chain .view-root:not(.checked):not(:hover) {
     background-color: var(--discovery-view-root-highlight-color);
+}
+
+.discovery-inspect-details-popup .toolbar .view-button {
+    padding: 5px 8px 7px;
+    font-size: 12px;
+    line-height: 12px;
 }

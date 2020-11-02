@@ -11,6 +11,7 @@
 .discovery-view-inspector-overlay .cancel-hint {
     content: 'Inspection mode is enabled. Press Esc to cancel';
     position: absolute;
+    z-index: 10;
     top: 4px;
     left: 50%;
     transform: translateX(-50%);

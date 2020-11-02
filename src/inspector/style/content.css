@@ -22,8 +22,17 @@
 .discovery-inspect-details-popup .content-section::before {
     content: var(--header);
     display: inline-block;
-    padding: 4px 12px;
-    background-color: rgba(100, 100, 100, .125);
+    padding: 8px 10px 2px 3px;
+    margin-left: 6px;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: #444;
+    border-bottom: 2px solid #ddd;
+}
+.discovery-root-darkmode.discovery-inspect-details-popup .content-section::before {
+    color: inherit;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, .25);
+    border-bottom: 2px solid #666;
 }
 .discovery-inspect-details-popup .content-section.props {
     --header: 'Render props';
