@@ -1,0 +1,56 @@
+.view-page-header {
+    position: sticky;
+    z-index: 100;
+    top: 0px;
+    padding: 6px 40px 0 40px;
+    margin: -20px -40px 18px;
+    background-color: rgba(255, 255, 255, .92);
+    transition: background-color .25s ease-in;
+}
+.discovery-root-darkmode .view-page-header {
+    background-color: rgba(36, 36, 36, .92);
+}
+.page_overscrolled > .view-page-header {
+    box-shadow: 0 0 3px rgba(0, 0, 0, .2);
+    transition-property: background-color, box-shadow;
+}
+.discovery-root-darkmode .page_overscrolled > .view-page-header {
+    box-shadow: 0 0 3px rgba(0, 0, 0, .5);
+}
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
+    .view-page-header {
+        background-color: rgba(255, 255, 255, .8);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    .discovery-root-darkmode .view-page-header {
+        background-color: rgba(36, 36, 36, .8);
+    }
+}
+
+.view-page-header__prelude {
+    min-height: 25px;
+    position: relative;
+    top: 2px;
+}
+.view-page-header__prelude::before {
+    content: '';
+    float: right;
+    margin-left: 10px;
+    width: var(--discovery-nav-width, 200px);
+}
+.view-page-header__prelude .view-badge,
+.view-page-header__prelude .view-pill-badge {
+    display: inline-block;
+    padding: 3px 8px 3px;
+}
+.view-page-header__prelude .view-badge .prefix,
+.view-page-header__prelude .view-badge .postfix,
+.view-page-header__prelude .view-pill-badge .prefix,
+.view-page-header__prelude .view-pill-badge .postfix {
+    padding: 5px 8px 6px;
+    margin: -3px 6px -3px -8px;
+}
+.view-page-header .view-header {
+    margin-top: 0;
+}

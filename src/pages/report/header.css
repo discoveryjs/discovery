@@ -14,10 +14,11 @@
 .discovery-root-darkmode .page-report > .report-header {
     background-color: rgba(36, 36, 36, .92);
 }
-.page-report.overscrolled > .report-header {
+.page-report.page_overscrolled > .report-header {
     box-shadow: 0 0 3px rgba(0, 0, 0, .2);
+    transition-property: background-color, box-shadow;
 }
-.discovery-root-darkmode .page-report.overscrolled > .report-header {
+.discovery-root-darkmode .page-report.page_overscrolled > .report-header {
     box-shadow: 0 0 3px rgba(0, 0, 0, .5);
 }
 @supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {

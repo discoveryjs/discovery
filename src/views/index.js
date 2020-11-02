@@ -24,6 +24,7 @@ export { default as lists } from './lists.js';
 export { default as menu } from './menu.js';
 export { default as menuItem } from './menu-item.js';
 export { default as navButton } from './nav-button.js';
+export { default as pageHeader } from './page-header.js';
 export { default as popup } from './popup.js';
 export { default as section } from './section.js';
 export { default as select } from './select.js';

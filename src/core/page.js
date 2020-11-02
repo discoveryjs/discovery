@@ -22,11 +22,13 @@ export default class PageRenderer extends Dict {
         this.lastPageId = null;
 
         this.pageOverscrolled = new Publisher(false);
-        this.pageOverscrolledUnsubscribe = () => {};
-        this.pageOverscrollTriggerEl = createElement('div', { style: 'position:absolute' });
+        this.setPageOverscroll = () => {};
 
         if (typeof IntersectionObserver === 'function') {
+            const pageOverscrollTriggerEl = createElement('div', { style: 'position:absolute' });
             let overscrollObserver = null;
+            let unsubscribe = () => {};
+
             host.on('container-changed', ({ content: root }) => {
                 if (overscrollObserver) {
                     overscrollObserver.disconnect();
@@ -35,10 +37,23 @@ export default class PageRenderer extends Dict {
 
                 if (root) {
                     overscrollObserver = new IntersectionObserver(
-                        entries => this.pageOverscrolled.set(!entries[0].isIntersecting),
+                        entries =>
+                            this.pageOverscrolled.set(!entries[entries.length - 1].isIntersecting),
                         { root }
                     );
-                    overscrollObserver.observe(this.pageOverscrollTriggerEl);
+
+                    this.setPageOverscroll = newPageEl => {
+                        overscrollObserver.unobserve(pageOverscrollTriggerEl);
+                        unsubscribe();
+
+                        if (newPageEl) {
+                            newPageEl.prepend(pageOverscrollTriggerEl);
+                            overscrollObserver.observe(pageOverscrollTriggerEl);
+                            unsubscribe = this.pageOverscrolled.subscribeSync(overscrolled =>
+                                newPageEl.classList.toggle('page_overscrolled', overscrolled)
+                            );
+                        }
+                    };
                 }
             });
         }
@@ -95,11 +110,7 @@ export default class PageRenderer extends Dict {
 
         if (newPageEl !== prevPageEl) {
             prevPageEl.replaceWith(newPageEl);
-            newPageEl.prepend(this.pageOverscrollTriggerEl);
-            this.pageOverscrolledUnsubscribe();
-            this.pageOverscrolledUnsubscribe = this.pageOverscrolled.subscribeSync(overscrolled =>
-                newPageEl.classList.toggle('overscrolled', overscrolled)
-            );
+            this.setPageOverscroll(newPageEl);
         }
 
         return {
