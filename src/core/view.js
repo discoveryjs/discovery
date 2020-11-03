@@ -128,14 +128,15 @@ function renderDom(renderer, placeholder, config, props, data, context) {
                 if (config.className) {
                     let classNames = config.className;
 
-                    if (typeof classNames === 'string') {
-                        // fast path
-                        el.classList.add(classNames);
-                    } else {
-                        if (!Array.isArray(classNames)) {
-                            classNames = [classNames];
-                        }
+                    if (typeof classNames === 'function') {
+                        classNames = classNames(data, context);
+                    }
 
+                    if (typeof classNames === 'string') {
+                        classNames = classNames.trim().split(/\s+/);
+                    }
+
+                    if (Array.isArray(classNames)) {
                         el.classList.add(
                             ...classNames
                                 .map(item => typeof item === 'function' ? item(data, context) : item)
