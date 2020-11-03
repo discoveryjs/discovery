@@ -348,11 +348,7 @@ export default class Widget extends Emitter {
     }
 
     queryBool(...args) {
-        try {
-            return jora.buildin.bool(this.query(...args));
-        } catch (e) {
-            return false;
-        }
+        return jora.buildin.bool(this.query(...args));
     }
 
     queryToConfig(view, query) {

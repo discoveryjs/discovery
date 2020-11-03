@@ -3,6 +3,7 @@
 - Fixed dark mode styles of action buttons in `struct` view for touch devices
 - Fixed context for nav to include route attributes (#70)
 - Added `nav.remove(name)` method to remove nav items (#72)
+- Removed try/catch in `Widget#queryBool()`, so now `when` and `whenData` throws instead of silently fail (#69)
 
 ## 1.0.0-beta.47 (02-11-2020)
 
