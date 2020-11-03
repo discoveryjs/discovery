@@ -43,6 +43,15 @@ function createNavArray(host, defaults) {
         },
         after(name, config) {
             insert(config, 'after', name);
+        },
+        remove(name) {
+            const position = items.findIndex(item => item.name === name);
+
+            if (position !== -1) {
+                return items.splice(position, 1)[0];
+            }
+
+            return null;
         }
     });
 }
