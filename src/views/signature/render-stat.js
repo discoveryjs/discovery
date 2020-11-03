@@ -105,7 +105,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '') {
                         }
 
                         contentEl.appendChild(createText(': '));
-                        renderStat(contentEl, map, elementToData, path.concat(name), propertyOffset);
+                        renderStat(contentEl, map, elementToData, path.concat(dictMode ? '*' : name), propertyOffset);
                         contentEl.appendChild(createText(';'));
                     }
 

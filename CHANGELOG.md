@@ -7,6 +7,7 @@
 - Fixed missing horizontal scrolling for `tree` view
 - Fixed postfix style in `badge` view when used in `page-header`'s prelude
 - Fixed `source` view crashing on highlighting
+- Fixed path generation in `signature` view for objects in dictionary mode
 
 ## 1.0.0-beta.47 (02-11-2020)
 
