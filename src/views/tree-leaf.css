@@ -1,7 +1,6 @@
 .view-tree-leaf {
     --view-leaf-lines-offset: 0;
     position: relative;
-    overflow: hidden;
     display: grid;
     grid-template-columns: 20px auto;
     grid-template-areas:

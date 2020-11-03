@@ -4,6 +4,7 @@
 - Fixed context for nav to include route attributes (#70)
 - Added `nav.remove(name)` method to remove nav items (#72)
 - Removed try/catch in `Widget#queryBool()`, so now `when` and `whenData` throws instead of silently fail (#69)
+- Fixed missing horizontal scrolling for `tree` view
 
 ## 1.0.0-beta.47 (02-11-2020)
 
