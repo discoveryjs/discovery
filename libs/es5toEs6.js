@@ -3,7 +3,7 @@ module.exports = function es5toEs6(name, code, imports, cjs) {
         (res, [ref, lib]) =>
             res.concat(
                 cjs
-                    ? `var ${ref} = require('/gen/${lib}.js');`
+                    ? `var ${ref} = require('/gen/${lib}.js').default;`
                     : `import ${ref} from '/gen/${lib}.js';`
             ),
         []);
