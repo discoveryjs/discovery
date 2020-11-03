@@ -49,6 +49,11 @@
     padding: 5px 8px 6px;
     margin: -3px 6px -3px -8px;
 }
+.view-page-header__prelude .view-badge .postfix,
+.view-page-header__prelude .view-pill-badge .postfix {
+    padding: 5px 8px 6px;
+    margin: -3px -8px -3px 6px;
+}
 .view-page-header .view-header {
     margin: 0;
 }

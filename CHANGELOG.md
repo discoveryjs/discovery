@@ -5,6 +5,7 @@
 - Added `nav.remove(name)` method to remove nav items (#72)
 - Removed try/catch in `Widget#queryBool()`, so now `when` and `whenData` throws instead of silently fail (#69)
 - Fixed missing horizontal scrolling for `tree` view
+- Fixed postfix style in `badge` view when used in `page-header`'s prelude
 
 ## 1.0.0-beta.47 (02-11-2020)
 
