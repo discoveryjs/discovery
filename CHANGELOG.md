@@ -1,6 +1,7 @@
 ## next
 
 - Fixed dark mode styles of action buttons in `struct` view for touch devices
+- Fixed context for nav to include route attributes
 
 ## 1.0.0-beta.47 (02-11-2020)
 

@@ -93,22 +93,25 @@ export class WidgetNavigation {
     }
 
     render() {
-        const { data, context, dom } = this.host;
+        const { data, dom } = this.host;
         const el = dom && dom.nav;
 
         this.contentRect.observe(el);
 
         if (el) {
-            const renderContext = { ...context, widget: this.host };
+            const context = {
+                ...this.host.getRenderContext(),
+                widget: this.host
+            };
 
             this.host.view.setViewRoot(el, 'nav', {
                 config: this.config,
                 data,
-                context: renderContext
+                context
             });
 
             el.innerHTML = '';
-            this.host.view.render(el, this.config, data, renderContext);
+            this.host.view.render(el, this.config, data, context);
         }
     }
 };
