@@ -13,6 +13,7 @@
 - Improved output view as a function in View inspector
 - Fixed view's tree in View inspector for components with no a container
 - Added display of non-rendered views with the reason in the view's tree in View inspector
+- Fixed jump out `context`'s content on re-render in view tree of View inspector
 
 ## 1.0.0-beta.47 (02-11-2020)
 

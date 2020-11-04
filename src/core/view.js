@@ -505,6 +505,16 @@ export default class ViewRenderer extends Dict {
         container.appendChild(moreButton);
     }
 
+    adoptFragment(fragment, probe) {
+        const info = fragmentEls.get(probe);
+
+        if (info) {
+            for (const node of fragment.childNodes) {
+                fragmentEls.set(node, info);
+            }
+        }
+    }
+
     setViewRoot(node, name, props) {
         rootViewEls.set(node, {
             name,

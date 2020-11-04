@@ -17,6 +17,7 @@ export default function(discovery) {
                 .render(buffer, content, data, localContext)
                 .then(() => {
                     if (buffer === lastRender) {
+                        discovery.view.adoptFragment(buffer, contentStartMarker);
                         contentStartMarker.after(buffer);
                     }
                 });
