@@ -64,7 +64,7 @@ function createDataExtensionApi(instance) {
     const annotations = [];
     const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
     const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
-    const queryExtensions = {
+    const queryCustomMethods = {
         query: (...args) => instance.query(...args),
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
@@ -90,7 +90,7 @@ function createDataExtensionApi(instance) {
                 objectMarkers,
                 linkResolvers,
                 annotations,
-                queryExtensions
+                queryFnFromString: jora.setup(queryCustomMethods)
             });
         },
         methods: {
@@ -152,7 +152,7 @@ function createDataExtensionApi(instance) {
             },
             addValueAnnotation,
             addQueryHelpers(helpers) {
-                Object.assign(queryExtensions, helpers);
+                Object.assign(queryCustomMethods, helpers);
             }
         }
     };
@@ -187,14 +187,7 @@ export default class Widget extends Emitter {
         renderScheduler.set(this, new Set());
 
         this.prepare = data => data;
-        this.objectMarkers = [];
-        this.linkResolvers = [];
-        this.annotations = [];
-        this.queryExtensions = {
-            query: (...args) => this.query(...args),
-            pageLink: (pageRef, pageId, pageParams) =>
-                this.encodePageHash(pageId, pageRef, pageParams)
-        };
+        createDataExtensionApi(this).apply();
 
         this.defaultPageId = this.options.defaultPageId || 'default';
         this.reportPageId = this.options.reportPageId || 'report';
@@ -255,7 +248,6 @@ export default class Widget extends Emitter {
     setData(data, context = {}) {
         const startTime = Date.now();
         const dataExtension = createDataExtensionApi(this);
-        this._extensitionApi = dataExtension.methods; // TODO: remove
         const checkIsNotPrevented = () => {
             const lastPromise = lastSetDataPromise.get(this);
 
@@ -275,7 +267,7 @@ export default class Widget extends Emitter {
 
                 this.data = data;
                 this.context = context;
-                dataExtension.apply(this);
+                dataExtension.apply();
 
                 this.emit('data');
                 console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
@@ -330,7 +322,7 @@ export default class Widget extends Emitter {
                 return query;
 
             case 'string':
-                return jora(query, { methods: this.queryExtensions });
+                return this.queryFnFromString(query);
         }
     }
 
@@ -419,13 +411,12 @@ export default class Widget extends Emitter {
 
             if (!stat || stat.query !== query || stat.data !== data || stat.context !== context) {
                 const options = {
-                    methods: this.queryExtensions,
                     tolerant: true,
                     stat: true
                 };
 
                 lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
-                Object.assign(stat, jora(query, options)(data, context));
+                Object.assign(stat, this.queryFnFromString(query, options)(data, context));
             }
 
             suggestions = stat.suggestion(offset);

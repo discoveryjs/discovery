@@ -14,6 +14,7 @@
 - Fixed view's tree in View inspector for components with no a container
 - Added display of non-rendered views with the reason in the view's tree in View inspector
 - Fixed jump out `context`'s content on re-render in view tree of View inspector
+- Bumped jora to `1.0.0-beta.4` and use `setup()` method (a bit more effective in creating functions from strings)
 
 ## 1.0.0-beta.47 (02-11-2020)
 
