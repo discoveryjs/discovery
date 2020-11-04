@@ -3,7 +3,7 @@ import usage from './toggle-group.usage.js';
 
 export default function(discovery) {
     discovery.view.define('toggle-group', function(el, config, data, context) {
-        function render(_, value) {
+        async function render(_, value) {
             const handler = inited ? onChange : onInit;
 
             if (currentValue === value) {
@@ -18,21 +18,21 @@ export default function(discovery) {
 
                 if (beforeToggles) {
                     beforeTogglesEl.innerHTML = '';
-                    discovery.view.render(beforeTogglesEl, beforeToggles, data, { ...context, [name]: value });
+                    await discovery.view.render(beforeTogglesEl, beforeToggles, data, { ...context, [name]: value });
                     el.appendChild(beforeTogglesEl);
                 }
 
                 if (afterToggles) {
                     afterTogglesEl.innerHTML = '';
-                    discovery.view.render(afterTogglesEl, afterToggles, data, { ...context, [name]: value });
+                    await discovery.view.render(afterTogglesEl, afterToggles, data, { ...context, [name]: value });
                     el.appendChild(afterTogglesEl);
                 }
 
-                toggles.forEach((toggle, idx) =>
+                await Promise.all(toggles.map((toggle, idx) =>
                     discovery.view.render(el, discovery.view.composeConfig(toggle, {
                         checked: toggle.value === currentValue
                     }), data[idx], context)
-                );
+                ));
             }
 
             if (typeof handler === 'function') {
@@ -91,6 +91,6 @@ export default function(discovery) {
             });
         }
 
-        render(true, initValue);
+        return render(true, initValue);
     }, { usage });
 }

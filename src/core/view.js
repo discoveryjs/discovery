@@ -28,18 +28,19 @@ function collectViewTree(node, parent, ignoreNodes) {
     }
 
     if (fragmentEls.has(node)) {
-        const info = fragmentEls.get(node);
-        const child = parent.children.find(child => child.view === info);
+        for (const info of fragmentEls.get(node)) {
+            const child = parent.children.find(child => child.view === info);
 
-        if (child) {
-            parent = child;
-        } else {
-            parent.children.push(parent = {
-                node: null,
-                parent,
-                view: info,
-                children: []
-            });
+            if (child) {
+                parent = child;
+            } else {
+                parent.children.push(parent = {
+                    node: null,
+                    parent,
+                    view: info,
+                    children: []
+                });
+            }
         }
     }
 
@@ -157,7 +158,11 @@ function renderDom(renderer, placeholder, config, props, data, context) {
                 viewEls.set(el, info);
             } else {
                 for (let child of el.childNodes) {
-                    fragmentEls.set(child, info);
+                    if (fragmentEls.has(child)) {
+                        fragmentEls.get(child).unshift(info);
+                    } else {
+                        fragmentEls.set(child, [info]);
+                    }
                 }
             }
 
@@ -239,7 +244,7 @@ function render(container, config, data, context) {
         container = document.createDocumentFragment();
     }
 
-    if ('when' in config === false || condition('when', this.host, config, data, context)) {
+    if (condition('when', this.host, config, data, context)) {
         // immediately append a view insert point (a placeholder)
         const placeholder = container.appendChild(document.createComment(''));
         const getData = 'data' in config

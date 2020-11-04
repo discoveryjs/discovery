@@ -125,7 +125,7 @@ export default function(discovery) {
                 headerCell.el.classList.toggle('desc', order === -1);
             }
 
-            discovery.view.renderList(bodyEl, this.composeConfig({
+            return discovery.view.renderList(bodyEl, this.composeConfig({
                 view: 'table-row',
                 cols
             }, rowConfig), orderedData, context, 0, discovery.view.listLimit(limit, 25), moreEl);
@@ -223,7 +223,7 @@ export default function(discovery) {
         }
 
         moreEl.colSpan = cols.length;
-        render(data);
+        return render(data);
     }, {
         tag: 'table',
         usage

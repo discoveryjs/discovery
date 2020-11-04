@@ -160,6 +160,6 @@ export default function(discovery) {
             onInit(currentValue, name, data, context);
         }
 
-        renderCaption();
+        return renderCaption();
     }, { usage });
 }

@@ -23,7 +23,7 @@ export default function(discovery) {
             }
         }
 
-        discovery.view.render(el, renderConfig, data, context);
+        return discovery.view.render(el, renderConfig, data, context);
     }, {
         tag: false,
         usage

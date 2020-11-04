@@ -16,6 +16,7 @@ export default function(discovery) {
     function render(el, config, data, context) {
         const { content } = config;
         let { color, textColor, darkColor, darkTextColor, text, href, prefix, postfix, hint } = data || {};
+        let render;
 
         if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
             text = data;
@@ -48,12 +49,14 @@ export default function(discovery) {
         maybeFix(el, 'prefix', prefix);
 
         if (content) {
-            discovery.view.render(el, content, data, context);
+            render = discovery.view.render(el, content, data, context);
         } else {
-            el.appendChild(document.createTextNode(String(text)));
+            el.textContent = text;
         }
 
         maybeFix(el, 'postfix', postfix);
+
+        return render;
     }
 
     discovery.view.define('badge', render, { tag: 'a', usage });
