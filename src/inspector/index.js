@@ -242,7 +242,7 @@ export default (host) => {
                                 content: {
                                     view: 'block',
                                     className: 'selected',
-                                    content: 'text:(view.config.view or "#root")',
+                                    content: 'text:(view.config.view or "#root" | $ + "" = $ ? $ : "ƒn")',
                                     postRender(el) {
                                         requestAnimationFrame(() => el.scrollIntoView());
                                     }
@@ -251,7 +251,7 @@ export default (host) => {
                             {
                                 content: {
                                     view: 'link',
-                                    data: '{ text: view.config.view or "#root", href: false, leaf: $ }',
+                                    data: '{ text: view.config.view or "#root" | $ + "" = $ ? $ : "ƒn", href: false, leaf: $ }',
                                     onClick(_, data) {
                                         selectTreeViewLeaf(data.leaf);
                                     }
@@ -275,7 +275,7 @@ export default (host) => {
                                 toggleConfig: {
                                     className: data => data.value.viewRoot ? 'view-root' : '',
                                     content: [
-                                        'text:value | viewRoot.name or view.config.view',
+                                        'text:value | viewRoot.name or view.config.view | $ + "" = $ ? $ : "ƒn"', // FIXME: `$ + "" = $` is a hack to check value is a string
                                         {
                                             view: 'list',
                                             when: false, // postponed to next release
@@ -313,7 +313,13 @@ export default (host) => {
                             content: [
                                 {
                                     view: 'block',
-                                    className: ['content-section', 'props'],
+                                    className: 'content-section render',
+                                    when: 'config | view + "" != view',
+                                    content: 'source:{ content: config.view + "", syntax: "js" }'
+                                },
+                                {
+                                    view: 'block',
+                                    className: 'content-section props',
                                     content: {
                                         view: 'struct',
                                         expanded: 2,
@@ -322,7 +328,7 @@ export default (host) => {
                                 },
                                 {
                                     view: 'block',
-                                    className: ['content-section', 'config'],
+                                    className: 'content-section config',
                                     content: [
                                         {
                                             view: 'struct',
@@ -352,7 +358,7 @@ export default (host) => {
                             content: [
                                 {
                                     view: 'block',
-                                    className: ['content-section', 'data'],
+                                    className: 'content-section data',
                                     content: {
                                         view: 'struct',
                                         expanded: 1,
@@ -370,7 +376,7 @@ export default (host) => {
                                 },
                                 {
                                     view: 'block',
-                                    className: ['content-section', 'context'],
+                                    className: 'content-section context',
                                     content: {
                                         view: 'struct',
                                         expanded: 1,

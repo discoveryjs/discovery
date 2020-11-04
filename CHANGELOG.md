@@ -10,6 +10,7 @@
 - Fixed path generation in `signature` view for objects in dictionary mode
 - Allowed to pass a space separated strings to `className`
 - Changed behaviour for a function as `className` value, it's return value can be a string or an array (any other is ignored)
+- Improved output view as a function in view inspector
 
 ## 1.0.0-beta.47 (02-11-2020)
 
