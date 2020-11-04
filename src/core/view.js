@@ -100,12 +100,22 @@ function createDefaultConfigErrorView(view) {
     };
 };
 
-function condition(type, host, config, data, context) {
+function condition(type, host, config, data, context, placeholder) {
     if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
 
-    return host.queryBool(config[type] === true ? '' : config[type], data, context);
+    if (host.queryBool(config[type] === true ? '' : config[type], data, context)) {
+        return true;
+    }
+
+    viewEls.set(placeholder, {
+        skipped: type,
+        config,
+        data,
+        context
+    });
+    return false;
 }
 
 function renderDom(renderer, placeholder, config, props, data, context) {
@@ -244,9 +254,10 @@ function render(container, config, data, context) {
         container = document.createDocumentFragment();
     }
 
-    if (condition('when', this.host, config, data, context)) {
+    const placeholder = container.appendChild(document.createComment(''));
+
+    if (condition('when', this.host, config, data, context, placeholder)) {
         // immediately append a view insert point (a placeholder)
-        const placeholder = container.appendChild(document.createComment(''));
         const getData = 'data' in config
             ? Promise.resolve().then(() => this.host.query(config.data, data, context))
             : Promise.resolve(data);
@@ -254,7 +265,7 @@ function render(container, config, data, context) {
         // resolve data and render a view when ready
         return getData
             .then(data =>
-                condition('whenData', this.host, config, data, context)
+                condition('whenData', this.host, config, data, context, placeholder)
                     ? renderDom(
                         renderer,
                         placeholder,
@@ -263,7 +274,7 @@ function render(container, config, data, context) {
                         data,
                         context
                     )
-                    : placeholder.remove()
+                    : null // placeholder.remove()
             )
             .catch(e => {
                 renderDom(this.get('alert-danger'), placeholder, {

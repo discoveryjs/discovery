@@ -15,6 +15,11 @@
     padding: 5px 8px;
     line-height: 16px;
 }
+.discovery-inspect-details-popup .stack-view-chain  .skipped {
+    text-decoration: line-through;
+    font-style: italic;
+    opacity: .65;
+}
 .discovery-inspect-details-popup .stack-view-chain .view-root:not(.checked):not(:hover) {
     background-color: var(--discovery-view-root-highlight-color);
 }

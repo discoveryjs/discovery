@@ -10,12 +10,13 @@
 - Fixed path generation in `signature` view for objects in dictionary mode
 - Allowed to pass a space separated strings to `className`
 - Changed behaviour for a function as `className` value, it's return value can be a string or an array (any other is ignored)
-- Improved output view as a function in view inspector
-- Fixed view's tree in inspector for components with no a container
+- Improved output view as a function in View inspector
+- Fixed view's tree in View inspector for components with no a container
+- Added display of non-rendered views with the reason in the view's tree in View inspector
 
 ## 1.0.0-beta.47 (02-11-2020)
 
-- Added view inspector
+- Added View inspector
 - Changed nav block to be fixed positioned
 - Changed nav block class name `.discovery-content-badges` -> `.discovery-nav`
 - Added `.page_overscrolled` class name that's adding to a page element when page's content scrolled over viewport top side

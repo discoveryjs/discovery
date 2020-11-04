@@ -40,6 +40,13 @@
     text-shadow: 1px 1px 0 rgba(0, 0, 0, .25);
     border-bottom: 2px solid #666;
 }
+.discovery-inspect-details-popup .content-section.skip {
+    --header: 'Not rendered reason';
+}
+.discovery-inspect-details-popup .content-section.skip .view-block {
+    padding: 6px 0 8px 6px;
+    font-size: 14px;
+}
 .discovery-inspect-details-popup .content-section.render {
     --header: 'Render function';
 }

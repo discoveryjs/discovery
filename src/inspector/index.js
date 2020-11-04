@@ -241,7 +241,10 @@ export default (host) => {
                                 when: '$ = #.selected',
                                 content: {
                                     view: 'block',
-                                    className: 'selected',
+                                    className: [
+                                        data => data.view && data.view.skipped ? 'skipped' : false,
+                                        'selected'
+                                    ],
                                     content: 'text:(view.config.view or "#root" | $ + "" = $ ? $ : "ƒn")',
                                     postRender(el) {
                                         requestAnimationFrame(() => el.scrollIntoView());
@@ -251,6 +254,7 @@ export default (host) => {
                             {
                                 content: {
                                     view: 'link',
+                                    className: data => data.leaf.view && data.leaf.view.skipped ? 'skipped' : false,
                                     data: '{ text: view.config.view or "#root" | $ + "" = $ ? $ : "ƒn", href: false, leaf: $ }',
                                     onClick(_, data) {
                                         selectTreeViewLeaf(data.leaf);
@@ -273,7 +277,10 @@ export default (host) => {
                                 data: '.({ value: $ })',
                                 value: '=$[-1].value',
                                 toggleConfig: {
-                                    className: data => data.value.viewRoot ? 'view-root' : '',
+                                    className: [
+                                        data => data.value.viewRoot ? 'view-root' : false,
+                                        data => data.value.view && data.value.view.skipped ? 'skipped' : false
+                                    ],
                                     content: [
                                         'text:value | viewRoot.name or view.config.view | $ + "" = $ ? $ : "ƒn"', // FIXME: `$ + "" = $` is a hack to check value is a string
                                         {
@@ -313,12 +320,19 @@ export default (host) => {
                             content: [
                                 {
                                     view: 'block',
+                                    className: 'content-section skip',
+                                    when: 'skipped',
+                                    content: 'block{ content: "badge:{ text: skipped }" }'
+                                },
+                                {
+                                    view: 'block',
                                     className: 'content-section render',
                                     when: 'config | view + "" != view',
                                     content: 'source:{ content: config.view + "", syntax: "js" }'
                                 },
                                 {
                                     view: 'block',
+                                    when: 'props != undefined',
                                     className: 'content-section props',
                                     content: {
                                         view: 'struct',
