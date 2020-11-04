@@ -6,6 +6,7 @@
 }
 .discovery-inspect-details-popup .sidebar .view-tree-leaf-content {
     white-space: nowrap;
+    padding-right: 12px;
 }
 .discovery-inspect-details-popup .sidebar .view-root {
     display: inline-block;

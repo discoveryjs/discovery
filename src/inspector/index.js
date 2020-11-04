@@ -48,6 +48,32 @@ export default (host) => {
         const overlayToRemove = new Set([...overlayByViewNode.keys()]);
         const walk = function walk(leafs, parentEl) {
             for (const leaf of leafs) {
+                // if (leaf.fragmentNodes && leaf.fragmentNodes.length) {
+                //     const r = new Range();
+                //     r.setStartBefore(leaf.fragmentNodes[0]);
+                //     r.setEndAfter(leaf.fragmentNodes[leaf.fragmentNodes.length - 1]);
+                //     const { top, left, right, bottom } = r.getBoundingClientRect();
+                //     const offset = getPageOffset(parentEl);
+                //     const box = {
+                //         top: top + offset.top,
+                //         left: left + offset.left,
+                //         width: right - left,
+                //         height: bottom - top
+                //     };
+
+                //     const overlay = {
+                //         el: parentEl.appendChild(document.createElement('div')),
+                //         box: null
+                //     };
+                //     overlay.el.className = leaf.viewRoot ? 'overlay view-root' : 'overlay';
+                //     viewByEl.set(overlay.el, leaf);
+
+                //     overlay.el.style.top = `${box.top}px`;
+                //     overlay.el.style.left = `${box.left}px`;
+                //     overlay.el.style.width = `${box.width}px`;
+                //     overlay.el.style.height = `${box.height}px`;
+                // }
+
                 if (!leaf.node || (!leaf.view && !leaf.viewRoot)) {
                     if (leaf.children.length) {
                         walk(leaf.children, parentEl);
@@ -61,9 +87,10 @@ export default (host) => {
 
                 if (overlay === null) {
                     overlay = {
-                        el: parentEl.appendChild(createElement('div', leaf.viewRoot ? 'overlay view-root' : 'overlay')),
+                        el: parentEl.appendChild(document.createElement('div')),
                         box: null
                     };
+                    overlay.el.className = leaf.viewRoot ? 'overlay view-root' : 'overlay';
                     overlayByViewNode.set(leaf.node, overlay);
                     viewByEl.set(overlay.el, leaf);
                 } else {
@@ -79,7 +106,10 @@ export default (host) => {
                 }
 
                 if (leaf.children.length) {
-                    overlay.el.style.overflow = getComputedStyle(leaf.node).overflow !== 'visible' ? 'hidden' : 'visible';
+                    if (leaf.node.nodeType === 1) {
+                        overlay.el.style.overflow = getComputedStyle(leaf.node).overflow !== 'visible' ? 'hidden' : 'visible';
+                    }
+
                     walk(leaf.children, overlay.el);
                 }
             }
