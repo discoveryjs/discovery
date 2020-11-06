@@ -1,3 +1,7 @@
+## next
+
+- Fixed inspector popup styles when discovery root is not `<body>`
+
 ## 1.0.0-beta.48 (04-11-2020)
 
 - Fixed dark mode styles of action buttons in `struct` view for touch devices
