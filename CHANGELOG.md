@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.50 (11-11-2020)
 
 - Fixed regression in broken build due to missed `marked` module in `browser` configuration
 - Fixed prefix rendering in `badge` views
