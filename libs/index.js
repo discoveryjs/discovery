@@ -21,6 +21,12 @@ const es6NodeModules = {
             'mode/javascript/javascript.js'
         ]
     },
+    marked: {
+        name: 'marked',
+        files: [
+            'marked.min.js'
+        ]
+    },
     prismjs: {
         name: 'Prism',
         files: [

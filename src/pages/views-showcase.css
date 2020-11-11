@@ -43,10 +43,10 @@
     padding: 1px;
 }
 .page-views-showcase > .sidebar .view-menu-item:not(.disabled) {
-    color: #0099DD;
+    color: var(--discovery-link-color, #0099DD);
 }
 .page-views-showcase > .sidebar .view-menu-item:hover {
-    color: #0077BB;
+    color: var(--discovery-link-hover-color, #0077BB);
 }
 
 .page-views-showcase > .content {

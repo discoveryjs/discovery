@@ -4,7 +4,7 @@
     border-spacing: 0;
 }
 
-.view-table > thead > th {
+.view-table > thead th {
     padding: 2px 8px;
     font-weight: normal;
     text-align: left;
@@ -14,20 +14,20 @@
     border: 1px solid transparent;
     border-width: 1px 1px 1px 0;
 }
-.view-table > thead > th:last-child {
+.view-table > thead th:last-child {
     border-right: none;
 }
-.view-table > thead > th.sortable {
+.view-table > thead th.sortable {
     padding-right: 18px;
     background-image: url('./table-sortable.svg');
     cursor: pointer;
 }
-.view-table > thead > th.sortable.asc {
+.view-table > thead th.sortable.asc {
     background-image: url('./table-sort-asc.svg');
 }
-.view-table > thead > th.sortable.desc {
+.view-table > thead th.sortable.desc {
     background-image: url('./table-sort-desc.svg');
 }
-.view-table > thead > th.sortable:hover {
+.view-table > thead th.sortable:hover {
     background-color: rgba(141, 141, 141, 0.3);
 }

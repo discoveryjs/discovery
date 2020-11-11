@@ -1,6 +1,7 @@
 ## next
 
-- Fixed inspector popup styles when discovery root is not `<body>`
+- Added `markdown` view (and `md` alias)
+- Fixed inspector popup styles when discovery's root element is not `<body>`
 
 ## 1.0.0-beta.48 (04-11-2020)
 

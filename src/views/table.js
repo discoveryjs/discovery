@@ -107,7 +107,7 @@ export default function(discovery) {
             data = data ? [data] : [];
         }
 
-        const headEl = el.appendChild(createElement('thead'));
+        const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
         const headerCells = [];
         const bodyEl = el.appendChild(createElement('tbody'));
         const moreEl = el

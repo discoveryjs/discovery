@@ -60,7 +60,8 @@
 .discovery-editor .CodeMirror .cm-tag {
     color: #9c3328;
 }
-.discovery-editor .CodeMirror .cm-string {
+.discovery-editor .CodeMirror .cm-string,
+.discovery-editor .CodeMirror .cm-string-2 {
     color: var(--discovery-fmt-string-color);
 }
 .discovery-editor .CodeMirror .cm-variable,

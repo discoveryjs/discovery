@@ -21,6 +21,7 @@ export { default as input } from './input.js';
 export { default as link } from './link.js';
 export { default as listItem } from './list-item.js';
 export { default as lists } from './lists.js';
+export { default as markdown } from './markdown.js';
 export { default as menu } from './menu.js';
 export { default as menuItem } from './menu-item.js';
 export { default as navButton } from './nav-button.js';
