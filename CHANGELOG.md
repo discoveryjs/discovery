@@ -2,6 +2,7 @@
 
 - Added `markdown` view (and `md` alias)
 - Fixed inspector popup styles when discovery's root element is not `<body>`
+- Bumped jora to [1.0.0-beta.5](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.5)
 
 ## 1.0.0-beta.48 (04-11-2020)
 
