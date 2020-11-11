@@ -51,7 +51,7 @@ export default function(discovery) {
         if (content) {
             render = discovery.view.render(el, content, data, context);
         } else {
-            el.textContent = text;
+            el.append(document.createTextNode(text));
         }
 
         maybeFix(el, 'postfix', postfix);

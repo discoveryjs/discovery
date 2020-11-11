@@ -1,3 +1,7 @@
+## next
+
+- Fixed prefix rendering in `badge` views
+
 ## 1.0.0-beta.49 (11-11-2020)
 
 - Added `markdown` view (and `md` alias)
