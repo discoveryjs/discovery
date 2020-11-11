@@ -1,10 +1,11 @@
 ## next
 
+- Fixed regression in broken build due to missed `marked` module in `browser` configuration
 - Fixed prefix rendering in `badge` views
 
 ## 1.0.0-beta.49 (11-11-2020)
 
-- Added `markdown` view (and `md` alias)
+- Added `markdown` view (and `md` alias) based on [marked](https://github.com/markedjs/marked)
 - Bumped jora to [1.0.0-beta.5](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.5)
 - Fixed inspector popup styles when discovery's root element is not `<body>`
 
