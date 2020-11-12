@@ -15,11 +15,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-        with:
-          ref: $GITHUB_SHA
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
       - run: npm install
+      - run: mkdir -p dist/gen/@discoveryjs
       - run: npm run build-docs
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          destination_dir: discovery
