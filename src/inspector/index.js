@@ -154,6 +154,8 @@ export default (host) => {
             document.removeEventListener('scroll', syncOverlayState, passiveCaptureOptions);
             document.removeEventListener('keydown', keyPressedEventListener, true);
             pointerXY.unsubscribe(syncOverlayState);
+            inspectByQuick = false;
+            delete cancelHintEl.dataset.alt;
             overlayLayerEl.remove();
             hide();
         }
@@ -164,8 +166,8 @@ export default (host) => {
         if (leaf) {
             popup.show();
             popup.freeze();
+            delete cancelHintEl.dataset.alt;
         } else if (inspectByQuick) {
-            inspectByQuick = false;
             host.inspectMode.set(false);
         } else {
             detailsSidebarLeafExpanded.clear();
