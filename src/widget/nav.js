@@ -76,7 +76,7 @@ export class WidgetNavigation {
                         widget: this.host,
                         hide: () => this.popup && this.popup.hide()
                     })
-                        .then(() => [...fragment.childNodes]);
+                        .then(() => [...fragment.childNodes].filter(node => node.nodeType === 1 || node.nodeType === 3));
                 },
                 whenData: true,
                 onClick: (el, nodes) => {

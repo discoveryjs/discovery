@@ -1,5 +1,6 @@
 ## next
 
+- Fixed burger button visibility when no items in menu
 - Fixed quick inspect mode enter/leave issues
 
 ## 1.0.0-beta.50 (11-11-2020)
