@@ -1,8 +1,9 @@
-## next
+## 1.0.0-beta.51 (14-11-2020)
 
 - Added aliases `off` and `disable` for `disabled` to disable darkmode
 - Fixed burger button visibility when no items in menu
 - Fixed quick inspect mode enter/leave issues
+- Fixes & tweaks in styles
 
 ## 1.0.0-beta.50 (11-11-2020)
 
