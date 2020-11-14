@@ -1,5 +1,6 @@
 name: Deploy to GH-pages
 
+on: workflow_dispatch
 on:
   release:
     types: [published]
@@ -20,7 +21,6 @@ jobs:
         with:
           node-version: '14.x'
       - run: npm install
-      - run: mkdir -p dist/gen/@discoveryjs
       - run: npm run build-docs
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

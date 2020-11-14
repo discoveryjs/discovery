@@ -40,16 +40,7 @@ function buildLibs(distDir) {
 }
 
 function ensurePath(filepath) {
-    const parts = path.dirname(filepath).split('/');
-
-    for (let i = 0; i < parts.length; i++) {
-        const fullpath = path.join('/', ...parts.slice(0, i + 1));
-
-        if (!fs.existsSync(fullpath)) {
-            console.log('mkdir', fullpath);
-            fs.mkdirSync(fullpath);
-        }
-    }
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
 
     return filepath;
 }
