@@ -21,10 +21,9 @@ jobs:
         with:
           node-version: '14.x'
       - run: npm install
-      - run: npm run build-docs
+      - run: npm run build-gh-pages
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          destination_dir: discovery
+          publish_dir: ./.gh-pages
