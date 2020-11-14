@@ -3,7 +3,9 @@
     margin-top: 2px;
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-end;
 }
+
 .view-tabs-buttons::before,
 .view-tabs-buttons::after {
     content: '';
@@ -13,16 +15,16 @@
 .view-tabs-buttons::after {
     flex: 1;
 }
-.view-tabs-buttons-before {
-    display: inline-block;
-    padding-right: 1ex;
-    border-bottom: var(--discovery-view-tabs-border);
-}
+
+.view-tabs-buttons-before,
 .view-tabs-buttons-after {
-    display: inline-block;
-    padding-left: 1ex;
+    padding: 0 6px 3px;
+    padding-bottom: 3px;
     border-bottom: var(--discovery-view-tabs-border);
+    color: #888;
+    font-size: 13px;
 }
+
 .view-tabs-content {
     overflow: auto;
 }

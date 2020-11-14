@@ -1,9 +1,10 @@
 .view-page-header {
     position: sticky;
     z-index: 100;
-    top: 0px;
-    padding: 8px 40px 6px 40px;
-    margin: -20px -40px 20px;
+    top: -15px;
+    left: 0px;
+    padding: 23px 40px 6px 40px;
+    margin: -35px -40px 20px;
     background-color: rgba(255, 255, 255, .92);
     transition: background-color .25s ease-in;
 }
