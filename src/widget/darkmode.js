@@ -52,6 +52,10 @@ prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't sup
 
 export class DarkModeController {
     constructor(value, persistent) {
+        if (value === 'off' || value === 'disable') {
+            value = 'disabled';
+        }
+
         this.persistent = persistent ? localStorage : null;
         this.handlers = [];
         this.set(

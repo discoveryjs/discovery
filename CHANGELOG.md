@@ -1,5 +1,6 @@
 ## next
 
+- Added aliases `off` and `disable` for `disabled` to disable darkmode
 - Fixed burger button visibility when no items in menu
 - Fixed quick inspect mode enter/leave issues
 
