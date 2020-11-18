@@ -25,7 +25,7 @@
     cursor: pointer;
 }
 .view-struct.struct-expand:hover,
-.view-struct .struct-expand-value:hover {
+.view-struct.struct-expanded-value .struct-expand-value:hover {
     color: var(--discovery-fmt-hover-color);
     background-color: rgba(187, 187, 187, 0.25);
 }

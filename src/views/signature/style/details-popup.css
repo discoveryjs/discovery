@@ -48,7 +48,7 @@
 .discovery-view-popup.signature-details .num {
     /* padding: 2px; */
     /* background: #ecf6fd; */
-    color: #5193c1;
+    color: var(--discovery-fmt-atom-color);
 }
 .discovery-view-popup.signature-details .pie-stat {
     display: flex;
