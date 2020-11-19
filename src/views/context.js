@@ -32,6 +32,12 @@ export default function(discovery) {
 
                 if (inited) {
                     renderContent();
+
+                    if (proxy && typeof onChange === 'function') {
+                        onChange(value, name);
+                    }
+                } else if (typeof onInit === 'function') {
+                    onInit(value, name);
                 }
             }
         }
@@ -41,8 +47,8 @@ export default function(discovery) {
         let contentEndMarker = null;
         let lastRender = null;
         let inited = false;
-        let { modifiers = [] } = config;
-        const { content = [] } = config;
+        let { modifiers = [], content = [] } = config;
+        const { proxy, onInit, onChange } = config;
 
         if (!Array.isArray(modifiers)) {
             modifiers = [modifiers];
@@ -55,6 +61,10 @@ export default function(discovery) {
 
         contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
         contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
+
+        if (proxy && (onInit || onChange)) {
+            content = this.composeConfig(content, { onInit, onChange });
+        }
 
         return renderModifiers.then(() => {
             inited = true;

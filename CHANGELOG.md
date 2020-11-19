@@ -1,5 +1,6 @@
 ## next
 
+- Added experimental `proxy` option for `context` view
 - Changed `page-header` view to pass `onInit` and `onChange` through to children
 - Various style fixes
 
