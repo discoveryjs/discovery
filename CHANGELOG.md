@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.52 (19-11-2020)
 
 - Added experimental `proxy` option for `context` view
 - Changed `page-header` view to pass `onInit` and `onChange` through to children
