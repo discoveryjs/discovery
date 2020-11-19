@@ -1,6 +1,7 @@
 ## next
 
 - Changed `page-header` view to pass `onInit` and `onChange` through to children
+- Various style fixes
 
 ## 1.0.0-beta.51 (14-11-2020)
 
