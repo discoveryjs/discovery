@@ -31,7 +31,7 @@ export default function(discovery) {
             },
             {
                 content: [
-                    'h1:#.name',
+                    'page-header{ content: "h1:#.name" }',
                     { view: 'struct', expanded: 1 }
                 ]
             }
