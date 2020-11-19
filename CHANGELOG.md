@@ -1,3 +1,7 @@
+## next
+
+- Changed `page-header` view to pass `onInit` and `onChange` through to children
+
 ## 1.0.0-beta.51 (14-11-2020)
 
 - Added aliases `off` and `disable` for `disabled` to disable darkmode
