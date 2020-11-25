@@ -27,7 +27,8 @@
         "build-gh-pages": "npm run build && discovery-build -o .gh-pages --isolate-styles",
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
-        "start:server": "npx discovery -c ./cypress/fixtures/single-model/.discoveryrc.js",
+        "start:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js",
+        "start": "discovery",
         "test": "./cypress/test.sh"
     },
     "engines": {
