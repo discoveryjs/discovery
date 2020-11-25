@@ -5,6 +5,8 @@ import * as complexViews from '../views/index-complex.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
+import jsonExt from '/gen/@discoveryjs/json-ext.js';
+import { streamFromBlob } from '../core/utils/blob-polyfill.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 
@@ -145,29 +147,31 @@ export default class App extends Widget {
         event.stopPropagation();
         event.preventDefault();
 
-        if (file.type !== 'application/json') {
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = event => {
-            const data = JSON.parse(event.target.result);
-
-            this.setData(data, {
-                name: `Discover file: ${file.name}`,
-                createdAt: new Date(),
-                data
-            });
-        };
-        reader.readAsText(file);
+        return this.loadDataFromStream(
+            () => {
+                if (file.type !== 'application/json') {
+                    throw new Error('Not a JSON file');
+                }
+            },
+            () => ({
+                stream: streamFromBlob(file),
+                totalSize: file.size
+            }),
+            data => ({
+                data,
+                context: {
+                    name: `Discover file: ${file.name}`,
+                    createdAt: new Date(file.lastModified || Date.now()),
+                    data
+                }
+            })
+        );
     }
 
-    async loadDataFromUrl(url, dataField) {
-        const TIME_RECIEVE_DATA = 0.9;
-        const TIME_PARSE = 0.95;
+    async loadDataFromStream(request, extractStream, extractDataContext) {
+        const TIME_RECIEVE_DATA = 0.95;
         const TIME_PREPARE = 1.0;
         const progressEl = this.dom.loadingOverlay;
-        const explicitData = typeof url === 'string' ? undefined : url;
         const startTime = Date.now();
         const setTitle = title => progressEl.querySelector('.title').textContent = title;
         const setProgress = progress => progressEl.style.setProperty('--progress', progress);
@@ -187,7 +191,7 @@ export default class App extends Widget {
 
                 return await fn();
             } finally {
-                console.log(`[Discovery] ${name} in ${elapsed.time()}ms`);
+                console.log(`[Discovery] ${name} – ${elapsed.time()}ms`);
                 await repaintIfNeeded();
             }
         };
@@ -208,33 +212,31 @@ export default class App extends Widget {
         await repaintIfNeeded();
         progressEl.classList.remove('init');
 
-        return process('Awaiting data', 0, () => fetch(explicitData ? 'data:application/json,{}' : url))
-            .then(response => process('Receiving data', 0, () =>
-                new Response(new ReadableStream({
-                    async start(controller) {
-                        const totalSize =
-                            Number(response.headers.get('x-file-size')) ||
-                            (!response.headers.get('content-encoding') && Number(response.headers.get('x-file-size')));
-                        const reader = response.body.getReader();
-                        const streamStartTime = Date.now();
-                        let loadedSize = 0;
-                        let progress = 0;
-                        let progressLabel;
-                        let prevProgressLabel;
-                        let prevProgressTime = Date.now();
+        try {
+            const response = await process('Awaiting data', 0, request);
+            const { stream, totalSize } = extractStream(response);
+            const rawData = await process('Receiving data', 0, () =>
+                jsonExt.parseStream(async function*() {
+                    const reader = stream.getReader();
+                    const streamStartTime = Date.now();
+                    let loadedSize = 0;
+                    let progress = 0;
+                    let progressLabel;
+                    let prevProgressLabel;
+                    let prevProgressTime = Date.now();
 
+                    try {
                         while (true) {
                             const { done, value } = await reader.read();
 
                             if (done) {
                                 setProgress(TIME_RECIEVE_DATA);
                                 await repaintIfNeeded();
-                                controller.close();
                                 break;
                             }
 
-                            controller.enqueue(value);
                             loadedSize += value.length;
+                            yield value;
 
                             if (totalSize) {
                                 progress = loadedSize / totalSize;
@@ -252,41 +254,58 @@ export default class App extends Widget {
                                 await repaintIfNeeded();
                             }
                         }
+                    } finally {
+                        reader.releaseLock();
                     }
-                })).text()
-            ))
-            .then(text => process('Processing data (parse)', TIME_PARSE, () =>
-                explicitData || JSON.parse(text)
-            ))
-            .then(async res => {
-                console.log('[Discovery] loadDataFromUrl() received data in', Date.now() - startTime);
+                })
+            );
 
-                if (res.error) {
-                    const error = new Error(res.error);
-                    error.stack = null;
-                    throw error;
-                }
+            console.log(`[Discovery] Data received in ${Date.now() - startTime}ms`);
 
-                const data = dataField ? res[dataField] : res;
+            if (rawData.error) {
+                const error = new Error(rawData.error);
+                error.stack = null;
+                throw error;
+            }
+
+            const { data, context } = extractDataContext(rawData);
+
+            await process('Processing data (prepare)', TIME_PREPARE, () =>
+                this.setData(data, context)
+            );
+
+            progressEl.classList.add('done');
+        } catch (e) {
+            progressEl.classList.add('error');
+            progressEl.innerHTML =
+                (this.options.cache ? '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' : '') +
+                '<pre><div class="view-alert view-alert-danger">Error loading data</div><div class="view-alert view-alert-danger">' + escapeHtml(e.stack || String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
+            console.error('[Discovery] Error loading data:', e);
+        }
+    }
+
+    async loadDataFromUrl(url, dataField) {
+        const explicitData = typeof url === 'string' ? undefined : url;
+
+        return this.loadDataFromStream(
+            () => fetch(explicitData ? 'data:application/json,{}' : url),
+            response => ({
+                stream: response.body,
+                totalSize:
+                    Number(response.headers.get('x-file-size')) ||
+                    (!response.headers.get('content-encoding') && Number(response.headers.get('x-file-size')))
+            }),
+            rawData => {
+                const data = dataField ? rawData[dataField] : rawData;
                 const context = {
                     name: 'Discovery',
-                    ...dataField ? res : { data: res },
-                    createdAt: dataField && res.createdAt ? new Date(Date.parse(res.createdAt)) : new Date()
+                    ...dataField ? rawData : { data: rawData },
+                    createdAt: dataField && rawData.createdAt ? new Date(Date.parse(rawData.createdAt)) : new Date()
                 };
 
-                await process('Processing data (prepare)', TIME_PREPARE, () =>
-                    this.setData(data, context)
-                );
-
-                progressEl.classList.add('done');
-            })
-            .catch(e => {
-                progressEl.classList.add('error');
-                progressEl.innerHTML =
-                    (this.options.cache ? '<button class="view-button" onclick="fetch(\'drop-cache\').then(() => location.reload())">Reload with no cache</button>' : '') +
-                    '<pre><div class="view-alert view-alert-danger">Error loading data</div><div class="view-alert view-alert-danger">' + escapeHtml(e.stack || String(e)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div></pre>';
-                console.error('[Discovery] Error loading data:', e);
-            });
+                return { data, context };
+            }
+        );
     }
 
     setContainer(container) {
