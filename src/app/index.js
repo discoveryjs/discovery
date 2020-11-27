@@ -10,7 +10,7 @@ import {
     loadDataFromFile,
     loadDataFromEvent,
     loadDataFromUrl,
-    stages
+    loadStages
 } from '../core/utils/data-load.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
@@ -31,7 +31,7 @@ function progressbar(state, progressEl) {
             return;
         }
 
-        const { value, title, duration } = stages[stage];
+        const { value, title, duration } = loadStages[stage];
         let progressValue = 0;
         let progressLabel;
 
@@ -39,19 +39,19 @@ function progressbar(state, progressEl) {
             const {
                 done,
                 elapsed,
-                type,
+                units,
                 completed,
                 total
             } = progress;
 
             if (total) {
                 progressValue = done ? 1.0 : completed / total;
-                progressLabel = type === 'bytes'
+                progressLabel = units === 'bytes'
                     ? Math.round(progressValue * 100) + '%'
                     : `${completed}/${total}`;
             } else {
                 progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
-                progressLabel = type === 'bytes'
+                progressLabel = units === 'bytes'
                     ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
                     : completed;
             }
@@ -60,7 +60,9 @@ function progressbar(state, progressEl) {
         progressEl.style.setProperty('--progress', value + progressValue * duration);
         progressEl.querySelector('.title').textContent = progressLabel
             ? `${title} (${progressLabel})...`
-            : `${title}...`;
+            : stage !== 'done'
+                ? `${title}...`
+                : title;
 
         if (stage === 'done') {
             unsubscribe();
@@ -201,6 +203,10 @@ export default class App extends Widget {
         return setDataPromise;
     }
 
+    progressbar(...args) {
+        return progressbar(...args);
+    }
+
     trackLoadDataProgress({ result, state, timing }) {
         if (this.trackLoadingStop) {
             this.trackLoadingStop();
@@ -214,7 +220,7 @@ export default class App extends Widget {
         const subscriptions = [
             progressbar(state, containerEl),
             timing.subscribe(({ stage, elapsed }) =>
-                console.log(`[Discovery] Data loading / ${stages[stage].title} - ${elapsed}ms`)
+                console.log(`[Discovery] Data loading / ${loadStages[stage].title} - ${elapsed}ms`)
             )
         ];
 

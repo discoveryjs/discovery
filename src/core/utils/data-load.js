@@ -2,7 +2,7 @@ import Publisher from '../publisher.js';
 import { streamFromBlob } from './blob-polyfill.js';
 import jsonExt from '/gen/@discoveryjs/json-ext.js';
 
-export const stages = {
+export const loadStages = {
     request: {
         value: 0.0,
         title: 'Awaiting data'
@@ -24,7 +24,7 @@ export const stages = {
         title: 'Done!'
     }
 };
-Object.values(stages).forEach((item, idx, array) => {
+Object.values(loadStages).forEach((item, idx, array) => {
     item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
 });
 
@@ -54,25 +54,25 @@ export function jsonFromStream(stream, totalSize, setProgress = () => {}) {
                     setProgress({
                         done: true,
                         elapsed: Date.now() - streamStartTime,
-                        type: 'bytes',
+                        units: 'bytes',
                         completed,
                         total: totalSize
                     });
+                    await letRepaintIfNeeded();
                     break;
                 }
 
                 completed += value.length;
                 yield value;
 
-                setProgress({
-                    done: false,
-                    elapsed: Date.now() - streamStartTime,
-                    type: 'bytes',
-                    completed,
-                    total: totalSize
-                });
-
                 if (Date.now() - awaitRepaint > 65) {
+                    setProgress({
+                        done: false,
+                        elapsed: Date.now() - streamStartTime,
+                        units: 'bytes',
+                        completed,
+                        total: totalSize
+                    });
                     await letRepaintIfNeeded();
                     awaitRepaint = Date.now();
                 }
@@ -85,19 +85,14 @@ export function jsonFromStream(stream, totalSize, setProgress = () => {}) {
 
 async function loadDataFromStreamInternal(request, applyData, progress, timing) {
     const stage = async (stage, fn = () => {}) => {
+        const startTime = Date.now();
+
         try {
             progress.set({ stage });
             await letRepaintIfNeeded();
             return await fn();
         } finally {
-            timing.set({ stage, elapsed: elapsed.time() });
-            await letRepaintIfNeeded();
-        }
-    };
-    const elapsed = {
-        start: Date.now(),
-        time() {
-            return -this.start + (this.start = Date.now());
+            timing.set({ stage, elapsed: Date.now() - startTime });
         }
     };
 
@@ -148,16 +143,6 @@ export function loadDataFromStream(request, applyData) {
     };
 }
 
-export function loadDataFromEvent(event, applyData) {
-    const source = event.dataTransfer || event.target;
-    const file = source && source.files && source.files[0];
-
-    event.stopPropagation();
-    event.preventDefault();
-
-    return loadDataFromFile(file, applyData);
-}
-
 export function loadDataFromFile(file, applyData) {
     return loadDataFromStream(
         () => {
@@ -178,6 +163,16 @@ export function loadDataFromFile(file, applyData) {
     );
 }
 
+export function loadDataFromEvent(event, applyData) {
+    const source = event.dataTransfer || event.target;
+    const file = source && source.files && source.files[0];
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    return loadDataFromFile(file, applyData);
+}
+
 export function loadDataFromUrl(url, applyData, dataField) {
     const explicitData = typeof url === 'string' ? undefined : url;
 
@@ -190,7 +185,7 @@ export function loadDataFromUrl(url, applyData, dataField) {
                     stream: response.body,
                     totalSize:
                         Number(response.headers.get('x-file-size')) ||
-                        (!response.headers.get('content-encoding') && Number(response.headers.get('x-file-size')))
+                        (!response.headers.get('content-encoding') && Number(response.headers.get('content-length')))
                 };
             }
 

@@ -18,7 +18,6 @@
     opacity: 0;
 }
 .discovery > .loading-overlay.error {
-    color: #a00;
     overflow: auto;
     font-size: 14px;
 }
