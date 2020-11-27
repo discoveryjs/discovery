@@ -2,7 +2,7 @@
 
 - Added JSON parser from `json-ext` library, that's adds support for JSON greater than 512MB on V8
 - Improved UX when data loading from a file by showing progress bar
-- Added `App#loadDataFromStream()` method
+- Added `App#loadDataFromStream()` and `App#loadDataFromFile()` methods
 - Added `unsubscribe` as a second parameter for publisher's subscriber handler
 
 ## 1.0.0-beta.52 (19-11-2020)
