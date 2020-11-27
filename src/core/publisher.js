@@ -28,12 +28,12 @@ export default class Publisher {
     }
 
     subscribeSync(callback, thisArg) {
-        const subscription = this.subscribe(callback, thisArg);
+        const unsubscribe = this.subscribe(callback, thisArg);
 
         // sync
-        callback.call(thisArg, this.value);
+        callback.call(thisArg, this.value, unsubscribe);
 
-        return subscription;
+        return unsubscribe;
     }
 
     unsubscribe(callback, thisArg) {
@@ -67,8 +67,10 @@ export default class Publisher {
 
         // search for a callback and remove it
         while (cursor !== null) {
-            if (cursor.callback !== null) {
-                cursor.callback.call(cursor.thisArg, value);
+            const { callback, thisArg } = cursor;
+
+            if (callback !== null) {
+                callback.call(thisArg, value, () => this.unsubscribe(callback, thisArg));
             }
 
             cursor = cursor.subscriber;
