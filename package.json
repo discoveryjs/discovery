@@ -31,6 +31,7 @@
         "start": "discovery",
         "test": "./cypress/test.sh"
     },
+    "discovery": "models",
     "engines": {
         "node": ">=8.0.0"
     },
