@@ -39,6 +39,14 @@ const letRepaintIfNeeded = async () => {
     }
 };
 
+function isSameOrigin(url) {
+    try {
+        return new URL(url, location.origin).origin === location.origin;
+    } catch (e) {
+        return false;
+    }
+}
+
 export function jsonFromStream(stream, totalSize, setProgress = () => {}) {
     return jsonExt.parseStream(async function*() {
         const reader = stream.getReader();
@@ -182,9 +190,9 @@ export function loadDataFromUrl(url, applyData, dataField) {
             if (response.ok) {
                 return explicitData ? { data: explicitData } : {
                     stream: response.body,
-                    size: response.headers.get('content-encoding')
-                        ? response.headers.get('x-file-size')
-                        : response.headers.get('content-length')
+                    size: isSameOrigin(url) && !response.headers.get('content-encoding')
+                        ? response.headers.get('content-length')
+                        : response.headers.get('x-file-size')
                 };
             }
 
