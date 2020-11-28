@@ -21,42 +21,68 @@ function prettyThroughput(size, time) {
     return prettySize(parseInt(1000 * size / time)) + '/s';
 }
 
+function isSameOrigin(url) {
+    try {
+        return new URL(url, location.origin).origin === location.origin;
+    } catch (e) {
+        return false;
+    }
+}
+
 async function fetchUrl(url, progressEl, parse) {
     const startTime = Date.now();
 
     progressEl.innerHTML = '<div class="title">Awaiting response</div><div class="progress"></div>';
 
-    let data;
-    const response = await fetch(url);
-    const size = Number(response.headers.get('content-encoding')
-        ? response.headers.get('x-file-size')
-        : response.headers.get('content-length')) || 0;
+    try {
+        const response = await fetch(url);
 
-    if (parse) {
-        progressEl.firstElementChild.textContent = 'Receive data';
-        progressEl.style.setProperty('--progress', 1 / 3);
-        const json = await response.text();
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
 
-        progressEl.firstElementChild.textContent = 'Parse data';
-        progressEl.style.setProperty('--progress', 2 / 3);
+        let data;
+        let size = Number(isSameOrigin(url) && !response.headers.get('content-encoding')
+            ? response.headers.get('content-length')
+            : response.headers.get('x-file-size')) || 0;
+
+        if (parse) {
+            progressEl.firstElementChild.textContent = 'Receive data';
+            progressEl.style.setProperty('--progress', 1 / 3);
+            const json = await response.text();
+
+            if (!size) {
+                size = json.length;
+            }
+
+            progressEl.firstElementChild.textContent = 'Parse data';
+            progressEl.style.setProperty('--progress', 2 / 3);
+            await new Promise(resolve => setTimeout(resolve, 20));
+            data = JSON.parse(json);
+        } else {
+            progressEl.firstElementChild.textContent = 'Receive & parse data';
+            progressEl.style.setProperty('--progress', 1.5 / 3);
+            data = await response.json();
+        }
+
+        progressEl.firstElementChild.textContent = 'Done';
+        progressEl.classList.add('done');
+        progressEl.style.setProperty('--progress', 3 / 3);
         await new Promise(resolve => setTimeout(resolve, 20));
-        data = JSON.parse(json);
-    } else {
-        progressEl.firstElementChild.textContent = 'Receive & parse data';
-        progressEl.style.setProperty('--progress', 1.5 / 3);
-        data = await response.json();
+
+        return {
+            data,
+            size,
+            loadTime: Date.now() - startTime
+        };
+    } catch (error) {
+        progressEl.innerHTML = [
+            '<div class="view-alert view-alert-danger">',
+            '<h3 class="view-header">Ops, something went wrong with data loading</h3>',
+            '<pre>' + String(error) + '</pre>',
+            '</div>'
+        ].join('');
     }
-
-    progressEl.firstElementChild.textContent = 'Done';
-    progressEl.classList.add('done');
-    progressEl.style.setProperty('--progress', 3 / 3);
-    await new Promise(resolve => setTimeout(resolve, 20));
-
-    return {
-        data,
-        size,
-        loadTime: Date.now() - startTime
-    };
 }
 
 discovery.page.define('default', [
@@ -148,10 +174,15 @@ discovery.page.define('default', [
 
                                     statEl.querySelector('.load-time').textContent = prettyTime(loadTime);
                                     progressEl.style.setProperty('--load-time', loadTime);
-                                    statEl.querySelector('.size').textContent = prettySize(size);
-                                    progressEl.style.setProperty('--load-size', size);
-                                    statEl.querySelector('.throughput-rate').textContent = prettyThroughput(size, loadTime);
-                                    progressEl.style.setProperty('--throughput-rate', size);
+                                    if (size) {
+                                        statEl.querySelector('.size').textContent = prettySize(size);
+                                        progressEl.style.setProperty('--load-size', size);
+                                        statEl.querySelector('.throughput-rate').textContent = prettyThroughput(size, loadTime);
+                                        progressEl.style.setProperty('--throughput-rate', size);
+                                    } else {
+                                        statEl.querySelector('.size').remove();
+                                        statEl.querySelector('.throughput-rate').remove();
+                                    }
 
                                     results.push({
                                         url,
@@ -170,13 +201,18 @@ discovery.page.define('default', [
                             const totalStatEl = document.createElement('div');
                             const totalTime = results.reduce((sum, { loadTime }) => sum + loadTime, 0);
                             const totalSize = results.reduce((sum, { size }) => sum + size, 0);
+                            const throughputTime = results
+                                .filter(({ size }) => size)
+                                .reduce((sum, { loadTime }) => sum + loadTime, 0);
 
                             totalStatEl.className = 'total-stat';
                             totalStatEl.innerHTML = [
                                 '<span class="span"></span>',
                                 '<span>',
-                                'Avg throughput rate: ',
-                                '<span class="throughput-rate">' + prettyThroughput(totalSize, totalTime) + '</span>',
+                                ...throughputTime ? [
+                                    'Avg throughput rate: ',
+                                    '<span class="throughput-rate">' + prettyThroughput(totalSize, throughputTime) + '</span>'
+                                ] : [],
                                 'Score:',
                                 '<span class="score">' + totalTime + '</span><br>',
                                 '<span class="score-note">Lower is better (total ms)</span>',
@@ -193,7 +229,7 @@ discovery.page.define('default', [
     }
 ]);
 
-discovery.view.define('textarea', function(el, config, data, context) {
+discovery.view.define('textarea', function(el, config) {
     const { onInit, onChange, name, value } = config;
     const getValue = () => {
         localStorage.setItem('load-benchmark-urls', el.value);

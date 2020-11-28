@@ -173,6 +173,7 @@
 .total-stat > :not(.span) {
     line-height: 1;
     font-size: 12px;
+    text-align: right;
 }
 .total-stat .throughput-rate {
     display: inline-block;
