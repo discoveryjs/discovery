@@ -19,7 +19,14 @@
 }
 .discovery > .loading-overlay.error {
     overflow: auto;
-    font-size: 14px;
+}
+.discovery > .loading-overlay.error .view-alert .view-header {
+    margin-top: 0;
+}
+.discovery > .loading-overlay.error .view-alert pre {
+    font-family: Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 13px;
+    margin: 0;
 }
 .discovery > .loading-overlay.done:not(.error) {
     opacity: 0;

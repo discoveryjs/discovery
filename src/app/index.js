@@ -203,13 +203,14 @@ export default class App extends Widget {
         return setDataPromise;
     }
 
+    // FIXME: temporary solution
     progressbar(...args) {
         return progressbar(...args);
     }
 
     trackLoadDataProgress({ result, state, timing }) {
-        if (this.trackLoadingStop) {
-            this.trackLoadingStop();
+        if (this.cancelTrackLoadDataProgress) {
+            this.cancelTrackLoadDataProgress();
         }
 
         const containerEl = this.dom.loadingOverlay;
@@ -224,36 +225,34 @@ export default class App extends Widget {
             )
         ];
 
-        this.trackLoadingStop = () => {
+        this.cancelTrackLoadDataProgress = () => {
             for (const unsubscribe of subscriptions) {
                 unsubscribe();
             }
         };
 
+        // output error
+        result.catch(error => {
+            containerEl.innerHTML = [
+                '<div class="view-alert view-alert-danger">',
+                '<h3 class="view-header">Ops, something went wrong with data loading</h3>',
+                '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
+                '</div>'
+            ].join('');
+
+            if (this.options.cache) {
+                containerEl.prepend(createElement('button', {
+                    class: 'view-button',
+                    async onclick() {
+                        await fetch('drop-cache');
+                        location.reload();
+                    }
+                }, 'Reload with no cache'));
+            }
+        });
+
         return result
-            .finally(this.trackLoadingStop)
-            .catch(error => {
-                this.trackLoadingStop();
-
-                containerEl.innerHTML = [
-                    '<pre>',
-                    '<div class="view-alert view-alert-danger">Ops, something went wrong with data loading</div>',
-                    '<div class="view-alert view-alert-danger">' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</div>',
-                    '</pre>'
-                ].join('');
-
-                if (this.options.cache) {
-                    containerEl.prepend(createElement('button', {
-                        class: 'view-button',
-                        async onclick() {
-                            await fetch('drop-cache');
-                            location.reload();
-                        }
-                    }, 'Reload with no cache'));
-                }
-
-                throw error;
-            });
+            .finally(this.cancelTrackLoadDataProgress);
     }
 
     loadDataFromStream(stream, totalSize) {

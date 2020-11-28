@@ -97,19 +97,30 @@ async function loadDataFromStreamInternal(request, applyData, progress, timing) 
     };
 
     try {
-        const { stream, data: explicitData, totalSize } = await stage('request', request);
+        const startTime = Date.now();
+        const { stream, data: explicitData, size } = await stage('request', request);
         const data = explicitData || await stage('receive', () =>
-            jsonFromStream(stream, totalSize, state => progress.set({
+            jsonFromStream(stream, Number(size) || 0, state => progress.set({
                 stage: 'receive',
                 progress: state
             }))
         );
 
+        const beforeApplyTime = Date.now();
         await stage('apply', () => applyData(data));
         progress.set({ stage: 'done' });
+
+        return {
+            data,
+            size: Number(size) || 0,
+            time: Date.now() - startTime,
+            loadTime: beforeApplyTime - startTime,
+            applyTime: Date.now() - beforeApplyTime
+        };
     } catch (error) {
         progress.set({ stage: 'error', error });
         console.error('[Discovery] Error loading data:', error);
+        throw error;
     }
 }
 
@@ -117,28 +128,16 @@ export function loadDataFromStream(request, applyData) {
     const state = new Publisher();
     const timing = new Publisher();
 
-    // encapsulate logic into separate function since it's async,
-    // but we need to return publisher to start tracking progress
-    loadDataFromStreamInternal(
-        request,
-        applyData,
-        state,
-        timing
-    );
-
     return {
         state,
         timing,
-        result: new Promise((resolve, reject) =>
-            state.subscribe(({ stage, error }, unsubscribe) => {
-                if (error) {
-                    unsubscribe();
-                    reject(error);
-                } else if (stage === 'done') {
-                    unsubscribe();
-                    resolve();
-                }
-            })
+        // encapsulate logic into separate function since it's async,
+        // but we need to return publishers for progress tracking purposes
+        result: loadDataFromStreamInternal(
+            request,
+            applyData,
+            state,
+            timing
         )
     };
 }
@@ -152,7 +151,7 @@ export function loadDataFromFile(file, applyData) {
 
             return {
                 stream: streamFromBlob(file),
-                totalSize: file.size
+                size: file.size
             };
         },
         data => applyData(data, {
@@ -183,9 +182,9 @@ export function loadDataFromUrl(url, applyData, dataField) {
             if (response.ok) {
                 return explicitData ? { data: explicitData } : {
                     stream: response.body,
-                    totalSize:
-                        Number(response.headers.get('x-file-size')) ||
-                        (!response.headers.get('content-encoding') && Number(response.headers.get('content-length')))
+                    size: response.headers.get('content-encoding')
+                        ? response.headers.get('x-file-size')
+                        : response.headers.get('content-length')
                 };
             }
 
