@@ -106,12 +106,16 @@ async function loadDataFromStreamInternal(request, applyData, progress, timing) 
 
     try {
         const startTime = Date.now();
-        const { stream, data: explicitData, size } = await stage('request', request);
+        const { stream, data: explicitData, size: payloadSize } = await stage('request', request);
+        let size = 0;
         const data = explicitData || await stage('receive', () =>
-            jsonFromStream(stream, Number(size) || 0, state => progress.set({
-                stage: 'receive',
-                progress: state
-            }))
+            jsonFromStream(stream, Number(payloadSize) || 0, state => {
+                size = state.completed;
+                progress.set({
+                    stage: 'receive',
+                    progress: state
+                });
+            })
         );
 
         const beforeApplyTime = Date.now();
@@ -120,7 +124,8 @@ async function loadDataFromStreamInternal(request, applyData, progress, timing) 
 
         return {
             data,
-            size: Number(size) || 0,
+            size,
+            payloadSize: Number(payloadSize) || 0,
             time: Date.now() - startTime,
             loadTime: beforeApplyTime - startTime,
             applyTime: Date.now() - beforeApplyTime
