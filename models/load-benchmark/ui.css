@@ -24,27 +24,45 @@
     display: block;
 }
 .freeze-detector {
-    position: absolute;
-    margin-left: 8px;
-    margin-top: -24px;
+    position: relative;
+    top: -5px;
+    margin-left: 12px;
+    max-height: 22px;
+    transition: all .35s;
 }
 .freeze-detector::before {
     content: 'Should update 60fps, should not freeze: ';
     color: #888;
     font-size: 12px;
 }
+.results.done .freeze-detector {
+    opacity: 0;
+    overflow: hidden;
+    max-height: 0;
+}
 
 .benchmarks {
-    display: flex;
-    align-items: flex-start;
+    display: inline-grid;
+    grid-template:
+        'setup-urls setup-mode'
+        'setup-urls results';
+    grid-template-rows: auto 1fr;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+}
+.setup-urls {
+    grid-area: setup-urls;
+}
+.setup-mode {
+    grid-area: setup-mode;
 }
 .results {
-    margin-left: 10px;
+    grid-area: results;
 }
 
 .progress-tracker {
     width: 500px;
-    padding: 4px 8px 8px;
+    padding: 4px 8px 8px 12px;
     margin-bottom: 3px;
 }
 .discovery-root-darkmode .progress-tracker {
@@ -166,11 +184,16 @@
     display: flex;
     align-items: baseline;
     padding: 4px 8px;
+    opacity: 0;
+    transition: all .25s .15s;
+}
+.results.done .total-stat {
+    opacity: 1;
 }
 .total-stat .span {
     flex: 1;
 }
-.total-stat > :not(.span) {
+.total-stat > :last-child {
     line-height: 1;
     font-size: 12px;
     text-align: right;

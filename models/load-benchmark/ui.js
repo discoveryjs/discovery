@@ -47,7 +47,7 @@ async function fetchUrl(url, progressEl, parse) {
             : response.headers.get('x-file-size')) || 0;
 
         if (parse) {
-            progressEl.firstElementChild.textContent = 'Receive data';
+            progressEl.firstElementChild.textContent = 'Receiving data';
             progressEl.style.setProperty('--progress', 1 / 3);
             const json = await response.text();
 
@@ -60,7 +60,7 @@ async function fetchUrl(url, progressEl, parse) {
             await new Promise(resolve => setTimeout(resolve, 20));
             data = JSON.parse(json);
         } else {
-            progressEl.firstElementChild.textContent = 'Receive & parse data';
+            progressEl.firstElementChild.textContent = 'Receiving & parse data';
             progressEl.style.setProperty('--progress', 1.5 / 3);
             data = await response.json();
         }
@@ -92,27 +92,25 @@ discovery.page.define('default', [
         className: 'benchmarks',
         content: {
             view: 'context',
-            modifiers: {
-                view: 'block',
-                className: 'setup',
-                content: [
-                    {
-                        view: 'textarea',
-                        name: 'urls',
-                        value: '=#.params.urls'
-                    },
-                    {
-                        view: 'toggle-group',
-                        name: 'mode',
-                        value: '=#.params.mode or "default"',
-                        data: [
-                            { value: 'default', text: 'loadDataFromUrl()' },
-                            { value: 'fetch-parse', text: 'fetch.text() -> JSON.parse()' },
-                            { value: 'fetch', text: 'fetch.json()' }
-                        ]
-                    }
-                ]
-            },
+            modifiers: [
+                {
+                    view: 'textarea',
+                    className: 'setup-urls',
+                    name: 'urls',
+                    value: '=#.params.urls'
+                },
+                {
+                    view: 'toggle-group',
+                    className: 'setup-mode',
+                    name: 'mode',
+                    value: '=#.params.mode or "default"',
+                    data: [
+                        { value: 'default', text: 'discovery.loadDataFromUrl()' },
+                        { value: 'fetch-parse', text: 'fetch.text() -> JSON.parse()' },
+                        { value: 'fetch', text: 'fetch.json()' }
+                    ]
+                }
+            ],
             content: [
                 function(el, config, data, context) {
                     discovery.setPageParams({
@@ -134,7 +132,8 @@ discovery.page.define('default', [
                             const startTime = Date.now();
 
                             containerEl.innerHTML = '<div class="freeze-detector"></div>';
-                            const responsive = setInterval(() => containerEl.firstElementChild.textContent = Date.now() - startTime, 1000 / 60);
+                            const responsiveEl = containerEl.firstElementChild;
+                            const responsive = setInterval(() => responsiveEl.textContent = Date.now() - startTime, 1000 / 60);
 
                             for (const url of urls) {
                                 if (!document.body.contains(containerEl)) {
@@ -221,6 +220,7 @@ discovery.page.define('default', [
 
                             totalStatEl.firstElementChild.append(el);
                             containerEl.append(totalStatEl);
+                            requestAnimationFrame(() => containerEl.classList.add('done'));
                         }
                     }
                 }
