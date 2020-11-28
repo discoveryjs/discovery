@@ -1,4 +1,4 @@
-.view-textarea {
+.page-default .view-textarea {
     height: auto;
     overflow-y: visible !important;
     padding: 4px 8px;
@@ -19,15 +19,17 @@
 .discovery-root-darkmode .view-textarea {
     color: #d1c7c3;
 }
-.view-checkbox {
+.page-default .view-checkbox,
+.page-default .view-toggle-group {
     display: block;
 }
 .freeze-detector {
     position: absolute;
-    margin-top: -20px;
+    margin-left: 8px;
+    margin-top: -24px;
 }
-.freeze-detector::after {
-    content: ' <- updates 60fps, should not freeze';
+.freeze-detector::before {
+    content: 'Should update 60fps, should not freeze: ';
     color: #888;
     font-size: 12px;
 }

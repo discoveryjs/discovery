@@ -21,24 +21,31 @@ function prettyThroughput(size, time) {
     return prettySize(parseInt(1000 * size / time)) + '/s';
 }
 
-async function fetchUrl(url, progressEl) {
+async function fetchUrl(url, progressEl, parse) {
     const startTime = Date.now();
 
     progressEl.innerHTML = '<div class="title">Awaiting response</div><div class="progress"></div>';
 
+    let data;
     const response = await fetch(url);
     const size = Number(response.headers.get('content-encoding')
         ? response.headers.get('x-file-size')
         : response.headers.get('content-length')) || 0;
 
-    progressEl.firstElementChild.textContent = 'Receive data';
-    progressEl.style.setProperty('--progress', 1 / 3);
-    const json = await response.text();
+    if (parse) {
+        progressEl.firstElementChild.textContent = 'Receive data';
+        progressEl.style.setProperty('--progress', 1 / 3);
+        const json = await response.text();
 
-    progressEl.firstElementChild.textContent = 'Parse data';
-    progressEl.style.setProperty('--progress', 2 / 3);
-    await new Promise(resolve => setTimeout(resolve, 20));
-    const data = JSON.parse(json);
+        progressEl.firstElementChild.textContent = 'Parse data';
+        progressEl.style.setProperty('--progress', 2 / 3);
+        await new Promise(resolve => setTimeout(resolve, 20));
+        data = JSON.parse(json);
+    } else {
+        progressEl.firstElementChild.textContent = 'Receive & parse data';
+        progressEl.style.setProperty('--progress', 1.5 / 3);
+        data = await response.json();
+    }
 
     progressEl.firstElementChild.textContent = 'Done';
     progressEl.classList.add('done');
@@ -69,10 +76,14 @@ discovery.page.define('default', [
                         value: '=#.params.urls'
                     },
                     {
-                        view: 'checkbox',
-                        name: 'fetch',
-                        checked: '=#.params.fetch',
-                        content: 'text:"Use plain fetch()"'
+                        view: 'toggle-group',
+                        name: 'mode',
+                        value: '=#.params.mode or "default"',
+                        data: [
+                            { value: 'default', text: 'loadDataFromUrl()' },
+                            { value: 'fetch-parse', text: 'fetch.text() -> JSON.parse()' },
+                            { value: 'fetch', text: 'fetch.json()' }
+                        ]
                     }
                 ]
             },
@@ -80,7 +91,7 @@ discovery.page.define('default', [
                 function(el, config, data, context) {
                     discovery.setPageParams({
                         urls: context.urls,
-                        fetch: context.fetch
+                        mode: context.mode
                     }, true);
                     discovery.cancelScheduledRender();
                 },
@@ -122,14 +133,16 @@ discovery.page.define('default', [
                                 containerEl.append(progressEl);
 
                                 try {
-                                    const result = context.fetch ? fetchUrl(url, progressEl) : discovery.loadDataFromUrl.call({
-                                        trackLoadDataProgress: discovery.trackLoadDataProgress,
-                                        setData() {},
-                                        options: {},
-                                        dom: {
-                                            loadingOverlay: progressEl
-                                        }
-                                    }, url);
+                                    const result = context.mode !== 'default'
+                                        ? fetchUrl(url, progressEl, context.mode === 'fetch-parse')
+                                        : discovery.loadDataFromUrl.call({
+                                            trackLoadDataProgress: discovery.trackLoadDataProgress,
+                                            setData() {},
+                                            options: {},
+                                            dom: {
+                                                loadingOverlay: progressEl
+                                            }
+                                        }, url);
                                     progressEl.append(statEl);
                                     const { size, loadTime } = await result;
 
