@@ -131,6 +131,7 @@ discovery.page.define('default', [
                             const results = [];
                             const startTime = Date.now();
 
+                            containerEl.classList.remove('done');
                             containerEl.innerHTML = '<div class="freeze-detector"></div>';
                             const responsiveEl = containerEl.firstElementChild;
                             const responsive = setInterval(() => responsiveEl.textContent = Date.now() - startTime, 1000 / 60);
