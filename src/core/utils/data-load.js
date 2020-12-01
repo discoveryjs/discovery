@@ -34,7 +34,7 @@ const letRepaintIfNeeded = async () => {
     if (!document.hidden) {
         return Promise.race([
             new Promise(requestAnimationFrame),
-            new Promise(resolve => setTimeout(resolve, 16))
+            new Promise(resolve => setTimeout(resolve, 8))
         ]);
     }
 };
@@ -48,7 +48,9 @@ function isSameOrigin(url) {
 }
 
 export function jsonFromStream(stream, totalSize, setProgress = () => {}) {
-    return jsonExt.parseStream(async function*() {
+    const CHUNK_SIZE = 1024 * 1024; // 1MB
+
+    return jsonExt.parseChunked(async function*() {
         const reader = stream.getReader();
         const streamStartTime = Date.now();
         let completed = 0;
@@ -70,19 +72,27 @@ export function jsonFromStream(stream, totalSize, setProgress = () => {}) {
                     break;
                 }
 
-                completed += value.length;
-                yield value;
+                for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
+                    const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
+                        ? value
+                        : value.slice(offset, offset + CHUNK_SIZE);
 
-                if (Date.now() - awaitRepaint > 65) {
+                    completed += chunk.length;
+                    yield chunk;
+
+                    const now = Date.now();
                     setProgress({
                         done: false,
-                        elapsed: Date.now() - streamStartTime,
+                        elapsed: now - streamStartTime,
                         units: 'bytes',
                         completed,
                         total: totalSize
                     });
-                    await letRepaintIfNeeded();
-                    awaitRepaint = Date.now();
+
+                    if (now - awaitRepaint > 65 && now - streamStartTime > 200) {
+                        await letRepaintIfNeeded();
+                        awaitRepaint = Date.now();
+                    }
                 }
             }
         } finally {
