@@ -28,10 +28,9 @@
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
         "start:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js",
-        "start": "discovery",
+        "start": "discovery -c models",
         "test": "./cypress/test.sh"
     },
-    "discovery": "models",
     "engines": {
         "node": ">=8.0.0"
     },
