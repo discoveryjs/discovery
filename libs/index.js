@@ -59,6 +59,12 @@ const es6NodeModules = {
         files: [
             'dist/hitext-prismjs.min.js'
         ]
+    },
+    'billboard.js': {
+        name: 'billboard',
+        files: [
+            'dist/billboard.pkgd.js'
+        ]
     }
 };
 
@@ -80,7 +86,7 @@ for (let name in es6NodeModules) {
 
     exports[name] = {
         name,
-        filename: `${name}.js`,
+        filename: `${name}${name.endsWith('.js') ? '' : '.js'}`,
         path: libPath,
         get source() {
             return es5toEs6(libConfig.name, libContent(libPath, libConfig), libConfig.imports);
