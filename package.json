@@ -20,8 +20,8 @@
     },
     "scripts": {
         "lint": "eslint scripts src",
-        "build:js": "esbuild src/lib.js --outfile=dist/lib.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build": "npm run build:js && npm run build:css",
+        "build:js": "esbuild src/lib.js --outfile=dist/lib.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build:css": "node scripts/build-css",
         "build-gh-pages": "npm run build && discovery-build -o .gh-pages --isolate-styles",
         "prepublishOnly": "npm run build",
@@ -43,16 +43,11 @@
         "prismjs": "^1.21.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.9.0",
-        "@babel/preset-env": "^7.9.0",
         "@discoveryjs/cli": "^1.14.3",
-        "babelify": "^10.0.0",
-        "browserify": "^16.5.0",
         "cypress": "^5.3.0",
         "esbuild": "^0.7.21",
         "eslint": "^6.8.0",
-        "eslint-plugin-cypress": "^2.11.2",
-        "terser": "^5.3.3"
+        "eslint-plugin-cypress": "^2.11.2"
     },
     "files": [
         "dist",
