@@ -1,3 +1,71 @@
+## next
+
+- Added JSON parser from `json-ext` library, that's adds support for JSON greater than 512MB on V8
+- Improved UX when data loading from a file by showing progress bar
+- Added `App#loadDataFromStream()` and `App#loadDataFromFile()` methods
+- Added `unsubscribe` as a second parameter for publisher's subscriber handler
+
+## 1.0.0-beta.52 (19-11-2020)
+
+- Added experimental `proxy` option for `context` view
+- Changed `page-header` view to pass `onInit` and `onChange` through to children
+- Various style fixes
+
+## 1.0.0-beta.51 (14-11-2020)
+
+- Added aliases `off` and `disable` for `disabled` to disable darkmode
+- Fixed burger button visibility when no items in menu
+- Fixed quick inspect mode enter/leave issues
+- Fixes & tweaks in styles
+
+## 1.0.0-beta.50 (11-11-2020)
+
+- Fixed regression in broken build due to missed `marked` module in `browser` configuration
+- Fixed prefix rendering in `badge` views
+
+## 1.0.0-beta.49 (11-11-2020)
+
+- Added `markdown` view (and `md` alias) based on [marked](https://github.com/markedjs/marked)
+- Bumped jora to [1.0.0-beta.5](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.5)
+- Fixed inspector popup styles when discovery's root element is not `<body>`
+
+## 1.0.0-beta.48 (04-11-2020)
+
+- Fixed dark mode styles of action buttons in `struct` view for touch devices
+- Fixed context for nav to include route attributes (#70)
+- Added `nav.remove(name)` method to remove nav items (#72)
+- Removed try/catch in `Widget#queryBool()`, so now `when` and `whenData` throws instead of silently fail (#69)
+- Fixed missing horizontal scrolling for `tree` view
+- Fixed postfix style in `badge` view when used in `page-header`'s prelude
+- Fixed `source` view crashing on highlighting
+- Fixed path generation in `signature` view for objects in dictionary mode
+- Allowed to pass a space separated strings to `className`
+- Changed behaviour for a function as `className` value, it's return value can be a string or an array (any other is ignored)
+- Improved output view as a function in View inspector
+- Fixed view's tree in View inspector for components with no a container
+- Added display of non-rendered views with the reason in the view's tree in View inspector
+- Fixed jump out `context`'s content on re-render in view tree of View inspector
+- Bumped jora to `1.0.0-beta.4` and use `setup()` method (a bit more effective in creating functions from strings)
+
+## 1.0.0-beta.47 (02-11-2020)
+
+- Added View inspector
+- Changed nav block to be fixed positioned
+- Changed nav block class name `.discovery-content-badges` -> `.discovery-nav`
+- Added `.page_overscrolled` class name that's adding to a page element when page's content scrolled over viewport top side
+- Added `page-header` view
+- Added `passive` option support detection test and `passiveCaptureOptions` for `addEventListener()` in `utils.dom`
+- Added `position` option for `popup` view with possible values `trigger` (by default) and `pointer` (to set position according to pointer coordinates)
+- Added `hideOnResize` and `hideIfEventOutside` options for `popup` view (both `true` by default)
+- Added `Popup#freeze()` and `Popup#unfreeze()` methods
+- Added `onClick` option for link view
+- Added `ignoreCase` option to `text-match` view
+- Fixed various edge cases for `text-match` view
+- Fixed markup for `tree-leaf` view in non-collapsible state
+- Fixed data for `toggle` view when used in `toggle-group`
+- Removed margin reset for header views when first child of block
+- Exposed internal helpers as `utils`: `debounce`, `contentRect`, `jsonStringifyInfo`, `jsonStringifyAsJavaScript`, `persistent`, `pattern` and `pointerXY` modules
+
 ## 1.0.0-beta.46 (23-10-2020)
 
 - Added `dropdown` view

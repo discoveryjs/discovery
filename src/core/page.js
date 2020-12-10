@@ -1,7 +1,10 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import Publisher from './publisher.js';
+import { createElement } from '../core/utils/dom.js';
 
+const CONFIG = Symbol('config');
 const BUILDIN_NOT_FOUND = {
     name: 'not-found',
     render: (el, { name }) => {
@@ -11,12 +14,49 @@ const BUILDIN_NOT_FOUND = {
 };
 
 export default class PageRenderer extends Dict {
-    constructor(view) {
+    constructor(host) {
         super();
 
-        this.view = view;
+        this.view = host.view;
         this.lastPage = null;
         this.lastPageId = null;
+
+        this.pageOverscrolled = new Publisher(false);
+        this.setPageOverscroll = () => {};
+
+        if (typeof IntersectionObserver === 'function') {
+            const pageOverscrollTriggerEl = createElement('div', { style: 'position:absolute' });
+            let overscrollObserver = null;
+            let unsubscribe = () => {};
+
+            host.on('container-changed', ({ content: root }) => {
+                if (overscrollObserver) {
+                    overscrollObserver.disconnect();
+                    overscrollObserver = null;
+                }
+
+                if (root) {
+                    overscrollObserver = new IntersectionObserver(
+                        entries =>
+                            this.pageOverscrolled.set(!entries[entries.length - 1].isIntersecting),
+                        { root }
+                    );
+
+                    this.setPageOverscroll = newPageEl => {
+                        overscrollObserver.unobserve(pageOverscrollTriggerEl);
+                        unsubscribe();
+
+                        if (newPageEl) {
+                            newPageEl.prepend(pageOverscrollTriggerEl);
+                            overscrollObserver.observe(pageOverscrollTriggerEl);
+                            unsubscribe = this.pageOverscrolled.subscribeSync(overscrolled =>
+                                newPageEl.classList.toggle('page_overscrolled', overscrolled)
+                            );
+                        }
+                    };
+                }
+            });
+        }
     }
 
     define(name, render, options) {
@@ -25,7 +65,8 @@ export default class PageRenderer extends Dict {
             render: typeof render === 'function'
                 ? render.bind(this.view)
                 : (el, data, context) => this.view.render(el, render, data, context),
-            options: Object.freeze({ ...options })
+            options: Object.freeze({ ...options }),
+            [CONFIG]: render
         }));
     }
 
@@ -63,16 +104,18 @@ export default class PageRenderer extends Dict {
             console.error(e);
         }
 
-        if (newPageEl !== prevPageEl) {
-            parentEl.replaceChild(newPageEl, prevPageEl);
-        }
-
         if (pageChanged || pageRefChanged || !keepScrollOffset) {
             parentEl.scrollTop = 0;
         }
 
+        if (newPageEl !== prevPageEl) {
+            prevPageEl.replaceWith(newPageEl);
+            this.setPageOverscroll(newPageEl);
+        }
+
         return {
             pageEl: newPageEl,
+            config: page[CONFIG],
             renderState: Promise.resolve(rendered).then(() =>
                 console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
             )

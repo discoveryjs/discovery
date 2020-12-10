@@ -5,6 +5,11 @@ const validValues = new Set([true, false, 'auto', 'disabled']);
 const instances = new Set();
 const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
 const localStorage = localStorageEntry('discoveryjs:darkmode');
+const localStorageToValue = new Map([
+    ['true', true],
+    ['false', false],
+    ['auto', 'auto']
+]);
 let localStorageValue = null;
 
 function applyPrefersColorScheme() {
@@ -16,11 +21,10 @@ function applyPrefersColorScheme() {
 }
 
 function applyLocalStorageValue(value) {
-    const newValue =
-        value === 'true' ? true :
-        value === 'false' ? false :
-        value === 'auto' ? 'auto' :
-        null;
+    // eslint-disable-next-statement operator-linebreak
+    const newValue = localStorageToValue.has(value)
+        ? localStorageToValue.get(value)
+        : null;
 
     if (localStorageValue !== newValue) {
         localStorageValue = newValue;
@@ -35,7 +39,7 @@ function applyLocalStorageValue(value) {
 // attach
 applyLocalStorageValue(localStorage.value);
 localStorage.on(applyLocalStorageValue);
-prefersDarkModeMedia.addListener(applyPrefersColorScheme);
+prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
 // input value | controller internal state
 //             | -------------------------
@@ -48,6 +52,10 @@ prefersDarkModeMedia.addListener(applyPrefersColorScheme);
 
 export class DarkModeController {
     constructor(value, persistent) {
+        if (value === 'off' || value === 'disable') {
+            value = 'disabled';
+        }
+
         this.persistent = persistent ? localStorage : null;
         this.handlers = [];
         this.set(

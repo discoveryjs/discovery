@@ -18,9 +18,15 @@
     opacity: 0;
 }
 .discovery > .loading-overlay.error {
-    color: #a00;
     overflow: auto;
-    font-size: 14px;
+}
+.discovery > .loading-overlay.error .view-alert .view-header {
+    margin-top: 0;
+}
+.discovery > .loading-overlay.error .view-alert pre {
+    font-family: Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 13px;
+    margin: 0;
 }
 .discovery > .loading-overlay.done:not(.error) {
     opacity: 0;
@@ -53,9 +59,15 @@
     background-color: #1f7ec5;
 }
 
-.discovery-nav-popup .dark-mode-switcher {
+.discovery-nav-popup > .toggle-menu-item {
     padding: 4px 4px 4px 12px;
 }
-.discovery-nav-popup .dark-mode-switcher .view-toggle {
+.discovery-nav-popup > .toggle-menu-item .view-toggle-group {
+    display: flex;
+}
+.discovery-nav-popup > .toggle-menu-item .view-toggle-group-before {
+    flex: 1;
+}
+.discovery-nav-popup > .toggle-menu-item .view-toggle {
     font-size: 11px;
 }

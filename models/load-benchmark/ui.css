@@ -1,0 +1,223 @@
+.page-default .view-textarea {
+    height: auto;
+    overflow-y: visible !important;
+    padding: 4px 8px;
+    margin-bottom: 5px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    background: var(--discovery-input-bg-color);
+    transition: .25s ease-in;
+    transition-property: background-color, color;
+    border: 1px solid rgba(124, 124, 124, 0.65);
+    border-radius: 3px;
+    box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
+    outline: none;
+    height: 12em;
+    width: 400px;
+    resize: vertical;
+}
+.discovery-root-darkmode .view-textarea {
+    color: #d1c7c3;
+}
+.page-default .view-checkbox,
+.page-default .view-toggle-group {
+    display: block;
+}
+.freeze-detector {
+    position: relative;
+    top: -5px;
+    margin-left: 12px;
+    max-height: 22px;
+    transition: all .35s;
+}
+.freeze-detector::before {
+    content: 'Should update 60fps, should not freeze: ';
+    color: #888;
+    font-size: 12px;
+}
+.results.done .freeze-detector {
+    opacity: 0;
+    overflow: hidden;
+    max-height: 0;
+}
+
+.benchmarks {
+    display: inline-grid;
+    grid-template:
+        'setup-urls setup-mode'
+        'setup-urls results';
+    grid-template-rows: auto 1fr;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+}
+.setup-urls {
+    grid-area: setup-urls;
+}
+.setup-mode {
+    grid-area: setup-mode;
+}
+.results {
+    grid-area: results;
+}
+
+.progress-tracker {
+    width: 500px;
+    padding: 4px 8px 8px 12px;
+    margin-bottom: 3px;
+}
+.discovery-root-darkmode .progress-tracker {
+    background-color: rgba(0, 0, 0, .1);
+}
+.progress-tracker.error {
+    overflow: auto;
+    font-size: 14px;
+}
+.progress-tracker .title {
+    font-size: 13px;
+}
+.progress-tracker .view-alert {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 0;
+    margin: -4px -8px 4px;
+    font-size: 12px;
+}
+.progress-tracker .view-alert .view-header {
+    display: none;
+    margin: 0;
+    font-size: inherit;
+}
+.progress-tracker .view-alert pre,
+.progress-tracker .view-alert + .view-alert {
+    overflow: hidden;
+    max-height: 14px;
+    line-height: 14px;
+    margin: 0;
+}
+.progress-tracker:not(.error) .progress {
+    content: '';
+    display: block;
+    position: relative;
+    overflow: hidden;
+    margin-top: 4px;
+    box-sizing: border-box;
+    height: 3px;
+    background: rgba(198, 198, 198, 0.3);
+    border-radius: 2px;
+    max-width: 320px;
+}
+.progress-tracker:not(.error) .progress::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
+    /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
+    background-color: #1f7ec5;
+}
+
+.progress-tracker .title {
+    max-height: 20px;
+}
+.progress-tracker .progress {
+    max-height: 3px;
+}
+
+.progress-tracker.done .title,
+.progress-tracker.done .progress {
+    max-height: 0;
+    overflow: hidden;
+    transition: all .5s;
+    opacity: 0;
+}
+
+.progress-tracker .stat {
+    display: flex;
+}
+.progress-tracker .stat .url {
+    font-size: 11px;
+    margin-top: 2px;
+    display: block;
+    opacity: .4;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.progress-tracker.done .stat .url {
+    font-size: 13px;
+    opacity: 1;
+    transition: all .35s;
+}
+.progress-tracker .stat .metric {
+    overflow: hidden;
+    line-height: 1;
+    padding: 5px 0;
+    max-width: 0;
+    margin-left: 1px;
+    opacity: 0;
+    background-color: #ffd70020;
+    font-size: 13px;
+    text-align: right;
+    transition: all .2s .2s ease-in-out;
+}
+.progress-tracker.done .stat .metric {
+    padding: 5px 8px;
+    max-width: 100px;
+    opacity: 1;
+}
+
+.progress-tracker .stat .throughput-rate {
+    order: 3;
+    min-width: 55px;
+}
+.progress-tracker .stat .load-time {
+    background-color: #ffd70040;
+    order: 4;
+}
+
+.total-stat {
+    display: flex;
+    align-items: baseline;
+    padding: 4px 8px 4px 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all .25s .15s;
+}
+.results.done .total-stat {
+    opacity: 1;
+}
+.total-stat .span {
+    flex: 1;
+}
+.total-stat > :last-child {
+    line-height: 1;
+    font-size: 12px;
+    text-align: right;
+}
+.total-stat .throughput-rate {
+    display: inline-block;
+    background-color: #ffd70020;
+    padding: 4px 8px;
+    margin-right: 20px;
+}
+.total-stat .score {
+    display: inline-block;
+    vertical-align: sub;
+    padding: 6px 8px;
+    margin-top: -4px;
+    margin-bottom: 2px;
+    margin-left: 5px;
+    font-size: 20px;
+    background-color: #ffd70040;
+}
+.total-stat .score-note {
+    font-size: 10px;
+    display: block;
+    color: #888;
+    text-align: right;
+}

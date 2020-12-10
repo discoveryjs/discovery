@@ -20,11 +20,11 @@ export default class Emitter {
     }
 
     off(event, callback) {
-        let cursor = this.listeners[event];
+        let cursor = this.listeners[event] || null;
         let prev = null;
 
         // search for a callback and remove it
-        while (cursor) {
+        while (cursor !== null) {
             if (cursor.callback === callback) {
                 // make it non-callable
                 cursor.callback = null;
@@ -47,10 +47,10 @@ export default class Emitter {
     }
 
     emit(event, ...args) {
-        let cursor = this.listeners[event];
+        let cursor = this.listeners[event] || null;
         let hadListeners = false;
 
-        while (cursor) {
+        while (cursor !== null) {
             if (typeof cursor.callback === 'function') {
                 cursor.callback.apply(this, args);
             }

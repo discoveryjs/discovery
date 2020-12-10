@@ -1,4 +1,5 @@
 import { createFragment } from '../core/utils/dom.js';
+import { ContentRect } from '../core/utils/size.js';
 
 function createNavArray(host, defaults) {
     const items = [];
@@ -12,6 +13,7 @@ function createNavArray(host, defaults) {
                     position++;
                 }
                 break;
+
             case 'before':
                 position = items.findIndex(item => item.name === ref);
                 if (position === -1) {
@@ -41,6 +43,15 @@ function createNavArray(host, defaults) {
         },
         after(name, config) {
             insert(config, 'after', name);
+        },
+        remove(name) {
+            const position = items.findIndex(item => item.name === name);
+
+            if (position !== -1) {
+                return items.splice(position, 1)[0];
+            }
+
+            return null;
         }
     });
 }
@@ -65,7 +76,7 @@ export class WidgetNavigation {
                         widget: this.host,
                         hide: () => this.popup && this.popup.hide()
                     })
-                        .then(() => [...fragment.childNodes]);
+                        .then(() => [...fragment.childNodes].filter(node => node.nodeType === 1 || node.nodeType === 3));
                 },
                 whenData: true,
                 onClick: (el, nodes) => {
@@ -82,14 +93,34 @@ export class WidgetNavigation {
         ];
 
         Object.assign(this, this.secondary);
+        this.contentRect = new ContentRect();
+        this.contentRect.subscribe(({ width }) => {
+            if (host.dom.container) {
+                host.dom.container.style.setProperty('--discovery-nav-width', width + 'px');
+            }
+        });
     }
+
     render() {
-        const { view, data, context, dom } = this.host;
+        const { data, dom } = this.host;
         const el = dom && dom.nav;
 
+        this.contentRect.observe(el);
+
         if (el) {
+            const context = {
+                ...this.host.getRenderContext(),
+                widget: this.host
+            };
+
+            this.host.view.setViewRoot(el, 'nav', {
+                config: this.config,
+                data,
+                context
+            });
+
             el.innerHTML = '';
-            view.render(el, this.config, data, { ...context, widget: this.host });
+            this.host.view.render(el, this.config, data, context);
         }
     }
 };

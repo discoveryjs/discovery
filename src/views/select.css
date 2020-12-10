@@ -59,7 +59,7 @@
     content: attr(data-placeholder);
     visibility: visible;
     padding: 8px 8px 8px 12px;
-    color: #bbb;
+    opacity: .3;
 }
 .view-select > * {
     pointer-events: none;

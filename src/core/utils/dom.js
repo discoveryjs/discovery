@@ -47,3 +47,28 @@ export function createFragment(...children) {
 
     return fragment;
 }
+
+export const passiveSupported = (() => {
+    let passiveSupported = false;
+
+    try {
+        const options = {
+            // This function will be called when the browser
+            // attempts to access the passive property.
+            get passive() {
+                passiveSupported = true;
+                return false;
+            }
+        };
+
+        window.addEventListener('test', null, options);
+        window.removeEventListener('test', null, options);
+    } catch (err) {}
+
+    return passiveSupported;
+})();
+
+export const passiveCaptureOptions = !passiveSupported ? true : Object.freeze({
+    passive: true,
+    capture: true
+});

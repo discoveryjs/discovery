@@ -6,10 +6,7 @@ export default function(discovery) {
 
     discovery.view.define('html', function(el, config, data) {
         buffer.innerHTML = data;
-
-        while (buffer.firstChild) {
-            el.appendChild(buffer.firstChild);
-        }
+        el.append(...buffer.childNodes);
     }, {
         tag: null,
         usage

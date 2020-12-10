@@ -17,34 +17,44 @@ export default function(discovery) {
                 .render(buffer, content, data, localContext)
                 .then(() => {
                     if (buffer === lastRender) {
+                        discovery.view.adoptFragment(buffer, contentStartMarker);
                         contentStartMarker.after(buffer);
                     }
                 });
         }
 
         function updateContext(value, name) {
-            if (name) {
-                localContext[name] = value;
+            if (name && (!hasOwnProperty.call(localContext, name) || localContext[name] !== value)) {
+                localContext = {
+                    ...localContext,
+                    [name]: value
+                };
 
                 if (inited) {
                     renderContent();
+
+                    if (proxy && typeof onChange === 'function') {
+                        onChange(value, name);
+                    }
+                } else if (typeof onInit === 'function') {
+                    onInit(value, name);
                 }
             }
         }
 
-        let localContext = { ...context };
+        let localContext = context;
         let contentStartMarker = null;
         let contentEndMarker = null;
         let lastRender = null;
         let inited = false;
-        let { modifiers = [] } = config;
-        const { content = [] } = config;
+        let { modifiers = [], content = [] } = config;
+        const { proxy, onInit, onChange } = config;
 
         if (!Array.isArray(modifiers)) {
             modifiers = [modifiers];
         }
 
-        const awaitRender = discovery.view.render(el, this.composeConfig(modifiers, {
+        const renderModifiers = discovery.view.render(el, this.composeConfig(modifiers, {
             onInit: updateContext,
             onChange: updateContext
         }), data, context);
@@ -52,9 +62,13 @@ export default function(discovery) {
         contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
         contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
 
-        return awaitRender.then(() => {
+        if (proxy && (onInit || onChange)) {
+            content = this.composeConfig(content, { onInit, onChange });
+        }
+
+        return renderModifiers.then(() => {
             inited = true;
-            renderContent();
+            return renderContent();
         });
     }, {
         tag: false,

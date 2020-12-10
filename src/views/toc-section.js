@@ -4,7 +4,7 @@ export default function(discovery) {
     discovery.view.define('toc-section', function(el, config, data, context) {
         const { header, content } = config;
 
-        discovery.view.render(el, [
+        return discovery.view.render(el, [
             {
                 view: 'block',
                 className: 'header',

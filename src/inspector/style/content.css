@@ -1,0 +1,71 @@
+.discovery-inspect-details-popup .content {
+    overflow: hidden; /* use auto only when popup is frozen to avoid flicking scrollbars */
+    background-color: var(--discovery-mate-background);
+    font-size: 12px;
+    line-height: 14px;
+}
+.discovery-inspect-details-popup.frozen .content {
+    overflow: auto; /* use auto only when popup is frozen to avoid flicking scrollbars */
+}
+.discovery-inspect-details-popup .content .view-struct {
+    overflow: visible;
+    background-color: transparent;
+}
+.discovery-inspect-details-popup .content .view-source {
+    font-size: 11px;
+    line-height: 15px;
+    background-color: transparent;
+    /* background-color: #25252585; */
+}
+
+.discovery-inspect-details-popup .content.props-config {
+    grid-area: props-config;
+}
+.discovery-inspect-details-popup .content.data-context {
+    grid-area: data-context;
+}
+
+.discovery-inspect-details-popup .content-section::before {
+    content: var(--header);
+    display: inline-block;
+    padding: 8px 10px 2px 3px;
+    margin-left: 6px;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: #444;
+    border-bottom: 2px solid #ddd;
+}
+.discovery-root-darkmode.discovery-inspect-details-popup .content-section::before {
+    color: inherit;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, .25);
+    border-bottom: 2px solid #666;
+}
+.discovery-inspect-details-popup .content-section.skip {
+    --header: 'Not rendered reason';
+}
+.discovery-inspect-details-popup .content-section.skip .view-block {
+    padding: 6px 0 8px 6px;
+    font-size: 14px;
+}
+.discovery-inspect-details-popup .content-section.render {
+    --header: 'Render function';
+}
+.discovery-inspect-details-popup .content-section.props {
+    --header: 'Render props';
+}
+.discovery-inspect-details-popup .content-section.config {
+    --header: 'Config';
+}
+.discovery-inspect-details-popup .content-section.config > .view-tree {
+    margin-left: 6px;
+}
+.discovery-inspect-details-popup .content-section.config .view-tree-leaf-content > .view-struct {
+    margin: -4px;
+}
+.discovery-inspect-details-popup .content-section.data {
+    --header: 'Data';
+}
+.discovery-inspect-details-popup .content-section.context {
+    --header: 'Context';
+}
+

@@ -12,7 +12,7 @@ export default function(discovery) {
         function renderCaption() {
             el.innerHTML = '';
             if (currentValue !== undefined) {
-                discovery.view.render(el, discovery.view.composeConfig({
+                return discovery.view.render(el, discovery.view.composeConfig({
                     view: 'menu-item',
                     data: variantQuery,
                     content: item
@@ -113,6 +113,6 @@ export default function(discovery) {
             onInit(currentValue, name, data, context);
         }
 
-        renderCaption();
+        return renderCaption();
     }, { usage });
 }

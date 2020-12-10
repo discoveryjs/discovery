@@ -3,21 +3,28 @@
     color: #aaa;
     font-size: 10px;
     line-height: 14px;
+    border-radius: 3px;
 }
 .view-struct .value-annotation + .value-annotation {
     margin-left: 4px;
 }
+.view-struct .value-annotation[href]:hover,
+.view-struct .value-annotation[href]:focus {
+    background-color: rgba(187, 187, 187, 0.25);
+    box-shadow: 0 0 0 3px rgba(187, 187, 187, 0.25);
+}
+
 .view-struct .value-annotation.icon::before {
     content: '';
     display: inline-block;
     vertical-align: text-bottom;
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
     background: var(--annotation-image, ) var(--annotation-image-position, 50% center) no-repeat;
-    background-size: var(--annotation-image-size, 16px);
+    background-size: var(--annotation-image-size, 14px);
 }
 .view-struct .value-annotation.icon.has-text::before {
-    margin-right: var(--annotation-image-margin, 4px);
+    margin-right: var(--annotation-image-margin, 2px);
 }
 
 .view-struct .value-annotation.before + .value {
@@ -28,15 +35,21 @@
 }
 
 .view-struct .value-annotation.style-default {
-    padding: 0 4px;
+    --annotation-bg-gradient-from: white;
+    --annotation-bg-gradient-to: rgba(255, 255, 255, 0);
+    padding: 1px 4px 0;
     border-radius: 4px;
 }
+.discovery-root-darkmode .view-struct .value-annotation.style-default {
+    --annotation-bg-gradient-from: rgba(33, 33, 33, .5);
+    --annotation-bg-gradient-to: rgba(33, 33, 33, 0);
+}
 .view-struct .value-annotation.before.style-default {
-    background: linear-gradient(to left, white, transparent);
+    background: linear-gradient(to left, var(--annotation-bg-gradient-from), var(--annotation-bg-gradient-to));
     border-right: 1px solid;    
 }
 .view-struct .value-annotation.after.style-default {
-    background: linear-gradient(to right, white, transparent);
+    background: linear-gradient(to right, var(--annotation-bg-gradient-from), var(--annotation-bg-gradient-to));
     border-left: 1px solid;
 }
 

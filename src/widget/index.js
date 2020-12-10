@@ -5,9 +5,11 @@ import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
 import ObjectMarker from '../core/object-marker.js';
+import Publisher from '../core/publisher.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
+import attachViewInspector from '../inspector/index.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from './darkmode.js';
 import { WidgetNavigation } from './nav.js';
@@ -62,7 +64,7 @@ function createDataExtensionApi(instance) {
     const annotations = [];
     const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
     const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
-    const queryExtensions = {
+    const queryCustomMethods = {
         query: (...args) => instance.query(...args),
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
@@ -88,7 +90,7 @@ function createDataExtensionApi(instance) {
                 objectMarkers,
                 linkResolvers,
                 annotations,
-                queryExtensions
+                queryFnFromString: jora.setup(queryCustomMethods)
             });
         },
         methods: {
@@ -150,7 +152,7 @@ function createDataExtensionApi(instance) {
             },
             addValueAnnotation,
             addQueryHelpers(helpers) {
-                Object.assign(queryExtensions, helpers);
+                Object.assign(queryCustomMethods, helpers);
             }
         }
     };
@@ -166,7 +168,7 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
-        this.page = new PageRenderer(this.view);
+        this.page = new PageRenderer(this);
         this.page.on('define', (pageId, page) => {
             const { resolveLink } = page.options;
 
@@ -185,14 +187,7 @@ export default class Widget extends Emitter {
         renderScheduler.set(this, new Set());
 
         this.prepare = data => data;
-        this.objectMarkers = [];
-        this.linkResolvers = [];
-        this.annotations = [];
-        this.queryExtensions = {
-            query: (...args) => this.query(...args),
-            pageLink: (pageRef, pageId, pageParams) =>
-                this.encodePageHash(pageId, pageRef, pageParams)
-        };
+        createDataExtensionApi(this).apply();
 
         this.defaultPageId = this.options.defaultPageId || 'default';
         this.reportPageId = this.options.reportPageId || 'report';
@@ -209,6 +204,7 @@ export default class Widget extends Emitter {
 
         this.instanceId = genUniqueId();
         this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
+        this.inspectMode = new Publisher(false);
         this.dom = {};
 
         this.apply(views);
@@ -252,7 +248,6 @@ export default class Widget extends Emitter {
     setData(data, context = {}) {
         const startTime = Date.now();
         const dataExtension = createDataExtensionApi(this);
-        this._extensitionApi = dataExtension.methods; // TODO: remove
         const checkIsNotPrevented = () => {
             const lastPromise = lastSetDataPromise.get(this);
 
@@ -272,7 +267,7 @@ export default class Widget extends Emitter {
 
                 this.data = data;
                 this.context = context;
-                dataExtension.apply(this);
+                dataExtension.apply();
 
                 this.emit('data');
                 console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
@@ -327,7 +322,7 @@ export default class Widget extends Emitter {
                 return query;
 
             case 'string':
-                return jora(query, { methods: this.queryExtensions });
+                return this.queryFnFromString(query);
         }
     }
 
@@ -345,11 +340,7 @@ export default class Widget extends Emitter {
     }
 
     queryBool(...args) {
-        try {
-            return jora.buildin.bool(this.query(...args));
-        } catch (e) {
-            return false;
-        }
+        return jora.buildin.bool(this.query(...args));
     }
 
     queryToConfig(view, query) {
@@ -420,13 +411,12 @@ export default class Widget extends Emitter {
 
             if (!stat || stat.query !== query || stat.data !== data || stat.context !== context) {
                 const options = {
-                    methods: this.queryExtensions,
                     tolerant: true,
                     stat: true
                 };
 
                 lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
-                Object.assign(stat, jora(query, options)(data, context));
+                Object.assign(stat, this.queryFnFromString(query, options)(data, context));
             }
 
             suggestions = stat.suggestion(offset);
@@ -453,9 +443,11 @@ export default class Widget extends Emitter {
 
     pathToQuery(path) {
         return path.map((part, idx) =>
-            typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
-                ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
-                : (idx === 0 ? part : '.' + part)
+            part === '*'
+                ? (idx === 0 ? 'values()' : '.values()')
+                : typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
+                    ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
+                    : (idx === 0 ? part : '.' + part)
         ).join('');
     }
 
@@ -476,6 +468,12 @@ export default class Widget extends Emitter {
     // UI
     //
 
+    getDomRoots() {
+        return [
+            ...document.querySelectorAll(`[data-discovery-instance-id=${JSON.stringify(this.instanceId)}]`)
+        ];
+    }
+
     setContainer(container) {
         const newContainerEl = container || null;
         const oldDomRefs = this.dom;
@@ -493,7 +491,7 @@ export default class Widget extends Emitter {
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
             this.dom.detachDarkMode = this.darkmode.on(
-                dark => new Set([newContainerEl, ...document.querySelectorAll('.discovery-root[data-discovery-instance-id=' + CSS.escape(this.instanceId) + ']')])
+                dark => new Set([newContainerEl, ...this.getDomRoots()])
                     .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
             );
 
@@ -502,8 +500,8 @@ export default class Widget extends Emitter {
             newContainerEl.dataset.discoveryInstanceId = this.instanceId;
             newContainerEl.append(
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
-                createElement('main', 'discovery-content', [
-                    this.dom.nav = createElement('div', 'discovery-content-badges'),
+                this.dom.content = createElement('main', 'discovery-content', [
+                    this.dom.nav = createElement('div', 'discovery-nav'),
                     this.dom.pageContent = createElement('article')
                 ])
             );
@@ -513,6 +511,11 @@ export default class Widget extends Emitter {
             requestAnimationFrame(() => newContainerEl.style.transition = '');
 
             this.nav.render(this.dom.nav);
+            attachViewInspector(this);
+        } else {
+            for (let key in this.dom) {
+                this.dom[key] = null;
+            }
         }
 
         this.emit('container-changed', this.dom, oldDomRefs);
@@ -602,13 +605,17 @@ export default class Widget extends Emitter {
 
         if (this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
+            const data = this.data;
+            const context = this.getRenderContext();
+
+            this.view.setViewRoot(this.dom.sidebar, 'sidebar', { data, context });
 
             this.dom.sidebar.innerHTML = '';
             return this.view.render(
                 this.dom.sidebar,
                 'sidebar',
-                this.data,
-                this.getRenderContext()
+                data,
+                context
             ).then(() => console.log(`[Discovery] Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
@@ -700,12 +707,20 @@ export default class Widget extends Emitter {
         // cancel scheduled renderPage
         renderScheduler.get(this).delete('page');
 
-        const { pageEl, renderState } = this.page.render(
+        const data = this.data;
+        const context = this.getRenderContext();
+        const { pageEl, renderState, config } = this.page.render(
             this.dom.pageContent,
             this.pageId,
-            this.data,
-            this.getRenderContext()
+            data,
+            context
         );
+
+        this.view.setViewRoot(pageEl, 'Page: ' + this.pageId, {
+            config,
+            data,
+            context
+        });
 
         this.dom.pageContent = pageEl;
         this.nav.render(this.dom.nav);

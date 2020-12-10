@@ -7,7 +7,7 @@ export default function(discovery) {
 
         el.classList.add('view-header');
 
-        discovery.view.render(el, content || 'text', data, context);
+        return discovery.view.render(el, content || 'text', data, context);
     }
 
     discovery.view.define('header', render, { tag: 'h4', usage });

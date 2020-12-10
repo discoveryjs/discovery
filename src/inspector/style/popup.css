@@ -1,0 +1,59 @@
+/* isolate-style-root: discovery-inspect-details-popup */
+.discovery-inspect-details-popup {
+    pointer-events: none;
+    z-index: 2001;
+    max-width: 650px !important;
+    display: grid;
+    grid-template-areas:
+        "toolbar toolbar"
+        "props-config data-context";
+    grid-template-columns: 4fr 6fr;
+    grid-template-rows: auto 1fr;
+    gap: 1px;
+    padding: 1px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, var(--discovery-background-alpha));
+
+    --discovery-background-alpha: .95;
+    --discovery-mate-background: rgba(240, 240, 240, .5);
+    --discovery-link-color: #333;
+    --discovery-link-underline-color: #0002;
+    --discovery-view-root-highlight-color: rgba(106, 0, 204, 25%);
+}
+.discovery-root-darkmode.discovery-inspect-details-popup {
+    background: rgba(36, 36, 36, var(--discovery-background-alpha));
+
+    --discovery-background-alpha: .92;
+    --discovery-mate-background: rgba(52, 52, 52, .5);
+    --discovery-link-color: #aaa;
+    --discovery-link-underline-color: #aaa2;
+    --discovery-view-root-highlight-color: rgba(189, 120, 255, 25%);
+}
+.discovery-inspect-details-popup.frozen {
+    pointer-events: all;
+    top: 32px !important;
+    left: 20px !important;
+    right: 20px !important;
+    bottom: 20px !important;
+    height: calc(100vh - 52px); /* Safari scrolls popup content otherwise */
+    max-height: none !important;
+    max-width: none !important;
+    transition: .1s ease-in-out;
+    transition-property: top, left, right, bottom;
+    grid-template-areas:
+        "sidebar toolbar toolbar"
+        "sidebar props-config data-context";
+    grid-template-rows: auto minmax(20%, 1fr);
+    grid-template-columns: minmax(290px, 25%) 4fr 6fr;
+}
+
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
+    .discovery-inspect-details-popup {
+        --discovery-background-alpha: .65;
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    .discovery-root-darkmode.discovery-inspect-details-popup {
+        --discovery-background-alpha: .4;
+    }
+}

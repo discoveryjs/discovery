@@ -1,0 +1,59 @@
+.discovery-inspect-details-popup .toolbar {
+    grid-area: toolbar;
+    display: flex;
+    gap: 1px;
+}
+
+.discovery-inspect-details-popup .stack-view-chain {
+    flex: 1;
+    gap: 1px;
+    background-color: var(--discovery-mate-background);
+}
+.discovery-inspect-details-popup .stack-view-chain .view-toggle {
+    border-radius: 0;
+    margin: 0;
+    padding: 5px 8px;
+    line-height: 16px;
+}
+.discovery-inspect-details-popup .stack-view-chain  .skipped {
+    text-decoration: line-through;
+    font-style: italic;
+    opacity: .65;
+}
+.discovery-inspect-details-popup .stack-view-chain .view-root:not(.checked):not(:hover) {
+    background-color: var(--discovery-view-root-highlight-color);
+}
+.discovery-inspect-details-popup .stack-view-chain .data-flow-changes {
+    position: relative;
+    vertical-align: middle;
+    display: inline-flex;
+    gap: 2px;
+    margin: -5px -2px -2px 4px;
+    font-size: 7px;
+    line-height: 12px;
+    text-align: center;
+    text-transform: uppercase;
+}
+.discovery-inspect-details-popup .stack-view-chain .data-flow-changes > * {
+    width: 12px;
+    height: 12px;
+    border-radius: 8px;
+
+    overflow: hidden;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+}
+.discovery-inspect-details-popup .stack-view-chain .data-flow-changes .data {
+    background: #1f841f80;
+}
+.discovery-inspect-details-popup .stack-view-chain .data-flow-changes .context {
+    background: #b1366f80;
+    bottom: 0;
+}
+
+.discovery-inspect-details-popup .toolbar .view-button {
+    padding: 5px 8px 7px;
+    font-size: 12px;
+    line-height: 12px;
+    border-radius: 2px 1px 2px 2px;
+    box-shadow: none;
+}

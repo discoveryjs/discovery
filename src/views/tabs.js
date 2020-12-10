@@ -3,7 +3,7 @@ import usage from './tabs.usage.js';
 
 export default function(discovery) {
     discovery.view.define('tabs', function(el, config, data, context) {
-        function renderContent(value) {
+        async function renderContent(value) {
             const handler = inited ? onChange : onInit;
 
             if (currentValue === value) {
@@ -22,26 +22,26 @@ export default function(discovery) {
 
                 if (beforeTabs) {
                     beforeTabsEl.innerHTML = '';
-                    discovery.view.render(beforeTabsEl, beforeTabs, data, renderContext);
+                    await discovery.view.render(beforeTabsEl, beforeTabs, data, renderContext);
                     tabsEl.appendChild(beforeTabsEl);
                 }
 
-                tabs.forEach(tab =>
+                await Promise.all(tabs.map(tab =>
                     discovery.view.render(tabsEl, discovery.view.composeConfig(tab, {
                         active: tab.value === currentValue
                     }), data, context)
-                );
+                ));
 
                 if (afterTabs) {
                     afterTabsEl.innerHTML = '';
-                    discovery.view.render(afterTabsEl, afterTabs, data, renderContext);
+                    await discovery.view.render(afterTabsEl, afterTabs, data, renderContext);
                     tabsEl.appendChild(afterTabsEl);
                 }
             }
 
             if (content) {
                 contentEl.innerHTML = '';
-                discovery.view.render(contentEl, content, data, renderContext);
+                await discovery.view.render(contentEl, content, data, renderContext);
             }
 
             if (typeof handler === 'function') {
@@ -103,15 +103,15 @@ export default function(discovery) {
                     initValue = tab.value;
                 }
 
-                return {
-                    ...tabConfig,
-                    ...tab
-                };
+                return discovery.view.composeConfig(
+                    tabConfig,
+                    tab
+                );
             });
         } else {
             tabs = [];
         }
 
-        renderContent(initValue);
+        return renderContent(initValue);
     }, { usage });
 }

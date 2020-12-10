@@ -3,6 +3,7 @@
 import hitext from 'hitext';
 import hitextPrismjs from 'hitext-prismjs';
 import CodeMirror from 'codemirror';
+import usage from './source.usage.js';
 
 const maxSourceSizeToHighlight = 100 * 1024;
 const mimeToSyntax = new Map(Object.entries({
@@ -143,5 +144,5 @@ export default function(discovery) {
                     hitext(decorators, 'html')(content) +
                 '</div>';
         }
-    });
+    }, { usage });
 }

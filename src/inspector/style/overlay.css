@@ -1,0 +1,66 @@
+.discovery-view-inspector-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 255, .1);
+    z-index: 2000;
+}
+
+.discovery-view-inspector-overlay .cancel-hint {
+    content: 'Inspection mode is enabled. Press Esc to cancel';
+    position: absolute;
+    z-index: 10;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 10px;
+    font-size: 12px;
+    border-radius: 25px;
+    background-color: var(--discovery-background-color);
+    opacity: .8;
+}
+.discovery-view-inspector-overlay .cancel-hint::before {
+    content: 'Inspection mode is enabled. Press Esc to cancel';
+}
+.discovery-view-inspector-overlay .cancel-hint[data-alt]::before {
+    content: 'Inspection mode is enabled. Unhold Alt to cancel';
+}
+
+.discovery-view-inspector-overlay .overlay {
+    position: absolute;
+    transition: background-color 15ms 25ms;
+    box-sizing: border-box;
+}
+.discovery-view-inspector-overlay .overlay.view-root {
+    pointer-events: none;
+}
+.discovery-view-inspector-overlay .overlay:not(.view-root) {
+    pointer-events: auto;
+}
+.discovery-view-inspector-overlay .overlay.hovered {
+    background-color: rgba(0, 255, 0, var(--discovery-background-alpha));
+    outline: 1px dashed rgba(0, 128, 0, .4);
+    outline-offset: -1px;
+    --discovery-background-alpha: .3;
+}
+.discovery-view-inspector-overlay .overlay.view-root.hovered {
+    background-color: rgba(106, 0, 204, var(--discovery-background-alpha));
+    outline: 1px dashed rgba(54, 0, 102, .4);
+}
+.discovery-root-darkmode .discovery-view-inspector-overlay .overlay.hovered {
+    outline-color: rgba(128, 200, 128, .65);
+    --discovery-background-alpha: .2;
+}
+.discovery-root-darkmode .discovery-view-inspector-overlay .overlay.view-root.hovered {
+    outline-color: rgba(111, 74, 152, .65);
+}
+
+@supports (backdrop-filter: grayscale(1)) or (-webkit-backdrop-filter: grayscale(1)) {
+    .discovery-view-inspector-overlay .overlay.hovered {
+        --discovery-background-alpha: .25;
+        -webkit-backdrop-filter: grayscale(1);
+        backdrop-filter: grayscale(1);
+    }
+}

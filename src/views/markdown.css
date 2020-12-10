@@ -1,0 +1,58 @@
+.view-markdown > :first-child {
+    margin-top: 0;
+}
+
+.view-markdown blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: .25em solid rgba(191, 197, 203, 0.5);
+}
+
+.view-markdown code {
+    padding: .2em .4em;
+    margin: 0;
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 90%;
+    background-color: rgba(210, 220, 230, 0.2);
+    border-radius: 3px;
+}
+
+.view-markdown pre {
+    padding: 4px;
+    overflow: auto;
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 90%;
+    line-height: 1.25;
+    background-color: rgba(155, 155, 155, 0.1);
+    border-radius: 3px;
+    margin-bottom: 0;
+    word-break: normal;
+}
+.view-markdown pre code {
+    padding: 0;
+    font-family: inherit;
+    font-size: 100%;
+    background: none;
+    border-radius: none;
+    text-shadow: none;
+    color: inherit;
+}
+.view-markdown .view-source {
+    background: none;
+}
+
+.view-markdown .check-list-item {
+    list-style: none;
+    margin-left: -22px;
+}
+
+.view-markdown p,
+.view-markdown blockquote,
+.view-markdown ul,
+.view-markdown ol,
+.view-markdown dl,
+.view-markdown table,
+.view-markdown pre{
+    margin: 15px 0;
+}

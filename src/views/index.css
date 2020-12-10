@@ -18,9 +18,11 @@
 @import url('./link.css');
 @import url('./list-item.css');
 @import url('./lists.css');
+@import url('./markdown.css');
 @import url('./menu-item.css');
 @import url('./menu.css');
 @import url('./nav-button.css');
+@import url('./page-header.css');
 @import url('./popup.css');
 @import url('./section.css');
 @import url('./select.css');
@@ -75,7 +77,6 @@
     outline: none;
 }
 .more-buttons .more-button:active {
-    box-shadow: inset 0 2px 1px #f0f0f0;
-    padding-top: 5px;
-    padding-bottom: 3px;
+    background-color: rgba(131, 131, 131, 0.25);
+    border-color: rgba(127, 127, 127, 0.4);
 }

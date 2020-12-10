@@ -1,10 +1,10 @@
 .page-views-showcase {
+    flex: 1;
     display: flex;
     flex-direction: row;
     border: 1px solid rgba(170, 170, 170, 0.4);
-    margin: 15px 0 0;
+    margin: 35px 40px 20px;
     padding: 0 !important;
-    height: calc(100vh - 65px);
     box-sizing: border-box;
     overflow: hidden;
     border-radius: 3px;
@@ -43,10 +43,10 @@
     padding: 1px;
 }
 .page-views-showcase > .sidebar .view-menu-item:not(.disabled) {
-    color: #0099DD;
+    color: var(--discovery-link-color, #0099DD);
 }
 .page-views-showcase > .sidebar .view-menu-item:hover {
-    color: #0077BB;
+    color: var(--discovery-link-hover-color, #0077BB);
 }
 
 .page-views-showcase > .content {

@@ -6,14 +6,14 @@ function getStorage(type) {
 
     try {
         storage = window[type];
-    } catch(e) {
+    } catch (e) {
         return null;
     }
 
     try {
         storage.setItem(key, key);
         storage.removeItem(key);
-    } catch(e) {
+    } catch (e) {
         const ok = e instanceof DOMException && (
             // everything except Firefox
             e.code === 22 ||
@@ -63,7 +63,7 @@ addEventListener('storage', (e) => {
 
 function createPersistentKey(key, map) {
     let currentValue = null;
-    const emitter = new Emitter();
+    const emitter = new Emitter(); // TODO: Change for Publisher
     const updateCurrentValue = (newValue = map.storage.getItem(key)) => {
         if (currentValue !== newValue) {
             emitter.emit('change', currentValue = newValue);

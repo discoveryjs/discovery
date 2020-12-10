@@ -5,9 +5,9 @@ export default function(discovery) {
         const { cols } = config;
 
         if (Array.isArray(cols)) {
-            cols.forEach((col, index) =>
+            return Promise.all(cols.map((col, index) =>
                 discovery.view.render(el, col, data, { ...context, colIndex: index })
-            );
+            ));
         }
     }, { tag: 'tr' });
 }

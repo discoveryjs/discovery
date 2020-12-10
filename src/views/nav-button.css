@@ -7,9 +7,11 @@
     background-color: rgba(155, 155, 155, 0.15);
     font-size: 12px;
     text-decoration: none;
+    outline: none;
     cursor: pointer;
 }
 .view-nav-button:hover,
+.view-nav-button:focus,
 .view-nav-button.discovery-view-popup-active {
     color: black;
     background-color: rgba(151, 151, 151, 0.3);

@@ -3,7 +3,7 @@
     margin-left: 2px;
     padding: 1px 4px;
     color: rgba(170, 170, 170, 0.4);
-    background: rgba(195, 195, 195, 0.05);
+    background-color: rgba(195, 195, 195, 0.05);
     border: 1px solid rgba(141, 141, 141, 0.15);
     border-radius: 3px;
     font-size: 8px;
@@ -16,13 +16,13 @@
 .view-struct .struct-action-button:hover,
 .view-struct .discovery-view-popup-active {
     color: var(--discovery-view-struct-hover-color, #333);
-    background: rgba(187, 187, 187, 0.25);
+    background-color: rgba(187, 187, 187, 0.25);
     border-color: rgba(137, 137, 137, 0.4);
 }
 .view-struct .sort-keys > .struct-action-button[data-action="toggle-sort-keys"],
 .view-struct .string-value-as-text > .struct-action-button[data-action="toggle-string-mode"] {
     color: var(--discovery-view-struct-toggle-color, #686);
-    background: rgba(151, 223, 151, 0.25);
+    background-color: rgba(151, 223, 151, 0.25);
     border-color: rgba(137, 177, 137, 0.4);
 }
 .view-struct .struct-action-button[data-action="show-signature"] {
@@ -32,8 +32,12 @@
     .view-struct .struct-action-button {
         padding: 3px 20px 3px;
         color: #333;
-        background: white;
-        border-color: #e0e0e0;
+        background-color: white;
+        border-color: rgba(100, 100, 100, 0.2);
+    }
+    .discovery-root-darkmode .view-struct .struct-action-button {
+        color: #aaa;
+        background-color: #50505080;
     }
     .view-struct .struct-action-button[data-action="show-signature"] {
         cursor: pointer;

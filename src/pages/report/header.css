@@ -3,15 +3,23 @@
     flex-direction: row;
     line-height: 1.2;
     position: sticky;
-    top: -22px;
+    top: -2px;
     z-index: 100;
-    padding: 22px 40px 7px;
+    padding: 22px 250px 7px 40px;
+    padding: 22px calc(40px + 6px + max(42px * 3, var(--discovery-nav-width, 0px))) 7px 40px;
     margin: 0 -40px 18px;
     background-color: rgba(255, 255, 255, .92);
     transition: background-color .25s ease-in;
 }
 .discovery-root-darkmode .page-report > .report-header {
     background-color: rgba(36, 36, 36, .92);
+}
+.page-report.page_overscrolled > .report-header {
+    box-shadow: 0 0 3px rgba(0, 0, 0, .2);
+    transition-property: background-color, box-shadow;
+}
+.discovery-root-darkmode .page-report.page_overscrolled > .report-header {
+    box-shadow: 0 0 3px rgba(0, 0, 0, .5);
 }
 @supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
     .page-report > .report-header {
@@ -68,14 +76,21 @@
 }
 
 /********************************
-* Buttons
+* Actions
 ********************************/
 
-.page-report > .report-header .report-actions {
-    margin-left: 10px;
-    margin-top: -3px;
+.page-report > .report-actions {
+    position: sticky;
+    top: 34px;
+    transition: top .25s;
+    z-index: 101;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 19px;
+    margin-bottom: -61px;
+    pointer-events: none;
 }
-.page-report > .report-header button {
+.page-report > .report-actions button {
     width: 42px;
     height: 42px;
     background: center no-repeat;
@@ -86,28 +101,29 @@
     cursor: pointer;
     opacity: .5;
     outline: none;
+    pointer-events: auto;
 }
-.page-report > .report-header button.discovery-view-popup-active,
-.page-report > .report-header button:hover,
-.page-report > .report-header button:focus {
+.page-report > .report-actions button.discovery-view-popup-active,
+.page-report > .report-actions button:hover,
+.page-report > .report-actions button:focus {
     background-color: rgba(0, 0, 0, .03125);
     opacity: 1;
 }
-.page-report > .report-header button.toggle-fullscreen {
+.page-report > .report-actions button.toggle-fullscreen {
     background-image: url(./img/fullscreen-on.svg);
     background-size: 25px;
 }
-.page-report > .report-header button.edit-mode {
+.page-report > .report-actions button.edit-mode {
     background-image: url(./img/edit.svg);
     background-size: 20px;
 }
-.page-report > .report-header button.edit-mode:not(.disabled) {
+.page-report > .report-actions button.edit-mode:not(.disabled) {
     opacity: 1;
 }
-.page-report > .report-header button.edit-mode.disabled {
+.page-report > .report-actions button.edit-mode.disabled {
     filter: grayscale();
 }
-.page-report > .report-header button.share {
+.page-report > .report-actions button.share {
     background-image: url(./img/share.svg);
     background-size: 25px;
 }
@@ -116,10 +132,13 @@
 * Dzen mode
 ********************************/
 
-.discovery[data-dzen] .page-report > .report-header button.toggle-fullscreen {
+.discovery[data-dzen] .page-report > .report-actions {
+    top: 20px;
+}
+.discovery[data-dzen] .page-report > .report-actions button.toggle-fullscreen {
     background-image: url(./img/fullscreen-off.svg);
 }
-.discovery[data-dzen] .page-report > .report-header button.edit-mode,
+.discovery[data-dzen] .page-report > .report-actions button.edit-mode,
 .discovery[data-dzen] .page-report > .report-header .report-header-text input {
     display: none;
 }

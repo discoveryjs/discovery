@@ -26,7 +26,7 @@ export default function(discovery) {
     ]);
     const reportContentEl = createElement('div', 'report-content');
     const layout = [
-        header.el,
+        ...header.el,
         reportEditorEl,
         reportContentEl
     ];

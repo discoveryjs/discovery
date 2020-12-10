@@ -24,7 +24,7 @@ export default function(discovery) {
     // single event handler for all `tree-leaf` view instances
     discovery.addGlobalEventListener('click', clickHandler, false);
 
-    discovery.view.define('tree-leaf', function(el, config, data, context) {
+    discovery.view.define('tree-leaf', async function(el, config, data, context) {
         const { expanded, content = 'text', itemConfig, collapsible = true, last, hasChildren, children, limit, onToggle } = config;
         const toggleEl = el.appendChild(createElement('span', 'view-tree-leaf-toggle'));
         const contentEl = el.appendChild(createElement('span', 'view-tree-leaf-content'));
@@ -39,7 +39,7 @@ export default function(discovery) {
             el.classList.add('non-collapsible');
         }
 
-        this.render(contentEl, content, data, context);
+        await this.render(contentEl, content, data, context);
 
         if (children) {
             childrenData = discovery.query(children, data, context);
@@ -71,7 +71,7 @@ export default function(discovery) {
 
             if (typeof expanded === 'function' ? expanded(data, context) : expanded) {
                 if (childrenData) {
-                    renderChildren(childrenData, expanded);
+                    await renderChildren(childrenData, expanded);
                 }
             } else {
                 el.classList.add('collapsed');
