@@ -1,6 +1,6 @@
 import Publisher from '../publisher.js';
 import { streamFromBlob } from './blob-polyfill.js';
-import jsonExt from '/gen/@discoveryjs/json-ext.js';
+import jsonExt from '@discoveryjs/json-ext';
 
 export const loadStages = {
     request: {

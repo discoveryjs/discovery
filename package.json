@@ -6,7 +6,7 @@
     "license": "MIT",
     "repository": "discoveryjs/discovery",
     "keywords": [],
-    "main": "dist/discovery.umd.js",
+    "main": "dist/discovery.js",
     "unpkg": "dist/discovery.umd.js",
     "jsdelivr": "dist/discovery.umd.js",
     "browser": {
@@ -21,7 +21,7 @@
     "scripts": {
         "lint": "eslint scripts src",
         "build": "npm run build:js && npm run build:css",
-        "build:js": "esbuild src/lib.js --outfile=dist/lib.js --bundle --define:global=window --format=esm --minify --sourcemap",
+        "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build:css": "node scripts/build-css",
         "build-gh-pages": "npm run build && discovery-build -o .gh-pages --isolate-styles",
         "prepublishOnly": "npm run build",
