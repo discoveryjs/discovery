@@ -1,5 +1,3 @@
-@import url('/node_modules/prismjs/themes/prism.css');
-
 .view-source {
     padding: 8px;
     overflow: auto;
@@ -100,6 +98,14 @@
 .view-source .token.number {
     color: var(--discovery-fmt-number-color);
 }
+.view-source .token.selector,
+.view-source .token.attr-value,
+.view-source .token.string,
+.view-source .token.char,
+.view-source .token.builtin,
+.view-source .token.inserted {
+	color: var(--discovery-fmt-string-color);
+}
 .view-source .token.property,
 .view-source .token.tag,
 .view-source .token.constant,
@@ -107,25 +113,19 @@
 .view-source .token.deleted {
 	color: var(--discovery-fmt-property-color);
 }
-.view-source .token.selector,
-.view-source .token.attr-name,
-.view-source .token.string,
-.view-source .token.char,
-.view-source .token.builtin,
-.view-source .token.inserted {
-	color: var(--discovery-fmt-string-color);
-}
 .view-source .token.operator,
 .view-source .token.entity,
 .view-source .token.url {
 	color: #9a6e3a;
 }
 .view-source .token.atrule,
-.view-source .token.attr-value,
 .view-source .token.keyword {
 	color: var(--discovery-fmt-keyword-color);
 }
 .view-source .token.function,
+.view-source .token.attribute,
+.view-source .token.attr-name,
+.view-source .token.qualifier,
 .view-source .token.class-name {
 	color: #DD4A68;
 }

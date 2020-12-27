@@ -1,26 +1,68 @@
 /* eslint-env browser */
 
 import hitext from 'hitext';
-import hitextPrismjs from 'hitext-prismjs';
 import CodeMirror from 'codemirror';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/css/css';
+import 'codemirror/mode/xml/xml';
+import { equal } from '../core/utils/compare';
 import usage from './source.usage.js';
 
 const maxSourceSizeToHighlight = 100 * 1024;
-const mimeToSyntax = new Map(Object.entries({
-    'application/javascript': 'javascript',
-    'application/x-httpd-php': 'php',
-    'application/xml': 'xml',
-    'application/json': 'json',
-    'text/html': 'html',
-    'text/css': 'css',
-    'text/stylus': 'stylus',
-    'text/yaml': 'yaml',
-    'image/svg+xml': 'svg'
-}));
+CodeMirror.modeToMime = {
+    js: 'application/javascript',
+    ts: 'application/typescript',
+    typescript: 'application/typescript',
+    json: 'application/json',
+    html: 'text/html',
+    css: 'text/css',
+    scss: 'text/x-scss',
+    less: 'text/x-less'
+};
+
+function getSupported() {
+    const mimeMode = new Map();
+    const resolveMode = ref => {
+        const mode = CodeMirror.resolveMode(ref);
+        const key = [...mimeMode.keys()].find(key => equal(key, mode));
+
+        if (key) {
+            return key;
+        }
+
+        mimeMode.set(mode, {
+            mime: new Set(),
+            name: new Set()
+        });
+
+        return mode;
+    };
+
+    for (const [alias, mime] of Object.entries(CodeMirror.modeToMime)) {
+        const mode = mimeMode.get(resolveMode(mime));
+
+        mode.mime.add(mime);
+        mode.name.add(alias);
+    }
+
+    for (const [mime, alias] of Object.entries(CodeMirror.mimeModes)) {
+        const mode = mimeMode.get(resolveMode(mime));
+
+        mode.mime.add(mime);
+        if (typeof alias === 'string') {
+            mode.name.add(alias);
+        }
+    }
+
+    return [...mimeMode.values()].map(syntax => ({
+        name: [...syntax.name],
+        mime: [...syntax.mime]
+    }));
+}
 
 function codeMirrorHighlight(modespec, discovery) {
     const mode = CodeMirror.getMode(CodeMirror.defaults, {
-        name: modespec,
+        name: CodeMirror.modeToMime[modespec] || modespec,
         isDiscoveryViewDefined: name => discovery.view.isDefined(name)
     });
 
@@ -76,7 +118,16 @@ const refsPrinter = {
 export default function(discovery) {
     discovery.view.define('source', function(el, config, data) {
         const decorators = [];
-        const { mime, binary, size, syntax, content, refs, error, disabled } = data;
+        const {
+            mime, // deprecated, syntax = name or mime
+            binary,
+            size,
+            syntax,
+            content,
+            refs,
+            error,
+            disabled
+        } = data;
 
         if (disabled) {
             el.classList.add('disabled');
@@ -96,24 +147,16 @@ export default function(discovery) {
 
         // prevent syntax highlighting for sources over maxSourceSizeToHighlight to avoid page freeze
         if (content.length < maxSourceSizeToHighlight) {
-            let highlightSyntax = syntax || mimeToSyntax.get(mime);
-
-            if (highlightSyntax) {
-                decorators.push(
-                    highlightSyntax === 'discovery-view' || highlightSyntax === 'discovery-query'
-                        ? [codeMirrorHighlight(highlightSyntax, discovery), {
-                            html: {
-                                open({ data: type }) {
-                                    return '<span class="token ' + type + '">';
-                                },
-                                close() {
-                                    return '</span>';
-                                }
-                            }
-                        }]
-                        : hitextPrismjs(highlightSyntax)
-                );
-            }
+            decorators.push([codeMirrorHighlight(syntax || mime, discovery), {
+                html: {
+                    open({ data: type }) {
+                        return '<span class="token ' + type + '">';
+                    },
+                    close() {
+                        return '</span>';
+                    }
+                }
+            }]);
         }
 
         if (Array.isArray(refs)) {
@@ -144,5 +187,10 @@ export default function(discovery) {
                     hitext(decorators, 'html')(content) +
                 '</div>';
         }
-    }, { usage });
+    }, {
+        usage,
+        get syntaxes() {
+            return getSupported();
+        }
+    });
 }
