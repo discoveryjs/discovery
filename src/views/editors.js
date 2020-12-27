@@ -4,6 +4,7 @@ import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
 import CodeMirror from 'codemirror';
+import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
 function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {

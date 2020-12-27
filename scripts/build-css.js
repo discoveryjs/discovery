@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { bundleCss } = require('@discoveryjs/cli').build;
+const bundleCss = require('@discoveryjs/cli/lib/shared/bundle-css');
 const inputFilename = path.join(__dirname, '../src/lib.css');
 const outputPath = path.join(__dirname, '../dist');
 const isolateOptions = {

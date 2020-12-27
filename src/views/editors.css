@@ -1,5 +1,5 @@
-@import url('/node_modules/codemirror/lib/codemirror.css');
-@import url('/node_modules/codemirror/theme/neo.css');
+@import url('codemirror/lib/codemirror.css');
+@import url('codemirror/theme/neo.css');
 @import url('./editors-hint.css');
 
 .discovery-editor .CodeMirror {
