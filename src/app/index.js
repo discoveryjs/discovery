@@ -1,7 +1,6 @@
 /* eslint-env browser */
 
 import Widget from '../widget/index.js';
-import * as complexViews from '../views/index-complex.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
@@ -84,7 +83,6 @@ export default class App extends Widget {
         this.mode = this.options.mode;
         this.download = this.options.setup.model && this.options.setup.model.download;
 
-        this.apply(complexViews);
         this.apply(router);
 
         // let detachDarkMode = () => {};

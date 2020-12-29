@@ -7,6 +7,7 @@
 - Changed `source` view to highligh using CodeMirror only
 - Enabled `source` view syntaxes can be observed on `#views-showcase:source` page
 - Removed `Prismjs` and related dependencies
+- Moved `source` view to regular views, dropped `complexViews` from exports
 
 ## 1.0.0-beta.52 (19-11-2020)
 
