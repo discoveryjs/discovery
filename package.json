@@ -25,16 +25,16 @@
         "node": ">=8.0.0"
     },
     "dependencies": {
-        "@discoveryjs/json-ext": "^0.4.0",
-        "codemirror": "^5.52.2",
+        "@discoveryjs/json-ext": "^0.5.2",
+        "codemirror": "^5.59.0",
         "hitext": "^1.0.0-beta.1",
         "jora": "1.0.0-beta.5",
-        "marked": "^1.2.3"
+        "marked": "^1.2.7"
     },
     "devDependencies": {
-        "@discoveryjs/cli": "^1.14.3",
+        "@discoveryjs/cli": "^1.15.0",
         "cypress": "^5.3.0",
-        "esbuild": "^0.8.26",
+        "esbuild": "^0.8.27",
         "eslint": "^6.8.0",
         "eslint-plugin-cypress": "^2.11.2"
     },
