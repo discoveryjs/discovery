@@ -141,7 +141,7 @@ export default function(discovery) {
             };
 
             this.el = document.createElement('div');
-            this.el.classList.add('discovery-view-popup', discovery.isolateStyleMarker);
+            this.el.classList.add('discovery-view-popup');
             this.el.dataset.discoveryInstanceId = discovery.instanceId;
 
             this.hide = this.hide.bind(this);

@@ -26,36 +26,35 @@ export default class PageRenderer extends Dict {
 
         if (typeof IntersectionObserver === 'function') {
             const pageOverscrollTriggerEl = createElement('div', { style: 'position:absolute' });
+            const root = host.dom.content;
             let overscrollObserver = null;
             let unsubscribe = () => {};
 
-            host.on('container-changed', ({ content: root }) => {
-                if (overscrollObserver) {
-                    overscrollObserver.disconnect();
-                    overscrollObserver = null;
-                }
+            if (overscrollObserver) {
+                overscrollObserver.disconnect();
+                overscrollObserver = null;
+            }
 
-                if (root) {
-                    overscrollObserver = new IntersectionObserver(
-                        entries =>
-                            this.pageOverscrolled.set(!entries[entries.length - 1].isIntersecting),
-                        { root }
-                    );
+            if (root) {
+                overscrollObserver = new IntersectionObserver(
+                    entries =>
+                        this.pageOverscrolled.set(!entries[entries.length - 1].isIntersecting),
+                    { root }
+                );
 
-                    this.setPageOverscroll = newPageEl => {
-                        overscrollObserver.unobserve(pageOverscrollTriggerEl);
-                        unsubscribe();
+                this.setPageOverscroll = newPageEl => {
+                    overscrollObserver.unobserve(pageOverscrollTriggerEl);
+                    unsubscribe();
 
-                        if (newPageEl) {
-                            newPageEl.prepend(pageOverscrollTriggerEl);
-                            overscrollObserver.observe(pageOverscrollTriggerEl);
-                            unsubscribe = this.pageOverscrolled.subscribeSync(overscrolled =>
-                                newPageEl.classList.toggle('page_overscrolled', overscrolled)
-                            );
-                        }
-                    };
-                }
-            });
+                    if (newPageEl) {
+                        newPageEl.prepend(pageOverscrollTriggerEl);
+                        overscrollObserver.observe(pageOverscrollTriggerEl);
+                        unsubscribe = this.pageOverscrolled.subscribeSync(overscrolled =>
+                            newPageEl.classList.toggle('page_overscrolled', overscrolled)
+                        );
+                    }
+                };
+            }
         }
     }
 

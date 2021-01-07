@@ -165,6 +165,17 @@ export default class Widget extends Emitter {
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
+
+        const {
+            darkmode = 'disabled',
+            darkmodePersistent = false
+        } = this.options;
+        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
+
+        this.instanceId = genUniqueId();
+        this.inspectMode = new Publisher(false);
+        this.initDom();
+
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
@@ -196,19 +207,6 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
-        const {
-            darkmode = 'disabled',
-            darkmodePersistent = false
-        } = this.options;
-        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
-
-        this.instanceId = genUniqueId();
-        this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.inspectMode = new Publisher(false);
-        this.dom = {};
-
-        this.hostElEventListeners = [];
-
         this.apply(views);
         this.apply(pages);
 
@@ -220,7 +218,9 @@ export default class Widget extends Emitter {
             this.apply(this.options.extensions);
         }
 
+        this.nav.render(this.dom.nav);
         this.setContainer(container);
+        attachViewInspector(this);
     }
 
     apply(extensions) {
@@ -470,55 +470,52 @@ export default class Widget extends Emitter {
     // UI
     //
 
-    setContainer(container) {
-        const newContainerEl = container || null;
-        const oldDomRefs = this.dom;
+    initDom() {
+        const wrapper = createElement('div', 'discovery');
+        const shadow = wrapper.attachShadow({ mode: 'open' });
+        const container = shadow.appendChild(createElement('div'));
 
-        if (this.dom.container === newContainerEl) {
-            return;
+        for (const style of this.options.styles || []) {
+            shadow.append(createElement('link', {
+                rel: 'stylesheet',
+                href: style
+            }));
         }
 
-        // reset old refs
         this.dom = {};
-        if (typeof oldDomRefs.detachDarkMode === 'function') {
-            oldDomRefs.detachDarkMode();
+        this.dom.wrapper = wrapper;
+        this.dom.container = container;
+        this.dom.detachDarkMode = this.darkmode.on(
+            dark => container.classList.toggle('discovery-root-darkmode', dark)
+        );
+
+        container.classList.add('discovery-root', 'discovery');
+        container.classList.toggle('discovery-root-darkmode', this.darkmode.value);
+        container.dataset.discoveryInstanceId = this.instanceId;
+        container.append(
+            this.dom.nav = createElement('div', 'discovery-nav'),
+            this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
+            this.dom.content = createElement('main', 'discovery-content', [
+                this.dom.pageContent = createElement('article')
+            ])
+        );
+
+        // cancel transitions on attach
+        container.style.transition = 'none';
+        requestAnimationFrame(() => container.style.transition = '');
+    }
+
+    setContainer(container) {
+        container.append(this.dom.wrapper);
+    }
+
+    disposeDom() {
+        if (typeof this.dom.detachDarkMode === 'function') {
+            this.dom.detachDarkMode();
+            this.dom.detachDarkMode = null;
         }
-
-        if (newContainerEl !== null) {
-            this.dom.container = newContainerEl;
-            this.dom.detachDarkMode = this.darkmode.on(
-                dark => new Set([newContainerEl])
-                    .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
-            );
-
-            newContainerEl.classList.add('discovery-root', 'discovery', this.isolateStyleMarker);
-            newContainerEl.classList.toggle('discovery-root-darkmode', this.darkmode.value);
-            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
-            newContainerEl.append(
-                this.dom.nav = createElement('div', 'discovery-nav'),
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
-                this.dom.content = createElement('main', 'discovery-content', [
-                    this.dom.pageContent = createElement('article')
-                ])
-            );
-
-            // cancel transitions on attach
-            newContainerEl.style.transition = 'none';
-            requestAnimationFrame(() => newContainerEl.style.transition = '');
-
-            this.nav.render(this.dom.nav);
-            attachViewInspector(this);
-        } else {
-            for (let key in this.dom) {
-                this.dom[key] = null;
-            }
-        }
-
-        for (const { eventName, handler, options } of this.hostElEventListeners) {
-            this.dom.container.addEventListener(eventName, handler, options);
-        }
-
-        this.emit('container-changed', this.dom, oldDomRefs);
+        this.dom.container.remove();
+        this.dom = null;
     }
 
     addGlobalEventListener(eventName, handler, options) {
@@ -527,7 +524,10 @@ export default class Widget extends Emitter {
     }
 
     addHostElEventListener(eventName, handler, options) {
-        this.hostElEventListeners.push({ eventName, handler, options });
+        const el = this.dom.container;
+
+        el.addEventListener(eventName, handler, options);
+        return () => el.removeEventListener(eventName, handler, options);
     }
 
     addBadge() {

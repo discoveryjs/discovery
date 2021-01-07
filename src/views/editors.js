@@ -42,7 +42,6 @@ class Editor extends Emitter {
             indentUnit: 0,
             showHintOptions: {
                 hint,
-                isolateStyleMarker: this.isolateStyleMarker,
                 get darkmode() {
                     return self.darkmode.value ? 'darkmode' : false;
                 }
@@ -89,7 +88,6 @@ class Editor extends Emitter {
         this.cm.focus();
     }
 
-    get isolateStyleMarker() {}
     get darkmode() {}
 }
 
@@ -217,9 +215,6 @@ CodeMirror.defineMode('discovery-view', function(config, options) {
 export default function(discovery) {
     Object.assign(discovery.view, {
         QueryEditor: class extends QueryEditor {
-            get isolateStyleMarker() {
-                return discovery.isolateStyleMarker;
-            }
             get darkmode() {
                 return discovery.darkmode;
             }
@@ -227,9 +222,6 @@ export default function(discovery) {
         ViewEditor: class extends ViewEditor {
             isViewDefined(name) {
                 return discovery.view.isDefined(name);
-            }
-            get isolateStyleMarker() {
-                return discovery.isolateStyleMarker;
             }
             get darkmode() {
                 return discovery.darkmode;
