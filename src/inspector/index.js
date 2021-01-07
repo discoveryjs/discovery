@@ -127,12 +127,12 @@ export default (host) => {
     }, { maxWait: 0, wait: 50 });
     const updateState = () => {
         const { x, y } = pointerXY.value;
-        onHover([...document.elementsFromPoint(x | 0, y | 0) || []]
+        onHover([...host.dom.container.parentNode.elementsFromPoint(x | 0, y | 0) || []]
             .find(el => viewByEl.has(el)) || null
         );
     };
     const keyPressedEventListener = (e) => {
-        if (e.key === 'Escase' || e.keyCode === 27 || e.which === 27) {
+        if (e.key === 'Escape' || e.keyCode === 27 || e.which === 27) {
             host.inspectMode.set(false);
         }
     };

@@ -434,7 +434,7 @@ export default function(discovery) {
     };
 
     // single event handler for all `struct` view instances
-    discovery.addGlobalEventListener('click', clickHandler, false);
+    discovery.addHostElEventListener('click', clickHandler, false);
 
     discovery.view.define('struct', function(el, config, data) {
         const { expanded, limit, limitCollapsed, annotations } = config; // FIXME: add limit option

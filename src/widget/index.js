@@ -207,6 +207,8 @@ export default class Widget extends Emitter {
         this.inspectMode = new Publisher(false);
         this.dom = {};
 
+        this.hostElEventListeners = [];
+
         this.apply(views);
         this.apply(pages);
 
@@ -468,12 +470,6 @@ export default class Widget extends Emitter {
     // UI
     //
 
-    getDomRoots() {
-        return [
-            ...document.querySelectorAll(`[data-discovery-instance-id=${JSON.stringify(this.instanceId)}]`)
-        ];
-    }
-
     setContainer(container) {
         const newContainerEl = container || null;
         const oldDomRefs = this.dom;
@@ -491,7 +487,7 @@ export default class Widget extends Emitter {
         if (newContainerEl !== null) {
             this.dom.container = newContainerEl;
             this.dom.detachDarkMode = this.darkmode.on(
-                dark => new Set([newContainerEl, ...this.getDomRoots()])
+                dark => new Set([newContainerEl])
                     .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
             );
 
@@ -499,9 +495,9 @@ export default class Widget extends Emitter {
             newContainerEl.classList.toggle('discovery-root-darkmode', this.darkmode.value);
             newContainerEl.dataset.discoveryInstanceId = this.instanceId;
             newContainerEl.append(
+                this.dom.nav = createElement('div', 'discovery-nav'),
                 this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
                 this.dom.content = createElement('main', 'discovery-content', [
-                    this.dom.nav = createElement('div', 'discovery-nav'),
                     this.dom.pageContent = createElement('article')
                 ])
             );
@@ -518,23 +514,20 @@ export default class Widget extends Emitter {
             }
         }
 
+        for (const { eventName, handler, options } of this.hostElEventListeners) {
+            this.dom.container.addEventListener(eventName, handler, options);
+        }
+
         this.emit('container-changed', this.dom, oldDomRefs);
     }
 
     addGlobalEventListener(eventName, handler, options) {
-        const instanceId = this.instanceId;
-        const handlerWrapper = function(event) {
-            const root = event.target !== document
-                ? event.target.closest('[data-discovery-instance-id]')
-                : null;
+        document.addEventListener(eventName, handler, options);
+        return () => document.removeEventListener(eventName, handler, options);
+    }
 
-            if (root && root.dataset.discoveryInstanceId === instanceId) {
-                handler.call(this, event);
-            }
-        };
-
-        document.addEventListener(eventName, handlerWrapper, options);
-        return () => document.removeEventListener(eventName, handlerWrapper, options);
+    addHostElEventListener(eventName, handler, options) {
+        this.hostElEventListeners.push({ eventName, handler, options });
     }
 
     addBadge() {
