@@ -22,7 +22,7 @@ export default function(discovery) {
     };
 
     // single event handler for all `tree-leaf` view instances
-    discovery.addGlobalEventListener('click', clickHandler, false);
+    discovery.addHostElEventListener('click', clickHandler, false);
 
     discovery.view.define('tree-leaf', async function(el, config, data, context) {
         const { expanded, content = 'text', itemConfig, collapsible = true, last, hasChildren, children, limit, onToggle } = config;

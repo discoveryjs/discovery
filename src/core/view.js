@@ -526,9 +526,7 @@ export default class ViewRenderer extends Dict {
         const ignoreNodes = new Set(ignore || []);
         const result = [];
 
-        for (const root of this.host.getDomRoots()) {
-            collectViewTree(root, { parent: null, children: result }, ignoreNodes);
-        }
+        collectViewTree(this.host.dom.container, { parent: null, children: result }, ignoreNodes);
 
         return result;
     }

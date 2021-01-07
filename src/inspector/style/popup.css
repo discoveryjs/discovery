@@ -20,7 +20,7 @@
     --discovery-link-underline-color: #0002;
     --discovery-view-root-highlight-color: rgba(106, 0, 204, 25%);
 }
-.discovery-root-darkmode.discovery-inspect-details-popup {
+.discovery-root-darkmode .discovery-inspect-details-popup {
     background: rgba(36, 36, 36, var(--discovery-background-alpha));
 
     --discovery-background-alpha: .92;

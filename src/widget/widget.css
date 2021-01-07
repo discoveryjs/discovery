@@ -6,6 +6,8 @@
 .discovery-root {
     all: reset;
 
+    position: relative;
+
     font-family: Tahoma, Verdana, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.6;
@@ -160,7 +162,7 @@
 }
 
 .discovery-nav {
-    position: fixed;
+    position: absolute;
     z-index: 102;
     top: 0;
     right: 40px;
