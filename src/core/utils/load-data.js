@@ -1,6 +1,6 @@
 import Publisher from '../publisher.js';
 import { streamFromBlob } from './blob-polyfill.js';
-import jsonExt from '@discoveryjs/json-ext';
+import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
 
 export const loadStages = {
     request: {
@@ -23,6 +23,12 @@ export const loadStages = {
         value: 1.0,
         title: 'Done!'
     }
+};
+export const loadDataFrom = {
+    stream: loadDataFromStream,
+    file: loadDataFromFile,
+    event: loadDataFromEvent,
+    url: loadDataFromUrl
 };
 Object.values(loadStages).forEach((item, idx, array) => {
     item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
@@ -50,7 +56,7 @@ function isSameOrigin(url) {
 export function jsonFromStream(stream, totalSize, setProgress = () => {}) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
 
-    return jsonExt.parseChunked(async function*() {
+    return parseChunked(async function*() {
         const reader = stream.getReader();
         const streamStartTime = Date.now();
         let completed = 0;

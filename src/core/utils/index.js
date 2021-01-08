@@ -1,7 +1,7 @@
 import * as base64 from './base64.js';
 import * as compare from './compare.js';
 import copyText from './copy-text.js';
-import * as dataLoad from './data-load.js';
+import * as dataLoad from './load-data.js';
 import debounce from './debounce.js';
 import * as dom from './dom.js';
 import * as html from './html.js';

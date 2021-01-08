@@ -10,7 +10,7 @@ import {
     loadDataFromEvent,
     loadDataFromUrl,
     loadStages
-} from '../core/utils/data-load.js';
+} from '../core/utils/load-data.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 

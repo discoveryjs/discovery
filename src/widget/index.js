@@ -473,15 +473,16 @@ export default class Widget extends Emitter {
     initDom() {
         const wrapper = createElement('div', 'discovery');
         const shadow = wrapper.attachShadow({ mode: 'open' });
-        const container = shadow.appendChild(createElement('div'));
 
-        for (const style of this.options.styles || []) {
-            shadow.append(createElement('link', {
-                rel: 'stylesheet',
-                href: style
-            }));
+        if (Array.isArray(this.options.styles)) {
+            // shadow.append(...this.options.styles.map(style => createElement('link', {
+            //     rel: 'stylesheet',
+            //     href: style
+            // })));
+            shadow.append(...this.options.styles.map(style => createElement('style', null, style)));
         }
 
+        const container = shadow.appendChild(createElement('div'));
         this.dom = {};
         this.dom.wrapper = wrapper;
         this.dom.container = container;
