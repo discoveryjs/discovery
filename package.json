@@ -13,11 +13,11 @@
         "lint": "eslint scripts src",
         "build": "npm run build:js && npm run build:css",
         "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap",
-        "build:css": "node scripts/build-css",
+        "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
         "build-gh-pages": "npm run build && discovery-build -o .gh-pages --isolate-styles",
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
-        "start:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js",
+        "cypress:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js -p 8124",
         "start": "discovery -c models",
         "test": "./cypress/test.sh"
     },

@@ -41,7 +41,7 @@
     background-image: linear-gradient(0deg, rgba(150, 150, 150, .15), rgba(150, 150, 150, .15));
 }
 .view-expand > .header > .trigger::before {
-    background: url(expand.svg) no-repeat center;
+    background: url(./expand.svg) no-repeat center;
     background-size: 12px;
     transition: transform .15s ease-in;
     width: 12px;
