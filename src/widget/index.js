@@ -11,7 +11,7 @@ import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import attachViewInspector from '../inspector/index.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
-import { DarkModeController } from './darkmode.js';
+import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
 import jora from 'jora';

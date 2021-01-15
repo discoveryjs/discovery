@@ -4,6 +4,7 @@ import Widget from '../widget/index.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
+import progressbar from '../core/utils/progressbar.js';
 import {
     loadDataFromStream,
     loadDataFromFile,
@@ -13,64 +14,6 @@ import {
 } from '../core/utils/load-data.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
-
-function progressbar(state, progressEl) {
-    if (!progressEl) {
-        progressEl = document.createElement('div');
-    }
-
-    progressEl.innerHTML = '<div class="title"></div><div class="progress"></div>';
-
-    const unsubscribe = state.subscribeSync(state => {
-        const { stage, progress, error } = state;
-
-        if (error) {
-            unsubscribe();
-            progressEl.classList.add('error');
-            return;
-        }
-
-        const { value, title, duration } = loadStages[stage];
-        let progressValue = 0;
-        let progressLabel;
-
-        if (progress) {
-            const {
-                done,
-                elapsed,
-                units,
-                completed,
-                total
-            } = progress;
-
-            if (total) {
-                progressValue = done ? 1.0 : completed / total;
-                progressLabel = units === 'bytes'
-                    ? Math.round(progressValue * 100) + '%'
-                    : `${completed}/${total}`;
-            } else {
-                progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
-                progressLabel = units === 'bytes'
-                    ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
-                    : completed;
-            }
-        }
-
-        progressEl.style.setProperty('--progress', value + progressValue * duration);
-        progressEl.querySelector('.title').textContent = progressLabel
-            ? `${title} (${progressLabel})...`
-            : stage !== 'done'
-                ? `${title}...`
-                : title;
-
-        if (stage === 'done') {
-            unsubscribe();
-            progressEl.classList.add('done');
-        }
-    });
-
-    return unsubscribe;
-}
 
 export default class App extends Widget {
     constructor(container, options = {}) {
@@ -201,7 +144,6 @@ export default class App extends Widget {
         return setDataPromise;
     }
 
-    // FIXME: temporary solution
     progressbar(...args) {
         return progressbar(...args);
     }
@@ -211,13 +153,15 @@ export default class App extends Widget {
             this.cancelTrackLoadDataProgress();
         }
 
+        const progressbar = this.progressbar(state);
         const containerEl = this.dom.loadingOverlay;
+        containerEl.append(progressbar.el);
         containerEl.classList.remove('error', 'done');
         containerEl.classList.add('init');
         requestAnimationFrame(() => containerEl.classList.remove('init'));
 
         const subscriptions = [
-            progressbar(state, containerEl),
+            progressbar.dispose,
             timing.subscribe(({ stage, elapsed }) =>
                 console.log(`[Discovery] Data loading / ${loadStages[stage].title} - ${elapsed}ms`)
             )
@@ -230,24 +174,30 @@ export default class App extends Widget {
         };
 
         // output error
-        result.catch(error => {
-            containerEl.innerHTML = [
-                '<div class="view-alert view-alert-danger">',
-                '<h3 class="view-header">Ops, something went wrong with data loading</h3>',
-                '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
-                '</div>'
-            ].join('');
+        result.then(
+            () => {
+                containerEl.classList.add('done');
+            },
+            error => {
+                containerEl.classList.add('error');
+                containerEl.innerHTML = [
+                    '<div class="view-alert view-alert-danger">',
+                    '<h3 class="view-header">Ooops, something went wrong on data loading</h3>',
+                    '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
+                    '</div>'
+                ].join('');
 
-            if (this.options.cache) {
-                containerEl.prepend(createElement('button', {
-                    class: 'view-button',
-                    async onclick() {
-                        await fetch('drop-cache');
-                        location.reload();
-                    }
-                }, 'Reload with no cache'));
+                if (this.options.cache) {
+                    containerEl.prepend(createElement('button', {
+                        class: 'view-button',
+                        async onclick() {
+                            await fetch('drop-cache');
+                            location.reload();
+                        }
+                    }, 'Reload with no cache'));
+                }
             }
-        });
+        );
 
         return result
             .finally(this.cancelTrackLoadDataProgress);

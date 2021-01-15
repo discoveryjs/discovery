@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import { localStorageEntry } from '../core/utils/persistent.js';
+import { localStorageEntry } from './utils/persistent.js';
 
 const validValues = new Set([true, false, 'auto', 'disabled']);
 const instances = new Set();
@@ -41,6 +41,31 @@ applyLocalStorageValue(localStorage.value);
 localStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
+function resolveInitValue(value, persistent) {
+    if (value === 'off' || value === 'disable') {
+        value = 'disabled';
+    }
+
+    // use value from a localStorage when persistent
+    if (value !== 'disabled' && persistent && localStorageValue !== null) {
+        value = localStorageValue;
+    }
+
+    return value;
+}
+
+function resolveSetValue(value) {
+    if (!validValues.has(value)) {
+        value = 'disabled';
+    }
+
+    return value === 'auto' ? prefersDarkModeMedia.matches : value === true;
+}
+
+export function resolveDarkmodeValue(value, persistent) {
+    return resolveSetValue(resolveInitValue(value, persistent));
+}
+
 // input value | controller internal state
 //             | -------------------------
 //             | mode     | value
@@ -52,19 +77,9 @@ prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't sup
 
 export class DarkModeController {
     constructor(value, persistent) {
-        if (value === 'off' || value === 'disable') {
-            value = 'disabled';
-        }
-
         this.persistent = persistent ? localStorage : null;
         this.handlers = [];
-        this.set(
-            // use value from a localStorage when persistent
-            value !== 'disabled' && this.persistent !== null && localStorageValue !== null
-                ? localStorageValue
-                : value,
-            true
-        );
+        this.set(resolveInitValue(value, persistent), true);
 
         instances.add(this);
     }
@@ -101,7 +116,7 @@ export class DarkModeController {
         }
 
         this.mode = typeof value === 'boolean' ? 'manual' : value;
-        this.value = this.mode === 'auto' ? prefersDarkModeMedia.matches : value === true;
+        this.value = resolveSetValue(value);
 
         if (this.mode !== 'disabled') {
             if (this.persistent && !init) {

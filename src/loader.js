@@ -1,45 +1,61 @@
 import { loadDataFrom } from './core/utils/load-data.js';
+import { resolveDarkmodeValue } from './core/darkmode.js';
+import defaultProgressbar from './core/utils/progressbar.js';
+
+const styles = {
+    'font-family': 'Tahoma, Verdana, Arial, sans-serif',
+    'font-size': '16px',
+    'line-height': '1.6',
+    '-webkit-text-size-adjust': 'none',
+    'text-size-adjust': 'none',
+    'background-color': 'var(--discovery-background-color, white)',
+    'color': 'var(--discovery-color, black)'
+};
+const darkmodeStyles = {
+    '--discovery-background-color': '#242424',
+    '--discovery-color': '#cccccc'
+};
 
 export function loader(config = {}) {
     // config
-    //   capture
-    //   module
-    //   styles
     //   data
     //   dataType
-    //   options
+    //   container
+    //   progressbar
 
-    const options = config.options || {};
-    const styles = [];
-
-    if (config.capture) {
-        if (options.darkmode) {
-            //
-        }
-    }
-
-    // warmup styles
-    if (Array.isArray(config.styles)) {
-        for (const style of config.styles) {
-            if (/^(https?:)?\/\/|\.css/.test(style)) {
-                styles.push(fetch(style).then(res => res.text()));
-            } else {
-                styles.push(style);
-            }
-        }
-    }
+    const container = config.container || document.body;
+    const progressbar = config.progressbar || defaultProgressbar;
+    const darkmode = resolveDarkmodeValue(config.darkmode, config.darkmodePersistent);
+    console.log(config, darkmode);
 
     if (config.dataType && !loadDataFrom.hasOwnProperty(config.dataType)) {
         throw new Error(`dataType "${config.dataType}" is not supported`);
     }
 
-    const loadData = loadDataFrom[config.dataType || 'url'];
+    for (const [prop, value] of Object.entries(styles)) {
+        container.style.setProperty(prop, value);
+    }
+    if (darkmode) {
+        for (const [prop, value] of Object.entries(darkmodeStyles)) {
+            container.style.setProperty(prop, value);
+        }
+    }
 
-    return Promise.all([
-        config.module,
-        config.data ? loadData(config.data, () => {}, 'data').result : config,
-        ...styles
-    ]).then(([module, { data }, ...styles]) => {
-        module({ ...options, styles }, data);
-    });
+    const loadData = loadDataFrom[config.dataType || 'url'];
+    const loading = config.data
+        ? loadData(config.data, () => {}, 'data')
+        : {
+            result: Promise.resolve(config)
+        };
+
+    if (loading.state) {
+        const { el, dispose } = progressbar(loading.state);
+
+        el.style.margin = '20px';
+        el.style.maxWidth = '300px';
+        container.append(el);
+        loading.result.finally(dispose);
+    }
+
+    return loading.result.then(({ data }) => data);
 }
