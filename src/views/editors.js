@@ -42,6 +42,9 @@ class Editor extends Emitter {
             indentUnit: 0,
             showHintOptions: {
                 hint,
+                get container() {
+                    return self.container;
+                },
                 get darkmode() {
                     return self.darkmode.value ? 'darkmode' : false;
                 }
@@ -217,6 +220,9 @@ export default function(discovery) {
         QueryEditor: class extends QueryEditor {
             get darkmode() {
                 return discovery.darkmode;
+            }
+            get container() {
+                return discovery.dom.container;
             }
         },
         ViewEditor: class extends ViewEditor {
