@@ -1,3 +1,4 @@
 {
-  "projectId": "t2rgkz"
+    "projectId": "t2rgkz",
+    "includeShadowDom": true
 }

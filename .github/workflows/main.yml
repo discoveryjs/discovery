@@ -12,7 +12,7 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          start: npm run start:server
+          start: npm run cypress:server
           wait-on: 'http://localhost:8124'
           record: true
         env:
