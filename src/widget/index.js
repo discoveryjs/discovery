@@ -491,13 +491,14 @@ export default class Widget extends Emitter {
         const container = shadow.appendChild(createElement('div'));
         this.dom = {};
         this.dom.wrapper = wrapper;
+        this.dom.root = shadow;
         this.dom.container = container;
-        this.dom.detachDarkMode = this.darkmode.on(
-            dark => container.classList.toggle('discovery-root-darkmode', dark)
+        this.dom.detachDarkMode = this.darkmode.subscribe(
+            dark => container.classList.toggle('discovery-root-darkmode', dark),
+            true
         );
 
         container.classList.add('discovery-root', 'discovery');
-        container.classList.toggle('discovery-root-darkmode', this.darkmode.value);
         container.dataset.discoveryInstanceId = this.instanceId;
         container.append(
             this.dom.nav = createElement('div', 'discovery-nav'),

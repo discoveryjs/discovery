@@ -84,7 +84,7 @@ export class DarkModeController {
         instances.add(this);
     }
 
-    on(fn, fire) {
+    subscribe(fn, fire) {
         let entry = { fn };
         this.handlers.push(entry);
 

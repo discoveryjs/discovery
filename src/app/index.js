@@ -4,6 +4,7 @@ import Widget from '../widget/index.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
+import applyContainerStyles from '../core/utils/apply-container-styles.js';
 import progressbar from '../core/utils/progressbar.js';
 import {
     loadDataFromStream,
@@ -27,6 +28,7 @@ export default class App extends Widget {
         this.download = this.options.setup.model && this.options.setup.model.download;
 
         this.apply(router);
+        this.darkmode.subscribe(darkmode => applyContainerStyles(this.dom.wrapper.parentNode, { darkmode }));
 
         // let detachDarkMode = () => {};
         // this.nav.append({
@@ -35,7 +37,7 @@ export default class App extends Widget {
         //     onClick: () => this.darkmode.toggle(true),
         //     postRender: el => {
         //         detachDarkMode();
-        //         detachDarkMode = this.darkmode.on((value, mode) => {
+        //         detachDarkMode = this.darkmode.subscribe((value, mode) => {
         //             el.classList.toggle('dark', value);
         //             el.classList.toggle('auto', mode === 'auto');
         //             el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
@@ -53,7 +55,7 @@ export default class App extends Widget {
                 let selfValue;
 
                 detachToggleDarkMode();
-                detachToggleDarkMode = this.darkmode.on((value, mode) => {
+                detachToggleDarkMode = this.darkmode.subscribe((value, mode) => {
                     const newValue = mode === 'auto' ? 'auto' : value;
 
                     if (newValue === selfValue) {
