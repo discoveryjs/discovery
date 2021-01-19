@@ -47,17 +47,6 @@ function getPageMethod(host, pageId, name, fallback) {
         : fallback;
 }
 
-function genUniqueId(len = 16) {
-    const base36 = val => Math.round(val).toString(36);
-    let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
-
-    while (uid.length < len) {
-        uid += base36(Date.now() * Math.random());
-    }
-
-    return uid.substr(0, len);
-}
-
 function createDataExtensionApi(instance) {
     const objectMarkers = new ObjectMarker();
     const linkResolvers = [];
@@ -172,7 +161,6 @@ export default class Widget extends Emitter {
         } = this.options;
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
 
-        this.instanceId = genUniqueId();
         this.inspectMode = new Publisher(false);
         this.initDom();
 
@@ -525,7 +513,6 @@ export default class Widget extends Emitter {
         );
 
         container.classList.add('discovery-root', 'discovery');
-        container.dataset.discoveryInstanceId = this.instanceId;
         container.append(
             this.dom.nav = createElement('div', 'discovery-nav'),
             this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
