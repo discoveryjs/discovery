@@ -1,4 +1,4 @@
-import applyContainerStyles from './core/utils/apply-container-styles.js';
+import applyContainerStyles from './apply-container-styles.js';
 import * as base64 from './base64.js';
 import * as compare from './compare.js';
 import copyText from './copy-text.js';
