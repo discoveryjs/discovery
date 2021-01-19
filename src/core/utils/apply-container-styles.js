@@ -24,7 +24,7 @@ export default function(container, config) {
     const darkmode = resolveDarkmodeValue(config.darkmode, config.darkmodePersistent);
 
     for (const [prop, value] of Object.entries(styles)) {
-        if (!knowContainer.has(container) || !/^transition/.test(prop)) {
+        if (knowContainer.has(container) || !/^transition/.test(prop)) {
             container.style.setProperty(prop, value);
         }
     }
