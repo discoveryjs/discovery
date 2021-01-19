@@ -520,10 +520,6 @@ export default class Widget extends Emitter {
                 this.dom.pageContent = createElement('article')
             ])
         );
-
-        // cancel transitions on attach
-        container.style.transition = 'none';
-        requestAnimationFrame(() => container.style.transition = '');
     }
 
     setContainer(container) {
