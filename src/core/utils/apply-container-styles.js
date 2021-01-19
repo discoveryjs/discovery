@@ -1,7 +1,6 @@
 import { resolveDarkmodeValue } from '../darkmode.js';
 
 const styles = {
-    'padding': '100px',
     'font-family': 'Tahoma, Verdana, Arial, sans-serif',
     'font-size': '16px',
     'line-height': '1.6',

@@ -475,17 +475,43 @@ export default class Widget extends Emitter {
         const shadow = wrapper.attachShadow({ mode: 'open' });
 
         if (Array.isArray(this.options.styles)) {
+            const foucFix = createElement('style', null, ':host{display:none}');
+            const links = new Set();
+
             shadow.append(...this.options.styles.map(style => {
+                if (typeof style === 'string') {
+                    style = {
+                        type: 'style',
+                        content: style
+                    };
+                }
+
                 switch (style.type) {
                     case 'style':
-                        return createElement('style', null, style.data);
+                        return createElement('style', null, style.content);
+
                     case 'link':
-                        return createElement('link', {
+                        const linkEl = createElement('link', {
                             rel: 'stylesheet',
-                            href: style.data
+                            href: style.href,
+                            media: style.media,
+                            onload() {
+                                links.delete(this);
+
+                                if (!links.size) {
+                                    foucFix.remove();
+                                }
+                            }
                         });
+                        links.add(linkEl);
+
+                        return linkEl;
                 }
             }));
+
+            if (links.size) {
+                shadow.append(foucFix);
+            }
         }
 
         const container = shadow.appendChild(createElement('div'));
