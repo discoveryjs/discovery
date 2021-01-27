@@ -1,5 +1,16 @@
-import { loadStages } from './load-data.js';
 const style = `
+:host {
+    position: absolute;
+    margin: 35px 40px;
+    width: 100%;
+    max-width: 300px;
+    z-index: 1;
+    transition: opacity .15s var(--appearance-delay, 0ms);
+    pointer-events: none;
+}
+:host(.init) {
+    opacity: 0;
+}
 .progress {
     content: '';
     display: block;
@@ -25,30 +36,98 @@ const style = `
     background-color: #1f7ec5;
 }`;
 
-export default function progressbar(state) {
-    const wrapperEl = document.createElement('div');
-    const shadow = wrapperEl.attachShadow({ mode: 'open' });
+export const loadStages = {
+    request: {
+        value: 0.0,
+        title: 'Awaiting data'
+    },
+    receive: {
+        value: 0.1,
+        title: 'Receiving data'
+    },
+    parse: {
+        value: 0.9,
+        title: 'Processing data (parse)'
+    },
+    prepare: {
+        value: 0.925,
+        title: 'Processing data (prepare)'
+    },
+    initui: {
+        value: 0.975,
+        title: 'Preparing UI'
+    },
+    done: {
+        value: 1.0,
+        title: 'Done!'
+    }
+};
+Object.values(loadStages).forEach((item, idx, array) => {
+    item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
+});
 
-    wrapperEl.className = 'progressbar';
-    shadow.innerHTML =
-        `<style>${style}</style>` +
-        '<div>' +
-        '<div class="title"></div>' +
-        '<div class="progress"></div>' +
-        '</div>';
+const letRepaintIfNeeded = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1));
 
-    // const processEl =
-    const unsubscribe = state.subscribeSync(state => {
+    if (!document.hidden) {
+        return Promise.race([
+            new Promise(requestAnimationFrame),
+            new Promise(resolve => setTimeout(resolve, 8))
+        ]);
+    }
+};
+
+export default class Progressbar {
+    constructor({ onTiming, delay }) {
+        this.finished = false;
+        this.awaitRepaint = null;
+        this.lastStage = null;
+        this.lastStageStart = null;
+        this.timings = [];
+        this.onTiming = typeof onTiming === 'function' ? onTiming : () => {};
+
+        this.el = document.createElement('div');
+        this.shadowRoot = this.el.attachShadow({ mode: 'closed' });
+
+        this.el.className = 'progressbar init';
+        this.el.style.setProperty('--appearance-delay', `${delay === true ? 200 : Number(delay) || 0}ms`);
+        this.shadowRoot.innerHTML =
+            `<style>${style}</style>` +
+            '<div class="title"></div>' +
+            '<div class="progress"></div>';
+
+        requestAnimationFrame(() => this.el.classList.remove('init'));
+    }
+
+    async setState(state) {
         const { stage, progress, error } = state;
 
-        if (error) {
-            unsubscribe();
+        if (error || this.finished) {
             return;
         }
 
         const { value, title, duration } = loadStages[stage];
+        const stageChanged = stage !== this.lastStage;
         let progressValue = 0;
         let progressLabel;
+
+        const now = Date.now();
+        if (stageChanged) {
+            if (this.lastStageStart !== null) {
+                const entry = {
+                    stage: this.lastStage,
+                    title: loadStages[this.lastStage].title,
+                    duration: now - this.lastStageStart
+                };
+
+                this.timings.push(entry);
+                this.onTiming(entry);
+            }
+
+            this.lastStage = stage;
+            this.lastStageStart = now;
+            this.awaitRepaint = now;
+        }
 
         if (progress) {
             const {
@@ -72,24 +151,35 @@ export default function progressbar(state) {
             }
         }
 
-        wrapperEl.style.setProperty('--progress', value + progressValue * duration);
-        shadow.querySelector('.title').textContent = progressLabel
+        this.el.style.setProperty('--progress', value + progressValue * duration);
+        this.shadowRoot.querySelector('.title').textContent = progressLabel
             ? `${title} (${progressLabel})...`
             : stage !== 'done'
                 ? `${title}...`
                 : title;
 
-        if (stage === 'done') {
-            unsubscribe();
+        if (stageChanged || (now - this.awaitRepaint > 65 && now - this.lastStageStart > 200)) {
+            await letRepaintIfNeeded();
+            this.awaitRepaint = Date.now();
         }
-    });
+    }
 
-    return {
-        el: wrapperEl,
-        unsubscribe,
-        dispose() {
-            unsubscribe();
-            wrapperEl.remove();
+    finish() {
+        if (!this.finished && this.lastStageStart !== null) {
+            const stage = this.lastStage;
+            const duration = Date.now() - this.lastStageStart;
+            const title = loadStages[stage].title;
+            const entry = { stage, title, duration };
+
+            this.timings.push(entry);
+            this.onTiming(entry);
         }
-    };
+
+        this.finished = true;
+    }
+
+    dispose() {
+        this.finish();
+        this.el.remove();
+    }
 }

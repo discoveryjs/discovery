@@ -1,4 +1,27 @@
 export default class Publisher {
+    static setValue(publisher, value) {
+        if (!publisher.shouldPublish(value, publisher.value)) {
+            return false;
+        }
+
+        const callbacks = [];
+        let cursor = publisher.subscriber;
+        publisher.value = value;
+
+        // search for a callback and remove it
+        while (cursor !== null) {
+            const { callback, thisArg } = cursor;
+
+            if (callback !== null) {
+                callbacks.push(callback.call(thisArg, value, () => publisher.unsubscribe(callback, thisArg)));
+            }
+
+            cursor = cursor.subscriber;
+        }
+
+        return callbacks;
+    }
+
     constructor(initValue, shouldPublish) {
         this.value = initValue;
         this.shouldPublish = typeof shouldPublish === 'function' ? shouldPublish : this.shouldPublish;
@@ -7,6 +30,7 @@ export default class Publisher {
 
     get readonly() {
         const host = this;
+
         return {
             subscribe: this.subscribe.bind(this),
             subscribeSync: this.subscribeSync.bind(this),
@@ -58,24 +82,14 @@ export default class Publisher {
     }
 
     set(value) {
-        if (!this.shouldPublish(value, this.value)) {
-            return false;
-        }
+        return this.constructor.setValue(this, value) !== false;
+    }
 
-        let cursor = this.subscriber;
-        this.value = value;
+    asyncSet(value) {
+        const callbacks = this.constructor.setValue(this, value);
 
-        // search for a callback and remove it
-        while (cursor !== null) {
-            const { callback, thisArg } = cursor;
-
-            if (callback !== null) {
-                callback.call(thisArg, value, () => this.unsubscribe(callback, thisArg));
-            }
-
-            cursor = cursor.subscriber;
-        }
-
-        return true;
+        return callbacks === false
+            ? Promise.resolve(false)
+            : Promise.all(callbacks).then(res => res !== false);
     }
 }

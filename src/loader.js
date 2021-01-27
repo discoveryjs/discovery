@@ -1,6 +1,14 @@
-import { loadDataFrom } from './core/utils/load-data.js';
-import defaultProgressbar from './core/utils/progressbar.js';
+import Progressbar from './core/utils/progressbar.js';
+import { loadDataFrom, syncLoaderWithProgressbar } from './core/utils/load-data.js';
 import applyContainerStyles from './core/utils/apply-container-styles.js';
+
+function defaultProgressbar() {
+    return new Progressbar({
+        delay: 300,
+        onTiming: ({ title, duration }) =>
+            console.log(`[Discovery/loader] ${title} – ${duration}ms`)
+    });
+}
 
 export function loader(config = {}) {
     // config
@@ -10,7 +18,7 @@ export function loader(config = {}) {
     //   progressbar
 
     const container = config.container || document.body;
-    const progressbar = config.progressbar || defaultProgressbar;
+    const progressbar = config.progressbar || defaultProgressbar();
 
     if (config.dataType && !loadDataFrom.hasOwnProperty(config.dataType)) {
         throw new Error(`dataType "${config.dataType}" is not supported`);
@@ -20,19 +28,18 @@ export function loader(config = {}) {
 
     const loadData = loadDataFrom[config.dataType || 'url'];
     const loading = config.data
-        ? loadData(config.data, () => {}, 'data')
+        ? loadData(config.data, 'data')
         : {
             result: Promise.resolve(config)
         };
 
     if (loading.state) {
-        const { el, dispose } = progressbar(loading.state);
-
-        el.style.margin = '20px';
-        el.style.maxWidth = '300px';
-        container.append(el);
-        loading.result.finally(dispose);
+        container.append(progressbar.el);
+        syncLoaderWithProgressbar(loading, progressbar);
     }
 
-    return loading.result.then(({ data }) => data);
+    return Object.assign(
+        loading.result,
+        { progressbar }
+    );
 }

@@ -1,4 +1,8 @@
 /* isolate-style-root: discovery, discovery-root, discovery-root-darkmode */
+:host {
+    transition: opacity .2s;
+}
+
 .discovery {
     display: flex;
     overflow: hidden;

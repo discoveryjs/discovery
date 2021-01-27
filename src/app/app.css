@@ -33,8 +33,8 @@
     visibility: hidden;
     transition: all .2s;
 }
-.discovery > .loading-overlay:not(.error) .progressbar {
-    max-width: 300px;
+.discovery > .loading-overlay .progressbar {
+    margin: 15px 20px;
 }
 
 .discovery-nav-popup > .toggle-menu-item {

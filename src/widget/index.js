@@ -154,13 +154,12 @@ export default class Widget extends Emitter {
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
-
         const {
             darkmode = 'disabled',
             darkmodePersistent = false
         } = this.options;
-        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
 
+        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
         this.inspectMode = new Publisher(false);
         this.initDom();
 
@@ -235,7 +234,8 @@ export default class Widget extends Emitter {
         this.prepare = fn;
     }
 
-    setData(data, context = {}) {
+    setData(data, context = {}, options) {
+        const { norender } = options || {};
         const startTime = Date.now();
         const dataExtension = createDataExtensionApi(this);
         const checkIsNotPrevented = () => {
@@ -246,8 +246,8 @@ export default class Widget extends Emitter {
                 throw new Error('Prevented by another setData()');
             }
         };
-        const setDataPromise = Promise.resolve(data)
-            .then((data) => {
+        const setDataPromise = Promise.resolve()
+            .then(() => {
                 checkIsNotPrevented();
 
                 return this.prepare(data, dataExtension.methods) || data;
@@ -267,12 +267,29 @@ export default class Widget extends Emitter {
         lastSetDataPromise.set(this, setDataPromise);
 
         // run after data is prepared and set
-        setDataPromise.then(() => {
-            this.scheduleRender('sidebar');
-            this.scheduleRender('page');
-        });
+        if (norender) {
+            setDataPromise.then(() => {
+                this.scheduleRender('sidebar');
+                this.scheduleRender('page');
+            });
+        }
 
         return setDataPromise;
+    }
+
+    async setDataProgress(data, context, progressbar = { setState() {} }) {
+        // set new data & context
+        await progressbar.setState({ stage: 'prepare' });
+        await this.setData(data, context, { norender: true });
+
+        // await dom is ready and everything is rendered
+        await progressbar.setState({ stage: 'initui' });
+        this.scheduleRender('sidebar');
+        this.scheduleRender('page');
+        await Promise.all([
+            await this.dom.ready,
+            renderScheduler.get(this).timer
+        ]);
     }
 
     // TODO: remove
@@ -461,10 +478,13 @@ export default class Widget extends Emitter {
     initDom() {
         const wrapper = createElement('div', 'discovery');
         const shadow = wrapper.attachShadow({ mode: 'open' });
+        let readyStyles = Promise.resolve();
+
+        wrapper.style.opacity = 0;
 
         if (Array.isArray(this.options.styles)) {
             const foucFix = createElement('style', null, ':host{display:none}');
-            const links = new Set();
+            const awaitingStyles = new Set();
 
             shadow.append(...this.options.styles.map(style => {
                 if (typeof style === 'string') {
@@ -478,32 +498,55 @@ export default class Widget extends Emitter {
                     case 'style':
                         return createElement('style', null, style.content);
 
-                    case 'link':
+                    case 'link': {
+                        let resolveStyle;
+                        let rejectStyle;
+                        let state = new Promise((resolve, reject) => {
+                            resolveStyle = resolve;
+                            rejectStyle = reject;
+                        });
+
+                        awaitingStyles.add(state);
+
                         const linkEl = createElement('link', {
                             rel: 'stylesheet',
                             href: style.href,
                             media: style.media,
-                            onload() {
-                                links.delete(this);
+                            onerror(err) {
+                                awaitingStyles.delete(state);
+                                rejectStyle(err);
 
-                                if (!links.size) {
+                                if (!awaitingStyles.size) {
+                                    foucFix.remove();
+                                }
+                            },
+                            onload() {
+                                awaitingStyles.delete(state);
+                                resolveStyle();
+
+                                if (!awaitingStyles.size) {
                                     foucFix.remove();
                                 }
                             }
                         });
-                        links.add(linkEl);
 
                         return linkEl;
+                    }
+
+                    default:
+                        throw new Error(`Unknown type "${style.type}" in options.styles`);
                 }
             }));
 
-            if (links.size) {
+            if (awaitingStyles.size) {
+                readyStyles = Promise.all(awaitingStyles);
                 shadow.append(foucFix);
             }
         }
 
         const container = shadow.appendChild(createElement('div'));
         this.dom = {};
+        this.dom.ready = Promise.all([readyStyles]);
         this.dom.wrapper = wrapper;
         this.dom.root = shadow;
         this.dom.container = container;
@@ -556,20 +599,20 @@ export default class Widget extends Emitter {
     //
 
     scheduleRender(subject) {
-        const scheduler = renderScheduler.get(this);
+        const scheduledRenders = renderScheduler.get(this);
 
-        if (scheduler.has(subject)) {
+        if (scheduledRenders.has(subject)) {
             return;
         }
 
-        scheduler.add(subject);
+        scheduledRenders.add(subject);
 
-        if (scheduler.timer) {
+        if (scheduledRenders.timer) {
             return;
         }
 
-        scheduler.timer = Promise.resolve().then(async () => {
-            for (const subject of scheduler) {
+        scheduledRenders.timer = Promise.resolve().then(async () => {
+            for (const subject of scheduledRenders) {
                 switch (subject) {
                     case 'sidebar':
                         await this.renderSidebar();
@@ -580,8 +623,10 @@ export default class Widget extends Emitter {
                 }
             }
 
-            scheduler.timer = null;
+            scheduledRenders.timer = null;
         });
+
+        return scheduledRenders.timer;
     }
 
     cancelScheduledRender(subject) {
@@ -737,6 +782,8 @@ export default class Widget extends Emitter {
 
         setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
         setDatasetValue(this.dom.container, 'compact', this.options.compact);
+
+        renderState.then(() => this.dom.wrapper.style.opacity = 1);
 
         return renderState;
     }

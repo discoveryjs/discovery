@@ -5,13 +5,13 @@ import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import applyContainerStyles from '../core/utils/apply-container-styles.js';
-import progressbar from '../core/utils/progressbar.js';
+import Progressbar from '../core/utils/progressbar.js';
 import {
     loadDataFromStream,
     loadDataFromFile,
     loadDataFromEvent,
     loadDataFromUrl,
-    loadStages
+    syncLoaderWithProgressbar
 } from '../core/utils/load-data.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
@@ -147,91 +147,73 @@ export default class App extends Widget {
     }
 
     progressbar(...args) {
-        return progressbar(...args);
+        return new Progressbar(...args);
     }
 
-    trackLoadDataProgress({ result, state, timing }) {
-        if (this.cancelTrackLoadDataProgress) {
-            this.cancelTrackLoadDataProgress();
-        }
+    trackLoadDataProgress(loader) {
+        const progressbar = this.progressbar({
+            onTiming: ({ title, duration }) =>
+                console.log(`[Discovery] Data loading / ${title} – ${duration}ms`)
+        });
 
-        const progressbar = this.progressbar(state);
         const containerEl = this.dom.loadingOverlay;
+        containerEl.innerHTML = '';
         containerEl.append(progressbar.el);
         containerEl.classList.remove('error', 'done');
         containerEl.classList.add('init');
+        this.dom.wrapper.style.opacity = 1;
         requestAnimationFrame(() => containerEl.classList.remove('init'));
 
-        const subscriptions = [
-            progressbar.dispose,
-            timing.subscribe(({ stage, elapsed }) =>
-                console.log(`[Discovery] Data loading / ${loadStages[stage].title} - ${elapsed}ms`)
+        syncLoaderWithProgressbar(loader, progressbar)
+            .then(({ data, context }) =>
+                this.setDataProgress(data, context, progressbar)
             )
-        ];
+            .then(
+                async () => {
+                    containerEl.classList.add('done');
+                    await progressbar.setState({ stage: 'done' });
+                },
+                error => {
+                    // output error
+                    containerEl.classList.add('error');
+                    containerEl.innerHTML = [
+                        '<div class="view-alert view-alert-danger">',
+                        '<h3 class="view-header">Ooops, something went wrong on data loading</h3>',
+                        '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
+                        '</div>'
+                    ].join('');
 
-        this.cancelTrackLoadDataProgress = () => {
-            for (const unsubscribe of subscriptions) {
-                unsubscribe();
-            }
-        };
-
-        // output error
-        result.then(
-            () => {
-                containerEl.classList.add('done');
-            },
-            error => {
-                containerEl.classList.add('error');
-                containerEl.innerHTML = [
-                    '<div class="view-alert view-alert-danger">',
-                    '<h3 class="view-header">Ooops, something went wrong on data loading</h3>',
-                    '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
-                    '</div>'
-                ].join('');
-
-                if (this.options.cache) {
-                    containerEl.prepend(createElement('button', {
-                        class: 'view-button',
-                        async onclick() {
-                            await fetch('drop-cache');
-                            location.reload();
-                        }
-                    }, 'Reload with no cache'));
+                    if (this.options.cache) {
+                        containerEl.prepend(createElement('button', {
+                            class: 'view-button',
+                            async onclick() {
+                                await fetch('drop-cache');
+                                location.reload();
+                            }
+                        }, 'Reload with no cache'));
+                    }
                 }
-            }
-        );
+            );
 
-        return result
-            .finally(this.cancelTrackLoadDataProgress);
+        return loader.result;
     }
 
     loadDataFromStream(stream, totalSize) {
         return this.trackLoadDataProgress(loadDataFromStream(
-            () => ({ stream, totalSize }),
-            this.setData.bind(this)
+            () => ({ stream, totalSize })
         ));
     }
 
     loadDataFromEvent(event) {
-        return this.trackLoadDataProgress(loadDataFromEvent(
-            event,
-            this.setData.bind(this)
-        ));
+        return this.trackLoadDataProgress(loadDataFromEvent(event));
     }
 
     loadDataFromFile(file) {
-        return this.trackLoadDataProgress(loadDataFromFile(
-            file,
-            this.setData.bind(this)
-        ));
+        return this.trackLoadDataProgress(loadDataFromFile(file));
     }
 
     loadDataFromUrl(url, dataField) {
-        return this.trackLoadDataProgress(loadDataFromUrl(
-            url,
-            this.setData.bind(this),
-            dataField
-        ));
+        return this.trackLoadDataProgress(loadDataFromUrl(url, dataField));
     }
 
     initDom() {
