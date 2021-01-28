@@ -95,8 +95,6 @@ export default class Progressbar {
             `<style>${style}</style>` +
             '<div class="title"></div>' +
             '<div class="progress"></div>';
-
-        requestAnimationFrame(() => this.el.classList.remove('init'));
     }
 
     async setState(state) {
@@ -106,12 +104,18 @@ export default class Progressbar {
             return;
         }
 
+
         const { value, title, duration } = loadStages[stage];
         const stageChanged = stage !== this.lastStage;
+        const now = Date.now();
         let progressValue = 0;
         let progressLabel;
 
-        const now = Date.now();
+        if (!this.lastStage) {
+            this.startTime = now;
+            requestAnimationFrame(() => this.el.classList.remove('init'));
+        }
+
         if (stageChanged) {
             if (this.lastStageStart !== null) {
                 const entry = {
@@ -173,6 +177,12 @@ export default class Progressbar {
 
             this.timings.push(entry);
             this.onTiming(entry);
+
+            this.onTiming({
+                stage: 'done',
+                title: loadStages.done.title,
+                duration: Date.now() - this.startTime
+            });
         }
 
         this.finished = true;

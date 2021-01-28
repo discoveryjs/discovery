@@ -11,10 +11,10 @@
     "jsdelivr": "dist/discovery.js",
     "scripts": {
         "lint": "eslint scripts src",
-        "build": "npm run build:js && npm run build:css && npm run build:loader",
+        "build": "npm run build:js && npm run build:css && npm run build:preloader",
         "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
-        "build:loader": "esbuild src/loader.js --outfile=dist/discovery-loader.js --bundle --define:global=window --format=esm --minify --sourcemap",
+        "build:preloader": "esbuild src/preloader.js --outfile=dist/discovery-preloader.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build-gh-pages": "npm run build && discovery-build -o .gh-pages",
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
