@@ -446,23 +446,23 @@ export default (host) => {
     // quick inspection
     //
     let inspectByQuick = false;
-    document.addEventListener('keydown', quickInspect, true);
-    document.addEventListener('keyup', quickInspect, true);
-    function quickInspect(e) {
-        if (e.key === 'Alt' || e.keyCode === 18 || e.which === 18) {
-            if (e.type === 'keydown') {
-                if (!inspectorActivated) {
-                    inspectByQuick = true;
-                    cancelHintEl.dataset.alt = true;
-                    host.inspectMode.set(true);
-                }
-            } else {
-                if (inspectByQuick && !selectedTreeViewLeaf) {
-                    inspectByQuick = false;
-                    delete cancelHintEl.dataset.alt;
-                    host.inspectMode.set(false);
-                }
-            }
-        }
-    }
+    // document.addEventListener('keydown', quickInspect, true);
+    // document.addEventListener('keyup', quickInspect, true);
+    // function quickInspect(e) {
+    //     if (e.key === 'Alt' || e.keyCode === 18 || e.which === 18) {
+    //         if (e.type === 'keydown') {
+    //             if (!inspectorActivated) {
+    //                 inspectByQuick = true;
+    //                 cancelHintEl.dataset.alt = true;
+    //                 host.inspectMode.set(true);
+    //             }
+    //         } else {
+    //             if (inspectByQuick && !selectedTreeViewLeaf) {
+    //                 inspectByQuick = false;
+    //                 delete cancelHintEl.dataset.alt;
+    //                 host.inspectMode.set(false);
+    //             }
+    //         }
+    //     }
+    // }
 };
