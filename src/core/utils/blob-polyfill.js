@@ -51,13 +51,13 @@ export function streamFromBlob(blob) {
     if (fullStreamSupport) {
         return new ReadableStream({
             type: 'bytes',
-            autoAllocateChunkSize: 524288,
+            autoAllocateChunkSize: 512 * 1024,
 
             pull(controller) {
                 const view = controller.byobRequest.view;
                 const chunk = blob.slice(position, position + view.byteLength);
 
-                return arrayBufferFromBlob(chunk).then(function (buffer) {
+                return arrayBufferFromBlob(chunk).then(function(buffer) {
                     const uint8array = new Uint8Array(buffer);
                     const bytesRead = uint8array.byteLength;
 
@@ -77,9 +77,9 @@ export function streamFromBlob(blob) {
     if (basicStreamSupport) {
         return new ReadableStream({
             pull(controller) {
-                const chunk = blob.slice(position, position + 524288);
+                const chunk = blob.slice(position, position + 512 * 1024);
 
-                return arrayBufferFromBlob(chunk).then(function (buffer) {
+                return arrayBufferFromBlob(chunk).then(function(buffer) {
                     position += buffer.byteLength;
                     controller.enqueue(new Uint8Array(buffer));
 

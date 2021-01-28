@@ -2,11 +2,12 @@ import Publisher from '../publisher.js';
 import { streamFromBlob } from './blob-polyfill.js';
 import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
 
-export const loadDataFrom = {
+export const dataSource = {
     stream: loadDataFromStream,
     event: loadDataFromEvent,
     file: loadDataFromFile,
-    url: loadDataFromUrl
+    url: loadDataFromUrl,
+    push: loadDataFromPush
 };
 
 function isSameOrigin(url) {
@@ -96,7 +97,7 @@ async function loadDataFromStreamInternal(request, progress) {
     }
 }
 
-export function loadDataFromStream(request, prepare) {
+export function loadDataFromStream(request, prepare, ext) {
     const state = new Publisher();
 
     return {
@@ -107,7 +108,8 @@ export function loadDataFromStream(request, prepare) {
             .then(res => ({
                 ...res,
                 ...prepare(res.data)
-            }))
+            })),
+        ...ext
     };
 }
 
@@ -176,9 +178,44 @@ export function loadDataFromUrl(url, dataField) {
             context: {
                 name: 'Discovery',
                 createdAt: dataField && data.createdAt ? new Date(Date.parse(data.createdAt)) : new Date(),
-                ...dataField ? data : { data: data }
+                ...dataField ? data : { data }
             }
         })
+    );
+}
+
+export function loadDataFromPush(size, createdAt) {
+    let controller;
+
+    return loadDataFromStream(
+        () => ({
+            size,
+            stream: new ReadableStream({
+                start(controller_) {
+                    controller = controller_;
+                },
+                cancel() {
+                    controller = null;
+                }
+            })
+        }),
+        data => ({
+            data: data.data,
+            context: {
+                name: 'Discovery',
+                createdAt: createdAt || Date.now(),
+                data: data.data
+            }
+        }),
+        {
+            push(chunk) {
+                controller.enqueue(chunk);
+            },
+            finish() {
+                controller.close();
+                controller = null;
+            }
+        }
     );
 }
 
