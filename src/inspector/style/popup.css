@@ -53,7 +53,7 @@
         -webkit-backdrop-filter: blur(5px);
         backdrop-filter: blur(5px);
     }
-    .discovery-root-darkmode.discovery-inspect-details-popup {
+    .discovery-root-darkmode .discovery-inspect-details-popup {
         --discovery-background-alpha: .4;
     }
 }
