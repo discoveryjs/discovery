@@ -25,9 +25,9 @@ export default class App extends Widget {
         });
 
         this.mode = this.options.mode;
-        this.download = this.options.setup.model && this.options.setup.model.download;
 
         this.apply(router);
+        // FIXME: should not apply styles by default
         this.darkmode.subscribe(darkmode => applyContainerStyles(this.dom.wrapper.parentNode, { darkmode }));
 
         // let detachDarkMode = () => {};
@@ -103,23 +103,6 @@ export default class App extends Widget {
                 name: 'report-page',
                 when: '#.widget | pageId != reportPageId',
                 data: '{ text: "Make report", href: pageLink(#.widget.reportPageId) }'
-            });
-            this.nav.menu.append({
-                name: 'download',
-                when: '#.widget | download',
-                data: '{ text: "Download report", href: #.widget.download }'
-            });
-            this.nav.menu.append({
-                name: 'drop-cache',
-                when: '#.widget | options.cache',
-                content: 'text:"Reload with no cache"',
-                onClick: () => fetch('drop-cache').then(() => location.reload())
-            });
-            this.nav.menu.append({
-                name: 'switch-model',
-                when: '#.widget | mode = "multi"',
-                data: { href: '..' },
-                content: 'text:"Switch model"'
             });
         }
 

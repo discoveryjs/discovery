@@ -480,7 +480,7 @@ export default class Widget extends Emitter {
         const shadow = wrapper.attachShadow({ mode: 'open' });
         let readyStyles = Promise.resolve();
 
-        wrapper.style.opacity = 0;
+        wrapper.style.opacity = 0; // FIXME: there must be a better way to hide a widget until everything is ready
 
         if (Array.isArray(this.options.styles)) {
             const foucFix = createElement('style', null, ':host{display:none}');
@@ -783,6 +783,7 @@ export default class Widget extends Emitter {
         setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
         setDatasetValue(this.dom.container, 'compact', this.options.compact);
 
+        // FIXME: there must be a better way to reveal a widget when everything is ready
         renderState.then(() => this.dom.wrapper.style.opacity = 1);
 
         return renderState;
