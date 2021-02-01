@@ -202,8 +202,8 @@ export function loadDataFromPush(size, createdAt) {
         data => ({
             data: data.data,
             context: {
-                name: 'Discovery',
-                createdAt: createdAt || Date.now(),
+                name: data.name || 'Discovery',
+                createdAt: createdAt || data.createdAt || Date.now(),
                 data: data.data
             }
         }),
