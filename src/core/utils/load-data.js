@@ -162,9 +162,10 @@ export function loadDataFromUrl(url, dataField) {
                 };
             }
 
+            const contentType = response.headers.get('content-type') || '';
             let error = await response.text();
 
-            if (response.headers.get('content-type') === 'application/json') {
+            if (contentType.toLowerCase().startsWith('application/json')) {
                 const json = JSON.parse(error);
                 error = json.error || json;
             }
