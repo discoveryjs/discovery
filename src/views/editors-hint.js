@@ -5,7 +5,7 @@
 
 /* eslint-env browser */
 
-import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
+import CodeMirror from 'codemirror';
 
 const POPUP_CLASS = 'discovery-view-editor-hints-popup';
 const HINT_CLASS = 'discovery-view-editor-hint';
@@ -194,7 +194,6 @@ class Widget {
         const hintsElClassNames = [
             POPUP_CLASS,
             completion.cm.options.theme,
-            completion.options.isolateStyleMarker,
             completion.options.darkmode
         ].filter(Boolean);
 

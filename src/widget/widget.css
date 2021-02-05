@@ -1,10 +1,12 @@
 /* isolate-style-root: discovery, discovery-root, discovery-root-darkmode */
-.discovery {
-    display: flex;
+:host {
+    transition: opacity .2s;
 }
 
 .discovery-root {
-    all: reset;
+    all: initial;
+
+    position: relative;
 
     font-family: Tahoma, Verdana, Arial, sans-serif;
     font-size: 14px;
@@ -67,6 +69,12 @@
     --discovery-fmt-string-color: #7faf20;
     --discovery-fmt-string-underline-color: #85ab51;
     --discovery-fmt-string-hover-color: #97cf26;
+}
+
+.discovery {
+    display: flex;
+    overflow: hidden;
+    height: 100%;
 }
 
 .discovery-content {
@@ -160,7 +168,7 @@
 }
 
 .discovery-nav {
-    position: fixed;
+    position: absolute;
     z-index: 102;
     top: 0;
     right: 40px;
@@ -195,7 +203,7 @@
     border-radius: 0;
 }
 .discovery-nav .view-nav-button[data-name="burger"] {
-    background-image: url(burger-menu.svg);
+    background-image: url('./burger-menu.svg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 18px;

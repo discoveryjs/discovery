@@ -127,12 +127,12 @@ export default (host) => {
     }, { maxWait: 0, wait: 50 });
     const updateState = () => {
         const { x, y } = pointerXY.value;
-        onHover([...document.elementsFromPoint(x | 0, y | 0) || []]
+        onHover([...host.dom.container.parentNode.elementsFromPoint(x | 0, y | 0) || []]
             .find(el => viewByEl.has(el)) || null
         );
     };
     const keyPressedEventListener = (e) => {
-        if (e.key === 'Escase' || e.keyCode === 27 || e.which === 27) {
+        if (e.key === 'Escape' || e.keyCode === 27 || e.which === 27) {
             host.inspectMode.set(false);
         }
     };
@@ -446,23 +446,23 @@ export default (host) => {
     // quick inspection
     //
     let inspectByQuick = false;
-    document.addEventListener('keydown', quickInspect, true);
-    document.addEventListener('keyup', quickInspect, true);
-    function quickInspect(e) {
-        if (e.key === 'Alt' || e.keyCode === 18 || e.which === 18) {
-            if (e.type === 'keydown') {
-                if (!inspectorActivated) {
-                    inspectByQuick = true;
-                    cancelHintEl.dataset.alt = true;
-                    host.inspectMode.set(true);
-                }
-            } else {
-                if (inspectByQuick && !selectedTreeViewLeaf) {
-                    inspectByQuick = false;
-                    delete cancelHintEl.dataset.alt;
-                    host.inspectMode.set(false);
-                }
-            }
-        }
-    }
+    // document.addEventListener('keydown', quickInspect, true);
+    // document.addEventListener('keyup', quickInspect, true);
+    // function quickInspect(e) {
+    //     if (e.key === 'Alt' || e.keyCode === 18 || e.which === 18) {
+    //         if (e.type === 'keydown') {
+    //             if (!inspectorActivated) {
+    //                 inspectByQuick = true;
+    //                 cancelHintEl.dataset.alt = true;
+    //                 host.inspectMode.set(true);
+    //             }
+    //         } else {
+    //             if (inspectByQuick && !selectedTreeViewLeaf) {
+    //                 inspectByQuick = false;
+    //                 delete cancelHintEl.dataset.alt;
+    //                 host.inspectMode.set(false);
+    //             }
+    //         }
+    //     }
+    // }
 };

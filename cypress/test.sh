@@ -1,5 +1,5 @@
 #!/bin/bash
-npx discovery -c ./cypress/fixtures/single-model/.discoveryrc.js &
+npm run cypress:server &
 PID=$!
 cypress run --headless
 kill $PID

@@ -50,7 +50,7 @@
     border-radius: 8px 0 0 8px;
     background-color: rgba(0, 0, 0, .12);
 }
-.view-pill-badge > .prefix {
+.view-pill-badge > .postfix {
     padding: 1px 6px 3px;
     margin: -1px -6px -3px 6px;
     border-radius: 0 8px 8px 0;

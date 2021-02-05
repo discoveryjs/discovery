@@ -1,5 +1,6 @@
 *
-!discovery.js
-!discovery.*.js
+!discovery-preloader.js
+# !discovery-preloader.js.map
 !discovery.css
-!discovery.*.css
+!discovery.js
+# !discovery.js.map

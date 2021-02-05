@@ -12,8 +12,8 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          start: npm run start:server
-          wait-on: 'http://localhost:8123'
+          start: npm run cypress:server
+          wait-on: 'http://localhost:8124'
           record: true
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

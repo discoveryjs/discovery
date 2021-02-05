@@ -36,13 +36,14 @@ export default function(discovery) {
     const hoverTriggerInstances = [];
     const inspectorLockedInstances = new Set();
     let globalListeners = null;
-    const addGlobalHoverListeners = () => {
+    let hideAllPopups = null;
+    const addHostElHoverListeners = () => {
         if (globalListeners !== null) {
             return;
         }
 
         globalListeners = [
-            discovery.addGlobalEventListener('mouseenter', ({ target }) => {
+            discovery.addHostElEventListener('mouseenter', ({ target }) => {
                 if (target === document) {
                     return;
                 }
@@ -73,7 +74,7 @@ export default function(discovery) {
                 }
             }, passiveCaptureOptions),
 
-            discovery.addGlobalEventListener('mouseleave', ({ target }) => {
+            discovery.addHostElEventListener('mouseleave', ({ target }) => {
                 for (const instance of hoverTriggerInstances) {
                     if (instance.lastHoverTriggerEl && instance.lastHoverTriggerEl === target) {
                         instance.lastHoverTriggerEl = null;
@@ -82,7 +83,27 @@ export default function(discovery) {
                 }
             }, passiveCaptureOptions),
 
+            discovery.addGlobalEventListener('scroll', (event) => {
+                hideAllPopups = setTimeout(() => {
+                    hideIfEventOutside(event);
+                }, 0);
+            }, true),
+
+            discovery.addHostElEventListener('scroll', (event) => {
+                clearTimeout(hideAllPopups);
+                hideIfEventOutside(event);
+            }),
+
             discovery.addGlobalEventListener('click', (event) => {
+                hideAllPopups = setTimeout(() => {
+                    hideIfEventOutside(event);
+                }, 0);
+            }, true),
+
+            discovery.addHostElEventListener('click', (event) => {
+                clearTimeout(hideAllPopups);
+                hideIfEventOutside(event);
+
                 for (const instance of hoverTriggerInstances) {
                     if (instance.options.hoverPin === 'trigger-click') {
                         if (instance.lastHoverTriggerEl && instance.lastTriggerEl.contains(event.target)) {
@@ -120,8 +141,7 @@ export default function(discovery) {
             };
 
             this.el = document.createElement('div');
-            this.el.classList.add('discovery-root', 'discovery-view-popup', discovery.isolateStyleMarker);
-            this.el.dataset.discoveryInstanceId = discovery.instanceId;
+            this.el.classList.add('discovery-view-popup');
 
             this.hide = this.hide.bind(this);
             this.hideTimer;
@@ -145,7 +165,7 @@ export default function(discovery) {
                 this.el.dataset.pinMode = this.options.hoverPin || 'none';
 
                 hoverTriggerInstances.push(this);
-                addGlobalHoverListeners();
+                addHostElHoverListeners();
             }
         }
 
@@ -166,11 +186,10 @@ export default function(discovery) {
         }
 
         show(triggerEl, render = this.options.render) {
-            const hostEl = document.body;
+            const hostEl = discovery.dom.container;
 
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
-            this.el.classList.toggle('discovery-root-darkmode', discovery.darkmode.value);
             this.el.classList.toggle('inspect', discovery.inspectMode.value);
 
             if (typeof render === 'function') {
@@ -190,12 +209,9 @@ export default function(discovery) {
 
             if (!this.visible) {
                 openedPopups.push(this);
-                discovery.view.setViewRoot(this.el, 'popup', { props: this.options });
 
                 if (openedPopups.length === 1) {
                     window.addEventListener('resize', hideOnResize);
-                    document.addEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
-                    document.addEventListener('click', hideIfEventOutside, true);
                 }
             }
 
@@ -210,7 +226,7 @@ export default function(discovery) {
                 return;
             }
 
-            const hostEl = document.body;
+            const hostEl = discovery.dom.container;
             const offsetParent = getOffsetParent(hostEl.firstChild);
             const viewport = getViewportRect(window, offsetParent);
             const { x: pointerX, y: pointerY } = pointerXY.value;
@@ -288,8 +304,6 @@ export default function(discovery) {
 
                 if (openedPopups.length === 0) {
                     window.removeEventListener('resize', hideOnResize);
-                    document.removeEventListener('scroll', hideIfEventOutside, passiveCaptureOptions);
-                    document.removeEventListener('click', hideIfEventOutside, true);
                 }
             }
         }

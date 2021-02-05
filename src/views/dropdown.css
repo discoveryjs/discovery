@@ -27,7 +27,7 @@
     position: absolute;
     width: 1em;
     height: 1em;
-    background-image: url('select-arrow.svg');
+    background-image: url('./select-arrow.svg');
     background-size: 1em;
     background-position: center;
     cursor: pointer;

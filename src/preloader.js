@@ -1,0 +1,52 @@
+import Progressbar from './core/utils/progressbar.js';
+import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
+import applyContainerStyles from './core/utils/apply-container-styles.js';
+
+function defaultProgressbar() {
+    return new Progressbar({
+        delay: 300,
+        onTiming: ({ title, duration }) =>
+            console.log(`[Discovery/loader] ${title} – ${duration}ms`)
+    });
+}
+
+export function preloader(config = {}) {
+    const container = config.container || document.body;
+    const progressbar = config.progressbar || defaultProgressbar();
+
+    if (config.dataSource && !dataSource.hasOwnProperty(config.dataSource)) {
+        throw new Error(`dataSource "${config.dataSource}" is not supported`);
+    }
+
+    applyContainerStyles(container, config);
+
+    const loadData = dataSource[config.dataSource || 'url'];
+    const loading = config.dataSource === 'push'
+        ? loadData()
+        : config.data
+            ? loadData(config.data, 'data')
+            : {
+                result: Promise.resolve(config)
+            };
+
+    if (loading.push) {
+        window.discoveryLoader = {
+            push: loading.push,
+            finish: () => {
+                delete window.discoveryLoader;
+                loading.finish();
+            }
+        };
+    }
+
+    if (loading.state) {
+        syncLoaderWithProgressbar(loading, progressbar);
+    }
+
+    container.append(progressbar.el);
+
+    return Object.assign(
+        loading.result,
+        { progressbar }
+    );
+}

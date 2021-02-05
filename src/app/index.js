@@ -1,77 +1,20 @@
 /* eslint-env browser */
 
 import Widget from '../widget/index.js';
-import * as complexViews from '../views/index-complex.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
+import applyContainerStyles from '../core/utils/apply-container-styles.js';
+import Progressbar from '../core/utils/progressbar.js';
 import {
     loadDataFromStream,
     loadDataFromFile,
     loadDataFromEvent,
     loadDataFromUrl,
-    loadStages
-} from '../core/utils/data-load.js';
+    syncLoaderWithProgressbar
+} from '../core/utils/load-data.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
-
-function progressbar(state, progressEl) {
-    if (!progressEl) {
-        progressEl = document.createElement('div');
-    }
-
-    progressEl.innerHTML = '<div class="title"></div><div class="progress"></div>';
-
-    const unsubscribe = state.subscribeSync(state => {
-        const { stage, progress, error } = state;
-
-        if (error) {
-            unsubscribe();
-            progressEl.classList.add('error');
-            return;
-        }
-
-        const { value, title, duration } = loadStages[stage];
-        let progressValue = 0;
-        let progressLabel;
-
-        if (progress) {
-            const {
-                done,
-                elapsed,
-                units,
-                completed,
-                total
-            } = progress;
-
-            if (total) {
-                progressValue = done ? 1.0 : completed / total;
-                progressLabel = units === 'bytes'
-                    ? Math.round(progressValue * 100) + '%'
-                    : `${completed}/${total}`;
-            } else {
-                progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
-                progressLabel = units === 'bytes'
-                    ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
-                    : completed;
-            }
-        }
-
-        progressEl.style.setProperty('--progress', value + progressValue * duration);
-        progressEl.querySelector('.title').textContent = progressLabel
-            ? `${title} (${progressLabel})...`
-            : stage !== 'done'
-                ? `${title}...`
-                : title;
-
-        if (stage === 'done') {
-            unsubscribe();
-            progressEl.classList.add('done');
-        }
-    });
-
-    return unsubscribe;
-}
 
 export default class App extends Widget {
     constructor(container, options = {}) {
@@ -82,10 +25,10 @@ export default class App extends Widget {
         });
 
         this.mode = this.options.mode;
-        this.download = this.options.setup.model && this.options.setup.model.download;
 
-        this.apply(complexViews);
         this.apply(router);
+        // FIXME: should not apply styles by default
+        this.darkmode.subscribe(darkmode => applyContainerStyles(this.dom.wrapper.parentNode, { darkmode }));
 
         // let detachDarkMode = () => {};
         // this.nav.append({
@@ -94,7 +37,7 @@ export default class App extends Widget {
         //     onClick: () => this.darkmode.toggle(true),
         //     postRender: el => {
         //         detachDarkMode();
-        //         detachDarkMode = this.darkmode.on((value, mode) => {
+        //         detachDarkMode = this.darkmode.subscribe((value, mode) => {
         //             el.classList.toggle('dark', value);
         //             el.classList.toggle('auto', mode === 'auto');
         //             el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
@@ -112,7 +55,7 @@ export default class App extends Widget {
                 let selfValue;
 
                 detachToggleDarkMode();
-                detachToggleDarkMode = this.darkmode.on((value, mode) => {
+                detachToggleDarkMode = this.darkmode.subscribe((value, mode) => {
                     const newValue = mode === 'auto' ? 'auto' : value;
 
                     if (newValue === selfValue) {
@@ -161,23 +104,6 @@ export default class App extends Widget {
                 when: '#.widget | pageId != reportPageId',
                 data: '{ text: "Make report", href: pageLink(#.widget.reportPageId) }'
             });
-            this.nav.menu.append({
-                name: 'download',
-                when: '#.widget | download',
-                data: '{ text: "Download report", href: #.widget.download }'
-            });
-            this.nav.menu.append({
-                name: 'drop-cache',
-                when: '#.widget | options.cache',
-                content: 'text:"Reload with no cache"',
-                onClick: () => fetch('drop-cache').then(() => location.reload())
-            });
-            this.nav.menu.append({
-                name: 'switch-model',
-                when: '#.widget | mode = "multi"',
-                data: { href: '..' },
-                content: 'text:"Switch model"'
-            });
         }
 
         this.nav.append({
@@ -203,103 +129,90 @@ export default class App extends Widget {
         return setDataPromise;
     }
 
-    // FIXME: temporary solution
     progressbar(...args) {
-        return progressbar(...args);
+        return new Progressbar(...args);
     }
 
-    trackLoadDataProgress({ result, state, timing }) {
-        if (this.cancelTrackLoadDataProgress) {
-            this.cancelTrackLoadDataProgress();
-        }
-
-        const containerEl = this.dom.loadingOverlay;
-        containerEl.classList.remove('error', 'done');
-        containerEl.classList.add('init');
-        requestAnimationFrame(() => containerEl.classList.remove('init'));
-
-        const subscriptions = [
-            progressbar(state, containerEl),
-            timing.subscribe(({ stage, elapsed }) =>
-                console.log(`[Discovery] Data loading / ${loadStages[stage].title} - ${elapsed}ms`)
-            )
-        ];
-
-        this.cancelTrackLoadDataProgress = () => {
-            for (const unsubscribe of subscriptions) {
-                unsubscribe();
-            }
-        };
-
-        // output error
-        result.catch(error => {
-            containerEl.innerHTML = [
-                '<div class="view-alert view-alert-danger">',
-                '<h3 class="view-header">Ops, something went wrong with data loading</h3>',
-                '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
-                '</div>'
-            ].join('');
-
-            if (this.options.cache) {
-                containerEl.prepend(createElement('button', {
-                    class: 'view-button',
-                    async onclick() {
-                        await fetch('drop-cache');
-                        location.reload();
-                    }
-                }, 'Reload with no cache'));
-            }
+    trackLoadDataProgress(loader) {
+        const progressbar = this.progressbar({
+            onTiming: ({ title, duration }) =>
+                console.log(`[Discovery] Data loading / ${title} – ${duration}ms`)
         });
 
-        return result
-            .finally(this.cancelTrackLoadDataProgress);
+        const containerEl = this.dom.loadingOverlay;
+        containerEl.innerHTML = '';
+        containerEl.append(progressbar.el);
+        containerEl.classList.remove('error', 'done');
+        containerEl.classList.add('init');
+        this.dom.wrapper.style.opacity = 1;
+        requestAnimationFrame(() => containerEl.classList.remove('init'));
+
+        syncLoaderWithProgressbar(loader, progressbar)
+            .then(({ data, context }) =>
+                this.setDataProgress(data, context, progressbar)
+            )
+            .then(
+                async () => {
+                    containerEl.classList.add('done');
+                    await progressbar.setState({ stage: 'done' });
+                },
+                error => {
+                    // output error
+                    containerEl.classList.add('error');
+                    containerEl.innerHTML = [
+                        '<div class="view-alert view-alert-danger">',
+                        '<h3 class="view-header">Ooops, something went wrong on data loading</h3>',
+                        '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
+                        '</div>'
+                    ].join('');
+
+                    if (this.options.cache) {
+                        containerEl.prepend(createElement('button', {
+                            class: 'view-button',
+                            async onclick() {
+                                await fetch('drop-cache');
+                                location.reload();
+                            }
+                        }, 'Reload with no cache'));
+                    }
+                }
+            );
+
+        return loader.result;
     }
 
     loadDataFromStream(stream, totalSize) {
         return this.trackLoadDataProgress(loadDataFromStream(
-            () => ({ stream, totalSize }),
-            this.setData.bind(this)
+            () => ({ stream, totalSize })
         ));
     }
 
     loadDataFromEvent(event) {
-        return this.trackLoadDataProgress(loadDataFromEvent(
-            event,
-            this.setData.bind(this)
-        ));
+        return this.trackLoadDataProgress(loadDataFromEvent(event));
     }
 
     loadDataFromFile(file) {
-        return this.trackLoadDataProgress(loadDataFromFile(
-            file,
-            this.setData.bind(this)
-        ));
+        return this.trackLoadDataProgress(loadDataFromFile(file));
     }
 
     loadDataFromUrl(url, dataField) {
-        return this.trackLoadDataProgress(loadDataFromUrl(
-            url,
-            this.setData.bind(this),
-            dataField
-        ));
+        return this.trackLoadDataProgress(loadDataFromUrl(url, dataField));
     }
 
-    setContainer(container) {
-        super.setContainer(container);
+    initDom() {
+        super.initDom();
 
-        if (this.dom.container) {
-            this.dom.container.append(
-                this.dom.loadingOverlay = createElement('div', 'loading-overlay done')
-            );
+        this.dom.container.append(
+            this.dom.loadingOverlay = createElement('div', 'loading-overlay done')
+        );
 
-            // setup the drag&drop listeners for model free mode
-            if (this.options.mode === 'modelfree') {
-                this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
-                this.dom.container.addEventListener('dragover', e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                }, true);
-            }
+        // setup the drag&drop listeners for model free mode
+        if (this.options.mode === 'modelfree') {
+            this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
+            this.dom.container.addEventListener('dragover', e => {
+                e.stopPropagation();
+                e.preventDefault();
+            }, true);
         }
     }
 

@@ -10,11 +10,7 @@
     min-height: 20px;
     border: 1px solid rgba(176, 176, 176, 0.65);
     box-shadow: 3px 3px 18px rgba(0, 0, 0, .2);
-
-    --discovery-background-color: white;
-}
-.discovery-view-popup.discovery-root-darkmode {
-    --discovery-background-color: #323232;
+    background-color: var(--discovery-background-color);
 }
 .discovery-view-popup.inspect {
     z-index: 2002;

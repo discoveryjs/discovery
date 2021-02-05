@@ -56,18 +56,19 @@ export default function(discovery) {
                     { content: {
                         view: 'render',
                         config: 'beforeDemo',
-                        context: '{ __demoContext: true }'
+                        context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
                     } }
                 ]
             },
             {
                 view: 'block',
+                when: 'demo or view',
                 className: 'usage-render',
                 postRender: (el, { onInit }) => onInit(el, 'root'),
                 content: {
                     view: 'render',
                     config: 'demo or view',
-                    context: '{ __demoContext: true }'
+                    context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
                 }
             },
             {
@@ -78,13 +79,14 @@ export default function(discovery) {
                     { content: {
                         view: 'render',
                         config: 'afterDemo',
-                        context: '{ __demoContext: true }'
+                        context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
                     } }
                 ]
             }
         ],
         content: {
             view: 'tabs',
+            when: 'source != false',
             className: 'usage-sources',
             name: 'code',
             tabs: [
@@ -142,7 +144,8 @@ export default function(discovery) {
                         ? { examples: options.usage }
                         : options.usage,
                 name,
-                group
+                group,
+                options
             };
         },
         content: [
@@ -150,7 +153,7 @@ export default function(discovery) {
             renderDemo,
             {
                 view: 'list',
-                data: 'examples',
+                data: 'examples.({ ..., viewDef: @ })',
                 whenData: true,
                 itemConfig: {
                     className: 'usage-section'

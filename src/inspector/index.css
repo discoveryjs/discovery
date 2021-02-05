@@ -1,5 +1,5 @@
-@import 'style/overlay.css';
-@import 'style/popup.css';
-@import 'style/sidebar.css';
-@import 'style/toolbar.css';
-@import 'style/content.css';
+@import './style/overlay.css';
+@import './style/popup.css';
+@import './style/sidebar.css';
+@import './style/toolbar.css';
+@import './style/content.css';

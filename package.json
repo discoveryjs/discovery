@@ -6,28 +6,19 @@
     "license": "MIT",
     "repository": "discoveryjs/discovery",
     "keywords": [],
-    "main": "dist/discovery.umd.js",
-    "unpkg": "dist/discovery.umd.js",
-    "jsdelivr": "dist/discovery.umd.js",
-    "browser": {
-        "/gen/jora.js": "./dist/gen/jora.js",
-        "/gen/@discoveryjs/json-ext.js": "./dist/gen/@discoveryjs/json-ext.js",
-        "/gen/hitext": "./dist/gen/hitext.js",
-        "/gen/hitext-prismjs": "./dist/gen/hitext-prismjs.js",
-        "/gen/marked": "./dist/gen/marked.js",
-        "/gen/prismjs": "./dist/gen/prismjs.js",
-        "/gen/codemirror": "./dist/gen/codemirror.js"
-    },
+    "main": "src/lib.js",
+    "unpkg": "dist/discovery.js",
+    "jsdelivr": "dist/discovery.js",
     "scripts": {
-        "lint": "eslint libs scripts src",
-        "build": "npm run build:esm && npm run build:css",
-        "build:esm": "npm run build:umd && node scripts/convert-lib-to-es6",
-        "build:umd": "node scripts/build-js | terser --compress --mangle -o dist/discovery.umd.js",
-        "build:css": "node scripts/build-css",
-        "build-gh-pages": "npm run build && discovery-build -o .gh-pages --isolate-styles",
+        "lint": "eslint scripts src",
+        "build": "npm run build:js && npm run build:css && npm run build:preloader",
+        "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap",
+        "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
+        "build:preloader": "esbuild src/preloader.js --outfile=dist/discovery-preloader.js --bundle --define:global=window --format=esm --minify --sourcemap",
+        "build-gh-pages": "discovery-build -o .gh-pages --cleanup",
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
-        "start:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js",
+        "cypress:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js -p 8124",
         "start": "discovery -c models",
         "test": "./cypress/test.sh"
     },
@@ -35,28 +26,21 @@
         "node": ">=8.0.0"
     },
     "dependencies": {
-        "@discoveryjs/json-ext": "^0.4.0",
-        "codemirror": "^5.52.2",
+        "@discoveryjs/json-ext": "^0.5.2",
+        "codemirror": "^5.59.0",
         "hitext": "^1.0.0-beta.1",
-        "hitext-prismjs": "^1.1.0",
         "jora": "1.0.0-beta.5",
-        "marked": "^1.2.3",
-        "prismjs": "^1.21.0"
+        "marked": "^1.2.7"
     },
     "devDependencies": {
-        "@babel/core": "^7.9.0",
-        "@babel/preset-env": "^7.9.0",
-        "@discoveryjs/cli": "^1.14.3",
-        "babelify": "^10.0.0",
-        "browserify": "^16.5.0",
+        "@discoveryjs/cli": "^1.15.0",
         "cypress": "^5.3.0",
+        "esbuild": "^0.8.42",
         "eslint": "^6.8.0",
-        "eslint-plugin-cypress": "^2.11.2",
-        "terser": "^5.3.3"
+        "eslint-plugin-cypress": "^2.11.2"
     },
     "files": [
         "dist",
-        "libs",
         "src"
     ]
 }

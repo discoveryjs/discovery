@@ -1,6 +1,6 @@
 describe('Single model', () => {
     it('Visits discovery server', () => {
-        cy.visit('localhost:8123');
+        cy.visit('localhost:8124');
     });
 
     it('Has model name', () => {

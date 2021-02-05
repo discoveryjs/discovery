@@ -24,7 +24,7 @@
     transform: rotate(-90deg);
     transition: .12s ease-in;
     transition-property: transform, opacity;
-    background-image: url(table-cell-details-expand.svg);
+    background-image: url('./table-cell-details-expand.svg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 9px;

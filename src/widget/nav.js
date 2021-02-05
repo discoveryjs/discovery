@@ -84,6 +84,11 @@ export class WidgetNavigation {
                         this.popup = new this.host.view.Popup({
                             className: 'discovery-nav-popup'
                         });
+                        this.popup.el.addEventListener('click', ({ target }) => {
+                            if (target.closest('a[href]')) {
+                                setTimeout(() => this.popup.hide(), 50);
+                            }
+                        }, true);
                     }
 
                     this.popup.toggle(el, (el) => el.append(...nodes));

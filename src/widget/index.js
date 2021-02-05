@@ -11,10 +11,10 @@ import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import attachViewInspector from '../inspector/index.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
-import { DarkModeController } from './darkmode.js';
+import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from './nav.js';
 import * as lib from '../lib.js';
-import jora from '/gen/jora.js'; // FIXME: generated file to make it local
+import jora from 'jora';
 
 const lastSetDataPromise = new WeakMap();
 const lastQuerySuggestionsStat = new WeakMap();
@@ -45,17 +45,6 @@ function getPageMethod(host, pageId, name, fallback) {
     return typeof method === 'function'
         ? method
         : fallback;
-}
-
-function genUniqueId(len = 16) {
-    const base36 = val => Math.round(val).toString(36);
-    let uid = base36(10 + 25 * Math.random()); // uid should starts with alpha
-
-    while (uid.length < len) {
-        uid += base36(Date.now() * Math.random());
-    }
-
-    return uid.substr(0, len);
 }
 
 function createDataExtensionApi(instance) {
@@ -165,6 +154,15 @@ export default class Widget extends Emitter {
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
+        const {
+            darkmode = 'disabled',
+            darkmodePersistent = false
+        } = this.options;
+
+        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
+        this.inspectMode = new Publisher(false);
+        this.initDom();
+
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
@@ -196,17 +194,6 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
-        const {
-            darkmode = 'disabled',
-            darkmodePersistent = false
-        } = this.options;
-        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
-
-        this.instanceId = genUniqueId();
-        this.isolateStyleMarker = this.options.isolateStyleMarker || 'style-boundary-8H37xEyN';
-        this.inspectMode = new Publisher(false);
-        this.dom = {};
-
         this.apply(views);
         this.apply(pages);
 
@@ -218,7 +205,9 @@ export default class Widget extends Emitter {
             this.apply(this.options.extensions);
         }
 
+        this.nav.render(this.dom.nav);
         this.setContainer(container);
+        attachViewInspector(this);
     }
 
     apply(extensions) {
@@ -245,7 +234,8 @@ export default class Widget extends Emitter {
         this.prepare = fn;
     }
 
-    setData(data, context = {}) {
+    setData(data, context = {}, options) {
+        const { norender } = options || {};
         const startTime = Date.now();
         const dataExtension = createDataExtensionApi(this);
         const checkIsNotPrevented = () => {
@@ -256,8 +246,8 @@ export default class Widget extends Emitter {
                 throw new Error('Prevented by another setData()');
             }
         };
-        const setDataPromise = Promise.resolve(data)
-            .then((data) => {
+        const setDataPromise = Promise.resolve()
+            .then(() => {
                 checkIsNotPrevented();
 
                 return this.prepare(data, dataExtension.methods) || data;
@@ -277,12 +267,29 @@ export default class Widget extends Emitter {
         lastSetDataPromise.set(this, setDataPromise);
 
         // run after data is prepared and set
-        setDataPromise.then(() => {
-            this.scheduleRender('sidebar');
-            this.scheduleRender('page');
-        });
+        if (norender) {
+            setDataPromise.then(() => {
+                this.scheduleRender('sidebar');
+                this.scheduleRender('page');
+            });
+        }
 
         return setDataPromise;
+    }
+
+    async setDataProgress(data, context, progressbar = { setState() {} }) {
+        // set new data & context
+        await progressbar.setState({ stage: 'prepare' });
+        await this.setData(data, context, { norender: true });
+
+        // await dom is ready and everything is rendered
+        await progressbar.setState({ stage: 'initui' });
+        this.scheduleRender('sidebar');
+        this.scheduleRender('page');
+        await Promise.all([
+            await this.dom.ready,
+            renderScheduler.get(this).timer
+        ]);
     }
 
     // TODO: remove
@@ -468,73 +475,119 @@ export default class Widget extends Emitter {
     // UI
     //
 
-    getDomRoots() {
-        return [
-            ...document.querySelectorAll(`[data-discovery-instance-id=${JSON.stringify(this.instanceId)}]`)
-        ];
+    initDom() {
+        const wrapper = createElement('div', 'discovery');
+        const shadow = wrapper.attachShadow({ mode: 'open' });
+        let readyStyles = Promise.resolve();
+
+        wrapper.style.opacity = 0; // FIXME: there must be a better way to hide a widget until everything is ready
+
+        if (Array.isArray(this.options.styles)) {
+            const foucFix = createElement('style', null, ':host{display:none}');
+            const awaitingStyles = new Set();
+
+            shadow.append(...this.options.styles.map(style => {
+                if (typeof style === 'string') {
+                    style = {
+                        type: 'style',
+                        content: style
+                    };
+                }
+
+                switch (style.type) {
+                    case 'style':
+                        return createElement('style', null, style.content);
+
+                    case 'link': {
+                        let resolveStyle;
+                        let rejectStyle;
+                        let state = new Promise((resolve, reject) => {
+                            resolveStyle = resolve;
+                            rejectStyle = reject;
+                        });
+
+                        awaitingStyles.add(state);
+
+                        const linkEl = createElement('link', {
+                            rel: 'stylesheet',
+                            href: style.href,
+                            media: style.media,
+                            onerror(err) {
+                                awaitingStyles.delete(state);
+                                rejectStyle(err);
+
+                                if (!awaitingStyles.size) {
+                                    foucFix.remove();
+                                }
+                            },
+                            onload() {
+                                awaitingStyles.delete(state);
+                                resolveStyle();
+
+                                if (!awaitingStyles.size) {
+                                    foucFix.remove();
+                                }
+                            }
+                        });
+
+                        return linkEl;
+                    }
+
+                    default:
+                        throw new Error(`Unknown type "${style.type}" in options.styles`);
+                }
+            }));
+
+            if (awaitingStyles.size) {
+                readyStyles = Promise.all(awaitingStyles);
+                shadow.append(foucFix);
+            }
+        }
+
+        const container = shadow.appendChild(createElement('div'));
+        this.dom = {};
+        this.dom.ready = Promise.all([readyStyles]);
+        this.dom.wrapper = wrapper;
+        this.dom.root = shadow;
+        this.dom.container = container;
+        this.dom.detachDarkMode = this.darkmode.subscribe(
+            dark => container.classList.toggle('discovery-root-darkmode', dark),
+            true
+        );
+
+        container.classList.add('discovery-root', 'discovery');
+        container.append(
+            this.dom.nav = createElement('div', 'discovery-nav'),
+            this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
+            this.dom.content = createElement('main', 'discovery-content', [
+                this.dom.pageContent = createElement('article')
+            ])
+        );
     }
 
     setContainer(container) {
-        const newContainerEl = container || null;
-        const oldDomRefs = this.dom;
+        container.append(this.dom.wrapper);
+    }
 
-        if (this.dom.container === newContainerEl) {
-            return;
+    disposeDom() {
+        if (typeof this.dom.detachDarkMode === 'function') {
+            this.dom.detachDarkMode();
+            this.dom.detachDarkMode = null;
         }
-
-        // reset old refs
-        this.dom = {};
-        if (typeof oldDomRefs.detachDarkMode === 'function') {
-            oldDomRefs.detachDarkMode();
-        }
-
-        if (newContainerEl !== null) {
-            this.dom.container = newContainerEl;
-            this.dom.detachDarkMode = this.darkmode.on(
-                dark => new Set([newContainerEl, ...this.getDomRoots()])
-                    .forEach(rootEl => rootEl.classList.toggle('discovery-root-darkmode', dark))
-            );
-
-            newContainerEl.classList.add('discovery-root', 'discovery', this.isolateStyleMarker);
-            newContainerEl.classList.toggle('discovery-root-darkmode', this.darkmode.value);
-            newContainerEl.dataset.discoveryInstanceId = this.instanceId;
-            newContainerEl.append(
-                this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
-                this.dom.content = createElement('main', 'discovery-content', [
-                    this.dom.nav = createElement('div', 'discovery-nav'),
-                    this.dom.pageContent = createElement('article')
-                ])
-            );
-
-            // cancel transitions on attach
-            newContainerEl.style.transition = 'none';
-            requestAnimationFrame(() => newContainerEl.style.transition = '');
-
-            this.nav.render(this.dom.nav);
-            attachViewInspector(this);
-        } else {
-            for (let key in this.dom) {
-                this.dom[key] = null;
-            }
-        }
-
-        this.emit('container-changed', this.dom, oldDomRefs);
+        this.dom.container.remove();
+        this.dom = null;
     }
 
     addGlobalEventListener(eventName, handler, options) {
-        const instanceId = this.instanceId;
-        const handlerWrapper = function(event) {
-            const root = event.target !== document
-                ? event.target.closest('[data-discovery-instance-id]')
-                : null;
+        document.addEventListener(eventName, handler, options);
+        return () => document.removeEventListener(eventName, handler, options);
+    }
 
-            if (root && root.dataset.discoveryInstanceId === instanceId) {
-                handler.call(this, event);
-            }
-        };
+    addHostElEventListener(eventName, handler, options) {
+        const el = this.dom.container;
 
-        document.addEventListener(eventName, handlerWrapper, options);
-        return () => document.removeEventListener(eventName, handlerWrapper, options);
+        el.addEventListener(eventName, handler, options);
+        return () => el.removeEventListener(eventName, handler, options);
     }
 
     addBadge() {
@@ -546,20 +599,20 @@ export default class Widget extends Emitter {
     //
 
     scheduleRender(subject) {
-        const scheduler = renderScheduler.get(this);
+        const scheduledRenders = renderScheduler.get(this);
 
-        if (scheduler.has(subject)) {
+        if (scheduledRenders.has(subject)) {
             return;
         }
 
-        scheduler.add(subject);
+        scheduledRenders.add(subject);
 
-        if (scheduler.timer) {
+        if (scheduledRenders.timer) {
             return;
         }
 
-        scheduler.timer = Promise.resolve().then(async () => {
-            for (const subject of scheduler) {
+        scheduledRenders.timer = Promise.resolve().then(async () => {
+            for (const subject of scheduledRenders) {
                 switch (subject) {
                     case 'sidebar':
                         await this.renderSidebar();
@@ -570,8 +623,10 @@ export default class Widget extends Emitter {
                 }
             }
 
-            scheduler.timer = null;
+            scheduledRenders.timer = null;
         });
+
+        return scheduledRenders.timer;
     }
 
     cancelScheduledRender(subject) {
@@ -727,6 +782,9 @@ export default class Widget extends Emitter {
 
         setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
         setDatasetValue(this.dom.container, 'compact', this.options.compact);
+
+        // FIXME: there must be a better way to reveal a widget when everything is ready
+        renderState.then(() => this.dom.wrapper.style.opacity = 1);
 
         return renderState;
     }

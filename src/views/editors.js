@@ -3,7 +3,8 @@
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
-import CodeMirror from '/gen/codemirror.js'; // FIXME: generated file to make it local
+import CodeMirror from 'codemirror';
+import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
 function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
@@ -41,7 +42,9 @@ class Editor extends Emitter {
             indentUnit: 0,
             showHintOptions: {
                 hint,
-                isolateStyleMarker: this.isolateStyleMarker,
+                get container() {
+                    return self.container;
+                },
                 get darkmode() {
                     return self.darkmode.value ? 'darkmode' : false;
                 }
@@ -88,7 +91,6 @@ class Editor extends Emitter {
         this.cm.focus();
     }
 
-    get isolateStyleMarker() {}
     get darkmode() {}
 }
 
@@ -216,19 +218,16 @@ CodeMirror.defineMode('discovery-view', function(config, options) {
 export default function(discovery) {
     Object.assign(discovery.view, {
         QueryEditor: class extends QueryEditor {
-            get isolateStyleMarker() {
-                return discovery.isolateStyleMarker;
-            }
             get darkmode() {
                 return discovery.darkmode;
+            }
+            get container() {
+                return discovery.dom.container;
             }
         },
         ViewEditor: class extends ViewEditor {
             isViewDefined(name) {
                 return discovery.view.isDefined(name);
-            }
-            get isolateStyleMarker() {
-                return discovery.isolateStyleMarker;
             }
             get darkmode() {
                 return discovery.darkmode;

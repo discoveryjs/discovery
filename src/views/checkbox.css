@@ -27,7 +27,7 @@
 .view-checkbox > input:checked {
     border-color: transparent;
     background-color: rgba(0, 121, 232, 0.68);
-    background-image: url(checkbox.svg);
+    background-image: url('./checkbox.svg');
 }
 .view-checkbox > input:focus {
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2);
