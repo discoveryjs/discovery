@@ -15,7 +15,7 @@
         "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
         "build:preloader": "esbuild src/preloader.js --outfile=dist/discovery-preloader.js --bundle --define:global=window --format=esm --minify --sourcemap",
-        "build-gh-pages": "npm run build && discovery-build -o .gh-pages",
+        "build-gh-pages": "discovery-build -o .gh-pages --cleanup",
         "prepublishOnly": "npm run build",
         "cypress": "npx cypress open",
         "cypress:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js -p 8124",
