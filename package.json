@@ -35,13 +35,12 @@
     "devDependencies": {
         "@discoveryjs/cli": "^1.15.0",
         "cypress": "^5.3.0",
-        "esbuild": "^0.8.30",
+        "esbuild": "^0.8.42",
         "eslint": "^6.8.0",
         "eslint-plugin-cypress": "^2.11.2"
     },
     "files": [
         "dist",
-        "libs",
         "src"
     ]
 }
