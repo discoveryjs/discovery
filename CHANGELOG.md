@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.53 (05-02-2021)
 
 - Reworked to use `esbuild` for bundling
 - Reworked to use Shadow DOM for style and event isolation
