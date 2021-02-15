@@ -81,7 +81,7 @@ export default function(discovery) {
                 typeof data === 'string' ? data : source || '',
                 opts,
                 (er, html) => {
-                    el.innerHTML = html;
+                    el.innerHTML = html.replace(/\n(<\/code>)/g, '$1'); // FIXME: marked adds extra newline before </code> for unknown reason
                     resolve();
                 }
             );

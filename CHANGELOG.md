@@ -2,6 +2,7 @@
 
 - Fixed premature render when `Widget#setDataProgress()` is used, which resulted in double page rendering
 - Fixed crash on Chromium when process is running with strict CSP settings, due to false positive detection of `localStorage` access (local variable `localStorage` was renamed into something neutral)
+- Fixed extra newline at the ending of code blocks in `markdown` view
 
 ## 1.0.0-beta.53 (05-02-2021)
 
