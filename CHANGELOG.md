@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.54 (15-02-2021)
 
 - Fixed premature render when `Widget#setDataProgress()` is used, which resulted in double page rendering
 - Fixed double report page rendering on data load in `model-free` mode
