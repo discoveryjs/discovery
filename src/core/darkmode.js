@@ -4,13 +4,13 @@ import { localStorageEntry } from './utils/persistent.js';
 const validValues = new Set([true, false, 'auto', 'disabled']);
 const instances = new Set();
 const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
-const localStorage = localStorageEntry('discoveryjs:darkmode');
-const localStorageToValue = new Map([
+const persistentStorage = localStorageEntry('discoveryjs:darkmode');
+const persistentStorageValueMapping = new Map([
     ['true', true],
     ['false', false],
     ['auto', 'auto']
 ]);
-let localStorageValue = null;
+let persistentStorageValue = null;
 
 function applyPrefersColorScheme() {
     for (const instance of instances) {
@@ -22,12 +22,12 @@ function applyPrefersColorScheme() {
 
 function applyLocalStorageValue(value) {
     // eslint-disable-next-statement operator-linebreak
-    const newValue = localStorageToValue.has(value)
-        ? localStorageToValue.get(value)
+    const newValue = persistentStorageValueMapping.has(value)
+        ? persistentStorageValueMapping.get(value)
         : null;
 
-    if (localStorageValue !== newValue) {
-        localStorageValue = newValue;
+    if (persistentStorageValue !== newValue) {
+        persistentStorageValue = newValue;
         for (const instance of instances) {
             if (instance.persistent && instance.mode !== 'disabled') {
                 instance.set(newValue !== null ? newValue : 'auto');
@@ -37,8 +37,8 @@ function applyLocalStorageValue(value) {
 }
 
 // attach
-applyLocalStorageValue(localStorage.value);
-localStorage.on(applyLocalStorageValue);
+applyLocalStorageValue(persistentStorage.value);
+persistentStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
 function resolveInitValue(value, persistent) {
@@ -47,8 +47,8 @@ function resolveInitValue(value, persistent) {
     }
 
     // use value from a localStorage when persistent
-    if (value !== 'disabled' && persistent && localStorageValue !== null) {
-        value = localStorageValue;
+    if (value !== 'disabled' && persistent && persistentStorageValue !== null) {
+        value = persistentStorageValue;
     }
 
     return value;
@@ -77,7 +77,7 @@ export function resolveDarkmodeValue(value, persistent) {
 
 export class DarkModeController {
     constructor(value, persistent) {
-        this.persistent = persistent ? localStorage : null;
+        this.persistent = persistent ? persistentStorage : null;
         this.handlers = [];
         this.set(resolveInitValue(value, persistent), true);
 
