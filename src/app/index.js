@@ -17,6 +17,16 @@ import {
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 
 export default class App extends Widget {
+    static modelfreeLoadData(instance, event) {
+        if (instance.defaultPageId !== instance.reportPageId) {
+            instance.defaultPageId = instance.reportPageId;
+            instance.setPageHash(instance.pageHash, true);
+            instance.cancelScheduledRender();
+        }
+
+        return instance.loadDataFromEvent(event);
+    }
+
     constructor(container, options = {}) {
         super(container, null, {
             ...options,
@@ -90,7 +100,7 @@ export default class App extends Widget {
                 onClick: () => createElement('input', {
                     type: 'file',
                     accept: 'application/json,.json',
-                    onchange: e => this.loadDataFromEvent(e)
+                    onchange: event => this.constructor.modelfreeLoadData(this, event)
                 }).click()
             });
         } else {
@@ -114,19 +124,6 @@ export default class App extends Widget {
                 el.title = 'Enable view inspection. Use Alt + click for quick inspection';
             }
         });
-    }
-
-    setData(data, context, options) {
-        const setDataPromise = super.setData(data, context, options);
-
-        if (this.mode === 'modelfree') {
-            setDataPromise.then(() => {
-                this.defaultPageId = this.reportPageId;
-                this.setPageHash(this.pageHash, true);
-            });
-        }
-
-        return setDataPromise;
     }
 
     progressbar(...args) {
@@ -208,10 +205,10 @@ export default class App extends Widget {
 
         // setup the drag&drop listeners for model free mode
         if (this.options.mode === 'modelfree') {
-            this.dom.container.addEventListener('drop', e => this.loadDataFromEvent(e), true);
-            this.dom.container.addEventListener('dragover', e => {
-                e.stopPropagation();
-                e.preventDefault();
+            this.dom.container.addEventListener('drop', event => this.constructor.modelfreeLoadData(this, event), true);
+            this.dom.container.addEventListener('dragover', event => {
+                event.stopPropagation();
+                event.preventDefault();
             }, true);
         }
     }

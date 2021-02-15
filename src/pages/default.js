@@ -23,7 +23,7 @@ export default function(discovery) {
                         onClick: () => createElement('input', {
                             type: 'file',
                             accept: 'application/json,.json',
-                            onchange: e => discovery.loadDataFromEvent(e)
+                            onchange: event => discovery.constructor.modelfreeLoadData(discovery, event)
                         }).click(),
                         content: 'text:"Load data"'
                     }
