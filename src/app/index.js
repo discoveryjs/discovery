@@ -116,8 +116,8 @@ export default class App extends Widget {
         });
     }
 
-    setData(data, context) {
-        const setDataPromise = super.setData(data, context);
+    setData(data, context, options) {
+        const setDataPromise = super.setData(data, context, options);
 
         if (this.mode === 'modelfree') {
             setDataPromise.then(() => {

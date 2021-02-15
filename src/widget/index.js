@@ -235,7 +235,8 @@ export default class Widget extends Emitter {
     }
 
     setData(data, context = {}, options) {
-        const { norender } = options || {};
+        options = options || {};
+
         const startTime = Date.now();
         const dataExtension = createDataExtensionApi(this);
         const checkIsNotPrevented = () => {
@@ -267,7 +268,7 @@ export default class Widget extends Emitter {
         lastSetDataPromise.set(this, setDataPromise);
 
         // run after data is prepared and set
-        if (norender) {
+        if ('render' in options === false || options.render) {
             setDataPromise.then(() => {
                 this.scheduleRender('sidebar');
                 this.scheduleRender('page');
@@ -280,7 +281,7 @@ export default class Widget extends Emitter {
     async setDataProgress(data, context, progressbar = { setState() {} }) {
         // set new data & context
         await progressbar.setState({ stage: 'prepare' });
-        await this.setData(data, context, { norender: true });
+        await this.setData(data, context, { render: false });
 
         // await dom is ready and everything is rendered
         await progressbar.setState({ stage: 'initui' });
