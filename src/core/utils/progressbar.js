@@ -1,40 +1,4 @@
-const style = `
-:host {
-    position: absolute;
-    margin: 35px 40px;
-    width: 100%;
-    max-width: 300px;
-    z-index: 1;
-    transition: opacity .15s var(--appearance-delay, 0ms);
-    pointer-events: none;
-}
-:host(.init) {
-    opacity: 0;
-}
-.progress {
-    content: '';
-    display: block;
-    position: relative;
-    overflow: hidden;
-    margin-top: 4px;
-    box-sizing: border-box;
-    height: 3px;
-    background: rgba(198, 198, 198, 0.3);
-    border-radius: 2px;
-}
-.progress::before {
-    content: '';
-    display: block;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    left: 0;
-    top: 0;
-    transform: scaleX(var(--progress, 0));
-    transform-origin: left;
-    /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
-    background-color: #1f7ec5;
-}`;
+import { createElement } from './dom.js';
 
 export const loadStages = {
     request: {
@@ -86,15 +50,13 @@ export default class Progressbar {
         this.timings = [];
         this.onTiming = typeof onTiming === 'function' ? onTiming : () => {};
 
-        this.el = document.createElement('div');
-        this.shadowRoot = this.el.attachShadow({ mode: 'closed' });
-
-        this.el.className = 'progressbar init';
-        this.el.style.setProperty('--appearance-delay', `${delay === true ? 200 : Number(delay) || 0}ms`);
-        this.shadowRoot.innerHTML =
-            `<style>${style}</style>` +
-            '<div class="title"></div>' +
-            '<div class="progress"></div>';
+        this.el = createElement('div', {
+            class: 'view-progress init',
+            style: `--appearance-delay: ${delay === true ? 200 : Number(delay) || 0}ms`
+        }, [
+            createElement('div', 'title'),
+            createElement('div', 'progress')
+        ]);
     }
 
     async setState(state) {
@@ -103,7 +65,6 @@ export default class Progressbar {
         if (error || this.finished) {
             return;
         }
-
 
         const { value, title, duration } = loadStages[stage];
         const stageChanged = stage !== this.lastStage;
@@ -156,7 +117,7 @@ export default class Progressbar {
         }
 
         this.el.style.setProperty('--progress', value + progressValue * duration);
-        this.shadowRoot.querySelector('.title').textContent = progressLabel
+        this.el.querySelector('.title').textContent = progressLabel
             ? `${title} (${progressLabel})...`
             : stage !== 'done'
                 ? `${title}...`

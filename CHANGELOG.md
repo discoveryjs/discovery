@@ -3,6 +3,7 @@
 - Added "Views showcase" to header of view editor form on report page
 - Exposed `injectStyles()` helper
 - Added `progress` view
+- Removed Shadow DOM usage in `progressbar` and re-use `progress` styles
 
 ## 1.0.0-beta.54 (15-02-2021)
 
