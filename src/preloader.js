@@ -1,6 +1,7 @@
 import Progressbar from './core/utils/progressbar.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
 import applyContainerStyles from './core/utils/apply-container-styles.js';
+import injectStyles from './core/utils/inject-styles.js';
 
 function defaultProgressbar() {
     return new Progressbar({
@@ -10,9 +11,13 @@ function defaultProgressbar() {
     });
 }
 
-export function preloader(config = {}) {
+export function preloader(config) {
+    config = config || {};
+
     const container = config.container || document.body;
     const progressbar = config.progressbar || defaultProgressbar();
+    const el = document.createElement('div');
+    const shadowRoot = el.attachShadow({ mode: 'open' });
 
     if (config.dataSource && !dataSource.hasOwnProperty(config.dataSource)) {
         throw new Error(`dataSource "${config.dataSource}" is not supported`);
@@ -43,10 +48,12 @@ export function preloader(config = {}) {
         syncLoaderWithProgressbar(loading, progressbar);
     }
 
-    container.append(progressbar.el);
+    injectStyles(shadowRoot, config.styles);
+    shadowRoot.append(progressbar.el);
+    container.append(el);
 
     return Object.assign(
         loading.result,
-        { progressbar }
+        { el, shadowRoot, progressbar }
     );
 }
