@@ -2,6 +2,7 @@
 
 - Added "Views showcase" to header of view editor form on report page
 - Exposed `injectStyles()` helper
+- Added `progress` view
 
 ## 1.0.0-beta.54 (15-02-2021)
 

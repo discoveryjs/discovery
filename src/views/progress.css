@@ -1,0 +1,34 @@
+.view-progress {
+    max-width: 300px;
+    width: 100%;
+    z-index: 1;
+    transition: opacity .15s var(--appearance-delay, 0ms);
+    pointer-events: none;
+}
+.view-progress.init {
+    opacity: 0;
+}
+.view-progress > .progress {
+    content: '';
+    display: block;
+    position: relative;
+    overflow: hidden;
+    margin-top: 4px;
+    box-sizing: border-box;
+    height: 3px;
+    background: rgba(198, 198, 198, 0.3);
+    border-radius: 2px;
+}
+.view-progress > .progress::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
+    /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
+    background-color: var(--color, #1f7ec5);
+}
