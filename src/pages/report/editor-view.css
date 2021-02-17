@@ -2,6 +2,16 @@
     margin: 0 -40px 12px;
 }
 
+.page-report > .report-editor .view-editor-form-header {
+    display: flex;
+}
+.page-report > .report-editor .view-editor-form-header-links {
+    flex: 1;
+    margin: 2px 40px 0 10px;
+    text-align: right;
+    font-size: 12px;
+}
+
 .page-report > .report-editor .report-editor-tabs.view-mode::before {
     display: inline-block;
     content: 'View:';

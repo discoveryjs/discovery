@@ -54,18 +54,21 @@ export default function(discovery, updateParams) {
     );
     const viewEditorButtonsEl = createElement('div', 'buttons');
     const viewEditorFormEl = createElement('div', 'form view-editor-form', [
-        createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
-            createElement('div', {
-                class: 'report-editor-tab',
-                'data-mode': viewMode.toLowerCase(),
-                onclick: () => updateParams({
-                    view: viewMode === 'Default' ? undefined : defaultViewSource
-                }, true)
-            }, viewMode)
-        )),
-        /* availablePresetListEl = */createElement('div', 'report-editor-tabs presets', viewPresets.map(({ name, content }) =>
-            createPresetTab(name, content, updateParams)
-        )),
+        createElement('div', 'view-editor-form-header', [
+            createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
+                createElement('div', {
+                    class: 'report-editor-tab',
+                    'data-mode': viewMode.toLowerCase(),
+                    onclick: () => updateParams({
+                        view: viewMode === 'Default' ? undefined : defaultViewSource
+                    }, true)
+                }, viewMode)
+            )),
+            /* availablePresetListEl = */createElement('div', 'report-editor-tabs presets', viewPresets.map(({ name, content }) =>
+                createPresetTab(name, content, updateParams)
+            )),
+            createElement('div', 'view-editor-form-header-links', '<a href="#views-showcase" class="view-link">Views showcase</a>')
+        ]),
         viewSetupEl = createElement('div', {
             class: 'view-editor-form-content',
             hidden: true
