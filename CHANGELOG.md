@@ -1,9 +1,12 @@
-## next
+## 1.0.0-beta.55 (17-02-2021)
 
 - Added "Views showcase" to header of view editor form on report page
 - Exposed `injectStyles()` helper
 - Added `progress` view
 - Removed Shadow DOM usage in `progressbar` and re-use `progress` styles
+- Changed preloader to create a container (with Shadow DOM) for its content
+- Added `styles` option for preloader, the same as for `Widget`/`App` constructors
+- Added `lib/preloader.css` and `dist/discovery-preloader.css` to the package
 
 ## 1.0.0-beta.54 (15-02-2021)
 
@@ -16,7 +19,7 @@
 
 - Reworked to use `esbuild` for bundling
 - Reworked to use Shadow DOM for style and event isolation
-- Added preloader
+- Added preloader (`lib/preloader.js` and `dist/discovery-preloader.js`)
 - Removed quick inspection mode for now, due to annoying in various use cases
 - Added JSON parser from `json-ext` library, that's adds support for JSON greater than 512MB on V8
 - Improved UX when data loading from a file by showing progress bar
