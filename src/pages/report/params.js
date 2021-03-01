@@ -6,7 +6,7 @@ function ensureString(value, fallback) {
 
 export function encodeParams(params) {
     const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
-    const { query, view, title, dzen, noedit, extra } = typeof params === 'string' ? { query: params } : params;
+    const { query, view, title, dzen, noedit, ...extra } = typeof params === 'string' ? { query: params } : params;
     const pairs = [];
 
     if (dzen) {

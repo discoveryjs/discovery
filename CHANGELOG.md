@@ -1,3 +1,7 @@
+## next
+
+- Fixed extra params encoding on `report` page
+
 ## 1.0.0-beta.55 (17-02-2021)
 
 - Added "Views showcase" to header of view editor form on report page
