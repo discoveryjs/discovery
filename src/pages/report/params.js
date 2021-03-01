@@ -31,7 +31,10 @@ export function encodeParams(params) {
 
     Object.keys(extra || {}).sort().forEach(name => {
         if (!specialParams.includes(name)) {
-            pairs.push([name, extra[name]]);
+            pairs.push([name, name.endsWith('-b64') && typeof extra[name] === 'string'
+                ? base64.encode(extra[name])
+                : extra[name]
+            ]);
         }
     });
 
@@ -51,7 +54,9 @@ export function decodeParams(pairs) {
 
     Object.keys(params).forEach(name => {
         if (!specialParams.includes(name)) {
-            decodedParams[name] = params[name];
+            decodedParams[name] = name.endsWith('-b64') && typeof params[name] === 'string'
+                ? base64.decode(params[name])
+                : params[name];
         }
     });
 

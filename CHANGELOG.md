@@ -1,6 +1,7 @@
 ## next
 
 - Fixed extra params encoding on `report` page
+- Added base64 encoding/decoding for extra params when parameter name ends with `-b64` on `report` page
 
 ## 1.0.0-beta.55 (17-02-2021)
 
