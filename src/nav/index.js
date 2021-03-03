@@ -99,9 +99,12 @@ export class WidgetNavigation {
 
         Object.assign(this, this.secondary);
         this.contentRect = new ContentRect();
-        this.contentRect.subscribe(({ width }) => {
-            if (host.dom.container) {
-                host.dom.container.style.setProperty('--discovery-nav-width', width + 'px');
+        this.contentRect.subscribe(({ width, height }) => {
+            const { container } = host.dom;
+
+            if (container) {
+                container.style.setProperty('--discovery-nav-width', width + 'px');
+                container.style.setProperty('--discovery-nav-height', height + 'px');
             }
         });
     }
