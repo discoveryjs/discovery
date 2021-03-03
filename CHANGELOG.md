@@ -4,7 +4,8 @@
 - Added `--discovery-nav-height` as compliment for `--discovery-nav-width`
 - Added `Widget#nav.replace()` method
 - Exposed (re-export) `inspector` default exports
-- Added `inspector` option for Widget to allow disable inspector if needed
+- Added `inspector` option for `Widget` to allow disable inspector if needed
+- Added `router` option for `App` to allow disable router if needed
 
 ## 1.0.0-beta.56 (01-03-2021)
 

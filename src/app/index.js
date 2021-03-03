@@ -36,7 +36,10 @@ export default class App extends Widget {
 
         this.mode = this.options.mode;
 
-        this.apply(router);
+        if (coalesceOption(this.options.router, true)) {
+            this.apply(router);
+        }
+
         // FIXME: should not apply styles by default
         this.darkmode.subscribe(darkmode => applyContainerStyles(this.dom.wrapper.parentNode, { darkmode }));
 
@@ -116,7 +119,7 @@ export default class App extends Widget {
             });
         }
 
-        if (this.options.inspector || this.options.inspector === undefined) {
+        if (coalesceOption(this.options.inspector, true)) {
             this.nav.append({
                 name: 'inspect',
                 onClick: () => this.inspectMode.set(!this.inspectMode.value),
