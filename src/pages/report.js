@@ -20,7 +20,7 @@ export default function(discovery) {
     //
     // Report layout
     //
-    const reportEditorEl = createElement('div', { class: 'report-editor', hidden: true }, [
+    const reportEditorEl = createElement('div', { class: 'report-editor discovery-hidden-in-dzen', hidden: true }, [
         queryEditor.el,
         viewEditor.el
     ]);

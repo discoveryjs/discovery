@@ -497,8 +497,8 @@ export default class Widget extends Emitter {
 
         container.classList.add('discovery-root', 'discovery');
         container.append(
-            this.dom.nav = createElement('div', 'discovery-nav'),
-            this.dom.sidebar = createElement('nav', 'discovery-sidebar'),
+            this.dom.nav = createElement('div', 'discovery-nav discovery-hidden-in-dzen'),
+            this.dom.sidebar = createElement('nav', 'discovery-sidebar discovery-hidden-in-dzen'),
             this.dom.content = createElement('main', 'discovery-content', [
                 this.dom.pageContent = createElement('article')
             ])

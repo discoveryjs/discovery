@@ -1,0 +1,41 @@
+.discovery-nav {
+    position: absolute;
+    z-index: 102;
+    top: 0;
+    right: 40px;
+    padding: 0 1px 1px;
+    border-radius: 0 0 6px 6px;
+    background-color: rgba(255, 255, 255, .92);
+    transition: background-color .25s ease-in;
+    user-select: none;
+}
+.discovery-root-darkmode .discovery-nav {
+    background-color: rgba(36, 36, 36, .92);
+}
+@supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
+    .discovery-nav {
+        background-color: rgba(255, 255, 255, .8);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    .discovery-root-darkmode .discovery-nav {
+        background-color: rgba(36, 36, 36, .8);
+    }
+}
+.discovery-nav > :first-child {
+    border-bottom-left-radius: 5px;
+    transition: border-radius .25s ease-in-out;
+}
+.discovery-nav > :last-child {
+    border-bottom-right-radius: 5px;
+    transition: border-radius .25s ease-in-out;
+}
+.discovery-nav .view-nav-button.discovery-view-popup-active {
+    border-radius: 0;
+}
+.discovery-nav .view-nav-button[data-name="burger"] {
+    background-image: url('./burger-menu.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 18px;
+}

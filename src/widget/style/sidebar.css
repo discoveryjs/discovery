@@ -1,0 +1,76 @@
+.discovery-sidebar {
+    position: relative;
+    z-index: 200;
+    overflow: auto;
+    width: 350px;
+    background: rgba(105, 105, 105, 0.1);
+    border-right: 1px solid rgba(85, 85, 85, 0.2);
+    box-shadow: 2px 0 5px -3px rgba(0, 0, 0, .26);
+    transform: translate3d(0, 0, 0);
+}
+
+.discovery-sidebar:empty {
+    display: none;
+}
+.discovery-sidebar .view-tabs,
+.discovery-sidebar .view-tabs-content,
+.discovery-sidebar .view-content-filter {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+}
+.discovery-sidebar .view-tabs {
+    height: 100%;
+}
+.discovery-sidebar .view-tab.active::before {
+    background-color: white;
+    transition-property: background-color;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
+}
+.discovery-root-darkmode .discovery-sidebar .view-tab.active::before {
+    background-color: #363637;
+}
+.discovery-sidebar .view-content-filter > .view-input {
+    border-bottom: 1px solid rgba(170, 170, 170, 0.4);
+    margin-bottom: -1px;
+    background-color: white;
+    transition-property: background-color;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
+}
+.discovery-root-darkmode .discovery-sidebar .view-content-filter > .view-input {
+    background-color: #363637;
+}
+.discovery-sidebar .view-content-filter > .view-input input,
+.discovery-sidebar .view-content-filter > .view-input input:focus {
+    background-color: transparent;
+    outline: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+}
+.discovery-sidebar .view-content-filter > .content > .view-list {
+    padding: 8px 0 8px 12px;
+}
+.discovery-sidebar .view-content-filter > .content > .view-tree {
+    padding: 4px 0 8px 8px;
+}
+.discovery-sidebar .view-list-item:first-child .view-toc-section {
+    margin-top: -8px;
+}
+.discovery-sidebar .view-list-item:last-child .view-toc-section {
+    margin-bottom: -8px;
+}
+.discovery-sidebar .view-toc-section {
+    margin-left: -12px;
+}
+.discovery-sidebar .view-text-match {
+    color: rgba(40, 40, 40, 0.85);
+    background: rgba(255, 255, 255, 0.45);
+    border-bottom: 2px solid orange;
+    line-height: 1.2;
+    display: inline-block;
+    border-radius: 3px;
+    padding: 0 1px;
+}

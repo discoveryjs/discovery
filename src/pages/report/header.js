@@ -37,7 +37,7 @@ export default function(discovery, updateParams) {
 
     const reportActions = createElement('div', 'report-actions', [
         noeditToggleEl = createElement('button', {
-            class: 'edit-mode',
+            class: 'edit-mode discovery-hidden-in-dzen',
             title: 'Toggle edit mode',
             onclick: ({ target }) => {
                 target.blur();
@@ -69,6 +69,7 @@ export default function(discovery, updateParams) {
     const headerEl = createElement('div', 'report-header', [
         createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
+                class: 'discovery-hidden-in-dzen',
                 placeholder: 'Untitled report',
                 oninput: ({ target }) => updateParams({
                     title: target.value

@@ -138,7 +138,3 @@
 .discovery[data-dzen] .page-report > .report-actions button.toggle-fullscreen {
     background-image: url(./img/fullscreen-off.svg);
 }
-.discovery[data-dzen] .page-report > .report-actions button.edit-mode,
-.discovery[data-dzen] .page-report > .report-header .report-header-text input {
-    display: none;
-}
