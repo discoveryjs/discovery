@@ -3,6 +3,7 @@
 - Fixed regression in `struct` view when click events aren't handled
 - Added `--discovery-nav-height` as compliment for `--discovery-nav-width`
 - Added `Widget#nav.replace()` method
+- Exposed (re-export) `inspector` default exports
 
 ## 1.0.0-beta.56 (01-03-2021)
 
