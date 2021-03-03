@@ -69,7 +69,7 @@ export default function(discovery) {
     };
 
     // single event handler for all `signature` view instances
-    document.addEventListener('click', clickHandler, false);
+    discovery.addHostElEventListener('click', clickHandler, false);
 
     // signature details popup
     new discovery.view.Popup({

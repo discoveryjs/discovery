@@ -1,3 +1,7 @@
+## next
+
+- Fixed regression in `struct` view when click events aren't handled
+
 ## 1.0.0-beta.56 (01-03-2021)
 
 - Fixed extra params encoding on `report` page
