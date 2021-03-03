@@ -14,7 +14,7 @@ import attachViewInspector from '../inspector/index.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';
-import * as lib from '../lib.js'; // FIXME: remove this hack
+import * as lib from '../lib.js'; // FIXME: temporary solution to expose discovery's lib API
 import jora from 'jora';
 
 const lastSetDataPromise = new WeakMap();
@@ -208,7 +208,10 @@ export default class Widget extends Emitter {
 
         this.nav.render(this.dom.nav);
         this.setContainer(container);
-        attachViewInspector(this);
+
+        if (this.options.inspector || this.options.inspector === undefined) {
+            this.apply(attachViewInspector);
+        }
     }
 
     apply(extensions) {

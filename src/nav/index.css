@@ -39,3 +39,15 @@
     background-position: center;
     background-size: 18px;
 }
+.discovery-nav .view-nav-button[data-name="inspect"]::before {
+    content: '';
+    display: inline-block;
+    -webkit-mask: url('./inspect.svg') no-repeat center / 16px 16px;
+    mask: url('./inspect.svg') 16px 16px no-repeat center / 16px 16px;
+    background-color: currentColor;
+    width: 16px;
+    height: 16px;
+    vertical-align: top;
+    margin: 1px -7px 0;
+    opacity: .85;
+}
