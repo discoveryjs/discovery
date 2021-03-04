@@ -54,13 +54,6 @@ function createDataExtensionApi(instance) {
     const annotations = [];
     const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
     const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
-    const queryCustomMethods = {
-        query: (...args) => instance.query(...args),
-        pageLink: (pageRef, pageId, pageParams) =>
-            instance.encodePageHash(pageId, pageRef, pageParams),
-        marker: lookupObjectMarker,
-        markerAll: lookupObjectMarkerAll
-    };
     const addValueAnnotation = (query, options = false) => {
         if (typeof options === 'boolean') {
             options = {
@@ -73,19 +66,46 @@ function createDataExtensionApi(instance) {
             ...options
         });
     };
+    const resolveValueLinks = (value) => {
+        const result = [];
+        const type = typeof value;
+
+        if (value && (type === 'object' || type === 'string')) {
+            for (const resolver of linkResolvers) {
+                const link = resolver(value);
+
+                if (link) {
+                    result.push(link);
+                }
+            }
+        }
+
+        return result.length ? result : null;
+    };
+
+    let queryCustomMethods = {
+        query: (...args) => instance.query(...args),
+        pageLink: (pageRef, pageId, pageParams) =>
+            instance.encodePageHash(pageId, pageRef, pageParams),
+        marker: lookupObjectMarker,
+        markerAll: lookupObjectMarkerAll
+    };
+    let joraSetup = jora.setup(queryCustomMethods);
 
     return {
         apply() {
             Object.assign(instance, {
                 objectMarkers,
                 linkResolvers,
+                resolveValueLinks,
                 annotations,
-                queryFnFromString: jora.setup(queryCustomMethods)
+                queryFnFromString: joraSetup
             });
         },
         methods: {
             lookupObjectMarker,
             lookupObjectMarkerAll,
+            resolveValueLinks,
             defineObjectMarker(name, options) {
                 const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 
@@ -142,7 +162,14 @@ function createDataExtensionApi(instance) {
             },
             addValueAnnotation,
             addQueryHelpers(helpers) {
-                Object.assign(queryCustomMethods, helpers);
+                queryCustomMethods = {
+                    ...queryCustomMethods,
+                    ...helpers
+                };
+                joraSetup = jora.setup(queryCustomMethods);
+            },
+            query(query, ...args) {
+                return instance.queryFn.call({ queryFnFromString: joraSetup }, query)(...args);
             }
         }
     };
@@ -307,21 +334,9 @@ export default class Widget extends Emitter {
         console.error('[Discovery] "Widget#addValueLinkResolver()" method was removed, use "defineObjectMarker()" with "page" option instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker("marker-name", { ..., page: "page-name" })))');
     }
 
-    resolveValueLinks(value) {
-        const result = [];
-        const type = typeof value;
-
-        if (value && (type === 'object' || type === 'string')) {
-            for (const resolver of this.linkResolvers) {
-                const link = resolver(value);
-
-                if (link) {
-                    result.push(link);
-                }
-            }
-        }
-
-        return result.length ? result : null;
+    // The method is overridden by createDataExtensionApi().apply()
+    resolveValueLinks() {
+        return null;
     }
 
     //
