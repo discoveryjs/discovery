@@ -4,7 +4,7 @@ import Widget from '../widget/index.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
-import applyContainerStyles from '../core/utils/apply-container-styles.js';
+import { applyContainerStyles } from '../core/utils/apply-container-styles.js';
 import Progressbar from '../core/utils/progressbar.js';
 import {
     loadDataFromStream,

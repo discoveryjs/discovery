@@ -6,7 +6,8 @@
 - Exposed (re-export) `inspector` default exports
 - Added `inspector` option for `Widget` to allow disable inspector if needed
 - Added `router` option for `App` to allow disable router if needed
-- Add `resolveValueLinks()` and `query()` methods to prepare handler API (i.e. `discovery.setPrepare((data, { resolveValueLinks, query }) => ...)`)
+- Added `resolveValueLinks()` and `query()` methods to prepare handler API (i.e. `discovery.setPrepare((data, { resolveValueLinks, query }) => ...)`)
+- Added `rollbackContainerStyles()` util function
 
 ## 1.0.0-beta.56 (01-03-2021)
 

@@ -1,4 +1,4 @@
-import applyContainerStyles from './apply-container-styles.js';
+import * as containerStyles from './apply-container-styles.js';
 import * as base64 from './base64.js';
 import * as compare from './compare.js';
 import copyText from './copy-text.js';
@@ -17,7 +17,7 @@ import safeFilterRx from './safe-filter-rx.js';
 import * as size from './size.js';
 
 export default {
-    applyContainerStyles,
+    ...containerStyles,
     base64,
     ...compare,
     copyText,

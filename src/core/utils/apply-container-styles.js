@@ -17,19 +17,37 @@ const darkmodeStyles = {
     '--discovery-color': '#cccccc'
 };
 const knowContainer = new WeakSet();
+const containerBeforeSetStyle = new WeakMap();
 
-export default function(container, config) {
+function saveContainerStyleProp(container, prop, styles) {
+    if (prop in styles === false) {
+        styles[prop] = [
+            container.style.getPropertyValue(prop),
+            container.style.getPropertyPriority(prop)
+        ];
+    }
+}
+
+export function applyContainerStyles(container, config) {
     config = config || {};
 
+    if (!containerBeforeSetStyle.has(container)) {
+        containerBeforeSetStyle.set(container, Object.create(null));
+    }
+
     const darkmode = resolveDarkmodeValue(config.darkmode, config.darkmodePersistent);
+    const containerStyles = containerBeforeSetStyle.get(container);
 
     for (const [prop, value] of Object.entries(styles)) {
         if (knowContainer.has(container) || !/^transition/.test(prop)) {
+            saveContainerStyleProp(container, prop, containerStyles);
             container.style.setProperty(prop, value);
         }
     }
 
     for (const [prop, value] of Object.entries(darkmodeStyles)) {
+        saveContainerStyleProp(container, prop, containerStyles);
+
         if (darkmode) {
             container.style.setProperty(prop, value);
         } else {
@@ -38,4 +56,17 @@ export default function(container, config) {
     }
 
     knowContainer.add(container);
+}
+
+export function rollbackContainerStyles(container) {
+    if (containerBeforeSetStyle.has(container)) {
+        const containerStyles = containerBeforeSetStyle.get(container);
+
+        for (const [prop, value] of Object.entries(containerStyles)) {
+            container.style.setProperty(prop, ...value);
+        }
+
+        containerBeforeSetStyle.delete(containerBeforeSetStyle);
+        knowContainer.delete(container);
+    }
 }
