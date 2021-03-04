@@ -43,7 +43,7 @@
     content: '';
     display: inline-block;
     -webkit-mask: url('./inspect.svg') no-repeat center / 16px 16px;
-    mask: url('./inspect.svg') 16px 16px no-repeat center / 16px 16px;
+    mask: url('./inspect.svg') no-repeat center / 16px 16px;
     background-color: currentColor;
     width: 16px;
     height: 16px;
