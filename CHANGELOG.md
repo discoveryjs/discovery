@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.57 (04-03-2021)
 
 - Fixed regression in `struct` view when click events aren't handled
 - Added `--discovery-nav-height` as compliment for `--discovery-nav-width`
