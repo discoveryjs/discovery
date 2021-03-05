@@ -2,7 +2,11 @@
 
 - Fixed `source` view supported syntaxes to list modes with no mime
 - Fixed editor's hint popup positioning when widget is not fit into the page bounds
-- Added `options` parameter for `loadDataFromUrl()` which is passing as is into `fetch()` as second argument
+- Added `options` parameter for `loadDataFromUrl()` with following options:
+    - `fetch` – is passing as is into `fetch()` as second argument
+    - `isResponseOk` – a function to check response is ok
+    - `getContentSize` - a function to determine a size of decoded content
+    - `validateData` - a function to check payload is valid response data, must throw an error if data is invalid
 - Changed `Widget#setContainer()` to append only if container is an instance of `Node`
 
 ## 1.0.0-beta.57 (04-03-2021)

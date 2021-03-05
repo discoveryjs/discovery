@@ -72,7 +72,12 @@ async function loadDataFromStreamInternal(request, progress) {
 
     try {
         const startTime = Date.now();
-        const { stream, data: explicitData, size: payloadSize } = await stage('request', request);
+        const {
+            stream,
+            data: explicitData,
+            size: payloadSize,
+            validateData
+        } = await stage('request', request);
         const requestTime = Date.now() - startTime;
         const { data, size } = explicitData || await stage('receive', () =>
             jsonFromStream(stream, Number(payloadSize) || 0, state => progress.asyncSet({
@@ -80,6 +85,10 @@ async function loadDataFromStreamInternal(request, progress) {
                 progress: state
             }))
         );
+
+        if (typeof validateData === 'function') {
+            validateData(data);
+        }
 
         await progress.asyncSet({ stage: 'done' });
 
@@ -147,18 +156,25 @@ export function loadDataFromEvent(event) {
 }
 
 export function loadDataFromUrl(url, dataField, options) {
+    options = options || {};
+
     const explicitData = typeof url === 'string' ? undefined : url;
+    const isResponseOk = options.isResponseOk || (response => response.ok);
+    const getContentSize = options.getContentSize || ((url, response) => {
+        return isSameOrigin(url) && !response.headers.get('content-encoding')
+            ? response.headers.get('content-length')
+            : response.headers.get('x-file-size');
+    });
 
     return loadDataFromStream(
         async () => {
-            const response = await fetch(explicitData ? 'data:application/json,{}' : url, options);
+            const response = await fetch(explicitData ? 'data:application/json,{}' : url, options.fetch);
 
-            if (response.ok) {
+            if (isResponseOk(response)) {
                 return explicitData ? { data: explicitData } : {
                     stream: response.body,
-                    size: isSameOrigin(url) && !response.headers.get('content-encoding')
-                        ? response.headers.get('content-length')
-                        : response.headers.get('x-file-size')
+                    size: getContentSize(url, response),
+                    validateData: options.validateData
                 };
             }
 
