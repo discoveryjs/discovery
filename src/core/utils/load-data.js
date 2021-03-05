@@ -146,12 +146,12 @@ export function loadDataFromEvent(event) {
     return loadDataFromFile(file);
 }
 
-export function loadDataFromUrl(url, dataField) {
+export function loadDataFromUrl(url, dataField, options) {
     const explicitData = typeof url === 'string' ? undefined : url;
 
     return loadDataFromStream(
         async () => {
-            const response = await fetch(explicitData ? 'data:application/json,{}' : url);
+            const response = await fetch(explicitData ? 'data:application/json,{}' : url, options);
 
             if (response.ok) {
                 return explicitData ? { data: explicitData } : {
