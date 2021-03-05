@@ -524,7 +524,11 @@ export default class Widget extends Emitter {
     }
 
     setContainer(container) {
-        container.append(this.dom.wrapper);
+        if (container instanceof Node) {
+            container.append(this.dom.wrapper);
+        } else {
+            this.dom.wrapper.remove();
+        }
     }
 
     disposeDom() {

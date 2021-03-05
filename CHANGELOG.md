@@ -3,6 +3,7 @@
 - Fixed `source` view supported syntaxes to list modes with no mime
 - Fixed editor's hint popup positioning when widget is not fit into the page bounds
 - Added `options` parameter for `loadDataFromUrl()` which is passing as is into `fetch()` as second argument
+- Changed `Widget#setContainer()` to append only if container is an instance of `Node`
 
 ## 1.0.0-beta.57 (04-03-2021)
 
