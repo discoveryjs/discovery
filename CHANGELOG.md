@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.58 (05-03-2021)
 
 - Fixed `source` view supported syntaxes to list modes with no mime
 - Fixed editor's hint popup positioning when widget is not fit into the page bounds
