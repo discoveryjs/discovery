@@ -1,6 +1,6 @@
 import Progressbar from './core/utils/progressbar.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
-import { applyContainerStyles } from './core/utils/apply-container-styles.js';
+import { applyContainerStyles } from './core/utils/container-styles.js';
 import injectStyles from './core/utils/inject-styles.js';
 
 function defaultProgressbar() {
