@@ -6,6 +6,8 @@
 /* eslint-env browser */
 
 import CodeMirror from 'codemirror';
+import { getOffsetParent, getBoundingRect, getOverflowParent } from '../core/utils/layout.js';
+import { passiveCaptureOptions } from '../core/utils/dom.js';
 
 const POPUP_CLASS = 'discovery-view-editor-hints-popup';
 const HINT_CLASS = 'discovery-view-editor-hint';
@@ -196,14 +198,17 @@ class Widget {
             completion.cm.options.theme,
             completion.options.darkmode
         ].filter(Boolean);
+        const containerEl = completion.options.container || document.body;
 
+        this.rootEls = new Set([containerEl.getRootNode()]);
         this.completion = completion;
         this.data = data;
         this.picked = false;
         this.selectedHint = data.selectedHint || 0;
 
+        hintsEl.style.visibility = 'hidden';
         hintsElClassNames.forEach(className => hintsEl.classList.add(className));
-        (completion.options.container || document.body).appendChild(hintsEl);
+        containerEl.appendChild(hintsEl);
 
         this.items = data.list.map((cur, idx) => {
             const el = hintsEl.appendChild(document.createElement('li'));
@@ -232,7 +237,10 @@ class Widget {
         });
 
         this.updatePosSize();
-        document.addEventListener('scroll', this.onScroll = () => this.updatePosSize(), true);
+        this.onScroll = () => this.updatePosSize();
+        for (const el of this.rootEls) {
+            el.addEventListener('scroll', this.onScroll, passiveCaptureOptions);
+        }
 
         CodeMirror.on(hintsEl, 'mousedown', () => setTimeout(() => cm.focus(), 20));
         CodeMirror.on(hintsEl, 'click', (e) => {
@@ -257,7 +265,9 @@ class Widget {
         this.completion.cm.removeKeyMap(this.keyMap);
         this.hintsEl.remove();
 
-        document.removeEventListener('scroll', this.onScroll, true);
+        for (const el of this.rootEls) {
+            el.removeEventListener('scroll', this.onScroll, passiveCaptureOptions);
+        }
     }
 
     disable() {
@@ -301,44 +311,60 @@ class Widget {
         CodeMirror.signal(this.data, 'select', this.data.list[this.selectedHint], next);
     }
 
-    updatePosSize() {
-        const { completion, hintsEl, data } = this;
+    getCursorCoords() {
+        const { completion, hintsEl } = this;
         const cm = completion.cm;
-        let pos = cm.cursorCoords();
-        let left = pos.left;
-        let top = pos.bottom;
-        hintsEl.style.left = left + 'px';
-        hintsEl.style.top = top + 'px';
-        // If we're at the edge of the screen, then we want the menu to appear on the left of the cursor.
-        const winW = window.innerWidth;
-        const winH = window.innerHeight;
-        let box = hintsEl.getBoundingClientRect();
-        let overlapY = box.bottom - winH;
+        const offsetParent = getOffsetParent(hintsEl);
+        const cursorBox = cm.cursorCoords(null, 'local'); // "local" for coords relative to editor coords
+        const editorBox = getBoundingRect(cm.display.wrapper, offsetParent);
 
-        if (overlapY > 0) {
-            const height = box.bottom - box.top;
-            const curTop = pos.top - (pos.bottom - box.top);
-            if (curTop - height > 0) { // Fits above cursor
-                hintsEl.style.top = (top = pos.top - height) + 'px';
-            } else if (height > winH) {
-                hintsEl.style.height = (winH - 5) + 'px';
-                hintsEl.style.top = (top = pos.bottom - box.top) + 'px';
-                const cursor = cm.getCursor();
-                if (data.from.ch != cursor.ch) {
-                    pos = cm.cursorCoords(cursor);
-                    hintsEl.style.left = (left = pos.left) + 'px';
-                    box = hintsEl.getBoundingClientRect();
-                }
-            }
+        return {
+            top: editorBox.top + cursorBox.top + 5,
+            left: editorBox.left + cursorBox.left + 9,
+            bottom: editorBox.top + cursorBox.bottom + 5,
+            right: editorBox.left + cursorBox.right + 9
+        };
+    }
+
+    updatePosSize() {
+        const CURSOR_OFFSET = 1;
+        const PAGE_OFFSET = 6;
+        const { hintsEl } = this;
+        let pos = this.getCursorCoords();
+        const { clientWidth: viewportW, clientHeight: viewportH } = getOverflowParent(hintsEl);
+
+        hintsEl.style.left = '0px';
+        hintsEl.style.top = '0px';
+        let { width, height } = hintsEl.getBoundingClientRect();
+
+        // vertical position
+        const availBottom = viewportH - pos.bottom;
+        const availTop = pos.top;
+
+        if (availBottom < height && availTop > availBottom) {
+            // up
+            hintsEl.style.top = `${pos.top - 1 - Math.min(height, availTop - PAGE_OFFSET) - CURSOR_OFFSET}px`;
+            hintsEl.style.maxHeight = `${availTop - CURSOR_OFFSET - PAGE_OFFSET}px`;
+        } else {
+            // down
+            hintsEl.style.top = `${pos.bottom + CURSOR_OFFSET}px`;
+            hintsEl.style.maxHeight = `${availBottom - CURSOR_OFFSET - PAGE_OFFSET}px`;
         }
 
-        let overlapX = box.right - winW;
-        if (overlapX > 0) {
-            if (box.right - box.left > winW) {
-                hintsEl.style.width = (winW - 5) + 'px';
-                overlapX -= (box.right - box.left) - winW;
-            }
-            hintsEl.style.left = (left = pos.left - overlapX) + 'px';
+        // horizontal position
+        const availRight = viewportW - pos.right;
+        const availLeft = pos.left;
+
+        if (availRight < width && availLeft > availRight) {
+            // left
+            hintsEl.style.left = `${pos.left + 1 - Math.min(width, availLeft - PAGE_OFFSET)}px`;
+            hintsEl.style.maxWidth = `${availLeft - PAGE_OFFSET}px`;
+        } else {
+            // right
+            hintsEl.style.left = `${pos.right}px`;
+            hintsEl.style.maxWidth = `${availRight - PAGE_OFFSET}px`;
         }
+
+        hintsEl.style.visibility = 'visible';
     }
 };
