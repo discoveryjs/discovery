@@ -21,6 +21,7 @@ CodeMirror.modeToMime = {
 };
 
 function getSupported() {
+    const modes = new Set();
     const mimeMode = new Map();
     const resolveMode = ref => {
         const mode = CodeMirror.resolveMode(ref);
@@ -31,8 +32,8 @@ function getSupported() {
         }
 
         mimeMode.set(mode, {
-            mime: new Set(),
-            name: new Set()
+            name: new Set(),
+            mime: new Set()
         });
 
         return mode;
@@ -43,6 +44,7 @@ function getSupported() {
 
         mode.mime.add(mime);
         mode.name.add(alias);
+        modes.add(alias);
     }
 
     for (const [mime, alias] of Object.entries(CodeMirror.mimeModes)) {
@@ -51,6 +53,16 @@ function getSupported() {
         mode.mime.add(mime);
         if (typeof alias === 'string') {
             mode.name.add(alias);
+            modes.add(alias);
+        }
+    }
+
+    for (const [alias] of Object.entries(CodeMirror.modes)) {
+        if (!modes.has(alias)) {
+            mimeMode.set(Symbol(), {
+                name: new Set([alias]),
+                mime: []
+            });
         }
     }
 

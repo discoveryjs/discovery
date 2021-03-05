@@ -1,3 +1,7 @@
+## next
+
+- Fixed `source` view supported syntaxes to list modes with no mime
+
 ## 1.0.0-beta.57 (04-03-2021)
 
 - Fixed regression in `struct` view when click events aren't handled
