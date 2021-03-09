@@ -4,10 +4,12 @@
 
 .page-report > .report-editor .view-editor-form-header {
     display: flex;
+    flex-wrap: wrap-reverse;
+    margin-right: 40px;
 }
 .page-report > .report-editor .view-editor-form-header-links {
     flex: 1;
-    margin: 2px 40px 0 10px;
+    margin: 2px 0 0 10px;
     text-align: right;
     font-size: 12px;
 }

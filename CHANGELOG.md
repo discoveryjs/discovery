@@ -1,3 +1,7 @@
+## next
+
+- Fixed view's editor layout on report page when viewport is too narrow
+
 ## 1.0.0-beta.58 (05-03-2021)
 
 - Fixed `source` view supported syntaxes to list modes with no mime
