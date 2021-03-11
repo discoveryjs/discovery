@@ -1,3 +1,7 @@
+## next
+
+- Fixed report page vertical scrolling issue when a pointer over an editor
+
 ## 1.0.0-beta.59 (10-03-2021)
 
 - Fixed view's editor layout on report page when viewport is too narrow

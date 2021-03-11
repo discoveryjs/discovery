@@ -4,7 +4,7 @@
 
 .discovery-editor .CodeMirror {
     height: auto;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
     padding: 4px 8px;
     margin-bottom: 5px;
     font-family: Consolas, Monaco, monospace;
@@ -26,7 +26,7 @@
 .discovery-editor .CodeMirror-scroll {
     min-height: 6.5em;
     height: auto;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
     cursor: text;
 }
 
