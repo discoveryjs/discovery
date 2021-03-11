@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.59 (10-03-2021)
 
 - Fixed view's editor layout on report page when viewport is too narrow
 
