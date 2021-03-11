@@ -2,6 +2,7 @@
 
 - Fixed report page vertical scrolling issue when a pointer over an editor
 - Added `data-page` attribute on widget's root with current `pageId` as a value
+- Changed layout to rely on `--discovery-page-padding-top/right/bottom/left` custom properties
 
 ## 1.0.0-beta.59 (10-03-2021)
 

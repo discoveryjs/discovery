@@ -1,5 +1,5 @@
 .page-report > .report-editor .data-query-result {
-    margin: 1em 0 1em -40px;
+    margin: 1em 0 1em calc(-1 * var(--discovery-page-padding-left));
 }
 .page-report > .report-editor .data-query-result > * {
     overflow: hidden;

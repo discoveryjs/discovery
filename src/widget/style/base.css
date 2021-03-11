@@ -41,6 +41,11 @@
     --discovery-fmt-string-color: #690;
     --discovery-fmt-string-highlight-color: rgba(35, 165, 25, 0.1);
     --discovery-fmt-comment-color: #75787b;
+
+    --discovery-page-padding-top: 35px;
+    --discovery-page-padding-right: 40px;
+    --discovery-page-padding-bottom: 30px;
+    --discovery-page-padding-left: 40px;
 }
 .discovery-root-darkmode {
     --discovery-background-color: #242424;
@@ -90,10 +95,16 @@
 }
 
 .discovery-content > .page {
-    padding: 35px 40px 30px;
+    padding:
+        var(--discovery-page-padding-top)
+        var(--discovery-page-padding-right)
+        var(--discovery-page-padding-bottom)
+        var(--discovery-page-padding-left);
 }
 
-.discovery[data-compact] .discovery-content,
 .discovery[data-compact] .page {
-    padding: 0;
+    --discovery-page-padding-top: 0;
+    --discovery-page-padding-left: 0;
+    --discovery-page-padding-right: 0;
+    --discovery-page-padding-bottom: 0;
 }

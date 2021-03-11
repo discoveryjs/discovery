@@ -3,8 +3,16 @@
     z-index: 100;
     top: -15px;
     left: 0px;
-    padding: 23px 40px 6px 40px;
-    margin: -35px -40px 20px;
+    padding:
+        23px
+        var(--discovery-page-padding-right)
+        6px
+        var(--discovery-page-padding-left);
+    margin:
+        calc(-1 * var(--discovery-page-padding-top))
+        calc(-1 * var(--discovery-page-padding-right))
+        20px
+        calc(-1 * var(--discovery-page-padding-left));
     background-color: rgba(255, 255, 255, .92);
     transition: background-color .25s ease-in;
 }

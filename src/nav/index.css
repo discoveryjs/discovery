@@ -2,7 +2,7 @@
     position: absolute;
     z-index: 102;
     top: 0;
-    right: 40px;
+    right: var(--discovery-page-padding-right, 40px);
     padding: 0 1px 1px;
     border-radius: 0 0 6px 6px;
     background-color: rgba(255, 255, 255, .92);

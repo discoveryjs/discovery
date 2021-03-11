@@ -1,11 +1,15 @@
 .page-report > .report-editor .view-editor-form {
-    margin: 0 -40px 12px;
+    margin:
+        0
+        calc(-1 * var(--discovery-page-padding-right))
+        12px
+        calc(-1 * var(--discovery-page-padding-left));
 }
 
 .page-report > .report-editor .view-editor-form-header {
     display: flex;
     flex-wrap: wrap-reverse;
-    margin-right: 40px;
+    margin-right: var(--discovery-page-padding-right);
 }
 .page-report > .report-editor .view-editor-form-header-links {
     flex: 1;
@@ -29,7 +33,11 @@
 }
 
 .page-report > .report-editor .view-editor-form-content {
-    padding: 8px 40px;
+    padding:
+        8px
+        var(--discovery-page-padding-right)
+        8px
+        var(--discovery-page-padding-left);
     margin-bottom: 1px;
     background-color: rgba(108, 188, 241, 0.15)
 }

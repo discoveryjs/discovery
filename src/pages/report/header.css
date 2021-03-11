@@ -5,9 +5,9 @@
     position: sticky;
     top: -2px;
     z-index: 100;
-    padding: 22px 250px 7px 40px;
-    padding: 22px calc(40px + 6px + max(42px * 3, var(--discovery-nav-width, 0px))) 7px 40px;
-    margin: 0 -40px 18px;
+    padding: 22px calc(210px + var(--discovery-page-padding-right)) 7px var(--discovery-page-padding-left);
+    padding: 22px calc(var(--discovery-page-padding-right) + 6px + max(42px * 3, var(--discovery-nav-width, 0px))) 7px var(--discovery-page-padding-left);
+    margin: 0 calc(-1 * var(--discovery-page-padding-right)) 18px calc(-1 * var(--discovery-page-padding-left));
     background-color: rgba(255, 255, 255, .92);
     transition: background-color .25s ease-in;
 }
