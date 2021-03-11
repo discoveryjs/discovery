@@ -26,7 +26,7 @@ const defaultDecodeParams = (pairs) => Object.fromEntries(pairs);
 
 function setDatasetValue(el, key, value) {
     if (value) {
-        el.dataset[key] = true;
+        el.dataset[key] = value;
     } else {
         delete el.dataset[key];
     }
@@ -742,8 +742,9 @@ export default class Widget extends Emitter {
         this.dom.pageContent = pageEl;
         this.nav.render(this.dom.nav);
 
-        setDatasetValue(this.dom.container, 'dzen', this.pageParams.dzen);
-        setDatasetValue(this.dom.container, 'compact', this.options.compact);
+        setDatasetValue(this.dom.container, 'page', this.pageId);
+        setDatasetValue(this.dom.container, 'dzen', Boolean(this.pageParams.dzen));
+        setDatasetValue(this.dom.container, 'compact', Boolean(this.options.compact));
 
         // FIXME: there must be a better way to reveal a widget when everything is ready
         renderState.then(() => this.dom.wrapper.style.opacity = 1);
