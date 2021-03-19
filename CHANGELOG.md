@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.60 (19-03-2021)
 
 - Fixed report page vertical scrolling issue when a pointer over an editor
 - Added `data-page` attribute on widget's root with current `pageId` as a value
