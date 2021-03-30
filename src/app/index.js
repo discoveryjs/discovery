@@ -12,6 +12,7 @@ import {
     loadDataFromUrl,
     syncLoaderWithProgressbar
 } from '../core/utils/load-data.js';
+import * as navButtons from '../nav/buttons';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 
@@ -27,115 +28,45 @@ export default class App extends Widget {
     }
 
     constructor(container, options = {}) {
+        const extensions = options.extensions ? [options.extensions] : [];
+
+        if (coalesceOption(options.router, true)) {
+            extensions.push(router);
+        }
+
+        extensions.push(navButtons.darkmodeToggle);
+
+        if (options.mode === 'modelfree') {
+            extensions.push(navButtons.loadData);
+        } else {
+            extensions.push(navButtons.indexPage);
+            extensions.push(navButtons.reportPage);
+        }
+
+        if (coalesceOption(options.inspector, true)) {
+            extensions.push(navButtons.inspect);
+        }
+
         super(container, null, {
             ...options,
+            extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
 
         this.mode = this.options.mode;
-
-        if (coalesceOption(this.options.router, true)) {
-            this.apply(router);
-        }
-
-        // let detachDarkMode = () => {};
-        // this.nav.append({
-        //     name: 'dev-dark-mode',
-        //     when: () => this.darkmode.mode !== 'disabled',
-        //     onClick: () => this.darkmode.toggle(true),
-        //     postRender: el => {
-        //         detachDarkMode();
-        //         detachDarkMode = this.darkmode.subscribe((value, mode) => {
-        //             el.classList.toggle('dark', value);
-        //             el.classList.toggle('auto', mode === 'auto');
-        //             el.textContent = mode === 'auto' ? 'Auto light/dark' : value ? 'Dark mode' : 'Light mode';
-        //         }, true);
-        //     }
-        // });
-
-        let detachToggleDarkMode = () => {};
-        this.nav.menu.append({
-            view: 'block',
-            className: ['toggle-menu-item', 'dark-mode-switcher'],
-            name: 'dark-mode',
-            when: '#.widget | darkmode.mode != "disabled"',
-            postRender: (el, opts, data, { hide }) => {
-                let selfValue;
-
-                detachToggleDarkMode();
-                detachToggleDarkMode = this.darkmode.subscribe((value, mode) => {
-                    const newValue = mode === 'auto' ? 'auto' : value;
-
-                    if (newValue === selfValue) {
-                        return;
-                    }
-
-                    el.innerHTML = '';
-                    selfValue = newValue;
-                    this.view.render(el, {
-                        view: 'toggle-group',
-                        beforeToggles: 'text:"Color schema"',
-                        onChange: value => {
-                            selfValue = value;
-                            this.darkmode.set(value);
-                            hide();
-                        },
-                        value: newValue,
-                        data: [
-                            { value: false, text: 'Light' },
-                            { value: true, text: 'Dark' },
-                            { value: 'auto', text: 'Auto' }
-                        ]
-                    }, null, { widget: this });
-                }, true);
-            }
-        });
-
-        if (this.mode === 'modelfree') {
-            this.nav.append({
-                name: 'load-data',
-                content: 'text:"Load data"',
-                onClick: () => createElement('input', {
-                    type: 'file',
-                    accept: 'application/json,.json',
-                    onchange: event => this.constructor.modelfreeLoadData(this, event)
-                }).click()
-            });
-        } else {
-            this.nav.append({
-                name: 'index-page',
-                when: '#.widget | pageId != defaultPageId',
-                data: '{ text: "Index", href: pageLink(#.widget.defaultPageId) }'
-            });
-            this.nav.append({
-                name: 'report-page',
-                when: '#.widget | pageId != reportPageId',
-                data: '{ text: "Make report", href: pageLink(#.widget.reportPageId) }'
-            });
-        }
-
-        if (coalesceOption(this.options.inspector, true)) {
-            this.nav.append({
-                name: 'inspect',
-                onClick: () => this.inspectMode.set(!this.inspectMode.value),
-                postRender(el) {
-                    el.title = 'Enable view inspection';
-                }
-            });
-        }
     }
 
-    progressbar(...args) {
-        return new Progressbar(...args);
+    progressbar(options) {
+        return new Progressbar({
+            onTiming: ({ title, duration }) =>
+                console.log(`[Discovery] Data loading / ${title} – ${duration}ms`),
+            ...options
+        });
     }
 
     trackLoadDataProgress(loader) {
-        const progressbar = this.progressbar({
-            onTiming: ({ title, duration }) =>
-                console.log(`[Discovery] Data loading / ${title} – ${duration}ms`)
-        });
-
+        const progressbar = this.progressbar();
         const containerEl = this.dom.loadingOverlay;
         containerEl.innerHTML = '';
         containerEl.append(progressbar.el);

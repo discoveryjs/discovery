@@ -5,12 +5,14 @@ import * as pages from './pages/index.js';
 import inspector from './inspector/index.js';
 import router from './core/router.js';
 import utils from './core/utils/index.js';
+import { buttons as navButtons } from './nav/index.js';
 
 export {
     Widget,
     App,
     views,
     pages,
+    navButtons,
     inspector,
     router,
     utils

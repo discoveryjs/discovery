@@ -63,6 +63,7 @@ function createNavArray(host, defaults) {
     });
 }
 
+export * as buttons from './buttons.js';
 export class WidgetNavigation {
     constructor(host) {
         this.host = host;
