@@ -233,12 +233,12 @@ export default class Widget extends Emitter {
             this.apply(this.options.extensions);
         }
 
-        this.nav.render(this.dom.nav);
-        this.setContainer(container);
-
         if (this.options.inspector || this.options.inspector === undefined) {
             this.apply(attachViewInspector);
         }
+
+        this.nav.render(this.dom.nav);
+        this.setContainer(container);
     }
 
     apply(extensions) {

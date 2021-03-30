@@ -3,6 +3,7 @@
 - Fixed preloader's block disability in some cases due to underlaying
 - Fixed hanging on `push` mode loading when no data is provided (model-free mode build as a single file)
 - Removed style's applying to a container on `App` init
+- Changed `Widget`'s init to set a container last
 
 ## 1.0.0-beta.60 (19-03-2021)
 
