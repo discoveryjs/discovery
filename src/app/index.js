@@ -4,7 +4,6 @@ import Widget from '../widget/index.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
-import { applyContainerStyles } from '../core/utils/container-styles.js';
 import Progressbar from '../core/utils/progressbar.js';
 import {
     loadDataFromStream,
@@ -39,9 +38,6 @@ export default class App extends Widget {
         if (coalesceOption(this.options.router, true)) {
             this.apply(router);
         }
-
-        // FIXME: should not apply styles by default
-        this.darkmode.subscribe(darkmode => applyContainerStyles(this.dom.wrapper.parentNode, { darkmode }));
 
         // let detachDarkMode = () => {};
         // this.nav.append({
@@ -124,7 +120,7 @@ export default class App extends Widget {
                 name: 'inspect',
                 onClick: () => this.inspectMode.set(!this.inspectMode.value),
                 postRender(el) {
-                    el.title = 'Enable view inspection. Use Alt + click for quick inspection';
+                    el.title = 'Enable view inspection';
                 }
             });
         }

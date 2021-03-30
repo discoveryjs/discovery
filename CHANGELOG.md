@@ -1,10 +1,14 @@
+## next
+
+- Fixed preloader's block disability in some cases due to underlaying
+- Fixed hanging on `push` mode loading when no data is provided (model-free mode build as a single file)
+- Removed style's applying to a container on `App` init
+
 ## 1.0.0-beta.60 (19-03-2021)
 
 - Fixed report page vertical scrolling issue when a pointer over an editor
 - Added `data-page` attribute on widget's root with current `pageId` as a value
 - Changed layout to rely on `--discovery-page-padding-top/right/bottom/left` custom properties
-- Fixed preloader's block disability in some cases due to underlaying
-- Fixed hanging on `push` mode loading when no data is provided (model-free mode build as a single file)
 
 ## 1.0.0-beta.59 (10-03-2021)
 
