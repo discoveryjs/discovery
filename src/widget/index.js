@@ -4,7 +4,6 @@ import Emitter from '../core/emitter.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
-import ObjectMarker from '../core/object-marker.js';
 import Publisher from '../core/publisher.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
@@ -15,6 +14,7 @@ import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';
 import * as lib from '../lib.js'; // FIXME: temporary solution to expose discovery's lib API
+import { createDataExtensionApi } from './data-extension-api.js';
 import jora from 'jora';
 
 const lastSetDataPromise = new WeakMap();
@@ -46,133 +46,6 @@ function getPageMethod(host, pageId, name, fallback) {
     return typeof method === 'function'
         ? method
         : fallback;
-}
-
-function createDataExtensionApi(instance) {
-    const objectMarkers = new ObjectMarker();
-    const linkResolvers = [];
-    const annotations = [];
-    const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
-    const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
-    const addValueAnnotation = (query, options = false) => {
-        if (typeof options === 'boolean') {
-            options = {
-                debug: options
-            };
-        }
-
-        annotations.push({
-            query,
-            ...options
-        });
-    };
-    const resolveValueLinks = (value) => {
-        const result = [];
-        const type = typeof value;
-
-        if (value && (type === 'object' || type === 'string')) {
-            for (const resolver of linkResolvers) {
-                const link = resolver(value);
-
-                if (link) {
-                    result.push(link);
-                }
-            }
-        }
-
-        return result.length ? result : null;
-    };
-
-    let queryCustomMethods = {
-        query: (...args) => instance.query(...args),
-        pageLink: (pageRef, pageId, pageParams) =>
-            instance.encodePageHash(pageId, pageRef, pageParams),
-        marker: lookupObjectMarker,
-        markerAll: lookupObjectMarkerAll
-    };
-    let joraSetup = jora.setup(queryCustomMethods);
-
-    return {
-        apply() {
-            Object.assign(instance, {
-                objectMarkers,
-                linkResolvers,
-                resolveValueLinks,
-                annotations,
-                queryFnFromString: joraSetup
-            });
-        },
-        methods: {
-            lookupObjectMarker,
-            lookupObjectMarkerAll,
-            resolveValueLinks,
-            defineObjectMarker(name, options) {
-                const { page, mark, lookup } = objectMarkers.define(name, options) || {};
-
-                if (!lookup) {
-                    return () => {};
-                }
-
-                if (page !== null) {
-                    if (!instance.page.isDefined(options.page)) {
-                        console.error(`[Discovery] Page reference "${options.page}" doesn't exist`);
-                        return;
-                    }
-
-                    linkResolvers.push(value => {
-                        const marker = lookup(value);
-
-                        if (marker !== null) {
-                            return {
-                                type: page,
-                                text: marker.title,
-                                href: marker.href,
-                                entity: marker.object
-                            };
-                        }
-                    });
-
-                    addValueAnnotation((value, context) => {
-                        const marker = lookup(value);
-
-                        if (marker && marker.object !== context.host) {
-                            return {
-                                place: 'before',
-                                style: 'badge',
-                                text: page,
-                                href: marker.href
-                            };
-                        }
-                    });
-                } else {
-                    addValueAnnotation((value, context) => {
-                        const marker = lookup(value);
-
-                        if (marker && marker.object !== context.host) {
-                            return {
-                                place: 'before',
-                                style: 'badge',
-                                text: name
-                            };
-                        }
-                    });
-                }
-
-                return mark;
-            },
-            addValueAnnotation,
-            addQueryHelpers(helpers) {
-                queryCustomMethods = {
-                    ...queryCustomMethods,
-                    ...helpers
-                };
-                joraSetup = jora.setup(queryCustomMethods);
-            },
-            query(query, ...args) {
-                return instance.queryFn.call({ queryFnFromString: joraSetup }, query)(...args);
-            }
-        }
-    };
 }
 
 export default class Widget extends Emitter {
