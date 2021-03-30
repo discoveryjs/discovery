@@ -26,13 +26,11 @@ export function preloader(config) {
     applyContainerStyles(container, config);
 
     const loadData = dataSource[config.dataSource || 'url'];
-    const loading = config.dataSource === 'push'
-        ? loadData()
-        : config.data
-            ? loadData(config.data, 'data')
-            : {
-                result: Promise.resolve(config)
-            };
+    const loading = config.data
+        ? config.dataSource === 'push' ? loadData() : loadData(config.data, 'data')
+        : {
+            result: Promise.resolve({})
+        };
 
     if (loading.push) {
         window.discoveryLoader = {
