@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.61 (31-03-2021)
 
 - Fixed preloader's block disability in some cases due to underlaying
 - Fixed hanging on `push` mode loading when no data is provided (model-free mode build as a single file)
