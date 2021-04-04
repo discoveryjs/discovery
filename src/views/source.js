@@ -59,10 +59,16 @@ function getSupported() {
 
     for (const [alias] of Object.entries(CodeMirror.modes)) {
         if (!modes.has(alias)) {
-            mimeMode.set(Symbol(), {
-                name: new Set([alias]),
-                mime: []
-            });
+            const mode = CodeMirror.modes[alias];
+
+            if (!mimeMode.has(mode)) {
+                mimeMode.set(mode, {
+                    name: new Set(),
+                    mime: []
+                });
+            }
+
+            mimeMode.get(mode).name.add(alias);
         }
     }
 

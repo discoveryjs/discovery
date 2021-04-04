@@ -1,6 +1,7 @@
 ## next
 
 - Fixed code highlighting in `source` view
+- Added alias `jora` for `discovery-query` syntax (used in `source` and `markdown`)
 
 ## 1.0.0-beta.61 (31-03-2021)
 

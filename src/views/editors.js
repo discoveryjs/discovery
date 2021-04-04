@@ -4,6 +4,8 @@ import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
 import CodeMirror from 'codemirror';
+import modeQuery from './editor-mode-query';
+import modeView from './editor-mode-view';
 import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
@@ -133,87 +135,9 @@ class ViewEditor extends Editor {
     }
 }
 
-CodeMirror.defineMode('discovery-query', function(config) {
-    const jsMode = CodeMirror.getMode(config, {
-        name: 'javascript',
-        json: true
-    });
-
-    return {
-        ...jsMode,
-        indent(state, textAfter) {
-            return state.indented + config.indentUnit * (
-                (state.lastType === '{' && textAfter.trim()[0] !== '}') ||
-                (state.lastType === '(' && textAfter.trim()[0] !== ')') ||
-                (state.lastType === '[' && textAfter.trim()[0] !== ']')
-            );
-        },
-        token(stream, state) {
-            const next = stream.peek();
-
-            if (next === '#' || next === '@') {
-                jsMode.token(new CodeMirror.StringStream('$', 4, stream.lineOracle), state);
-                stream.pos++;
-                return 'variable';
-            }
-
-            return jsMode.token(stream, state);
-        }
-    };
-});
-
-CodeMirror.defineMode('discovery-view', function(config, options) {
-    const isDiscoveryViewDefined = typeof options.isDiscoveryViewDefined === 'function'
-        ? options.isDiscoveryViewDefined
-        : () => {};
-    const jsMode = CodeMirror.getMode(config, {
-        name: 'javascript',
-        json: true
-    });
-
-    return {
-        ...jsMode,
-        indent(state, textAfter) {
-            return state.indented + config.indentUnit * (
-                (state.lastType === '{' && textAfter.trim()[0] !== '}') ||
-                (state.lastType === '(' && textAfter.trim()[0] !== ')') ||
-                (state.lastType === '[' && textAfter.trim()[0] !== ']')
-            );
-        },
-        token: function(stream, state) {
-            if (state.suspendTokens) {
-                const { pos, token } = state.suspendTokens.shift();
-
-                stream.pos = pos;
-                if (state.suspendTokens.length === 0) {
-                    state.suspendTokens = null;
-                }
-
-                return token;
-            }
-
-            const start = stream.pos;
-            const token = jsMode.token(stream, state);
-
-            if (token === 'string') {
-                const end = stream.pos;
-                const [, viewName] = stream.string
-                    .slice(start + 1, end - 1)
-                    .match(/^(.+?)([:{]|$)/) || [];
-
-                if (isDiscoveryViewDefined(viewName)) {
-                    stream.pos = start + 1;
-                    state.suspendTokens = [
-                        { pos: start + 1 + viewName.length, token: 'string discovery-view-name' },
-                        { pos: end, token }
-                    ];
-                }
-            }
-
-            return token;
-        }
-    };
-});
+CodeMirror.defineMode('jora', modeQuery);
+CodeMirror.defineMode('discovery-query', modeQuery);
+CodeMirror.defineMode('discovery-view', modeView);
 
 export default function(discovery) {
     Object.assign(discovery.view, {
