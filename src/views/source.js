@@ -79,17 +79,29 @@ function codeMirrorHighlight(modespec, discovery) {
     });
 
     return (source, createRange) => {
-        const stream = new CodeMirror.StringStream(source, null);
         const state = CodeMirror.startState(mode);
+        const lines = source.split(/(\n|\r\n?)/);
+        let lineOffset = 0;
 
-        while (!stream.eol()) {
-            const style = mode.token(stream, state);
+        for (let i = 0; i < lines.length; i++) {
+            if (i % 2 === 0) {
+                const stream = new CodeMirror.StringStream(lines[i], 4, {
+                    lookAhead: n => lines[i + n],
+                    baseToken: function() {}
+                });
 
-            if (style) {
-                createRange(stream.start, stream.pos, style);
+                while (!stream.eol()) {
+                    const style = mode.token(stream, state);
+
+                    if (style) {
+                        createRange(lineOffset + stream.start, lineOffset + stream.pos, style);
+                    }
+
+                    stream.start = stream.pos;
+                }
             }
 
-            stream.start = stream.pos;
+            lineOffset += lines[i].length;
         }
     };
 };
