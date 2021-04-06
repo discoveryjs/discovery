@@ -5,13 +5,21 @@ import { escapeHtml } from '../core/utils/html.js';
 
 class CustomRenderer extends marked.Renderer {
     heading(text, level, raw, slugger) {
-        let id = '';
+        const { discovery, anchors } = this.options;
+        let anchor = '';
 
-        if (this.options.headerIds) {
-            id = ' id="' + this.options.headerPrefix + slugger.slug(raw) + '"';
+        if (anchors) {
+            const slug = slugger.slug(raw);
+            const href = discovery.encodePageHash(
+                discovery.pageId,
+                discovery.pageRef,
+                { ...discovery.pageParams, '!anchor': slug }
+            );
+
+            anchor = `<a class="view-header__anchor" id="!anchor:${slug}" href="${href}"></a>`;
         }
 
-        return `<h${level} class="view-header view-h${level}"${id}>${text}</h${level}>\n`;
+        return `<h${level} class="view-header view-h${level}">${anchor}${text}</h${level}>\n`;
     }
 
     link(href, title, text) {
@@ -64,6 +72,7 @@ marked.setOptions({
 
 export default function(discovery) {
     const opts = {
+        discovery,
         highlight: function(content, syntax, callback) {
             const buffer = document.createDocumentFragment();
             discovery.view.render(buffer, 'source', { syntax, content })
@@ -72,14 +81,14 @@ export default function(discovery) {
     };
 
     function render(el, config, data) {
-        const { source } = config;
+        const { source, anchors = true } = config;
 
         el.classList.add('view-markdown');
 
         return new Promise((resolve) => {
             marked(
                 typeof data === 'string' ? data : source || '',
-                opts,
+                { ...opts, anchors },
                 (er, html) => {
                     el.innerHTML = html.replace(/\n(<\/code>)/g, '$1'); // FIXME: marked adds extra newline before </code> for unknown reason
                     resolve();

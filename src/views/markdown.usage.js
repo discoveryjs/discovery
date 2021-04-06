@@ -14,6 +14,21 @@ export default {
             demo: 'md:"**Hello** `world`!"'
         },
         {
+            title: 'Disable anchors for headers',
+            beforeDemo: 'Hover a header to see chain icon on left side when anchors are enabled',
+            demo: [
+                {
+                    view: 'markdown',
+                    anchors: false,
+                    source: '## header with disabled anchor'
+                },
+                {
+                    view: 'markdown',
+                    source: '## header with default settings'
+                }
+            ]
+        },
+        {
             title: 'Showcase',
             demo: {
                 view: 'markdown',

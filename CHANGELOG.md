@@ -3,6 +3,7 @@
 - Fixed code highlighting in `source` view
 - Added alias `jora` for `discovery-query` syntax (used in `source` and `markdown`)
 - Added anchor support for headers and `anchor` option to enable it
+- Added anchor support for headers in `markdown` view and `anchors` option to disable it
 
 ## 1.0.0-beta.61 (31-03-2021)
 

@@ -18,6 +18,13 @@
     border-radius: 3px;
 }
 
+.view-markdown sup {
+    vertical-align: top;
+}
+.view-markdown sub {
+    vertical-align: bottom;
+}
+
 .view-markdown pre {
     padding: 4px;
     overflow: auto;
@@ -34,7 +41,7 @@
     font-family: inherit;
     font-size: 100%;
     background: none;
-    border-radius: none;
+    border-radius: 0;
     text-shadow: none;
     color: inherit;
 }
