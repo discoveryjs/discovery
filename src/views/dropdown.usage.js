@@ -7,12 +7,15 @@ export default {
             name: 'demo',
             value: { foo: 'two', bar: 'hello' },
             resetValue: { foo: 'one', bar: '' },
-            caption: { view: 'struct', expanded: 1, data: '#' },
+            caption: 'text:`${#.demo.foo} / ${#.demo.bar}`',
             content: [
                 { view: 'select', name: 'foo', data: ['one', 'two', 'three', 'four'] },
                 { view: 'input', name: 'bar' }
             ]
         },
-        content: { view: 'struct', expanded: 1, data: '#' }
+        content: [
+            { view: 'block', content: 'text:"Modified context (see values in \\"demo\\" section):"' },
+            { view: 'struct', expanded: 1, data: '#' }
+        ]
     }
 };
