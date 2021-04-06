@@ -11,9 +11,24 @@ export default (view, group) => ({
                 view,
                 content: [
                     'text:"Text "',
-                    'link:{text:"Link"}'
+                    'link:{ text: "Link" }'
                 ]
             }
+        },
+        {
+            title: 'Using anchor',
+            demo: [
+                {
+                    view,
+                    anchor: 'foo',
+                    content: 'text:"Explicit value for an anchor"'
+                },
+                {
+                    view,
+                    anchor: true,
+                    content: 'text:"Auto generated anchor based on text content of header"'
+                }
+            ]
         }
     ]
 });

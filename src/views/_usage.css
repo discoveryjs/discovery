@@ -4,14 +4,17 @@
 .discovery-view-usage .usage-render {
     position: relative;
     z-index: 0;
-    margin: 0 -20px 10px;
-    padding: 20px;
+    margin: 0 -24px 10px;
+    padding: 24px;
     border: solid rgba(170, 170, 170, 0.2);
     border-width: 1px 0;
 }
 .discovery-view-usage .usage-section > .view-h2 {
     margin-top: 1.2em;
     margin-bottom: .5em;
+}
+.discovery-view-usage .usage-section > .view-h2 .view-header__anchor {
+    scroll-margin: .5em;
 }
 .discovery-view-usage .view-tabs.usage-sources .view-tabs-buttons::before {
     display: none;

@@ -621,6 +621,16 @@ export default class Widget extends Emitter {
 
         // FIXME: there must be a better way to reveal a widget when everything is ready
         renderState.then(() => this.dom.wrapper.style.opacity = 1);
+        renderState.then(() => {
+            if (this.pageParams['!anchor']) {
+                const el = pageEl.querySelector('#' + CSS.escape('!anchor:' + this.pageParams['!anchor']));
+                if (el) {
+                    const pageHeaderEl = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
+                    el.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
+                    el.scrollIntoView(true);
+                }
+            }
+        });
 
         return renderState;
     }

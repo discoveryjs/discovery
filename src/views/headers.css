@@ -1,6 +1,31 @@
 .view-header {  /* the same as h4 */
     font-size: 120%;
     font-weight: normal;
+    position: relative;
+}
+
+.view-header > .view-header__anchor {
+    position: absolute;
+    margin-left: -22px;
+    display: inline-block;
+    width: 22px;
+    text-align: center;
+    color: inherit;
+    background: url(./headers-anchor.svg) center / 20px no-repeat content-box;
+    padding-top: 2px;
+    font-weight: normal;
+    opacity: 0;
+    transition: opacity .25s;
+}
+.view-header:hover > .view-header__anchor,
+.view-header:hover > .view-header__anchor {
+    opacity: 1;
+}
+.view-header > .view-header__anchor::before {
+    content: '§';
+    display: inline-block;
+    width: 0;
+    visibility: hidden;
 }
 
 .view-h1 {

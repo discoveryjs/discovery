@@ -159,7 +159,7 @@ export default function(discovery) {
                     className: 'usage-section'
                 },
                 item: [
-                    'h2:title',
+                    'h2{ anchor: true, data: title }',
                     renderDemo
                 ]
             }
