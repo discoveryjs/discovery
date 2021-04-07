@@ -27,8 +27,8 @@ function simpleCompare(a, b) {
     return true;
 }
 
-export default function(discovery) {
-    discovery.view.define('dropdown', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('dropdown', function(el, config, data, context) {
         function isEqual(a, b) {
             return typeof compare === 'function'
                 ? compare(a, b)
@@ -38,7 +38,7 @@ export default function(discovery) {
         function renderCaption() {
             captionEl.innerHTML = '';
 
-            return discovery.view.render(
+            return host.view.render(
                 captionEl,
                 caption || 'text',
                 data,
@@ -64,7 +64,7 @@ export default function(discovery) {
                 };
 
                 buttonsEl.innerHTML = '';
-                discovery.view.render(buttonsEl, [
+                host.view.render(buttonsEl, [
                     {
                         view: 'button-primary',
                         disabled: '=not changed',
@@ -119,18 +119,18 @@ export default function(discovery) {
         el.tabIndex = 0;
         el.addEventListener('click', () => {
             if (dropdownPopup === null) {
-                dropdownPopup = new discovery.view.Popup({ className: 'view-dropdown-popup' });
+                dropdownPopup = new host.view.Popup({ className: 'view-dropdown-popup' });
             }
 
             let sessionContext = { ...currentValue };
             let initContext;
 
             dropdownPopup.toggle(el, popupEl =>
-                discovery.view.render(popupEl, [
+                host.view.render(popupEl, [
                     {
                         view: 'block',
                         className: 'content',
-                        content: discovery.view.composeConfig(content, {
+                        content: host.view.composeConfig(content, {
                             onInit(value, name) {
                                 sessionContext[name] = value;
                             },

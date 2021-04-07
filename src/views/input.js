@@ -4,13 +4,13 @@ import usage from './input.usage.js';
 import safeFilterRx from '../core/utils/safe-filter-rx.js';
 import debounceFn from '../core/utils/debounce.js';
 
-export default function(discovery) {
+export default function(host) {
     const factories = {
         regexp: pattern => pattern ? safeFilterRx(pattern) : null,
         text: pattern => pattern
     };
 
-    discovery.view.define('input', function(el, config, data, context) {
+    host.view.define('input', function(el, config, data, context) {
         const {
             name,
             value,
@@ -25,7 +25,7 @@ export default function(discovery) {
         } = config;
         const factory = factories[type] || factories.text;
         const inputEl = el.appendChild(document.createElement('input'));
-        let lastInput = value ? discovery.query(value, data, context) : context[name];
+        let lastInput = value ? host.query(value, data, context) : context[name];
 
         if (typeof lastInput !== 'string') {
             lastInput = '';

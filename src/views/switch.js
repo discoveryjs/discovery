@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './switch.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('switch', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('switch', function(el, config, data, context) {
         let { content } = config;
         let renderConfig = 'alert-warning:"No case choosen"';
 
@@ -10,7 +10,7 @@ export default function(discovery) {
             for (let i = 0; i < content.length; i++) {
                 const branch = content[i];
 
-                if (branch && discovery.queryBool(branch.when || true, data, context)) {
+                if (branch && host.queryBool(branch.when || true, data, context)) {
                     renderConfig = 'data' in branch
                         ? {
                             view: 'context',
@@ -23,7 +23,7 @@ export default function(discovery) {
             }
         }
 
-        return discovery.view.render(el, renderConfig, data, context);
+        return host.view.render(el, renderConfig, data, context);
     }, {
         tag: false,
         usage

@@ -15,18 +15,18 @@ function exportReportAsJson(pageParams) {
     }\n}`;
 }
 
-export default function(discovery, updateParams) {
+export default function(host, updateParams) {
     let titleInputEl;
     let dataDateTimeEl;
     let viewDateTimeEl;
     let noeditToggleEl;
 
-    const shareOptionsPopup = new discovery.view.Popup({
-        render: (popupEl, _, hide) => discovery.view.render(popupEl, {
+    const shareOptionsPopup = new host.view.Popup({
+        render: (popupEl, _, hide) => host.view.render(popupEl, {
             view: 'menu',
             data: [
                 { text: 'Copy link to report', action: () => copyText(location) },
-                { text: 'Copy report as JSON', action: () => copyText(exportReportAsJson(discovery.pageParams)) }
+                { text: 'Copy report as JSON', action: () => copyText(exportReportAsJson(host.pageParams)) }
             ],
             onClick(item) {
                 hide();
@@ -42,7 +42,7 @@ export default function(discovery, updateParams) {
             onclick: ({ target }) => {
                 target.blur();
                 updateParams({
-                    noedit: !discovery.pageParams.noedit
+                    noedit: !host.pageParams.noedit
                 });
             }
         }),
@@ -60,7 +60,7 @@ export default function(discovery, updateParams) {
             onclick: ({ target }) => {
                 target.blur();
                 updateParams({
-                    dzen: !discovery.pageParams.dzen
+                    dzen: !host.pageParams.dzen
                 });
             }
         })

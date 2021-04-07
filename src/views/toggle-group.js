@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './toggle-group.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('toggle-group', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('toggle-group', function(el, config, data, context) {
         async function render(_, value) {
             const handler = inited ? onChange : onInit;
 
@@ -18,18 +18,18 @@ export default function(discovery) {
 
                 if (beforeToggles) {
                     beforeTogglesEl.innerHTML = '';
-                    await discovery.view.render(beforeTogglesEl, beforeToggles, data, { ...context, [name]: value });
+                    await host.view.render(beforeTogglesEl, beforeToggles, data, { ...context, [name]: value });
                     el.appendChild(beforeTogglesEl);
                 }
 
                 if (afterToggles) {
                     afterTogglesEl.innerHTML = '';
-                    await discovery.view.render(afterTogglesEl, afterToggles, data, { ...context, [name]: value });
+                    await host.view.render(afterTogglesEl, afterToggles, data, { ...context, [name]: value });
                     el.appendChild(afterTogglesEl);
                 }
 
                 await Promise.all(toggles.map((toggle, idx) =>
-                    discovery.view.render(el, discovery.view.composeConfig(toggle, {
+                    host.view.render(el, host.view.composeConfig(toggle, {
                         checked: toggle.value === currentValue
                     }), data[idx], context)
                 ));
@@ -53,7 +53,7 @@ export default function(discovery) {
                 : name in context
                     ? context[name]
                     : undefined;
-        toggleConfig = discovery.view.composeConfig({
+        toggleConfig = host.view.composeConfig({
             view: 'toggle',
             onToggle: render
         }, toggleConfig);
@@ -84,7 +84,7 @@ export default function(discovery) {
                     initValue = toggle.value;
                 }
 
-                return discovery.view.composeConfig(
+                return host.view.composeConfig(
                     toggleConfig,
                     toggle
                 );

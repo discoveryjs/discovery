@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './menu-item.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('menu-item', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('menu-item', function(el, config, data, context) {
         const { content, onClick } = config;
         const { text, selected = false, disabled = false, href, external } = data || {};
 
@@ -21,7 +21,7 @@ export default function(discovery) {
         }
 
         if (content) {
-            return discovery.view.render(el, content, data, context);
+            return host.view.render(el, content, data, context);
         } else {
             el.textContent = typeof data === 'string' ? data : text || 'Untitled item';
         }

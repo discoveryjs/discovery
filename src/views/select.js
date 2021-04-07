@@ -1,18 +1,18 @@
 /* eslint-env browser */
 import usage from './select.usage.js';
 
-export default function(discovery) {
+export default function(host) {
     const defaultItemRender = 'text-match:{ text, match: #.filter }';
     const variantQuery = '{ value: $, text: #.selectVariantTextQuery.query($, #) }';
-    const variantsPopup = new discovery.view.Popup({
+    const variantsPopup = new host.view.Popup({
         className: 'view-select-popup'
     });
 
-    discovery.view.define('select', function(el, config, data, context) {
+    host.view.define('select', function(el, config, data, context) {
         function renderCaption() {
             el.innerHTML = '';
             if (currentValue !== undefined) {
-                return discovery.view.render(el, discovery.view.composeConfig({
+                return host.view.render(el, host.view.composeConfig({
                     view: 'menu-item',
                     data: variantQuery,
                     content: item
@@ -35,7 +35,7 @@ export default function(discovery) {
             onInit,
             onChange
         } = config;
-        let currentValue = value ? discovery.query(value, data, context) : context[name];
+        let currentValue = value ? host.query(value, data, context) : context[name];
         let variantsPopupContext = {
             ...context,
             selectMinItemsFilter: minItemsFilter,
@@ -48,7 +48,7 @@ export default function(discovery) {
         const popupContent = [];
 
         if (beforeItems) {
-            popupContent.push(discovery.view.composeConfig(beforeItems, { onInit, onChange }));
+            popupContent.push(host.view.composeConfig(beforeItems, { onInit, onChange }));
         }
 
         popupContent.push({
@@ -67,7 +67,7 @@ export default function(discovery) {
                 className: 'view-select__variants',
                 data: '#.selectResetItem + .[no #.filter or text~=#.filter]',
                 limit,
-                itemConfig: discovery.view.composeConfig({
+                itemConfig: host.view.composeConfig({
                     className: [
                         data => data.resetItem ? 'reset-item' : '',
                         data => data.value === currentValue ? 'selected' : ''
@@ -94,7 +94,7 @@ export default function(discovery) {
         });
 
         if (afterItems) {
-            popupContent.push(discovery.view.composeConfig(afterItems, { onInit, onChange }));
+            popupContent.push(host.view.composeConfig(afterItems, { onInit, onChange }));
         }
 
         if (placeholder) {
@@ -104,7 +104,7 @@ export default function(discovery) {
         el.tabIndex = 0;
         el.addEventListener('click', () => {
             variantsPopup.toggle(el, popupEl =>
-                discovery.view.render(popupEl, popupContent, data, variantsPopupContext)
+                host.view.render(popupEl, popupContent, data, variantsPopupContext)
                     .then(() => (popupEl.querySelector('.view-select__filter input') || { focus() {} }).focus())
             );
         });

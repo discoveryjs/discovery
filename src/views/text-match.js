@@ -5,8 +5,8 @@ import usage from './text-match.usage.js';
 
 const matchWrapperEl = createElement('span', 'view-text-match');
 
-export default function(discovery) {
-    discovery.view.define('text-match', function(el, config, data) {
+export default function(host) {
+    host.view.define('text-match', function(el, config, data) {
         const { text, match: pattern, ignoreCase = false } = data || {};
 
         matchAll(

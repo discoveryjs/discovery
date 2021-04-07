@@ -4,7 +4,7 @@ import { collectObjectMap, collectStat } from './collect-stat.js';
 import { renderStat } from './render-stat.js';
 import { renderPropertyDetails, renderTypeDetails } from './render-details.js';
 
-export default function(discovery) {
+export default function(host) {
     const elementToData = new WeakMap();
     const clickHandler = ({ target }) => {
         let action = 'expand';
@@ -69,10 +69,10 @@ export default function(discovery) {
     };
 
     // single event handler for all `signature` view instances
-    discovery.addHostElEventListener('click', clickHandler, false);
+    host.addHostElEventListener('click', clickHandler, false);
 
     // signature details popup
-    new discovery.view.Popup({
+    new host.view.Popup({
         className: 'signature-details',
         hoverPin: 'trigger-click',
         hoverTriggers: `
@@ -84,15 +84,15 @@ export default function(discovery) {
 
             switch (data.type) {
                 case 'property':
-                    return renderPropertyDetails(popupEl, data, discovery);
+                    return renderPropertyDetails(popupEl, data, host);
 
                 case 'type':
-                    return renderTypeDetails(popupEl, data, discovery);
+                    return renderTypeDetails(popupEl, data, host);
             }
         }
     });
 
-    discovery.view.define('signature', function(el, config, data) {
+    host.view.define('signature', function(el, config, data) {
         const { expanded, path } = config;
         const stat = collectStat(data, expanded);
         const normPath = Array.isArray(path) ? path : undefined;

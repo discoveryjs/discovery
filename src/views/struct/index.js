@@ -80,7 +80,7 @@ function renderObjectKey(container, name) {
     container.appendChild(objectKeyEl);
 }
 
-export default function(discovery) {
+export default function(host) {
     function collapseValue(el) {
         const options = elementOptions.get(el);
         const data = elementData.get(el);
@@ -195,7 +195,7 @@ export default function(discovery) {
 
         container.insertBefore(buffer, beforeEl);
 
-        discovery.view.maybeMoreButtons(
+        host.view.maybeMoreButtons(
             container,
             beforeEl,
             entries.length,
@@ -221,7 +221,7 @@ export default function(discovery) {
         for (const annotation of options.annotations) {
             try {
                 const { query, debug } = annotation;
-                const data = discovery.query(query, value, context);
+                const data = host.query(query, value, context);
 
                 if (debug) {
                     console.info({ annotation, value, context, data });
@@ -258,7 +258,7 @@ export default function(discovery) {
     const annotationsToRender = [];
     let annotationsTimer = null;
 
-    const valueActionsPopup = new discovery.view.Popup({
+    const valueActionsPopup = new host.view.Popup({
         className: 'view-struct-actions-popup',
         render: (popupEl, triggerEl) => {
             const el = triggerEl.parentNode;
@@ -281,7 +281,7 @@ export default function(discovery) {
                     }
                 ];
             } else {
-                const path = discovery.pathToQuery(buildPathForElement(el));
+                const path = host.pathToQuery(buildPathForElement(el));
                 const maxAllowedSize = 1024 * 1024 * 1024;
                 const { minLength: compactSize, circular } = jsonStringifyInfo(data);
                 let jsonFormattedStringifyError = false;
@@ -325,7 +325,7 @@ export default function(discovery) {
                 });
             }
 
-            discovery.view.render(popupEl, {
+            host.view.render(popupEl, {
                 view: 'menu',
                 onClick(item) {
                     valueActionsPopup.hide();
@@ -349,14 +349,14 @@ export default function(discovery) {
             }, actions);
         }
     });
-    const signaturePopup = new discovery.view.Popup({
+    const signaturePopup = new host.view.Popup({
         hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
         render: function(popupEl, triggerEl) {
             const el = triggerEl.parentNode;
             const data = elementData.get(el);
 
-            discovery.view.render(popupEl, {
+            host.view.render(popupEl, {
                 view: 'signature',
                 expanded: 2,
                 path: buildPathForElement(el)
@@ -434,15 +434,15 @@ export default function(discovery) {
     };
 
     // single event handler for all `struct` view instances
-    discovery.addHostElEventListener('click', clickHandler, false);
+    host.addHostElEventListener('click', clickHandler, false);
 
-    discovery.view.define('struct', function(el, config, data) {
+    host.view.define('struct', function(el, config, data) {
         const { expanded, limit, limitCollapsed, annotations } = config; // FIXME: add limit option
         const expandable = isValueExpandable(data);
         const options = {
-            limitCollapsed: discovery.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
-            limit: discovery.view.listLimit(limit, defaultExpandedItemsLimit),
-            annotations: discovery.annotations.concat(annotations || []),
+            limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
+            limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
+            annotations: host.annotations.concat(annotations || []),
             maxStringLength,
             maxLinearStringLength
         };

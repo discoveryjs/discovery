@@ -5,17 +5,17 @@ import createHeader from './report/header.js';
 import createQueryEditor from './report/editor-query.js';
 import createViewEditor from './report/editor-view.js';
 
-export default function(discovery) {
+export default function(host) {
     function updateParams(delta, replace) {
-        return discovery.setPageParams({
-            ...discovery.pageParams,
+        return host.setPageParams({
+            ...host.pageParams,
             ...delta
         }, replace);
     }
 
-    const header = createHeader(discovery, updateParams);
-    const queryEditor = createQueryEditor(discovery, updateParams);
-    const viewEditor = createViewEditor(discovery, updateParams);
+    const header = createHeader(host, updateParams);
+    const queryEditor = createQueryEditor(host, updateParams);
+    const viewEditor = createViewEditor(host, updateParams);
 
     //
     // Report layout
@@ -34,7 +34,7 @@ export default function(discovery) {
     //
     // Page
     //
-    discovery.page.define('report', function(el, data, context) {
+    host.page.define('report', function(el, data, context) {
         // process noedit setting
         reportEditorEl.hidden = context.params.noedit;
 

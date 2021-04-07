@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './checkbox-list.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('checkbox-list', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('checkbox-list', function(el, config, data, context) {
         const { name = 'filter', checkbox, checkboxValue = '$', emptyText, limit, onChange, onInit } = config;
         const state = new Set();
 
@@ -15,17 +15,17 @@ export default function(discovery) {
         }
 
         if (Array.isArray(data)) {
-            return discovery.view.renderList(el, this.composeConfig({
+            return host.view.renderList(el, this.composeConfig({
                 view: 'checkbox',
                 ...checkbox,
                 onInit: (checked, _, itemData, itemContext) => {
                     if (checked) {
-                        state.add(discovery.query(checkboxValue, itemData, itemContext));
+                        state.add(host.query(checkboxValue, itemData, itemContext));
                     }
                 },
                 onChange: (checked, _, itemData, itemContext) => {
                     const size = state.size;
-                    const value = discovery.query(checkboxValue, itemData, itemContext);
+                    const value = host.query(checkboxValue, itemData, itemContext);
 
                     if (checked) {
                         state.add(value);
@@ -37,7 +37,7 @@ export default function(discovery) {
                         onChange([...state], name);
                     }
                 }
-            }), data, context, 0, discovery.view.listLimit(limit, 25)).then(() => {
+            }), data, context, 0, host.view.listLimit(limit, 25)).then(() => {
                 if (typeof onInit === 'function') {
                     onInit([...state], name);
                 }

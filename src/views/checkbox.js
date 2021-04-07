@@ -2,7 +2,7 @@
 import usage from './checkbox.usage.js';
 import { createElement } from '../core/utils/dom.js';
 
-export default function(discovery) {
+export default function(host) {
     function renderContent(contentEl, content, data, context, name, inputEl) {
         if (contentEl === null) {
             return;
@@ -11,16 +11,16 @@ export default function(discovery) {
         const localContext = name ? { ...context, [name]: inputEl.checked } : context;
 
         contentEl.innerHTML = '';
-        return discovery.view.render(contentEl, content, data, localContext);
+        return host.view.render(contentEl, content, data, localContext);
     }
 
-    discovery.view.define('checkbox', function(el, config, data, context) {
+    host.view.define('checkbox', function(el, config, data, context) {
         const { name, checked, readonly, content, onInit, onChange } = config;
         const inputEl = el.appendChild(createElement('input'));
         const contentEl = content ? el.appendChild(createElement('span', 'view-checkbox__label')) : null;
 
         inputEl.type = 'checkbox';
-        inputEl.checked = checked !== undefined ? discovery.queryBool(checked, data, context) : Boolean(context[name]);
+        inputEl.checked = checked !== undefined ? host.queryBool(checked, data, context) : Boolean(context[name]);
         inputEl.readOnly = readonly;
         inputEl.addEventListener('click', (e) => {
             if (readonly) {

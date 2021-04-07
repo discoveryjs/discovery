@@ -1,10 +1,10 @@
 /* eslint-env browser */
 
-export default function(discovery) {
-    discovery.view.define('toc-section', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('toc-section', function(el, config, data, context) {
         const { header, content } = config;
 
-        return discovery.view.render(el, [
+        return host.view.render(el, [
             {
                 view: 'block',
                 className: 'header',

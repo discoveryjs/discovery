@@ -78,10 +78,10 @@ function getSupported() {
     }));
 }
 
-function codeMirrorHighlight(modespec, discovery) {
+function codeMirrorHighlight(modespec, host) {
     const mode = CodeMirror.getMode(CodeMirror.defaults, {
         name: CodeMirror.modeToMime[modespec] || modespec,
-        isDiscoveryViewDefined: name => discovery.view.isDefined(name)
+        isDiscoveryViewDefined: name => host.view.isDefined(name)
     });
 
     return (source, createRange) => {
@@ -145,8 +145,8 @@ const refsPrinter = {
     }
 };
 
-export default function(discovery) {
-    discovery.view.define('source', function(el, config, data) {
+export default function(host) {
+    host.view.define('source', function(el, config, data) {
         const decorators = [];
         const {
             mime, // deprecated, syntax = name or mime
@@ -177,7 +177,7 @@ export default function(discovery) {
 
         // prevent syntax highlighting for sources over maxSourceSizeToHighlight to avoid page freeze
         if (content.length < maxSourceSizeToHighlight) {
-            decorators.push([codeMirrorHighlight(syntax || mime, discovery), {
+            decorators.push([codeMirrorHighlight(syntax || mime, host), {
                 html: {
                     open({ data: type }) {
                         return '<span class="token ' + type + '">';

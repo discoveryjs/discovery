@@ -1,26 +1,26 @@
 /* eslint-env browser */
 
-export default function(discovery) {
-    discovery.view.define('auto-link', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('auto-link', function(el, config, data, context) {
         const { content, fallback, href } = config;
 
         if (!data) {
             return;
         }
 
-        const links = discovery.resolveValueLinks(data);
+        const links = host.resolveValueLinks(data);
         const preprocessHref = typeof href === 'function' ? href : value => value;
         const processedHref = links
             ? preprocessHref(links[0].href, data, context)
             : null;
 
         if (processedHref) {
-            return discovery.view.render(el, { view: 'link', content }, {
+            return host.view.render(el, { view: 'link', content }, {
                 ...links[0],
                 href: processedHref
             }, context);
         } else {
-            return discovery.view.render(el, fallback || content || 'text', data, context);
+            return host.view.render(el, fallback || content || 'text', data, context);
         }
     }, {
         tag: false

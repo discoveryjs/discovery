@@ -1,7 +1,7 @@
 import { createElement } from '../core/utils/dom.js';
 
-export default function(discovery) {
-    discovery.page.define('default', {
+export default function(host) {
+    host.page.define('default', {
         view: 'switch',
         content: [
             {
@@ -23,7 +23,7 @@ export default function(discovery) {
                         onClick: () => createElement('input', {
                             type: 'file',
                             accept: 'application/json,.json',
-                            onchange: event => discovery.constructor.modelfreeLoadData(discovery, event)
+                            onchange: event => host.constructor.modelfreeLoadData(host, event)
                         }).click(),
                         content: 'text:"Load data"'
                     }

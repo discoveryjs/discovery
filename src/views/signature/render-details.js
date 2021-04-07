@@ -56,7 +56,7 @@ function getStatCounts(stat) {
     return result;
 }
 
-export function renderPropertyDetails(el, data, discovery) {
+export function renderPropertyDetails(el, data, host) {
     const { count, map } = data.stat.object.dictMode || data.stat.object.properties.get(data.name);
     const total = (data.stat.object.dictMode || data.stat.object).count;
     const output = {
@@ -67,12 +67,12 @@ export function renderPropertyDetails(el, data, discovery) {
         percent: fixedNum(100 * count / total, 1) + '%'
     };
 
-    discovery.view.render(el, [
+    host.view.render(el, [
         {
             view: 'block',
             when: 'path',
             className: 'path',
-            data: data => discovery.pathToQuery(data.path),
+            data: data => host.pathToQuery(data.path),
             content: 'text:$'
         },
         {
@@ -94,10 +94,10 @@ export function renderPropertyDetails(el, data, discovery) {
     renderTypeStat(el, {
         map,
         count
-    }, discovery);
+    }, host);
 }
 
-function renderTypeStat(el, { map, count }, discovery) {
+function renderTypeStat(el, { map, count }, host) {
     const typeCounts = getStatCounts(map);
     const typeStat = [];
     const types = typeOrder.filter(type => type in map);
@@ -112,7 +112,7 @@ function renderTypeStat(el, { map, count }, discovery) {
         });
     });
 
-    discovery.view.render(el, {
+    host.view.render(el, {
         view: 'block',
         when: 'typeStat.size() > 1',
         data: 'typeStat',
@@ -143,11 +143,11 @@ function renderTypeStat(el, { map, count }, discovery) {
     }, typeStat);
 
     types.forEach(name =>
-        renderTypeDetails(el, { name, stat: map }, discovery)
+        renderTypeDetails(el, { name, stat: map }, host)
     );
 }
 
-export function renderTypeDetails(el, data, discovery) {
+export function renderTypeDetails(el, data, host) {
     const stat = data.stat[data.name];
     const total = getStatCount(data.stat);
     const renderSections = [];
@@ -383,17 +383,17 @@ export function renderTypeDetails(el, data, discovery) {
             renderSections.push({
                 view: 'block',
                 className: 'array-types',
-                content: (el) => renderTypeStat(el, stat, discovery)
+                content: (el) => renderTypeStat(el, stat, host)
             });
         }
     }
 
-    discovery.view.render(el, [
+    host.view.render(el, [
         {
             view: 'block',
             when: 'path',
             className: 'path',
-            data: data => discovery.pathToQuery(data.path),
+            data: data => host.pathToQuery(data.path),
             content: 'text'
         },
         {

@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './menu.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('menu', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('menu', function(el, config, data, context) {
         const { name = 'filter', item, itemConfig, limit, emptyText, onClick, onInit, onChange } = config;
 
         if (emptyText !== false && emptyText !== '') {
@@ -20,16 +20,16 @@ export default function(discovery) {
                         : undefined
             }, itemConfig);
 
-            return discovery.view.renderList(
+            return host.view.renderList(
                 el,
                 composedItemConfig,
                 data,
                 context,
                 0,
-                discovery.view.listLimit(limit, 25)
+                host.view.listLimit(limit, 25)
             ).then(() => {
                 if (typeof onInit === 'function') {
-                    onInit(discovery.query('.[selected].pick()', data, context), name);
+                    onInit(host.query('.[selected].pick()', data, context), name);
                 }
             });
         }

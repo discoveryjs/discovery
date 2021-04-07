@@ -44,7 +44,7 @@ function nodeHtml(node, level = '\n') {
     return '';
 }
 
-export default function(discovery) {
+export default function(host) {
     const renderDemo = {
         view: 'context',
         modifiers: [
@@ -128,7 +128,7 @@ export default function(discovery) {
         view: 'block',
         className: 'discovery-view-usage',
         data: ({ name, options }) => {
-            const group = [...discovery.view.values]
+            const group = [...host.view.values]
                 .filter(view => view.options.usage === options.usage)
                 .map(view => view.name);
 

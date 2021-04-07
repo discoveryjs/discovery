@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './context.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('context', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('context', function(el, config, data, context) {
         function renderContent() {
             // clear old content
             let cursor = contentEndMarker.previousSibling;
@@ -13,11 +13,11 @@ export default function(discovery) {
 
             // render new content
             const buffer = lastRender = document.createDocumentFragment();
-            return discovery.view
+            return host.view
                 .render(buffer, content, data, localContext)
                 .then(() => {
                     if (buffer === lastRender) {
-                        discovery.view.adoptFragment(buffer, contentStartMarker);
+                        host.view.adoptFragment(buffer, contentStartMarker);
                         contentStartMarker.after(buffer);
                     }
                 });
@@ -54,7 +54,7 @@ export default function(discovery) {
             modifiers = [modifiers];
         }
 
-        const renderModifiers = discovery.view.render(el, this.composeConfig(modifiers, {
+        const renderModifiers = host.view.render(el, this.composeConfig(modifiers, {
             onInit: updateContext,
             onChange: updateContext
         }), data, context);

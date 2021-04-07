@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import usage from './tree.usage.js';
 
-export default function(discovery) {
+export default function(host) {
     function renderTreeLines(container, renderStack, data, context, offset, limit) {
         if (limit === false) {
             limit = data.length;
@@ -17,8 +17,8 @@ export default function(discovery) {
                         itemConfig
                     } = renderStack;
 
-                    return discovery.view
-                        .render(targetContainer, discovery.view.composeConfig(itemConfig, {
+                    return host.view
+                        .render(targetContainer, host.view.composeConfig(itemConfig, {
                             expanded: entry.expanded,
                             last: entry.last,
                             hasChildren: entry.hasChildren,
@@ -31,7 +31,7 @@ export default function(discovery) {
                                 container.classList.add('incomplete');
                                 renderStack = {
                                     container,
-                                    itemConfig: discovery.view.composeConfig(itemConfig, itemConfig.itemConfig),
+                                    itemConfig: host.view.composeConfig(itemConfig, itemConfig.itemConfig),
                                     prev: renderStack
                                 };
                             } else {
@@ -44,7 +44,7 @@ export default function(discovery) {
                 }),
                 Promise.resolve()
             )
-            .then(() => discovery.view.maybeMoreButtons(
+            .then(() => host.view.maybeMoreButtons(
                 container,
                 null,
                 data.length,
@@ -57,7 +57,7 @@ export default function(discovery) {
     function buildTreeLines(data, context, itemConfig, expanded) {
         function processChildren(array, expanded, itemConfig, popCount = 0) {
             array.forEach((data, index, array) => {
-                const children = discovery.query(itemConfig.children, data, context);
+                const children = host.query(itemConfig.children, data, context);
                 const hasChildren = Array.isArray(children) && children.length > 0;
                 const last = index === array.length - 1;
                 const leafExpanded =
@@ -81,7 +81,7 @@ export default function(discovery) {
                     processChildren(
                         children,
                         typeof expanded === 'number' ? expanded - 1 : expanded,
-                        discovery.view.composeConfig(itemConfig, itemConfig.itemConfig),
+                        host.view.composeConfig(itemConfig, itemConfig.itemConfig),
                         last ? popCount + 1 : 0
                     );
                 }
@@ -96,7 +96,7 @@ export default function(discovery) {
         return leafs;
     }
 
-    discovery.view.define('tree', function render(el, config, data, context) {
+    host.view.define('tree', function render(el, config, data, context) {
         const { children = 'children', item = 'text', itemConfig, collapsible, emptyText, onToggle } = config;
         let { expanded, limit, limitLines = true } = config;
 
@@ -109,9 +109,9 @@ export default function(discovery) {
         }
 
         if (Array.isArray(data)) {
-            limit = discovery.view.listLimit(limit, 25);
-            limitLines = discovery.view.listLimit(limitLines, 25);
-            expanded = typeof expanded === 'function' ? expanded : discovery.view.listLimit(expanded, 1);
+            limit = host.view.listLimit(limit, 25);
+            limitLines = host.view.listLimit(limitLines, 25);
+            expanded = typeof expanded === 'function' ? expanded : host.view.listLimit(expanded, 1);
 
             if (limitLines) {
                 const lines = buildTreeLines(data, context, this.composeConfig({ children }, itemConfig), expanded);

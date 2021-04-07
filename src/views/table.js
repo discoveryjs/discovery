@@ -13,7 +13,7 @@ function configFromName(name) {
     };
 }
 
-function sortingFromConfig(col, discovery, context) {
+function sortingFromConfig(col, host, context) {
     let prefix = '';
     let query = '';
 
@@ -49,7 +49,7 @@ function sortingFromConfig(col, discovery, context) {
     }
 
     return query
-        ? discovery.query(`${prefix} ${query} ascN`, { dataQuery: col.data }, context)
+        ? host.query(`${prefix} ${query} ascN`, { dataQuery: col.data }, context)
         : false;
 }
 
@@ -97,8 +97,8 @@ function getOrder(data, sorting) {
     return -order;
 }
 
-export default function(discovery) {
-    discovery.view.define('table', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('table', function(el, config, data, context) {
         let { cols, rowConfig, limit } = config;
         let colsMap = cols && typeof cols === 'object' ? cols : {};
         let scalarCol = false;
@@ -125,10 +125,10 @@ export default function(discovery) {
                 headerCell.el.classList.toggle('desc', order === -1);
             }
 
-            return discovery.view.renderList(bodyEl, this.composeConfig({
+            return host.view.renderList(bodyEl, this.composeConfig({
                 view: 'table-row',
                 cols
-            }, rowConfig), orderedData, context, 0, discovery.view.listLimit(limit, 25), moreEl);
+            }, rowConfig), orderedData, context, 0, host.view.listLimit(limit, 25), moreEl);
         };
 
         if (Array.isArray(cols)) {
@@ -177,7 +177,7 @@ export default function(discovery) {
         }
 
         cols = cols.filter(col =>
-            !hasOwnProperty.call(col, 'when') || discovery.queryBool(col.when, data, context)
+            !hasOwnProperty.call(col, 'when') || host.queryBool(col.when, data, context)
         );
 
         for (const col of cols) {
@@ -186,7 +186,7 @@ export default function(discovery) {
 
                 col.whenData = undefined;
                 col.content = (data, context) =>
-                    discovery.queryBool(whenData, data, context) ? { content } : undefined;
+                    host.queryBool(whenData, data, context) ? { content } : undefined;
             }
 
             const headerCellEl = headEl.appendChild(createElement('th'));
@@ -198,8 +198,8 @@ export default function(discovery) {
             headerCellEl.textContent = col.header;
 
             const sorting = hasOwnProperty.call(col, 'sorting')
-                ? discovery.query(col.sorting, null, context)
-                : sortingFromConfig(col, discovery, context);
+                ? host.query(col.sorting, null, context)
+                : sortingFromConfig(col, host, context);
             const defaultOrder = typeof sorting === 'function'
                 ? getOrder(data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
                 : 0;

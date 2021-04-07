@@ -1,14 +1,14 @@
 import renderUsage from '../views/_usage.js';
 
-export default function(discovery) {
+export default function(host) {
     // const fixture = () => ({
-    //     views: Object.fromEntries(discovery.view.entries),
-    //     pages: Object.fromEntries(discovery.page.entries)
+    //     views: Object.fromEntries(host.view.entries),
+    //     pages: Object.fromEntries(host.page.entries)
     // });
 
-    discovery.page.define('views-showcase', {
+    host.page.define('views-showcase', {
         view: 'context',
-        data: () => [...discovery.view.values],
+        data: () => [...host.view.values],
         modifiers: [
             {
                 view: 'block',
@@ -41,12 +41,12 @@ export default function(discovery) {
                     { content: [
                         { view: 'context', postRender: function(el, config, data, context) {
                             // FIXME: make it simpler
-                            discovery.setPageRef(data.name);
-                            discovery.cancelScheduledRender();
-                            context.id = discovery.pageRef;
+                            host.setPageRef(data.name);
+                            host.cancelScheduledRender();
+                            context.id = host.pageRef;
                         } },
 
-                        renderUsage(discovery)
+                        renderUsage(host)
                     ] }
                 ]
             }

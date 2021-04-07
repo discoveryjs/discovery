@@ -33,8 +33,8 @@ function defaultCellRender(el, data) {
     el.textContent = data;
 }
 
-export default function(discovery) {
-    discovery.view.define('table-cell', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('table-cell', function(el, config, data, context) {
         let { content, details } = config;
 
         if (typeof content === 'function') {
@@ -88,13 +88,13 @@ export default function(discovery) {
                     }
 
                     el.classList.add('details-expanded');
-                    discovery.view.render(detailsEl, details || defaultDetailsRender, data, context);
+                    host.view.render(detailsEl, details || defaultDetailsRender, data, context);
                 }
             });
         }
 
         if (content) {
-            return discovery.view.render(el, content, data, context);
+            return host.view.render(el, content, data, context);
         } else {
             defaultCellRender(el, data);
         }

@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './tab.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('tab', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('tab', function(el, config, data, context) {
         const {
             content,
             active = false,
@@ -12,7 +12,7 @@ export default function(discovery) {
             text = String(value).replace(/^./, m => m.toUpperCase())
         } = config;
 
-        if (discovery.query(disabled, data, context)) {
+        if (host.query(disabled, data, context)) {
             el.classList.add('disabled');
         } else if (typeof onClick === 'function') {
             el.addEventListener('click', () => onClick(value));
@@ -24,7 +24,7 @@ export default function(discovery) {
         }
 
         if (content) {
-            return discovery.view.render(el, content, data, context);
+            return host.view.render(el, content, data, context);
         } else {
             el.textContent = text;
         }

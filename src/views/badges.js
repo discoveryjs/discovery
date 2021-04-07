@@ -12,7 +12,7 @@ function maybeFix(el, type, value) {
     prefixEl.textContent = value;
 }
 
-export default function(discovery) {
+export default function(host) {
     function render(el, config, data, context) {
         const { content } = config;
         let { color, textColor, darkColor, darkTextColor, text, href, prefix, postfix, hint } = data || {};
@@ -49,7 +49,7 @@ export default function(discovery) {
         maybeFix(el, 'prefix', prefix);
 
         if (content) {
-            render = discovery.view.render(el, content, data, context);
+            render = this.render(el, content, data, context);
         } else {
             el.append(document.createTextNode(text));
         }
@@ -59,6 +59,6 @@ export default function(discovery) {
         return render;
     }
 
-    discovery.view.define('badge', render, { tag: 'a', usage });
-    discovery.view.define('pill-badge', render, { tag: 'a', usage });
+    host.view.define('badge', render, { tag: 'a', usage });
+    host.view.define('pill-badge', render, { tag: 'a', usage });
 }

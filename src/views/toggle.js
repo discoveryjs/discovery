@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './toggle-group.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('toggle', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('toggle', function(el, config, data, context) {
         const {
             content,
             disabled = false,
@@ -29,7 +29,7 @@ export default function(discovery) {
         }
 
         if (content) {
-            return discovery.view.render(el, content, data, context);
+            return host.view.render(el, content, data, context);
         } else {
             el.textContent = text;
         }

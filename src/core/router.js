@@ -1,14 +1,14 @@
 /* eslint-env browser */
 
-export default function(discovery) {
+export default function(host) {
     // init
-    discovery.setPageHash(location.hash);
-    discovery.cancelScheduledRender();
+    host.setPageHash(location.hash);
+    host.cancelScheduledRender();
 
     // sync
-    window.addEventListener('hashchange', () => discovery.setPageHash(location.hash), false);
-    discovery.on('pageHashChange', function(replace) {
-        const newPageHash = discovery.pageHash || '#';
+    window.addEventListener('hashchange', () => host.setPageHash(location.hash), false);
+    host.on('pageHashChange', function(replace) {
+        const newPageHash = host.pageHash || '#';
 
         if (newPageHash === '#' && !location.hash) {
             return;

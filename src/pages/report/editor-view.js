@@ -36,10 +36,10 @@ function createPresetTab(name, content, updateParams) {
     }, name || 'Untitled preset');
 }
 
-export default function(discovery, updateParams) {
+export default function(host, updateParams) {
     let lastView = {};
-    const viewPresets = Array.isArray(discovery.options.viewPresets)
-        ? defaultViewPresets.concat(discovery.options.viewPresets)
+    const viewPresets = Array.isArray(host.options.viewPresets)
+        ? defaultViewPresets.concat(host.options.viewPresets)
         : defaultViewPresets;
 
     let viewSetupEl;
@@ -49,7 +49,7 @@ export default function(discovery, updateParams) {
     // let availablePresetListEl;
     let viewModeTabsEls;
     let viewLiveEditEl;
-    const viewEditor = new discovery.view.ViewEditor(discovery).on('change', value =>
+    const viewEditor = new host.view.ViewEditor(host).on('change', value =>
         viewLiveEditEl.checked && updateParams({ view: value }, true)
     );
     const viewEditorButtonsEl = createElement('div', 'buttons');
@@ -125,7 +125,7 @@ export default function(discovery, updateParams) {
     ]);
 
     // FIXME: temporary until full migration on discovery render
-    discovery.view.render(viewEditorButtonsEl, {
+    host.view.render(viewEditorButtonsEl, {
         view: 'button-primary',
         content: 'text:"Build"',
         onClick: () => {
@@ -133,29 +133,29 @@ export default function(discovery, updateParams) {
             updateParams({
                 view: viewEditor.getValue()
             }, true);
-            discovery.scheduleRender('page'); // force render
+            host.scheduleRender('page'); // force render
         }
     });
-    new discovery.view.Popup({
+    new host.view.Popup({
         className: 'view-editor-view-list-hint',
         hoverTriggers: '.view-editor-view-list .item.with-usage',
         // hoverPin: 'trigger-click',
         render: function(popupEl, triggerEl) {
-            discovery.view.render(popupEl, renderUsage(discovery), discovery.view.get(triggerEl.textContent), {});
+            host.view.render(popupEl, renderUsage(host), host.view.get(triggerEl.textContent), {});
         }
     });
 
     // sync view list
-    availableViewsTextEl.textContent = `Available ${[...discovery.view.entries].filter(([, view]) => view.options.usage).length} views`;
+    availableViewsTextEl.textContent = `Available ${[...host.view.entries].filter(([, view]) => view.options.usage).length} views`;
     const updateAvailableViewList = () =>
         availableViewsListEl.innerHTML =
             '<a href="#views-showcase" class="view-link">Views showcase</a><br><br>' +
-            [...discovery.view.entries].sort()
+            [...host.view.entries].sort()
                 .map(([name, view]) => `<div><a class="item view-link${view.options.usage ? ' with-usage' : ''}" ${view.options.usage ? 'href="#views-showcase:' + name + '"' : ''}>${name}</a></div>`)
                 .join('');
 
     updateAvailableViewList();
-    discovery.view.on('define', updateAvailableViewList);
+    host.view.on('define', updateAvailableViewList);
 
     // sync view list
     // const updateAvailablePresetList = (name, preset) =>
@@ -189,9 +189,9 @@ export default function(discovery, updateParams) {
 
                 try {
                     view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
-                    discovery.view.render(reportContentEl, view, data, context);
+                    host.view.render(reportContentEl, view, data, context);
                 } catch (e) {
-                    discovery.view.render(reportContentEl, el => {
+                    host.view.render(reportContentEl, el => {
                         el.className = 'report-error render-error';
                         el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
                         console.error(e);

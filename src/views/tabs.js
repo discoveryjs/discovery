@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './tabs.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('tabs', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('tabs', function(el, config, data, context) {
         async function renderContent(value) {
             const handler = inited ? onChange : onInit;
 
@@ -22,26 +22,26 @@ export default function(discovery) {
 
                 if (beforeTabs) {
                     beforeTabsEl.innerHTML = '';
-                    await discovery.view.render(beforeTabsEl, beforeTabs, data, renderContext);
+                    await host.view.render(beforeTabsEl, beforeTabs, data, renderContext);
                     tabsEl.appendChild(beforeTabsEl);
                 }
 
                 await Promise.all(tabs.map(tab =>
-                    discovery.view.render(tabsEl, discovery.view.composeConfig(tab, {
+                    host.view.render(tabsEl, host.view.composeConfig(tab, {
                         active: tab.value === currentValue
                     }), data, context)
                 ));
 
                 if (afterTabs) {
                     afterTabsEl.innerHTML = '';
-                    await discovery.view.render(afterTabsEl, afterTabs, data, renderContext);
+                    await host.view.render(afterTabsEl, afterTabs, data, renderContext);
                     tabsEl.appendChild(afterTabsEl);
                 }
             }
 
             if (content) {
                 contentEl.innerHTML = '';
-                await discovery.view.render(contentEl, content, data, renderContext);
+                await host.view.render(contentEl, content, data, renderContext);
             }
 
             if (typeof handler === 'function') {
@@ -64,8 +64,8 @@ export default function(discovery) {
                     ? context[name]
                     : undefined;
 
-        tabs = discovery.query(tabs, data, context);
-        tabConfig = discovery.view.composeConfig({
+        tabs = host.query(tabs, data, context);
+        tabConfig = host.view.composeConfig({
             view: 'tab',
             onClick: renderContent
         }, tabConfig);
@@ -103,7 +103,7 @@ export default function(discovery) {
                     initValue = tab.value;
                 }
 
-                return discovery.view.composeConfig(
+                return host.view.composeConfig(
                     tabConfig,
                     tab
                 );

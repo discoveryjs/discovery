@@ -1,11 +1,11 @@
 /* eslint-env browser */
 import usage from './content-filter.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('content-filter', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('content-filter', function(el, config, data, context) {
         const { name = 'filter', type = 'regexp', placeholder, content, onInit, onChange } = config;
 
-        return discovery.view.render(el, {
+        return host.view.render(el, {
             view: 'context',
             modifiers: {
                 view: 'input',

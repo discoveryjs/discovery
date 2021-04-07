@@ -5,15 +5,15 @@ import { escapeHtml } from '../core/utils/html.js';
 
 class CustomRenderer extends marked.Renderer {
     heading(text, level, raw, slugger) {
-        const { discovery, anchors } = this.options;
+        const { discovery: host, anchors } = this.options;
         let anchor = '';
 
         if (anchors) {
             const slug = slugger.slug(raw);
-            const href = discovery.encodePageHash(
-                discovery.pageId,
-                discovery.pageRef,
-                { ...discovery.pageParams, '!anchor': slug }
+            const href = host.encodePageHash(
+                host.pageId,
+                host.pageRef,
+                { ...host.pageParams, '!anchor': slug }
             );
 
             anchor = `<a class="view-header__anchor" id="!anchor:${slug}" href="${href}"></a>`;
@@ -70,12 +70,12 @@ marked.setOptions({
     renderer: new CustomRenderer()
 });
 
-export default function(discovery) {
+export default function(host) {
     const opts = {
-        discovery,
+        discovery: host,
         highlight: function(content, syntax, callback) {
             const buffer = document.createDocumentFragment();
-            discovery.view.render(buffer, 'source', { syntax, content })
+            host.view.render(buffer, 'source', { syntax, content })
                 .then(() => callback(null, buffer.firstChild.outerHTML));
         }
     };
@@ -97,6 +97,6 @@ export default function(discovery) {
         });
     }
 
-    discovery.view.define('markdown', render, { usage });
-    discovery.view.define('md', render, { usage });
+    host.view.define('markdown', render, { usage });
+    host.view.define('md', render, { usage });
 }

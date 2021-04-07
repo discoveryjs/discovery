@@ -17,16 +17,16 @@ function valueDescriptor(value) {
     return `Scalar (${value === null ? 'null' : typeof value})`;
 }
 
-export default function(discovery, updateParams) {
+export default function(host, updateParams) {
     let expandQueryResults = false;
     let lastQuery = {};
 
     let queryEditorLiveEditEl;
-    const getQuerySuggestions = (query, offset) => discovery.querySuggestions(query, offset, discovery.data, discovery.context);
-    const queryEditor = new discovery.view.QueryEditor(getQuerySuggestions).on('change', value =>
+    const getQuerySuggestions = (query, offset) => host.querySuggestions(query, offset, host.data, host.context);
+    const queryEditor = new host.view.QueryEditor(getQuerySuggestions).on('change', value =>
         queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
     );
-    const queryEngineInfo = discovery.getQueryEngineInfo();
+    const queryEngineInfo = host.getQueryEngineInfo();
     const queryEditorButtonsEl = createElement('div', 'buttons');
     const queryEditorResultEl = createElement('div', 'data-query-result');
     const queryEditorFormEl = createElement('div', 'form query-editor-form', [
@@ -59,7 +59,7 @@ export default function(discovery, updateParams) {
         queryEditorResultEl
     ]);
     // FIXME: temporary until full migration on discovery render
-    discovery.view.render(queryEditorButtonsEl, {
+    host.view.render(queryEditorButtonsEl, {
         view: 'button-primary',
         content: 'text:"Process"',
         onClick: () => {
@@ -67,7 +67,7 @@ export default function(discovery, updateParams) {
             updateParams({
                 query: queryEditor.getValue()
             }, true);
-            discovery.scheduleRender('page'); // force render
+            host.scheduleRender('page'); // force render
         }
     });
 
@@ -93,7 +93,7 @@ export default function(discovery, updateParams) {
 
                 try {
                     queryTime = Date.now();
-                    results = discovery.query(pageQuery, data, context);
+                    results = host.query(pageQuery, data, context);
                     queryTime = Date.now() - queryTime;
                 } catch (error) {
                     const loc = error.details && error.details.loc;
@@ -125,7 +125,7 @@ export default function(discovery, updateParams) {
                 };
 
                 queryEditorResultEl.innerHTML = '';
-                discovery.view.render(queryEditorResultEl, {
+                host.view.render(queryEditorResultEl, {
                     view: 'expand',
                     header: `text:"${valueDescriptor(results)} in ${parseInt(queryTime, 10)}ms"`,
                     expanded: expandQueryResults,

@@ -2,8 +2,8 @@
 import { createElement } from '../core/utils/dom.js';
 import usage from './progress.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('progress', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('progress', function(el, config, data, context) {
         const { content, progress, color } = config;
         const progressEl = el.appendChild(createElement('div', {
             class: 'progress',
@@ -13,7 +13,7 @@ export default function(discovery) {
         if (content) {
             const contentEl = el.insertBefore(createElement('div', { class: 'content' }), progressEl);
 
-            return discovery.view.render(contentEl, content, data, context);
+            return host.view.render(contentEl, content, data, context);
         }
     }, { usage });
 }

@@ -139,22 +139,22 @@ CodeMirror.defineMode('jora', modeQuery);
 CodeMirror.defineMode('discovery-query', modeQuery);
 CodeMirror.defineMode('discovery-view', modeView);
 
-export default function(discovery) {
-    Object.assign(discovery.view, {
+export default function(host) {
+    Object.assign(host.view, {
         QueryEditor: class extends QueryEditor {
             get darkmode() {
-                return discovery.darkmode;
+                return host.darkmode;
             }
             get container() {
-                return discovery.dom.container;
+                return host.dom.container;
             }
         },
         ViewEditor: class extends ViewEditor {
             isViewDefined(name) {
-                return discovery.view.isDefined(name);
+                return host.view.isDefined(name);
             }
             get darkmode() {
-                return discovery.darkmode;
+                return host.darkmode;
             }
         }
     });

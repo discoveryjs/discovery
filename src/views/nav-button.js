@@ -1,8 +1,8 @@
 /* eslint-env browser */
 import usage from './nav-button.usage.js';
 
-export default function(discovery) {
-    discovery.view.define('nav-button', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('nav-button', function(el, config, data, context) {
         const { name, content, disabled = false, onClick } = config;
         const { text = '', href, external } = data || {};
 
@@ -10,7 +10,7 @@ export default function(discovery) {
             el.dataset.name = name;
         }
 
-        if (discovery.query(disabled, data, context)) {
+        if (host.query(disabled, data, context)) {
             el.classList.add('disabled');
         } else if (typeof onClick === 'function') {
             el.addEventListener('click', () => onClick(el, data, context));
@@ -21,7 +21,7 @@ export default function(discovery) {
         }
 
         if (content) {
-            return discovery.view.render(el, content, data, context);
+            return host.view.render(el, content, data, context);
         } else {
             el.textContent = text;
         }
