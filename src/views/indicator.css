@@ -30,9 +30,3 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.view-indicator > .value > *,
-.view-indicator > .label > * {
-    color: black;
-    text-shadow: none;
-    white-space: normal;
-}
