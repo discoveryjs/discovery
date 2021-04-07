@@ -15,6 +15,7 @@ export { default as expand } from './expand.js';
 export { default as headers } from './headers.js';
 export { default as hstack } from './hstack.js';
 export { default as html } from './html.js';
+export { default as image } from './image.js';
 export { default as imagePreview } from './image-preview.js';
 export { default as indicator } from './indicator.js';
 export { default as input } from './input.js';

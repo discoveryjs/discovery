@@ -5,6 +5,8 @@
 - Added anchor support for headers and `anchor` option to enable it
 - Added anchor support for headers in `markdown` view and `anchors` option to disable it
 - Changed `hstack` to use flexbox for layout
+- Added `image` view
+- Changed `image-preview` to behave as `image` but on chess background
 
 ## 1.0.0-beta.61 (31-03-2021)
 

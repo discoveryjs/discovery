@@ -1,0 +1,18 @@
+.view-image {
+    background: no-repeat center / 20px;
+}
+.view-image:not(.error):not(.loaded) {
+    background-color: rgba(141, 141, 141, .3);
+}
+
+.view-image.error,
+.view-image:not([src]) {
+    width: 32px;
+    height: 32px;
+    background-image: url('./image.svg');
+    background-color: rgba(141, 70, 70, .3);
+}
+
+.discovery-root-darkmode .view-image {
+    opacity: .85;
+}
