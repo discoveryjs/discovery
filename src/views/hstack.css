@@ -1,12 +1,8 @@
 .view-hstack {
-    overflow: hidden;
-    /*margin-bottom: 30px;*/
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 40px;
 }
 .view-hstack > * {
-    float: left;
-    margin-right: 40px;
     min-width: 240px;
-}
-.view-hstack > :last-child {
-    margin-right: 0;
 }
