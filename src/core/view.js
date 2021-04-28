@@ -217,9 +217,9 @@ function render(container, config, data, context) {
     switch (typeof config.view) {
         case 'function':
             renderer = {
-                render: config.view,
                 name: false,
-                options: STUB_OBJECT
+                options: STUB_OBJECT,
+                render: config.view
             };
             break;
 
@@ -231,6 +231,8 @@ function render(container, config, data, context) {
                 } = config;
 
                 renderer = {
+                    name: false,
+                    options: { tag: false },
                     render: (el, _, _data) => {
                         const _config = configQuery !== '' ? this.host.query(configQuery, data, context) : _data;
                         const _context = this.host.query(contextQuery, context, data);
@@ -244,18 +246,16 @@ function render(container, config, data, context) {
                             _data !== _config ? _data : data,
                             _context
                         );
-                    },
-                    name: false,
-                    options: { tag: false }
+                    }
                 };
             } else if (config.view.startsWith('preset/')) {
                 const presetName = config.view.substr(7);
 
                 if (this.host.preset.isDefined(presetName)) {
                     renderer = {
-                        render: this.host.preset.get(presetName).render,
                         name: false,
-                        options: { tag: false }
+                        options: { tag: false },
+                        render: this.host.preset.get(presetName).render
                     };
                 } else {
                     return this.host.preset.render(container, presetName, data, context);
