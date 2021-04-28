@@ -180,6 +180,33 @@ function renderDom(renderer, placeholder, config, props, data, context) {
         });
 }
 
+function createRenderContext(host, name) {
+    return {
+        name,
+        // block() {
+        //     return `view-${name}`;
+        // },
+        // blockMod(modifierName, value = true) {
+        //     return `${this.block()}_${modifierName}${value === true ? '' : '_' + value}`;
+        // },
+        // element(elementName) {
+        //     return `${this.block()}__${elementName}`;
+        // },
+        // elementMod(elementName, modifierName, value = true) {
+        //     return `${this.element(elementName)}_${modifierName}${value === true ? '' : '_' + value}`;
+        // },
+        normalizeConfig: host.normalizeConfig.bind(host),
+        ensureValidConfig: host.ensureValidConfig.bind(host),
+        composeConfig: host.composeConfig.bind(host),
+        propsFromConfig: host.propsFromConfig.bind(host),
+        render: host.render.bind(host),
+        listLimit: host.listLimit.bind(host),
+        renderList: host.renderList.bind(host),
+        maybeMoreButtons: host.maybeMoreButtons.bind(host),
+        renderMoreButton: host.renderMoreButton.bind(host)
+    };
+}
+
 function render(container, config, data, context) {
     if (Array.isArray(config)) {
         return Promise.all(config.map(config => render.call(this, container, config, data, context)));
@@ -302,10 +329,10 @@ export default class ViewRenderer extends Dict {
     define(name, render, options) {
         super.define(name, Object.freeze({
             name,
+            options: Object.freeze({ ...options }),
             render: typeof render === 'function'
-                ? render.bind(this)
-                : (el, _, data, context) => this.render(el, render, data, context),
-            options: Object.freeze({ ...options })
+                ? render.bind(createRenderContext(this, name))
+                : (el, _, data, context) => this.render(el, render, data, context)
         }));
     }
 
