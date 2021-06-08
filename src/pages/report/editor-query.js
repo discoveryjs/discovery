@@ -100,14 +100,16 @@ export default function(host, updateParams) {
                     const doc = queryEditor.cm.doc;
 
                     if (loc) {
-                        errorMarker = error.details.token === 'EOF'
+                        const [start, end] = error.details.loc.range;
+
+                        errorMarker = error.details.token === 'EOF' || start === end
                             ? doc.setBookmark(
-                                doc.posFromIndex(error.details.loc.range[0]),
+                                doc.posFromIndex(start),
                                 { widget: createElement('span', 'discovery-editor-error', ' ') }
                             )
                             : doc.markText(
-                                doc.posFromIndex(error.details.loc.range[0]),
-                                doc.posFromIndex(error.details.loc.range[1]),
+                                doc.posFromIndex(start),
+                                doc.posFromIndex(end),
                                 { className: 'discovery-editor-error' }
                             );
                     }

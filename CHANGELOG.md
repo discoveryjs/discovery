@@ -6,7 +6,8 @@
 - Added anchor support for headers in `markdown` view and `anchors` option to disable it
 - Changed `hstack` to use flexbox for layout
 - Added `image` view
-- Changed `image-preview` to behave as `image` but on chess background
+- Changed `image-preview` to behave as `image` but chess background
+- Fixed position highlighting in query editor on lexical error
 
 ## 1.0.0-beta.61 (31-03-2021)
 
