@@ -67,7 +67,8 @@ function createObjectMarker(config) {
         lookupRefs,
         page,
         getRef,
-        getTitle
+        getTitle,
+        getParams
     } = config;
 
     if (page) {
@@ -153,6 +154,13 @@ function createObjectMarker(config) {
                 marker = markers.get(resolvedValue);
             } else {
                 const ref = getRef !== null ? getRef(resolvedValue) : null;
+                const params = [];
+
+                for (const [name, value] of Object.entries(getParams(resolvedValue))) {
+                    params.push(`${encodeURIComponent(name)}=${encodeURIComponent(value)}`);
+                }
+
+                const paramsString = params.length ? `&${params.join('&')}` : '';
 
                 marker = Object.freeze({
                     type: name,
@@ -160,7 +168,7 @@ function createObjectMarker(config) {
                     ref,
                     title: getTitle(resolvedValue),
                     href: page !== null && ref !== null
-                        ? `#${encodeURIComponent(page)}:${encodeURIComponent(ref)}`
+                        ? `#${encodeURIComponent(page)}:${encodeURIComponent(ref)}${paramsString}`
                         : null
                 });
 
@@ -200,6 +208,7 @@ export default class ObjectMarker extends Dict {
         const page = typeof config.page === 'string' ? config.page : null;
         const getRef = configGetter(name, config, 'ref', null);
         const getTitle = configGetter(name, config, 'title', getRef || (() => null));
+        const getParams = configGetter(name, config, 'params', () => ({}));
 
         return super.define(name, createObjectMarker({
             name,
@@ -207,7 +216,8 @@ export default class ObjectMarker extends Dict {
             lookupRefs,
             page,
             getRef,
-            getTitle
+            getTitle,
+            getParams
         }));
     }
 
