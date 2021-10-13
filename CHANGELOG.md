@@ -7,6 +7,7 @@
 - Changed `hstack` to use flexbox for layout
 - Added `image` view
 - Changed `image-preview` to behave as `image` but on chess background
+- Added `lineNum` option to the `source` view
 
 ## 1.0.0-beta.61 (31-03-2021)
 
@@ -179,7 +180,7 @@
 - Changed a bit default page in model free mode
 - Fixed `children` option ignorance in `itemConfig` when `limitLines` is used for `tree` view
 - Fixed `href` option to work for `button` view
-- Fixed path generation in `signature` details 
+- Fixed path generation in `signature` details
 - Fixed context for `Widget#nav.menu` item rendering
 
 ## 1.0.0-beta.42 (08-10-2020)
@@ -292,7 +293,7 @@
         - `lookupRefs` - a list of string (a field name) or function (getter), that uses to retrieve additional values to identify original object
         - `page` - a string, marker should be a link to specified page
         - `ref` - a string (a field name) or a function (getter), a value that uses in link to page to identify object
-        - `title` -  astring (a field name) or a function (getter), a text that represent an object, e.g. in `auto-link` 
+        - `title` -  astring (a field name) or a function (getter), a text that represent an object, e.g. in `auto-link`
     - `addQueryHelpers()` method the same as `Widget#addQueryHelpers()`
 - Added a set of default methods:
     - `marker(type?)` – returns any marker associated with a value, when `type` is specified only this type of marker may be returned
@@ -685,7 +686,7 @@
     - Changed `badge` view to take a data as a string
     - Made `link` view more adaptive to input data
     - Show 1 level expanded struct on `default` and `report` pages
- 
+
 ## 1.0.0-beta.2 (26-11-2018)
 
 - Fixed `discovery-build` dependency issue
