@@ -153,6 +153,7 @@ export default function(host) {
             binary,
             size,
             syntax,
+            lineNum = true,
             content,
             refs,
             error,
@@ -207,12 +208,15 @@ export default function(host) {
         if (binary) {
             el.innerHTML = 'Binary content' + (typeof size === 'number' ? ' (' + size + ' bytes)' : '');
         } else {
-            el.innerHTML =
+            const lineOffset = typeof lineNum === 'function' ? lineNum : idx => idx + 1;
+            const lines = lineNum ?
                 '<div class="lines">' +
                     content.split(/\r\n?|\n/g)
-                        .map((_, idx) => '<span>' + (idx + 1) + '</span>')
+                        .map((_, idx) => '<span>' + lineOffset(idx) + '</span>')
                         .join('') +
-                '</div>' +
+                '</div>' : '';
+            el.innerHTML =
+                lines +
                 '<div>' +
                     hitext(decorators, 'html')(content) +
                 '</div>';
