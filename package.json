@@ -10,7 +10,7 @@
     "unpkg": "dist/discovery.js",
     "jsdelivr": "dist/discovery.js",
     "scripts": {
-        "lint": "eslint scripts src",
+        "lint": "eslint cypress models src",
         "build": "npm run build:js && npm run build:css && npm run build:preloader",
         "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
@@ -36,9 +36,9 @@
     },
     "devDependencies": {
         "@discoveryjs/cli": "^2.0.0-beta.12",
-        "cypress": "^5.3.0",
+        "cypress": "^8.6.0",
         "esbuild": "~0.11.2",
-        "eslint": "^6.8.0",
+        "eslint": "^8.0.1",
         "eslint-plugin-cypress": "^2.11.2"
     },
     "files": [
