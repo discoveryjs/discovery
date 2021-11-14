@@ -16,8 +16,9 @@ Hackable JSON discovery tool
 - [Discovery.js tutorials: quick start](https://dev.to/rdvornov/discovery-js-tutorials-quick-start-m3k)
 - [JsonDiscovery: Changing a way we’re viewing JSON in a browser](https://blog.usejournal.com/changing-a-way-were-viewing-json-in-a-browser-51eda9103fa2)
 
-## Examples
+## Examples of usage
 
+- [Statoscope](https://github.com/statoscope/statoscope) – a toolkit to analyze and validate webpack bundle
 - [CSS syntax reference](https://csstree.github.io/docs/syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
 - [CSSWG spec drafts index](https://csstree.github.io/csswg-drafts-index/) ([source](https://github.com/csstree/csswg-drafts-index))
 
