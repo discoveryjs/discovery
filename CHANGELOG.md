@@ -1,6 +1,7 @@
 ## next
 
-- Fixed table cell styling in `markdown`
+- Fixed table cell styling in `markdown` view
+- Added thousandth delimiter for default rendering of a number in `table` view cell
 
 ## 1.0.0-beta.62 (14-10-2021)
 

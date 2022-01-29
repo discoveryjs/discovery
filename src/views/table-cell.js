@@ -11,12 +11,14 @@ function defaultCellRender(el, data) {
 
     if (data && typeof data === 'object') {
         el.classList.add('complex');
+
         for (let k in data) {
             if (Object.prototype.hasOwnProperty.call(data, k)) {
                 el.textContent = '{…}';
                 return;
             }
         }
+
         el.textContent = '{}';
         return;
     }
@@ -27,7 +29,17 @@ function defaultCellRender(el, data) {
     }
 
     if (typeof data === 'number') {
+        let str = String(data);
+
         el.classList.add('number');
+
+        if (str.length > 3) {
+            el.innerHTML = str.replace(/\..+$|\B(?=(\d{3})+(\D|$))/g, m => m || '<span class="num-delim"></span>');
+        } else {
+            el.textContent = str;
+        }
+
+        return;
     }
 
     el.textContent = data;

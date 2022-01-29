@@ -5,6 +5,9 @@
 .view-table-cell.number {
     text-align: right;
 }
+.view-table-cell .num-delim {
+    padding-left: 2px;
+}
 .view-table-cell.complex {
     color: #888;
 }
