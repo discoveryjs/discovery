@@ -1,3 +1,7 @@
+## next
+
+- Fixed table cell styling in `markdown`
+
 ## 1.0.0-beta.62 (14-10-2021)
 
 - Fixed code highlighting in `source` view

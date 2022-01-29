@@ -57,10 +57,12 @@ class CustomRenderer extends marked.Renderer {
 
     tablecell(content, flags) {
         const type = flags.header ? 'th' : 'td';
-        const tag = flags.align
-            ? '<' + type + ' align="' + flags.align + '" class="view-table-cell">'
-            : '<' + type + '>';
-        return tag + content + '</' + type + '>\n';
+
+        return (
+            `<${type} class="view-table-cell"${flags.align ? ` align="${flags.align}"` : ''}>` +
+            content +
+            `</${type}>\n`
+        );
     }
 }
 
