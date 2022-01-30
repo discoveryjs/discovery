@@ -25,8 +25,15 @@ function findTargetRelatedPopup(popup, target) {
     );
 }
 
+function isElementNullOrInDocument(element) {
+    return element ? element.getRootNode({ composed: true }) === document : true;
+}
+
 function hideIfEventOutside(event) {
     openedPopups.slice().forEach(popup => popup.hideIfEventOutside(event));
+}
+function hideIfTriggerElementNotInDocument() {
+    openedPopups.slice().forEach(popup => popup.hideIfTriggerElementNotInDocument());
 }
 function hideOnResize(event) {
     openedPopups.slice().forEach(popup => popup.hideOnResize(event));
@@ -76,7 +83,7 @@ export default function(host) {
 
             host.addHostElEventListener('mouseleave', ({ target }) => {
                 for (const instance of hoverTriggerInstances) {
-                    if (instance.lastHoverTriggerEl && instance.lastHoverTriggerEl === target) {
+                    if (instance.lastHoverTriggerEl === target) {
                         instance.lastHoverTriggerEl = null;
                         instance.hideTimer = setTimeout(instance.hide, 100);
                     }
@@ -84,9 +91,7 @@ export default function(host) {
             }, passiveCaptureOptions),
 
             host.addGlobalEventListener('scroll', (event) => {
-                hideAllPopups = setTimeout(() => {
-                    hideIfEventOutside(event);
-                }, 0);
+                hideAllPopups = setTimeout(() => hideIfEventOutside(event), 0);
             }, true),
 
             host.addHostElEventListener('scroll', (event) => {
@@ -95,14 +100,13 @@ export default function(host) {
             }),
 
             host.addGlobalEventListener('click', (event) => {
-                hideAllPopups = setTimeout(() => {
-                    hideIfEventOutside(event);
-                }, 0);
+                hideAllPopups = setTimeout(() => hideIfEventOutside(event), 0);
             }, true),
 
             host.addHostElEventListener('click', (event) => {
                 clearTimeout(hideAllPopups);
                 hideIfEventOutside(event);
+                setTimeout(hideIfTriggerElementNotInDocument, 0);
 
                 for (const instance of hoverTriggerInstances) {
                     if (instance.options.hoverPin === 'trigger-click') {
@@ -325,6 +329,13 @@ export default function(host) {
 
             // otherwise hide a popup
             this.hide();
+        }
+
+        hideIfTriggerElementNotInDocument() {
+            if (!isElementNullOrInDocument(this.lastHoverTriggerEl) ||
+                !isElementNullOrInDocument(this.lastTriggerEl)) {
+                this.hide();
+            }
         }
 
         hideOnResize() {
