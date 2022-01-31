@@ -44,13 +44,13 @@ export default function value2html(value, linear, options) {
                 );
             }
 
-            const str = escapeHtml(JSON.stringify(value));
+            const str = JSON.stringify(value);
 
             return token(
                 'string',
                 !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
-                    ? `"<a href="${escapeHtml(value)}" target="_blank">${str.substr(1, str.length - 2)}</a>"`
-                    : str
+                    ? `"<a href="${escapeHtml(value)}" target="_blank">${escapeHtml(str.slice(1, -1))}</a>"`
+                    : escapeHtml(str)
             );
         }
 
