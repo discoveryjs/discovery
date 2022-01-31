@@ -1,7 +1,7 @@
 export default {
     demo: {
         view: 'markdown',
-        source: '# Example\n\n> NOTE: That\'s an experimental view based on [marked](https://github.com/markedjs/marked)\n\nMarkdown is good because:\n* You\'ll get **formatted** *text* with _no tags_\n* It\'s much simpler than `HTML`\n\n```html\n<b>bold</b><i>italic</i>\n```\n[Read more](https://guides.github.com/features/mastering-markdown/)'
+        source: '# Markdown example\n\n> NOTE: That\'s an experimental view based on [marked](https://github.com/markedjs/marked)\n\nMarkdown is good because:\n* You\'ll get **formatted** *text* with _no tags_\n* It\'s much simpler than `HTML`\n\n```html\n<b>bold</b><i>italic</i>\n```\n[Read more](https://guides.github.com/features/mastering-markdown/)'
     },
     examples: [
         {
@@ -9,22 +9,42 @@ export default {
             demo: 'markdown{ source: "**Hello** `world`!" }'
         },
         {
-            title: 'Shortest example',
-            beforeDemo: ['md:"You can use `md` alias for `markdown` with a string as data. That\'s a **shortest** definition for a marked text"'],
+            title: 'Shorthand syntax',
+            beforeDemo: ['md:"You can use `md` as an alias for `markdown` with a string as data. That\'s a **shortest** definition for a marked text"'],
             demo: 'md:"**Hello** `world`!"'
         },
         {
+            title: 'Array of strings as a source',
+            beforeDemo: ['md:"Array of strings might be passed as a value for `source` property which is useful for a long sources\\n> NOTE: This doesn\'t work a source passed via data"'],
+            demo: {
+                view: 'markdown',
+                source: ['Array', 'of', '`strings`']
+            }
+        },
+        {
+            title: 'Interpolation',
+            beforeDemo: ['md:"Interpolation can be used almost anywhere in a markdown to embed the result of a jora query into resulting HTML. Just wrap a jora query in `{{`{{}` + `}`}}`:"'],
+            demo: {
+                view: 'md',
+                source: [
+                    'Simple evaluation: 2 + 2 = `{{ 2 + 2 }}`',
+                    '',
+                    'Markdown view has {{ viewDef.examples.size() }} examples'
+                ]
+            }
+        },
+        {
             title: 'Disable anchors for headers',
-            beforeDemo: 'Hover a header to see chain icon on left side when anchors are enabled',
+            beforeDemo: 'Hover a header to see a chain icon on the left side of header when anchors are enabled:',
             demo: [
+                {
+                    view: 'markdown',
+                    source: '## header with default settings'
+                },
                 {
                     view: 'markdown',
                     anchors: false,
                     source: '## header with disabled anchor'
-                },
-                {
-                    view: 'markdown',
-                    source: '## header with default settings'
                 }
             ]
         },
@@ -45,10 +65,13 @@ export default {
 4. Four
 5. Five
     6. Six
-- [ ] Task 1
+- [{{ true }}] Task 1
 - [x] Task 2
 
+Interpolation in text: 2 + 2 = \`{{ 2 + 2 }}\`, or in attribute: [link](#dummy-link/{{"exam" + "ple"}} "{{ "example" + " title" }}")
+
 Paragraph **bold** __bold__ *italic* _italic_ ~line-through~ \`code\` [link](#href)
+
 >Blockquote
 > > Line 2
 
@@ -61,7 +84,7 @@ foo | bar
 1 | A
 2 | C
 3 | E
-`
+`.trim().split(/\n/)
             }
         }
     ]

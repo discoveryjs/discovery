@@ -1,8 +1,11 @@
 ## next
 
 - Fixed `popup` view to auto hide when trigger elements are removing from a document
-- Fixed table cell styling in `markdown` view
-- Tweaked styles for list and checkbox in `markdown` view
+- `markdown` view:
+    - Added support for simple text interpolation using `{{ query }}` syntax
+    - Added support for array of strings as `source` value
+    - Fixed table cell styling
+    - Tweaked styles for list and checkbox
 - Tweaked styles for nested list views
 - Added thousandth delimiter for default rendering of a number in `table` view cell
 

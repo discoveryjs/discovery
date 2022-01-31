@@ -16,7 +16,7 @@ class CustomRenderer extends marked.Renderer {
                 { ...host.pageParams, '!anchor': slug }
             );
 
-            anchor = `<a class="view-header__anchor" id="!anchor:${slug}" href="${href}"></a>`;
+            anchor = `<a class="view-header__anchor" id="!anchor:${escapeHtml(slug)}" href="${href}"></a>`;
         }
 
         return `<h${level} class="view-header view-h${level}">${anchor}${text}</h${level}>\n`;
@@ -30,7 +30,7 @@ class CustomRenderer extends marked.Renderer {
         let out = '<a class="view-link" href="' + escapeHtml(href) + '"';
 
         if (title) {
-            out += ' title="' + title + '"';
+            out += ' title="' + escapeHtml(title) + '"';
         }
 
         if (!href.startsWith('#')) {
@@ -97,24 +97,78 @@ marked.setOptions({
 export default function(host) {
     const opts = {
         discovery: host,
-        highlight: function(content, syntax, callback) {
+        highlight(content, syntax, callback) {
             const buffer = document.createDocumentFragment();
             host.view.render(buffer, 'source', { syntax, content })
                 .then(() => callback(null, buffer.firstChild.outerHTML));
         }
     };
 
-    function render(el, config, data) {
+    function applyTextInterpolation(value, values) {
+        return value.replace(/{{(\d+)}}/gs, (_, index) => values[index]);
+    }
+
+    function applyInterpolations(el, values) {
+        for (const child of el.childNodes) {
+            switch (child.nodeType) {
+                case document.ELEMENT_NODE:
+                    if (!child.classList.contains('view-source')) {
+                        applyInterpolations(child, values);
+
+                        for (const attribute of child.attributes) {
+                            attribute.nodeValue = applyTextInterpolation(attribute.nodeValue, values);
+                        }
+                    }
+                    break;
+
+                case document.TEXT_NODE:
+                    child.nodeValue = applyTextInterpolation(child.nodeValue, values);
+                    break;
+            }
+        }
+    }
+
+    function render(el, config, data, context) {
         const { source, anchors = true } = config;
+        const interpolations = new Map();
+        let mdSource = typeof data === 'string' ? data : source || '';
+
+        if (Array.isArray(mdSource)) {
+            mdSource = mdSource.join('\n');
+        }
+
+        mdSource = mdSource.replace(/{{(.+?)}}/gs, (_, query) => {
+            query = query.trim();
+            if (!interpolations.has(query)) {
+                interpolations.set(query, interpolations.size);
+            }
+
+            return `{{${interpolations.get(query)}}}`;
+        });
 
         el.classList.add('view-markdown');
 
         return new Promise((resolve) => {
             marked(
-                typeof data === 'string' ? data : source || '',
+                mdSource,
                 { ...opts, anchors },
                 (er, html) => {
                     el.innerHTML = html.replace(/\n(<\/code>)/g, '$1'); // FIXME: marked adds extra newline before </code> for unknown reason
+
+                    if (interpolations.size > 0) {
+                        const interpolationValues = new Array(interpolations.size);
+
+                        for (const [query, index] of interpolations.entries()) {
+                            try {
+                                interpolationValues[index] = host.query(query, data, context);
+                            } catch (e) {
+                                console.error('Interpolation query error: ' + e.message);
+                            }
+                        }
+
+                        applyInterpolations(el, interpolationValues);
+                    }
+
                     resolve();
                 }
             );
