@@ -1,17 +1,28 @@
-.view-markdown > :first-child {
+.view-markdown:first-child > :first-child {
     margin-top: 0;
+}
+.view-markdown:last-child > :last-child {
+    margin-bottom: 0;
+}
+.view-markdown :is(p, blockquote, ul, ol, dl, pre, code) {
+    margin: 0;
+}
+.view-markdown :is(p, blockquote, ul, ol, dl, table, pre):not(:first-child) {
+    margin-top: 15px;
+}
+.view-markdown :is(ul, ol) + :is(ul, ol) {
+    margin-top: 0 !important;
 }
 
 .view-markdown blockquote {
-    margin: 0;
-    padding: 0 1em;
+    padding: 0;
+    padding-left: 1em;
     color: #6a737d;
     border-left: .25em solid rgba(191, 197, 203, 0.5);
 }
 
 .view-markdown code {
     padding: .2em .4em;
-    margin: 0;
     font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
     font-size: 90%;
     background-color: rgba(210, 220, 230, 0.2);
@@ -33,7 +44,6 @@
     line-height: 1.25;
     background-color: rgba(155, 155, 155, 0.1);
     border-radius: 3px;
-    margin-bottom: 0;
     word-break: normal;
 }
 .view-markdown pre code {
@@ -52,11 +62,4 @@
 .view-markdown .check-list-item {
     list-style: none;
     margin-left: -22px;
-}
-
-.view-markdown :is(p, blockquote, ul, ol, dl, table, pre):not(:first-child) {
-    margin-top: 15px;
-}
-.view-markdown :is(ul, ol) + :is(ul, ol) {
-    margin-top: 0 !important;
 }
