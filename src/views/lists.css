@@ -14,6 +14,12 @@
     padding-left: 20px;
 }
 
+:is(.view-list, .view-ul, .view-ol) + :is(.view-list, .view-ul, .view-ol),
+.view-list-item > :is(.view-list, .view-ul, .view-ol) {
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
 .view-inline-list,
 .view-comma-list {
     display: inline-block;
