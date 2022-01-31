@@ -54,12 +54,9 @@
     margin-left: -22px;
 }
 
-.view-markdown p,
-.view-markdown blockquote,
-.view-markdown ul,
-.view-markdown ol,
-.view-markdown dl,
-.view-markdown table,
-.view-markdown pre{
-    margin: 15px 0;
+.view-markdown :is(p, blockquote, ul, ol, dl, table, pre):not(:first-child) {
+    margin-top: 15px;
+}
+.view-markdown :is(ul, ol) + :is(ul, ol) {
+    margin-top: 0 !important;
 }

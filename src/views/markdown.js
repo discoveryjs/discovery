@@ -42,6 +42,28 @@ class CustomRenderer extends marked.Renderer {
         return out;
     }
 
+    checkbox(checked) {
+        return (
+            '<label class="view-checkbox"><input type="checkbox" disabled' +
+            (checked ? ' checked' : '') +
+            '/></label> '
+        );
+    }
+
+    list(body, ordered, start) {
+        const tag = ordered ? 'ol' : 'ul';
+        const startAttr = ordered && start !== 1 ? ` start="${start}"` : '';
+
+        return (
+            `<${tag} class="view-${tag}"${startAttr}>\n` +
+            body +
+            `\n</${tag}>\n`
+        );
+    }
+    listitem(text) {
+        return '<li class="view-list-item">' + text + '</li>\n';
+    }
+
     table(header, body) {
         return '<table class="view-table">\n' +
             '<thead>\n' +
