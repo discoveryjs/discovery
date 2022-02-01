@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import Widget from '../widget/index.js';
+import upload from '../core/upload.js';
 import router from '../core/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
@@ -17,30 +18,24 @@ import * as navButtons from '../nav/buttons';
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 
 export default class App extends Widget {
-    static modelfreeLoadData(instance, event) {
-        if (instance.defaultPageId !== instance.reportPageId) {
-            instance.defaultPageId = instance.reportPageId;
-            instance.setPageHash(instance.pageHash, true);
-            instance.cancelScheduledRender();
-        }
-
-        return instance.loadDataFromEvent(event);
-    }
-
     constructor(container, options = {}) {
         const extensions = options.extensions ? [options.extensions] : [];
+        const isModelfree = options.mode === 'modelfree';
+
+        extensions.push(navButtons.darkmodeToggle);
 
         if (coalesceOption(options.router, true)) {
             extensions.push(router);
         }
 
-        extensions.push(navButtons.darkmodeToggle);
-
-        if (options.mode === 'modelfree') {
-            extensions.push(navButtons.loadData);
-        } else {
+        if (!isModelfree) {
             extensions.push(navButtons.indexPage);
             extensions.push(navButtons.reportPage);
+        }
+
+        if (coalesceOption(options.upload, false) || isModelfree) {
+            extensions.push(upload);
+            extensions.push(navButtons.loadData);
         }
 
         if (coalesceOption(options.inspector, true)) {
@@ -50,6 +45,7 @@ export default class App extends Widget {
         super(container, null, {
             ...options,
             extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
+            upload: options.upload,
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
@@ -116,6 +112,13 @@ export default class App extends Widget {
     }
 
     loadDataFromEvent(event) {
+        if (this.mode === 'modelfree' && this.defaultPageId !== this.reportPageId) {
+            this._defaultPageId = this.defaultPageId;
+            this.defaultPageId = this.reportPageId;
+            this.setPageHash(this.pageHash, true);
+            this.cancelScheduledRender();
+        }
+
         return this.trackLoadDataProgress(loadDataFromEvent(event));
     }
 
@@ -127,21 +130,22 @@ export default class App extends Widget {
         return this.trackLoadDataProgress(loadDataFromUrl(url, dataField, options));
     }
 
+    unloadData() {
+        if (this.dataLoaded && this.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
+            this.defaultPageId = this._defaultPageId;
+            this.setPageHash(this.pageHash, true);
+            this.cancelScheduledRender();
+        }
+
+        super.unloadData();
+    }
+
     initDom() {
         super.initDom();
 
         this.dom.container.append(
             this.dom.loadingOverlay = createElement('div', 'loading-overlay done')
         );
-
-        // setup the drag&drop listeners for model free mode
-        if (this.options.mode === 'modelfree') {
-            this.dom.container.addEventListener('drop', event => this.constructor.modelfreeLoadData(this, event), true);
-            this.dom.container.addEventListener('dragover', event => {
-                event.stopPropagation();
-                event.preventDefault();
-            }, true);
-        }
     }
 
     getRenderContext() {

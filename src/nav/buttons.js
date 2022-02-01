@@ -1,5 +1,3 @@
-import { createElement } from '../core/utils/dom.js';
-
 export function indexPage(host) {
     host.nav.append({
         name: 'index-page',
@@ -19,12 +17,9 @@ export function reportPage(host) {
 export function loadData(host) {
     host.nav.append({
         name: 'load-data',
-        content: 'text:"Load data"',
-        onClick: () => createElement('input', {
-            type: 'file',
-            accept: 'application/json,.json',
-            onchange: event => host.constructor.modelfreeLoadData(host, event)
-        }).click()
+        when: '#.actions.uploadFile and (#.dataLoaded or (#.widget | pageId != defaultPageId))',
+        content: 'text:"Open file…"',
+        onClick: '=#.actions.uploadFile'
     });
 }
 

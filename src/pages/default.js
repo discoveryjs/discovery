@@ -1,32 +1,33 @@
-import { createElement } from '../core/utils/dom.js';
-
 export default function(host) {
     host.page.define('default', {
         view: 'switch',
         content: [
             {
-                when: '#.modelfree',
+                when: 'not #.dataLoaded',
                 content: [
                     {
                         view: 'h1',
-                        className: 'modelfree',
-                        content: [
-                            'text:"Discovery "',
-                            'badge:{ text: "model free mode" }'
-                        ]
+                        className: 'no-data-loaded',
+                        content: 'text:"Discovery.js"'
                     },
-                    'html:"<p>Running in <b>model free mode</b>, because no config or models are set up. Please, read <a class=\\"view-link\\" href=\\"https://github.com/discoveryjs/discovery/blob/master/README.md\\" href=\\"_blank\\">documention</a> for more details."',
-                    'html:"<p>Load data (JSON) with a button or just drop a file on the page.</p>"',
+                    {
+                        view: 'markdown',
+                        when: '#.modelfree',
+                        source: 'Running in `model free mode` since no config or model is set. However, you can load the JSON file, analyse it, and create your own report.\n\nSee <a class="view-link" href="https://github.com/discoveryjs/discovery/blob/master/README.md" href="_blank">documention</a> for details.'
+                    },
+                    {
+                        view: 'markdown',
+                        when: 'meta.description',
+                        source: '=meta.description'
+                    },
                     'html:"<br>"',
                     {
                         view: 'button-primary',
-                        onClick: () => createElement('input', {
-                            type: 'file',
-                            accept: 'application/json,.json',
-                            onchange: event => host.constructor.modelfreeLoadData(host, event)
-                        }).click(),
-                        content: 'text:"Load data"'
-                    }
+                        onClick: '=#.actions.uploadFile',
+                        content: 'text:`Open file ${#.actions.uploadFile.fileExtensions | $ ? "(" + join(", ") + ")" : ""}`'
+                    },
+                    'html:"<span style=\\"color: #888; padding: 0 1ex\\"> or </span>"',
+                    'text:"drop a file on the page"'
                 ]
             },
             {

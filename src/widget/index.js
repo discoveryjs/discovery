@@ -9,7 +9,7 @@ import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import injectStyles from '../core/utils/inject-styles.js';
-import attachViewInspector from '../inspector/index.js';
+import inspector from '../inspector/index.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';
@@ -55,9 +55,14 @@ export default class Widget extends Emitter {
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
+        this.actions = {};
         const {
             darkmode = 'disabled',
-            darkmodePersistent = false
+            darkmodePersistent = false,
+            defaultPageId,
+            reportPageId,
+            extensions,
+            inspector: useInspector = false
         } = this.options;
 
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
@@ -85,11 +90,14 @@ export default class Widget extends Emitter {
         });
         renderScheduler.set(this, new Set());
 
+        this.dataLoaded = false;
+        this.data = undefined;
+        this.context = undefined;
         this.prepare = data => data;
         createDataExtensionApi(this).apply();
 
-        this.defaultPageId = this.options.defaultPageId || 'default';
-        this.reportPageId = this.options.reportPageId || 'report';
+        this.defaultPageId = defaultPageId || 'default';
+        this.reportPageId = reportPageId || 'report';
         this.pageId = this.defaultPageId;
         this.pageRef = null;
         this.pageParams = {};
@@ -102,12 +110,12 @@ export default class Widget extends Emitter {
             this.page.define(this.defaultPageId, defaultPage);
         }
 
-        if (this.options.extensions) {
-            this.apply(this.options.extensions);
+        if (extensions) {
+            this.apply(extensions);
         }
 
-        if (this.options.inspector || this.options.inspector === undefined) {
-            this.apply(attachViewInspector);
+        if (useInspector) {
+            this.apply(inspector);
         }
 
         this.nav.render(this.dom.nav);
@@ -160,6 +168,7 @@ export default class Widget extends Emitter {
             .then((data) => {
                 checkIsNotPrevented();
 
+                this.dataLoaded = true;
                 this.data = data;
                 this.context = context;
                 dataExtension.apply();
@@ -195,6 +204,19 @@ export default class Widget extends Emitter {
             await this.dom.ready,
             renderScheduler.get(this).timer
         ]);
+    }
+
+    unloadData() {
+        if (!this.dataLoaded) {
+            return;
+        }
+
+        this.dataLoaded = false;
+        this.data = undefined;
+        this.context = undefined;
+
+        this.scheduleRender('sidebar');
+        this.scheduleRender('page');
     }
 
     // TODO: remove
@@ -481,6 +503,8 @@ export default class Widget extends Emitter {
             page: this.pageId,
             id: this.pageRef,
             params: this.pageParams,
+            actions: this.actions,
+            dataLoaded: this.dataLoaded,
             ...this.context
         };
     }
@@ -493,7 +517,7 @@ export default class Widget extends Emitter {
         // cancel scheduled renderSidebar
         renderScheduler.get(this).delete('sidebar');
 
-        if (this.view.isDefined('sidebar')) {
+        if (this.dataLoaded && this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
             const data = this.data;
             const context = this.getRenderContext();

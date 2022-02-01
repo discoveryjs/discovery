@@ -124,16 +124,10 @@ export function loadDataFromStream(request, prepare, ext) {
 
 export function loadDataFromFile(file) {
     return loadDataFromStream(
-        () => {
-            if (file.type !== 'application/json') {
-                throw new Error('Not a JSON file');
-            }
-
-            return {
-                stream: streamFromBlob(file),
-                size: file.size
-            };
-        },
+        () => ({
+            stream: streamFromBlob(file),
+            size: file.size
+        }),
         data => ({
             data,
             context: {

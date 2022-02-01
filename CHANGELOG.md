@@ -1,6 +1,18 @@
 ## next
 
 - Fixed `popup` view to auto hide when trigger elements are removing from a document
+- Removed `App.modelfreeLoadData()` method, use `App#loadDataFromEvent()` or `#.actions.upload` instead
+- Added `Widget#unloadData()` method to reset loaded data and context if any
+- Added `#.dataLoaded` property to indicate is data loaded or not
+- Generalized approach to load data:
+    - API exposed as an extension which can be imported as `import { upload } from '@discoveryjs/discovery'` and configured via `options.upload`
+    - Turns on automatically when `options.upload` is truthy for `App`
+    - Options supported for `options.upload`:
+        - `accept` (`"application/json,.json"` when ommited) – specify accept attribute for file selection inputs
+        - `dragdrop` (`true` when ommited) – enable "drop file to load data" feature
+- Added `Widget#actions` (available as `#.actions` in jora queries) dictionary for special actions:
+    - `startInspect` and `stopInspect` when inspector is applied
+    - `uploadFile` and `unloadData` when `upload` extension is applied
 - `markdown` view:
     - Added support for simple text interpolation using `{{ query }}` syntax
     - Added support for array of strings as `source` value

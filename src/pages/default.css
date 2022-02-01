@@ -1,4 +1,7 @@
-h1.modelfree::before {
+.page-default h1.no-data-loaded {
+    margin-top: 0;
+}
+.page-default h1.no-data-loaded::before {
     display: inline-block;
     vertical-align: middle;
     position: relative;
@@ -9,10 +12,4 @@ h1.modelfree::before {
     content: '';
     background: url('../logo.svg') no-repeat center;
     background-size: 42px;
-}
-h1.modelfree .view-badge {
-    font-size: 50%;
-    vertical-align: middle;
-    border: 2px solid transparent;
-    background-color: rgba(159, 199, 11, 0.25);
 }
