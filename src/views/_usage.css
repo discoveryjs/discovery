@@ -11,7 +11,7 @@
     border-radius: 3px;
 }
 .discovery-view-usage .usage-render::before {
-    content: 'demo';
+    content: 'DEMO';
     position: absolute;
     top: 0;
     left: 0;
