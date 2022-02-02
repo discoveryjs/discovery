@@ -437,7 +437,7 @@ export default function(host) {
     host.addHostElEventListener('click', clickHandler, false);
 
     host.view.define('struct', function(el, config, data) {
-        const { expanded, limit, limitCollapsed, annotations } = config; // FIXME: add limit option
+        const { expanded, limit, limitCollapsed, annotations } = config;
         const expandable = isValueExpandable(data);
         const options = {
             limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
