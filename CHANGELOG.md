@@ -1,6 +1,7 @@
 ## next
 
 - Fixed `popup` view to auto hide when trigger elements are removing from a document
+- Fixed progress bar state update on data loading after a discovery instance init
 - Removed `App.modelfreeLoadData()` method, use `App#loadDataFromEvent()` or `#.actions.upload` instead
 - Added `Widget#unloadData()` method to reset loaded data and context if any
 - Added `#.dataLoaded` property to indicate is data loaded or not

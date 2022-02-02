@@ -245,7 +245,7 @@ export function syncLoaderWithProgressbar({ result, state }, progressbar) {
                 return;
             }
 
-            progressbar.setState({ stage, progress });
+            return progressbar.setState({ stage, progress });
         });
     });
 }
