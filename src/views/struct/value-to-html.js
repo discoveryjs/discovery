@@ -39,8 +39,8 @@ export default function value2html(value, linear, options) {
             if (value.length > maxLength + 15) {
                 return token(
                     'string',
-                    escapeHtml(JSON.stringify(value.substr(0, maxLength)))
-                        .replace(/"$/, more(value.length - maxLength) + '"')
+                    escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(0, -1)) +
+                    more(value.length - maxLength) + '"'
                 );
             }
 
