@@ -3,8 +3,8 @@ const onClick = () => alert('changed!');
 
 export default {
     demo: {
-        data: { text: 'I am nav button' },
-        view: 'nav-button'
+        view: 'nav-button',
+        data: { text: 'I am nav button' }
     },
     examples: [
         {
@@ -26,7 +26,7 @@ export default {
             demo: {
                 view: 'nav-button',
                 data: { text: 'I am nav button'},
-                onClick: onClick
+                onClick
             }
         }
     ]

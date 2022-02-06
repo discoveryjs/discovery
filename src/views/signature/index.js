@@ -3,6 +3,7 @@
 import { collectObjectMap, collectStat } from './collect-stat.js';
 import { renderStat } from './render-stat.js';
 import { renderPropertyDetails, renderTypeDetails } from './render-details.js';
+import usage from './signature.usage.js';
 
 export default function(host) {
     const elementToData = new WeakMap();
@@ -98,5 +99,7 @@ export default function(host) {
         const normPath = Array.isArray(path) ? path : undefined;
 
         renderStat(el, stat, elementToData, normPath);
+    }, {
+        usage
     });
 }

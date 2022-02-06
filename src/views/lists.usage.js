@@ -10,7 +10,7 @@ export default (view, group) => ({
                 view: 'context',
                 data: ['foo', 'bar', 'baz'],
                 content: group.map(view => [
-                    'header:' + JSON.stringify('# ' + view),
+                    `header{ content: 'md:${JSON.stringify('`view: \\"' + view + '\\"`')}' }`,
                     view
                 ])
             }

@@ -47,6 +47,11 @@
     color: rgba(214, 31, 31, 77%);
     text-shadow: 0.2px 0px 0.3px rgba(255, 255, 255, .8);
 }
+.discovery-root-darkmode .discovery-view-popup.view-struct-actions-popup .error {
+    color: #e66;
+    text-shadow: none;
+}
+
 .discovery-view-popup.view-struct-actions-popup .num-delim {
     padding-left: 3px;
 }

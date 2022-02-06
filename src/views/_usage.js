@@ -127,7 +127,7 @@ export default function(host) {
     return {
         view: 'block',
         className: 'discovery-view-usage',
-        data: ({ name, options }) => {
+        data({ name, options }) {
             const group = [...host.view.values]
                 .filter(view => view.options.usage === options.usage)
                 .map(view => view.name);
