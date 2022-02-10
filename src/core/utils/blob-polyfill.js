@@ -43,8 +43,7 @@ export function arrayBufferFromBlob(blob) {
 export function streamFromBlob(blob) {
     let position = 0;
 
-    // Avoid using file.stream() for Safari TP at the moment, since TP 116 crashes on method call in some conditions
-    if (typeof blob.stream === 'function' && !/Version\/14\.1/.test(navigator.userAgent)) {
+    if (typeof blob.stream === 'function') {
         return blob.stream();
     }
 
