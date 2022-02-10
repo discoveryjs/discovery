@@ -3,9 +3,10 @@ import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js
 import { applyContainerStyles } from './core/utils/container-styles.js';
 import injectStyles from './core/utils/inject-styles.js';
 
-function defaultProgressbar() {
+function createProgressbar(domReady) {
     return new Progressbar({
         delay: 300,
+        domReady,
         onTiming: ({ title, duration }) =>
             console.log(`[Discovery/loader] ${title} – ${duration}ms`)
     });
@@ -15,7 +16,6 @@ export function preloader(config) {
     config = config || {};
 
     const container = config.container || document.body;
-    const progressbar = config.progressbar || defaultProgressbar();
     const el = document.createElement('div');
     const shadowRoot = el.attachShadow({ mode: 'open' });
 
@@ -42,11 +42,13 @@ export function preloader(config) {
         };
     }
 
+    const domReady = injectStyles(shadowRoot, config.styles);
+    const progressbar = config.progressbar || createProgressbar(domReady);
+
     if (loading.state) {
         syncLoaderWithProgressbar(loading, progressbar);
     }
 
-    injectStyles(shadowRoot, config.styles);
     shadowRoot.append(progressbar.el);
     container.append(el);
 

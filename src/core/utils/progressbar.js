@@ -43,18 +43,17 @@ const letRepaintIfNeeded = async () => {
 };
 
 export default class Progressbar {
-    constructor({ onTiming, delay }) {
+    constructor({ onTiming, delay, domReady }) {
         this.finished = false;
         this.awaitRepaint = null;
         this.lastStage = null;
         this.lastStageStart = null;
         this.timings = [];
         this.onTiming = typeof onTiming === 'function' ? onTiming : () => {};
+        this.appearanceDelay = delay === true ? 200 : Number(delay) || 0;
+        this.domReady = domReady || Promise.resolve();
 
-        this.el = createElement('div', {
-            class: 'view-progress init',
-            style: `--appearance-delay: ${delay === true ? 200 : Number(delay) || 0}ms`
-        }, [
+        this.el = createElement('div', 'view-progress init', [
             createElement('div', 'title'),
             createElement('div', 'progress')
         ]);
@@ -75,7 +74,20 @@ export default class Progressbar {
 
         if (!this.lastStage) {
             this.startTime = now;
-            requestAnimationFrame(() => this.el.classList.remove('init'));
+            this.domReady.then(() => {
+                const appearanceDelay = Math.max(0, this.appearanceDelay - int(performance.now() - now));
+
+                if (appearanceDelay) {
+                    this.el.style.setProperty('--appearance-delay', `${appearanceDelay}ms`);
+                }
+
+                // This is a hack to trigger styles computation,
+                // otherwise Blink might not run a transition for progressbar appearance
+                // and it will be shown immediately which is not desired in case of fast loaded data
+                getComputedStyle(this.el).opacity;
+
+                this.el.classList.remove('init');
+            });
         }
 
         if (stageChanged) {

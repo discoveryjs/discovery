@@ -55,6 +55,8 @@ export default class App extends Widget {
 
     progressbar(options) {
         return new Progressbar({
+            delay: 200,
+            domReady: this.dom.ready,
             onTiming: ({ title, duration }) =>
                 console.log(`[Discovery] Data loading / ${title} – ${duration}ms`),
             ...options

@@ -2,6 +2,7 @@
 
 - Fixed loading stage order
 - Improved accuracy for loading timings log
+- Fixed loading progressbar appearance delay, i.e. no more visible progressbar when data instantly loaded
 
 ## 1.0.0-beta.63 (07-02-2022)
 
