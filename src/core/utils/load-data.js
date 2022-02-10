@@ -90,7 +90,7 @@ async function loadDataFromStreamInternal(request, progress) {
             validateData(data);
         }
 
-        await progress.asyncSet({ stage: 'done' });
+        await progress.asyncSet({ stage: 'received' });
 
         return {
             data,
@@ -239,10 +239,9 @@ export function syncLoaderWithProgressbar({ result, state }, progressbar) {
                 return;
             }
 
-            if (stage === 'done') {
+            if (stage === 'received') {
                 unsubscribeLoader();
                 resolve(result);
-                return;
             }
 
             return progressbar.setState({ stage, progress });

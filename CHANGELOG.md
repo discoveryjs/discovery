@@ -1,3 +1,8 @@
+## next
+
+- Fixed loading stage order
+- Improved accuracy for loading timings log
+
 ## 1.0.0-beta.63 (07-02-2022)
 
 - Bumped dependencies to latest versions (fixes security issues)

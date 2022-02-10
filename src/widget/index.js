@@ -204,6 +204,8 @@ export default class Widget extends Emitter {
             await this.dom.ready,
             renderScheduler.get(this).timer
         ]);
+
+        await progressbar.finish();
     }
 
     unloadData() {

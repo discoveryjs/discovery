@@ -76,9 +76,9 @@ export default class App extends Widget {
                 this.setDataProgress(data, context, progressbar)
             )
             .then(
-                async () => {
+                () => {
                     containerEl.classList.add('done');
-                    await progressbar.setState({ stage: 'done' });
+                    return progressbar.finish();
                 },
                 error => {
                     // output error

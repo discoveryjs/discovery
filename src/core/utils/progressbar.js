@@ -9,9 +9,9 @@ export const loadStages = {
         value: 0.1,
         title: 'Receiving data'
     },
-    parse: {
+    received: {
         value: 0.9,
-        title: 'Processing data (parse)'
+        title: 'Await app ready'
     },
     prepare: {
         value: 0.925,
@@ -19,7 +19,7 @@ export const loadStages = {
     },
     initui: {
         value: 0.975,
-        title: 'Preparing UI'
+        title: 'Rendering UI'
     },
     done: {
         value: 1.0,
@@ -30,6 +30,7 @@ Object.values(loadStages).forEach((item, idx, array) => {
     item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
 });
 
+const int = value => value | 0;
 const letRepaintIfNeeded = async () => {
     await new Promise(resolve => setTimeout(resolve, 1));
 
@@ -68,7 +69,7 @@ export default class Progressbar {
 
         const { value, title, duration } = loadStages[stage];
         const stageChanged = stage !== this.lastStage;
-        const now = Date.now();
+        const now = performance.now();
         let progressValue = 0;
         let progressLabel;
 
@@ -82,7 +83,7 @@ export default class Progressbar {
                 const entry = {
                     stage: this.lastStage,
                     title: loadStages[this.lastStage].title,
-                    duration: now - this.lastStageStart
+                    duration: int(now - this.lastStageStart)
                 };
 
                 this.timings.push(entry);
@@ -125,16 +126,17 @@ export default class Progressbar {
 
         if (stageChanged || (now - this.awaitRepaint > 65 && now - this.lastStageStart > 200)) {
             await letRepaintIfNeeded();
-            this.awaitRepaint = Date.now();
+            this.awaitRepaint = performance.now();
         }
     }
 
     finish() {
         if (!this.finished && this.lastStageStart !== null) {
-            const stage = this.lastStage;
-            const duration = Date.now() - this.lastStageStart;
-            const title = loadStages[stage].title;
-            const entry = { stage, title, duration };
+            const entry = {
+                stage: this.lastStage,
+                title: loadStages[this.lastStage].title,
+                duration: int(performance.now() - this.lastStageStart)
+            };
 
             this.timings.push(entry);
             this.onTiming(entry);
@@ -142,7 +144,7 @@ export default class Progressbar {
             this.onTiming({
                 stage: 'done',
                 title: loadStages.done.title,
-                duration: Date.now() - this.startTime
+                duration: int(performance.now() - this.startTime)
             });
         }
 
