@@ -170,7 +170,7 @@ export default class Widget extends Emitter {
 
                 this.dataLoaded = true;
                 this.data = data;
-                this.context = context;
+                this.context = { ...context, data };
                 dataExtension.apply();
 
                 this.emit('data');
