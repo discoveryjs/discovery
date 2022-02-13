@@ -131,11 +131,12 @@ export function loadDataFromFile(file) {
         data => ({
             data,
             context: {
-                name: `File: ${file.name}`,
+                name: file.name,
                 createdAt: new Date(file.lastModified || Date.now()),
                 data
             }
-        })
+        }),
+        { title: 'Load data from file: ' + file.name }
     );
 }
 
@@ -191,7 +192,8 @@ export function loadDataFromUrl(url, dataField, options) {
                 createdAt: dataField && data.createdAt ? new Date(Date.parse(data.createdAt)) : new Date(),
                 ...dataField ? data : { data }
             }
-        })
+        }),
+        { title: 'Load data from url: ' + (explicitData ? '[explicit data]' : url) }
     );
 }
 

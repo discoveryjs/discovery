@@ -57,15 +57,27 @@ export default class App extends Widget {
         return new Progressbar({
             delay: 200,
             domReady: this.dom.ready,
-            onTiming: ({ title, duration }) =>
-                console.log(`[Discovery] Data loading / ${title} – ${duration}ms`),
+            onFinish(timings) {
+                console.groupCollapsed(`[Discovery] ${
+                    options.title || 'Load data'
+                } (${
+                    timings[timings.length - 1].duration
+                }ms)`);
+
+                for (const timing of timings) {
+                    console.log(`${timing.title}: ${timing.duration}ms`);
+                }
+
+                console.groupEnd();
+            },
             ...options
         });
     }
 
     trackLoadDataProgress(loader) {
-        const progressbar = this.progressbar();
+        const progressbar = this.progressbar({ title: loader.title });
         const containerEl = this.dom.loadingOverlay;
+
         containerEl.innerHTML = '';
         containerEl.append(progressbar.el);
         containerEl.classList.remove('error', 'done');

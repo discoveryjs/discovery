@@ -31,6 +31,7 @@ Object.values(loadStages).forEach((item, idx, array) => {
 });
 
 const int = value => value | 0;
+const ensureFunction = value => typeof value === 'function' ? value : () => {};
 const letRepaintIfNeeded = async () => {
     await new Promise(resolve => setTimeout(resolve, 1));
 
@@ -43,13 +44,14 @@ const letRepaintIfNeeded = async () => {
 };
 
 export default class Progressbar {
-    constructor({ onTiming, delay, domReady }) {
+    constructor({ onTiming, onFinish, delay, domReady }) {
         this.finished = false;
         this.awaitRepaint = null;
         this.lastStage = null;
         this.lastStageStart = null;
         this.timings = [];
-        this.onTiming = typeof onTiming === 'function' ? onTiming : () => {};
+        this.onTiming = ensureFunction(onTiming);
+        this.onFinish = ensureFunction(onFinish);
         this.appearanceDelay = delay === true ? 200 : Number(delay) || 0;
         this.domReady = domReady || Promise.resolve();
 
@@ -57,6 +59,22 @@ export default class Progressbar {
             createElement('div', 'title'),
             createElement('div', 'progress')
         ]);
+    }
+
+    recordTiming(stage, start, end = performance.now()) {
+        const entry = {
+            stage,
+            title: loadStages[stage].title,
+            duration: int(end - start)
+        };
+
+        // performance.measure(entry.title, {
+        //     start,
+        //     duration: entry.duration
+        // });
+
+        this.timings.push(entry);
+        this.onTiming(entry);
     }
 
     async setState(state) {
@@ -92,14 +110,7 @@ export default class Progressbar {
 
         if (stageChanged) {
             if (this.lastStageStart !== null) {
-                const entry = {
-                    stage: this.lastStage,
-                    title: loadStages[this.lastStage].title,
-                    duration: int(now - this.lastStageStart)
-                };
-
-                this.timings.push(entry);
-                this.onTiming(entry);
+                this.recordTiming(this.lastStage, this.lastStageStart, now);
             }
 
             this.lastStage = stage;
@@ -143,24 +154,19 @@ export default class Progressbar {
     }
 
     finish() {
-        if (!this.finished && this.lastStageStart !== null) {
-            const entry = {
-                stage: this.lastStage,
-                title: loadStages[this.lastStage].title,
-                duration: int(performance.now() - this.lastStageStart)
-            };
+        if (!this.finished) {
+            this.finished = true;
 
-            this.timings.push(entry);
-            this.onTiming(entry);
+            if (this.lastStageStart !== null) {
+                this.recordTiming(
+                    this.lastStage,
+                    this.lastStageStart
+                );
+            }
 
-            this.onTiming({
-                stage: 'done',
-                title: loadStages.done.title,
-                duration: int(performance.now() - this.startTime)
-            });
+            this.recordTiming('done', this.startTime);
+            this.onFinish(this.timings);
         }
-
-        this.finished = true;
     }
 
     dispose() {
