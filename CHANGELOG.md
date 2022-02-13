@@ -4,6 +4,7 @@
 - Improved accuracy for loading timings log
 - Fixed loading progressbar appearance delay, i.e. no more visible progressbar when data instantly loaded
 - Fixed setting of `data` on `context` when a prepare handler returns a new value, before changes `context.data` contained a reference to an original (loaded) value, for now `Widget#context.data` is always equal to `Widget#data` after a `loadData()` call
+- Added `preset/upload`
 
 ## 1.0.0-beta.63 (07-02-2022)
 

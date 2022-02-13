@@ -28,7 +28,7 @@ export default class PresetRenderer extends Dict {
             console.error(errorMsg, name);
 
             const el = container.appendChild(document.createElement('div'));
-            el.style.cssText = 'color:#a00;border:1px dashed #a00;font-size:12px;padding:4px';
+            el.className = 'buildin-view-config-error';
             el.innerText = errorMsg;
 
             return Promise.resolve();

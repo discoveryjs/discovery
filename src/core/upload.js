@@ -8,6 +8,13 @@ export default function(host) {
         ? String(upload.accept)
         : 'application/json,.json';
     const acceptTokens = accept.split(',');
+    const preset = [
+        {
+            view: 'button-primary',
+            onClick: '=#.actions.uploadFile',
+            content: 'text:`Open file ${#.actions.uploadFile.fileExtensions | $ ? "(" + join(", ") + ")" : ""}`'
+        }
+    ];
 
     // setup the drag&drop listeners for upload data if not disabled
     if (upload.dragdrop || upload.dragdrop === undefined) {
@@ -18,7 +25,15 @@ export default function(host) {
             event.stopPropagation();
             event.preventDefault();
         }, true);
+
+        preset.push(
+            'html:"<span style=\\"color: #888; padding: 0 1ex\\"> or </span>"',
+            'text:"drop a file on the page"'
+        );
     }
+
+    // define view preset
+    host.preset.define('upload', preset);
 
     // add actions
     host.actions.unloadData = () => {

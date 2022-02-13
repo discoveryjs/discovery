@@ -21,13 +21,7 @@ export default function(host) {
                         source: '=meta.description'
                     },
                     'html:"<br>"',
-                    {
-                        view: 'button-primary',
-                        onClick: '=#.actions.uploadFile',
-                        content: 'text:`Open file ${#.actions.uploadFile.fileExtensions | $ ? "(" + join(", ") + ")" : ""}`'
-                    },
-                    'html:"<span style=\\"color: #888; padding: 0 1ex\\"> or </span>"',
-                    'text:"drop a file on the page"'
+                    'preset/upload'
                 ]
             },
             {
