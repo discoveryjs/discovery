@@ -20,6 +20,12 @@
 .discovery > .loading-overlay.error {
     overflow: auto;
 }
+.discovery > .loading-overlay.error .action-buttons {
+    margin-bottom: 1em;
+}
+.discovery > .loading-overlay.error .action-buttons .view-button + .view-button {
+    margin-left: 2ex;
+}
 .discovery > .loading-overlay.error .view-alert .view-header {
     margin-top: 0;
 }

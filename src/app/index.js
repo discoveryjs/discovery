@@ -96,22 +96,37 @@ export default class App extends Widget {
                 error => {
                     // output error
                     containerEl.classList.add('error');
-                    containerEl.innerHTML = [
-                        '<div class="view-alert view-alert-danger">',
-                        '<h3 class="view-header">Ooops, something went wrong on data loading</h3>',
-                        '<pre>' + escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1') + '</pre>',
-                        '</div>'
-                    ].join('');
+                    containerEl.innerHTML = '';
 
-                    if (this.options.cache) {
-                        containerEl.prepend(createElement('button', {
-                            class: 'view-button',
-                            async onclick() {
-                                await fetch('drop-cache');
-                                location.reload();
-                            }
-                        }, 'Reload with no cache'));
-                    }
+                    this.view.render(containerEl, [
+                        {
+                            view: 'block',
+                            className: 'action-buttons',
+                            content: [
+                                {
+                                    view: 'button',
+                                    when: 'options.cacheReset',
+                                    data: { text: 'Reload with no cache' }
+                                },
+                                {
+                                    view: 'preset/upload',
+                                    when: this.preset.isDefined('upload')
+                                }
+                            ]
+                        },
+                        {
+                            view: 'alert-danger',
+                            content: [
+                                'h3:"Ooops, something went wrong on data loading"',
+                                'html:`<pre>${errorText}</pre>`'
+                            ]
+                        }
+                    ], {
+                        options: this.options,
+                        errorText: escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1')
+                    }, {
+                        actions: this.actions
+                    });
                 }
             );
 
