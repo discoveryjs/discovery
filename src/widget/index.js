@@ -201,7 +201,7 @@ export default class Widget extends Emitter {
         this.scheduleRender('sidebar');
         this.scheduleRender('page');
         await Promise.all([
-            await this.dom.ready,
+            this.dom.ready,
             renderScheduler.get(this).timer
         ]);
 
@@ -396,8 +396,6 @@ export default class Widget extends Emitter {
         const wrapper = createElement('div', 'discovery');
         const shadow = wrapper.attachShadow({ mode: 'open' });
         const readyStyles = injectStyles(shadow, this.options.styles);
-
-        wrapper.style.opacity = 0; // FIXME: there must be a better way to hide a widget until everything is ready
 
         const container = shadow.appendChild(createElement('div'));
         this.dom = {};

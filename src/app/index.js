@@ -70,7 +70,6 @@ export default class App extends Widget {
         containerEl.append(progressbar.el);
         containerEl.classList.remove('error', 'done');
         containerEl.classList.add('init');
-        this.dom.wrapper.style.opacity = 1;
         requestAnimationFrame(() => containerEl.classList.remove('init'));
 
         syncLoaderWithProgressbar(loader, progressbar)
