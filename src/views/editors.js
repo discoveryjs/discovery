@@ -46,9 +46,6 @@ class Editor extends Emitter {
                 hint,
                 get container() {
                     return self.container;
-                },
-                get darkmode() {
-                    return self.darkmode.value ? 'darkmode' : false;
                 }
             }
         });
@@ -92,8 +89,6 @@ class Editor extends Emitter {
     focus() {
         this.cm.focus();
     }
-
-    get darkmode() {}
 }
 
 class QueryEditor extends Editor {
@@ -142,9 +137,6 @@ CodeMirror.defineMode('discovery-view', modeView);
 export default function(host) {
     Object.assign(host.view, {
         QueryEditor: class extends QueryEditor {
-            get darkmode() {
-                return host.darkmode;
-            }
             get container() {
                 return host.dom.container;
             }
@@ -152,9 +144,6 @@ export default function(host) {
         ViewEditor: class extends ViewEditor {
             isViewDefined(name) {
                 return host.view.isDefined(name);
-            }
-            get darkmode() {
-                return host.darkmode;
             }
         }
     });

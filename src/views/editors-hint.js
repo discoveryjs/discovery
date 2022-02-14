@@ -195,8 +195,7 @@ class Widget {
         const hintsEl = this.hintsEl = document.createElement('ul');
         const hintsElClassNames = [
             POPUP_CLASS,
-            completion.cm.options.theme,
-            completion.options.darkmode
+            completion.cm.options.theme
         ].filter(Boolean);
         const containerEl = completion.options.container || document.body;
 

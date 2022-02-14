@@ -23,7 +23,7 @@
     font-size: 12px;
     line-height: 18px;
 }
-.discovery-view-editor-hints-popup.darkmode {
+.discovery-root-darkmode .discovery-view-editor-hints-popup {
     background: #323232;
     color: #ccc;
 }
@@ -46,7 +46,7 @@
 .discovery-view-editor-hint .match {
     color: #06C;
 }
-.discovery-view-editor-hints-popup.darkmode .discovery-view-editor-hint .match {
+.discovery-root-darkmode .discovery-view-editor-hints-popup .discovery-view-editor-hint .match {
     color: #4d8bca;
 }
 .discovery-view-editor-hint .type {
