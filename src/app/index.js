@@ -53,6 +53,80 @@ export default class App extends Widget {
         this.mode = this.options.mode;
     }
 
+    setLoadingState(state, { error, progressbar } = {}) {
+        const loadingOverlayEl = this.dom.loadingOverlay;
+
+        switch (state) {
+            case 'init': {
+                if (progressbar.initedFor === this) {
+                    return;
+                }
+
+                loadingOverlayEl.classList.remove('error', 'done');
+                loadingOverlayEl.classList.add('init');
+                requestAnimationFrame(() => loadingOverlayEl.classList.remove('init'));
+
+                loadingOverlayEl.innerHTML = '';
+                loadingOverlayEl.append(progressbar.el);
+                progressbar.initedFor = this;
+
+                break;
+            }
+
+            case 'success': {
+                loadingOverlayEl.classList.add('done');
+
+                break;
+            }
+
+            case 'error': {
+                loadingOverlayEl.classList.add('error');
+                loadingOverlayEl.innerHTML = '';
+
+                this.view.render(loadingOverlayEl, [
+                    {
+                        view: 'block',
+                        className: 'action-buttons',
+                        content: [
+                            {
+                                view: 'preset/upload',
+                                when: this.preset.isDefined('upload')
+                            }
+                        ]
+                    },
+                    error.renderContent || {
+                        view: 'alert-danger',
+                        content: [
+                            'h3:"Ooops, something went wrong on data loading"',
+                            'html:`<pre>${errorText}</pre>`'
+                        ]
+                    }
+                ], {
+                    options: this.options,
+                    errorText: escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1')
+                }, {
+                    actions: this.actions
+                }).then(() => {
+                    if (progressbar?.onErrorRender) {
+                        progressbar.onErrorRender(error, loadingOverlayEl);
+                    }
+                });
+
+                break;
+            }
+        }
+    }
+
+    async setDataProgress(data, context, progressbar = this.progressbar({ title: 'Set data' })) {
+        try {
+            this.setLoadingState('init', { progressbar });
+            await super.setDataProgress(data, context, progressbar);
+            this.setLoadingState('success');
+        } catch (error) {
+            this.setLoadingState('error', { error, progressbar });
+        }
+    }
+
     progressbar(options) {
         return new Progressbar({
             delay: 200,
@@ -76,59 +150,13 @@ export default class App extends Widget {
 
     trackLoadDataProgress(loader) {
         const progressbar = this.progressbar({ title: loader.title });
-        const containerEl = this.dom.loadingOverlay;
 
-        containerEl.innerHTML = '';
-        containerEl.append(progressbar.el);
-        containerEl.classList.remove('error', 'done');
-        containerEl.classList.add('init');
-        requestAnimationFrame(() => containerEl.classList.remove('init'));
+        this.setLoadingState('init', { progressbar });
 
-        syncLoaderWithProgressbar(loader, progressbar)
-            .then(({ data, context }) =>
-                this.setDataProgress(data, context, progressbar)
-            )
-            .then(
-                () => {
-                    containerEl.classList.add('done');
-                    return progressbar.finish();
-                },
-                error => {
-                    // output error
-                    containerEl.classList.add('error');
-                    containerEl.innerHTML = '';
-
-                    this.view.render(containerEl, [
-                        {
-                            view: 'block',
-                            className: 'action-buttons',
-                            content: [
-                                {
-                                    view: 'button',
-                                    when: 'options.cacheReset',
-                                    data: { text: 'Reload with no cache' }
-                                },
-                                {
-                                    view: 'preset/upload',
-                                    when: this.preset.isDefined('upload')
-                                }
-                            ]
-                        },
-                        {
-                            view: 'alert-danger',
-                            content: [
-                                'h3:"Ooops, something went wrong on data loading"',
-                                'html:`<pre>${errorText}</pre>`'
-                            ]
-                        }
-                    ], {
-                        options: this.options,
-                        errorText: escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1')
-                    }, {
-                        actions: this.actions
-                    });
-                }
-            );
+        syncLoaderWithProgressbar(loader, progressbar).then(
+            ({ data, context }) => this.setDataProgress(data, context, progressbar),
+            error => this.setLoadingState('error', { error, progressbar })
+        );
 
         return loader.result;
     }

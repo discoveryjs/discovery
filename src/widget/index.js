@@ -191,7 +191,7 @@ export default class Widget extends Emitter {
         return setDataPromise;
     }
 
-    async setDataProgress(data, context, progressbar = { setState() {} }) {
+    async setDataProgress(data, context, progressbar = { setState() {}, finish() {} }) {
         // set new data & context
         await progressbar.setState({ stage: 'prepare' });
         await this.setData(data, context, { render: false });

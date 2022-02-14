@@ -6,6 +6,7 @@
 - Fixed setting of `data` on `context` when a prepare handler returns a new value, before changes `context.data` contained a reference to an original (loaded) value, for now `Widget#context.data` is always equal to `Widget#data` after a `loadData()` call
 - Fixed action buttons on data load error page
 - Added `preset/upload`
+- Added a way to customise error message rendering on data load: if an error has a `renderContent` property its value is using as a config for rendering instead of default "red box"
 - View inspector:
     - Displayed data changes in case a `config.data` is used
     - Added `D` and `C` badges in sidebar when `data` or `context` of the view is different with a parent view
