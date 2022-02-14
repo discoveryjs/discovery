@@ -100,7 +100,7 @@ function createDefaultConfigErrorView(view) {
     };
 };
 
-function condition(type, host, config, data, context, placeholder) {
+function condition(type, host, config, data, context, inputData, placeholder) {
     if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
@@ -112,13 +112,14 @@ function condition(type, host, config, data, context, placeholder) {
     viewEls.set(placeholder, {
         skipped: type,
         config,
+        inputData,
         data,
         context
     });
     return false;
 }
 
-function renderDom(renderer, placeholder, config, props, data, context) {
+function renderDom(renderer, placeholder, config, props, data, context, inputData) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
@@ -160,6 +161,7 @@ function renderDom(renderer, placeholder, config, props, data, context) {
             const info = {
                 config,
                 props,
+                inputData,
                 data,
                 context
             };
@@ -283,7 +285,7 @@ function render(container, config, data, context) {
 
     const placeholder = container.appendChild(document.createComment(''));
 
-    if (condition('when', this.host, config, data, context, placeholder)) {
+    if (condition('when', this.host, config, data, context, data, placeholder)) {
         // immediately append a view insert point (a placeholder)
         const getData = 'data' in config
             ? Promise.resolve().then(() => this.host.query(config.data, data, context))
@@ -291,15 +293,16 @@ function render(container, config, data, context) {
 
         // resolve data and render a view when ready
         return getData
-            .then(data =>
-                condition('whenData', this.host, config, data, context, placeholder)
+            .then(newData =>
+                condition('whenData', this.host, config, newData, context, data, placeholder)
                     ? renderDom(
                         renderer,
                         placeholder,
                         config,
-                        this.propsFromConfig(config, data, context),
-                        data,
-                        context
+                        this.propsFromConfig(config, newData, context),
+                        newData,
+                        context,
+                        data
                     )
                     : null // placeholder.remove()
             )

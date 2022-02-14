@@ -3,9 +3,13 @@ const { documentElement } = document;
 const standartsMode = document.compatMode === 'CSS1Compat';
 
 export function getOffsetParent(node) {
-    let offsetParent = node.offsetParent || node.parentNode;
+    let offsetParent = node.offsetParent;
 
-    while (offsetParent && offsetParent !== documentElement && getComputedStyle(offsetParent).position == 'static') {
+    while (
+        offsetParent !== null &&
+        offsetParent !== documentElement &&
+        getComputedStyle(offsetParent).position === 'static'
+    ) {
         offsetParent = offsetParent.offsetParent;
     }
 
@@ -13,10 +17,14 @@ export function getOffsetParent(node) {
 }
 
 export function getOverflowParent(node) {
-    let overflowParent = node.overflowParent || node.parentNode;
+    let overflowParent = node.parentNode;
 
-    while (overflowParent && overflowParent !== documentElement && getComputedStyle(overflowParent).overflow == 'visible') {
-        overflowParent = overflowParent.overflowParent;
+    while (
+        overflowParent !== null &&
+        overflowParent !== documentElement &&
+        getComputedStyle(overflowParent).overflow === 'visible'
+    ) {
+        overflowParent = overflowParent.parentNode;
     }
 
     return overflowParent || documentElement;

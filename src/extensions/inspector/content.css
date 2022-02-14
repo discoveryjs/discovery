@@ -65,6 +65,12 @@
 .discovery-inspect-details-popup .content-section.data {
     --header: 'Data';
 }
+.discovery-inspect-details-popup .content-section.data .flow-down {
+    margin: -4px 1.5ex;
+}
+.discovery-inspect-details-popup .content-section.data .flow-down::before {
+    content: '↓';
+}
 .discovery-inspect-details-popup .content-section.context {
     --header: 'Context';
 }

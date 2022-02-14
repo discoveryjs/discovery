@@ -6,6 +6,10 @@
 - Fixed setting of `data` on `context` when a prepare handler returns a new value, before changes `context.data` contained a reference to an original (loaded) value, for now `Widget#context.data` is always equal to `Widget#data` after a `loadData()` call
 - Fixed action buttons on data load error page
 - Added `preset/upload`
+- View inspector:
+    - Displayed data changes in case a `config.data` is used
+    - Added `D` and `C` badges in sidebar when `data` or `context` of the view is different with a parent view
+    - Fixed unnecessary sidebar scrolling on view selection
 
 ## 1.0.0-beta.63 (07-02-2022)
 

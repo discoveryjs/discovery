@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import { createElement, passiveCaptureOptions } from '../core/utils/dom.js';
-import { getBoundingRect } from '../core/utils/layout.js';
+import { getBoundingRect, getOverflowParent } from '../core/utils/layout.js';
 import { pointerXY } from '../core/utils/pointer.js';
 import debounce from '../core/utils/debounce.js';
 
@@ -19,6 +19,36 @@ function isBoxChanged(oldBox, newBox) {
     return false;
 }
 
+function scrollIntoViewIfNeeded(element) {
+    const viewportEl = getOverflowParent(element);
+    const elementRect = getBoundingRect(element, viewportEl);
+    const scrollMarginTop = 0;
+    const scrollMarginLeft = 0;
+
+    const { scrollTop, scrollLeft, clientWidth, clientHeight } = viewportEl;
+    const viewportTop = scrollTop + scrollMarginTop;
+    const viewportLeft = scrollLeft + scrollMarginLeft;
+    const viewportRight = scrollLeft + clientWidth;
+    const viewportBottom = scrollTop + clientHeight;
+    const elementTop = scrollTop + elementRect.top;
+    const elementLeft = scrollLeft + elementRect.left;
+    const elementRight = elementLeft + elementRect.width;
+    let scrollToTop = scrollTop;
+    let scrollToLeft = scrollLeft;
+
+    if (elementTop < viewportTop || elementTop > viewportBottom) {
+        scrollToTop = elementTop - scrollMarginTop;
+    }
+
+    if (elementLeft < viewportLeft) {
+        scrollToLeft = elementLeft - scrollMarginLeft;
+    } else if (elementRight > viewportRight) {
+        scrollToLeft = Math.max(elementLeft, scrollLeft - (elementRight - viewportRight)) - scrollMarginLeft;
+    }
+
+    viewportEl?.scrollTo(scrollToLeft, scrollToTop);
+}
+
 export default (host) => {
     let inspectorActivated = false;
     let lastOverlayEl = null;
@@ -26,6 +56,7 @@ export default (host) => {
     let selectedTreeViewLeaf = null;
     let hideTimer = null;
     let syncOverlayTimer;
+    let scrollTopBeforeSelect = 0;
 
     const detailsSidebarLeafExpanded = new Set();
     const viewByEl = new Map();
@@ -171,6 +202,7 @@ export default (host) => {
             host.inspectMode.set(false);
         } else {
             detailsSidebarLeafExpanded.clear();
+            scrollTopBeforeSelect = 0;
             hide();
             syncOverlayState();
         }
@@ -233,6 +265,18 @@ export default (host) => {
             const targetLeaf = selectedTreeViewLeaf || lastHoverViewTreeLeaf;
             const stack = [];
             let cursor = targetLeaf;
+            const sidebarLeafBadges = [
+                {
+                    view: 'badge',
+                    when: 'view.data != parent.(view or viewRoot).data or "data" in view.config',
+                    data: { text: 'D' }
+                },
+                {
+                    view: 'badge',
+                    when: 'view.context != parent.(view or viewRoot).context',
+                    data: { text: 'C' }
+                }
+            ];
 
             while (cursor !== null && (cursor.view || cursor.viewRoot)) {
                 if (cursor !== targetLeaf && selectedTreeViewLeaf !== null) {
@@ -271,27 +315,37 @@ export default (host) => {
                             },
                             {
                                 when: '$ = #.selected',
-                                content: {
-                                    view: 'block',
-                                    className: [
-                                        data => data.view && data.view.skipped ? 'skipped' : false,
-                                        'selected'
-                                    ],
-                                    content: 'text:(view.config.view or "#root" | $ + "" = $ ? $ : "ƒn")',
-                                    postRender(el) {
-                                        requestAnimationFrame(() => el.scrollIntoView());
-                                    }
-                                }
+                                content: [
+                                    {
+                                        view: 'block',
+                                        className: [
+                                            data => data.view && data.view.skipped ? 'skipped' : false,
+                                            'selected'
+                                        ],
+                                        content: 'text:view.config.view or "#root" | $ + "" = $ ? $ : "ƒn"',
+                                        postRender(el_) {
+                                            requestAnimationFrame(() => {
+                                                el.querySelector('.sidebar').scrollTop = scrollTopBeforeSelect;
+                                                scrollIntoViewIfNeeded(el_);
+                                            });
+                                        }
+                                    },
+                                    ...sidebarLeafBadges
+                                ]
                             },
                             {
-                                content: {
-                                    view: 'link',
-                                    className: data => data.leaf.view && data.leaf.view.skipped ? 'skipped' : false,
-                                    data: '{ text: view.config.view or "#root" | $ + "" = $ ? $ : "ƒn", href: false, leaf: $ }',
-                                    onClick(_, data) {
-                                        selectTreeViewLeaf(data.leaf);
-                                    }
-                                }
+                                content: [
+                                    {
+                                        view: 'link',
+                                        className: data => data.leaf.view && data.leaf.view.skipped ? 'skipped' : false,
+                                        data: '{ text: view.config.view or "#root" | $ + "" = $ ? $ : "ƒn", href: false, leaf: $ }',
+                                        onClick(_, data) {
+                                            scrollTopBeforeSelect = el.querySelector('.sidebar')?.scrollTop || 0;
+                                            selectTreeViewLeaf(data.leaf);
+                                        }
+                                    },
+                                    ...sidebarLeafBadges
+                                ]
                             }
                         ]
                     }
@@ -405,11 +459,41 @@ export default (host) => {
                                 {
                                     view: 'block',
                                     className: 'content-section data',
-                                    content: {
-                                        view: 'struct',
-                                        expanded: 1,
-                                        data: 'v.data'
-                                    }
+                                    content: [
+                                        {
+                                            view: 'context',
+                                            when: '"data" in v.config',
+                                            content: [
+                                                {
+                                                    view: 'struct',
+                                                    data: 'v.inputData'
+                                                },
+                                                {
+                                                    view: 'block',
+                                                    className: 'flow-down'
+                                                },
+                                                {
+                                                    view: 'source',
+                                                    when: '(v.config.data + "") = v.config.data',
+                                                    data: '{ content: v.config.data, syntax: "jora", lineNum: false }'
+                                                },
+                                                {
+                                                    view: 'struct',
+                                                    when: '(v.config.data + "") != v.config.data',
+                                                    data: 'v.config.data'
+                                                },
+                                                {
+                                                    view: 'block',
+                                                    className: 'flow-down'
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            view: 'struct',
+                                            expanded: 1,
+                                            data: 'v.data'
+                                        }
+                                    ]
                                 },
                                 {
                                     view: 'tree',

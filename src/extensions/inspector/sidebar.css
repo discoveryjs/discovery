@@ -1,6 +1,7 @@
 .discovery-inspect-details-popup .sidebar {
     grid-area: sidebar;
     overflow: auto;
+    overscroll-behavior: contain;  
     padding: 4px;
     background-color: var(--discovery-mate-background);
 }
@@ -34,4 +35,15 @@
 }
 .discovery-inspect-details-popup .sidebar > .view-tree-leaf:only-child > .view-tree-leaf-toggle {
     display: none;
+}
+
+.discovery-inspect-details-popup .sidebar .view-badge {
+    vertical-align: top;
+    margin-left: 1ex;
+    margin-right: 0;
+    border-radius: 0;
+    font-size: 9px;
+}
+.discovery-inspect-details-popup .sidebar .view-badge + .view-badge {
+    margin-left: 1px;
 }
