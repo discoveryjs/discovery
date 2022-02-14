@@ -7,6 +7,7 @@
 - Fixed action buttons on data load error page
 - Added `preset/upload`
 - Added a way to customise error message rendering on data load: if an error has a `renderContent` property its value is using as a config for rendering instead of default "red box"
+- Added `rejectData(message, renderContent)` method to `prepare` handler API, for a rejecting data due to a bad format or other reasons
 - View inspector:
     - Displayed data changes in case a `config.data` is used
     - Added `D` and `C` badges in sidebar when `data` or `context` of the view is different with a parent view

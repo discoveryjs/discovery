@@ -56,6 +56,9 @@ export function createDataExtensionApi(instance) {
             });
         },
         methods: {
+            rejectData(message, renderContent) {
+                throw Object.assign(new Error(message), { renderContent });
+            },
             lookupObjectMarker,
             lookupObjectMarkerAll,
             resolveValueLinks,
@@ -115,11 +118,10 @@ export function createDataExtensionApi(instance) {
             },
             addValueAnnotation,
             addQueryHelpers(helpers) {
-                queryCustomMethods = {
+                joraSetup = jora.setup(queryCustomMethods = {
                     ...queryCustomMethods,
                     ...helpers
-                };
-                joraSetup = jora.setup(queryCustomMethods);
+                });
             },
             query(query, ...args) {
                 return instance.queryFn.call({ queryFnFromString: joraSetup }, query)(...args);
