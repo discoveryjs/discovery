@@ -9,7 +9,7 @@ import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import injectStyles from '../core/utils/inject-styles.js';
-import inspector from '../inspector/index.js';
+import inspector from '../extensions/inspector.js';
 import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';

@@ -1,4 +1,4 @@
-import { createElement } from './utils/dom.js';
+import { createElement } from '../core/utils/dom.js';
 
 const isExtension = (value) => /^\./.test(value);
 

@@ -1,11 +1,12 @@
 /* eslint-env browser */
 
 import Widget from '../widget/index.js';
-import upload from '../core/upload.js';
-import router from '../core/router.js';
+import upload from '../extensions/upload.js';
+import router from '../extensions/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Progressbar from '../core/utils/progressbar.js';
+import * as navButtons from '../nav/buttons';
 import {
     loadDataFromStream,
     loadDataFromFile,
@@ -13,7 +14,6 @@ import {
     loadDataFromUrl,
     syncLoaderWithProgressbar
 } from '../core/utils/load-data.js';
-import * as navButtons from '../nav/buttons';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 

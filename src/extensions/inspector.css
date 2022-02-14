@@ -1,0 +1,5 @@
+@import './inspector/overlay.css';
+@import './inspector/popup.css';
+@import './inspector/sidebar.css';
+@import './inspector/toolbar.css';
+@import './inspector/content.css';
