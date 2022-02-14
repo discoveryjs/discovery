@@ -68,6 +68,8 @@ export class WidgetNavigation {
     constructor(host) {
         this.host = host;
         this.popup = null;
+        this.data = null;
+        this.context = null;
         this.primary = createNavArray(host, 'nav-button');
         this.secondary = createNavArray(host, 'nav-button');
         this.menu = createNavArray(host, 'menu-item');
@@ -80,8 +82,7 @@ export class WidgetNavigation {
                     const fragment = createFragment();
 
                     return this.host.view.render(fragment, this.menu, this.host.data, {
-                        ...this.host.context,
-                        widget: this.host,
+                        ...this.context,
                         hide: () => this.popup && this.popup.hide()
                     })
                         .then(() => [...fragment.childNodes].filter(node => node.nodeType === 1 || node.nodeType === 3));
@@ -117,26 +118,24 @@ export class WidgetNavigation {
         });
     }
 
-    render() {
-        const { data, dom } = this.host;
-        const el = dom && dom.nav;
-
+    render(el, data, context) {
         this.contentRect.observe(el);
 
         if (el) {
-            const context = {
-                ...this.host.getRenderContext(),
+            this.data = data;
+            this.context = {
+                ...context,
                 widget: this.host
             };
 
             this.host.view.setViewRoot(el, 'nav', {
                 config: this.config,
-                data,
-                context
+                data: this.data,
+                context: this.context
             });
 
             el.innerHTML = '';
-            this.host.view.render(el, this.config, data, context);
+            this.host.view.render(el, this.config, this.data, this.context);
         }
     }
 };

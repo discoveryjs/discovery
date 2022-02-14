@@ -1,6 +1,9 @@
 :host {
     transition: opacity .2s;
 }
+:host(.init) {
+    opacity: 0;
+}
 
 .discovery-root {
     all: initial;

@@ -118,7 +118,7 @@ export default class Widget extends Emitter {
             this.apply(inspector);
         }
 
-        this.nav.render(this.dom.nav);
+        this.nav.render(this.dom.nav, this.data, this.getRenderContext());
         this.setContainer(container);
     }
 
@@ -393,20 +393,16 @@ export default class Widget extends Emitter {
     //
 
     initDom() {
-        const wrapper = createElement('div', 'discovery');
+        const wrapper = createElement('div', 'discovery init');
         const shadow = wrapper.attachShadow({ mode: 'open' });
         const readyStyles = injectStyles(shadow, this.options.styles);
-
         const container = shadow.appendChild(createElement('div'));
+
         this.dom = {};
         this.dom.ready = Promise.all([readyStyles]);
         this.dom.wrapper = wrapper;
         this.dom.root = shadow;
         this.dom.container = container;
-        this.dom.detachDarkMode = this.darkmode.subscribe(
-            dark => container.classList.toggle('discovery-root-darkmode', dark),
-            true
-        );
 
         container.classList.add('discovery-root', 'discovery');
         container.append(
@@ -416,6 +412,15 @@ export default class Widget extends Emitter {
                 this.dom.pageContent = createElement('article')
             ])
         );
+
+        this.dom.detachDarkMode = this.darkmode.subscribe(
+            dark => container.classList.toggle('discovery-root-darkmode', dark),
+            true
+        );
+        this.dom.ready.then(() => {
+            getComputedStyle(this.dom.wrapper).opacity;
+            this.dom.wrapper.classList.remove('init');
+        });
     }
 
     setContainer(container) {
@@ -637,19 +642,19 @@ export default class Widget extends Emitter {
         });
 
         this.dom.pageContent = pageEl;
-        this.nav.render(this.dom.nav);
+        this.nav.render(this.dom.nav, data, context);
 
         setDatasetValue(this.dom.container, 'page', this.pageId);
         setDatasetValue(this.dom.container, 'dzen', Boolean(this.pageParams.dzen));
         setDatasetValue(this.dom.container, 'compact', Boolean(this.options.compact));
 
-        // FIXME: there must be a better way to reveal a widget when everything is ready
-        renderState.then(() => this.dom.wrapper.style.opacity = 1);
         renderState.then(() => {
             if (this.pageParams['!anchor']) {
                 const el = pageEl.querySelector('#' + CSS.escape('!anchor:' + this.pageParams['!anchor']));
+
                 if (el) {
                     const pageHeaderEl = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
+
                     el.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
                     el.scrollIntoView(true);
                 }
