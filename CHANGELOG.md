@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.64 (15-02-2022)
 
 - Fixed loading stage order
 - Improved accuracy for loading timings log
