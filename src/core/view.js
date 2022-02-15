@@ -253,15 +253,13 @@ function render(container, config, data, context) {
             } else if (config.view.startsWith('preset/')) {
                 const presetName = config.view.substr(7);
 
-                if (this.host.preset.isDefined(presetName)) {
-                    renderer = {
-                        name: false,
-                        options: { tag: false },
-                        render: this.host.preset.get(presetName).render
-                    };
-                } else {
-                    return this.host.preset.render(container, presetName, data, context);
-                }
+                renderer = {
+                    name: false,
+                    options: { tag: false },
+                    render: this.host.preset.isDefined(presetName)
+                        ? this.host.preset.get(presetName).render
+                        : () => {}
+                };
             } else {
                 renderer = this.get(config.view);
             }
@@ -428,10 +426,8 @@ export default class ViewRenderer extends Dict {
     propsFromConfig(config, data, context) {
         const props = regConfigTransition({}, config);
 
-        for (const key in config) {
-            if (hasOwnProperty.call(config, key) && !specialConfigProps.has(key)) {
-                const value = config[key];
-
+        for (const [key, value] of Object.entries(config)) {
+            if (!specialConfigProps.has(key)) {
                 props[key] = typeof value === 'string' && value.startsWith('=')
                     ? this.host.query(value.slice(1), data, context)
                     : value;

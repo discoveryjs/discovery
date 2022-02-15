@@ -12,6 +12,7 @@
     - Displayed data changes in case a `config.data` is used
     - Added `D` and `C` badges in sidebar when `data` or `context` of the view is different with a parent view
     - Fixed unnecessary sidebar scrolling on view selection
+- Changed a behaviour when a preset is not found, for now just render nothing instead of warning badge
 
 ## 1.0.0-beta.63 (07-02-2022)
 
