@@ -58,17 +58,17 @@ export default class App extends Widget {
 
         switch (state) {
             case 'init': {
-                if (progressbar.initedFor === this) {
+                loadingOverlayEl.classList.remove('error', 'done');
+
+                // if progressbar already has parent element -> do nothing
+                if (progressbar.el.parentNode) {
                     return;
                 }
 
-                loadingOverlayEl.classList.remove('error', 'done');
-                loadingOverlayEl.classList.add('init');
-                requestAnimationFrame(() => loadingOverlayEl.classList.remove('init'));
-
                 loadingOverlayEl.innerHTML = '';
                 loadingOverlayEl.append(progressbar.el);
-                progressbar.initedFor = this;
+                loadingOverlayEl.classList.add('init');
+                requestAnimationFrame(() => loadingOverlayEl.classList.remove('init'));
 
                 break;
             }
@@ -83,6 +83,7 @@ export default class App extends Widget {
                 loadingOverlayEl.classList.add('error');
                 loadingOverlayEl.innerHTML = '';
 
+                console.error(error);
                 this.view.render(loadingOverlayEl, [
                     {
                         view: 'block',
@@ -97,13 +98,20 @@ export default class App extends Widget {
                     error.renderContent || {
                         view: 'alert-danger',
                         content: [
-                            'h3:"Ooops, something went wrong on data loading"',
-                            'html:`<pre>${errorText}</pre>`'
+                            {
+                                view: 'h3',
+                                content: [
+                                    'badge:"Error"',
+                                    'text:errorText'
+                                ]
+                            },
+                            'text:"(see details in the console)"'
                         ]
                     }
                 ], {
                     options: this.options,
-                    errorText: escapeHtml(error.stack || String(error)).replace(/^Error:\s*(\S+Error:)/, '$1')
+                    errorText: escapeHtml(error.message || String(error)),
+                    errorStack: error.stack ? escapeHtml(error.stack).replace(/^Error:\s*(\S+Error:)/, '$1') : ''
                 }, {
                     actions: this.actions
                 }).then(() => {
