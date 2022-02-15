@@ -13,6 +13,7 @@
     - Added `D` and `C` badges in sidebar when `data` or `context` of the view is different with a parent view
     - Fixed unnecessary sidebar scrolling on view selection
 - Changed a behaviour when a preset is not found, for now just render nothing instead of warning badge
+- Removed `mode` from context and a `modelfree` specific logic (with a single exception for special in routing, will be removed in next releases)
 
 ## 1.0.0-beta.63 (07-02-2022)
 

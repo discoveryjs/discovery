@@ -20,7 +20,6 @@ const coalesceOption = (value, fallback) => value !== undefined ? value : fallba
 export default class App extends Widget {
     constructor(container, options = {}) {
         const extensions = options.extensions ? [options.extensions] : [];
-        const isModelfree = options.mode === 'modelfree';
 
         extensions.push(navButtons.darkmodeToggle);
 
@@ -28,12 +27,12 @@ export default class App extends Widget {
             extensions.push(router);
         }
 
-        if (!isModelfree) {
+        if (options.mode !== 'modelfree') {
             extensions.push(navButtons.indexPage);
             extensions.push(navButtons.reportPage);
         }
 
-        if (coalesceOption(options.upload, false) || isModelfree) {
+        if (coalesceOption(options.upload, false)) {
             extensions.push(upload);
             extensions.push(navButtons.loadData);
         }
@@ -176,7 +175,7 @@ export default class App extends Widget {
     }
 
     loadDataFromEvent(event) {
-        if (this.mode === 'modelfree' && this.defaultPageId !== this.reportPageId) {
+        if (this.options.mode === 'modelfree' && this.defaultPageId !== this.reportPageId) {
             this._defaultPageId = this.defaultPageId;
             this.defaultPageId = this.reportPageId;
             this.setPageHash(this.pageHash, true);
@@ -195,7 +194,7 @@ export default class App extends Widget {
     }
 
     unloadData() {
-        if (this.dataLoaded && this.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
+        if (this.dataLoaded && this.options.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
             this.defaultPageId = this._defaultPageId;
             this.setPageHash(this.pageHash, true);
             this.cancelScheduledRender();
@@ -210,13 +209,6 @@ export default class App extends Widget {
         this.dom.container.append(
             this.dom.loadingOverlay = createElement('div', 'loading-overlay done')
         );
-    }
-
-    getRenderContext() {
-        return {
-            ...super.getRenderContext(),
-            modelfree: this.mode === 'modelfree'
-        };
     }
 
     renderPage() {

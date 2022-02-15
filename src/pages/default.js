@@ -12,13 +12,8 @@ export default function(host) {
                     },
                     {
                         view: 'markdown',
-                        when: '#.modelfree',
-                        source: 'Running in `model free mode` since no config or model is set. However, you can load the JSON file, analyse it, and create your own report.\n\nSee <a class="view-link" href="https://github.com/discoveryjs/discovery/blob/master/README.md" href="_blank">documention</a> for details.'
-                    },
-                    {
-                        view: 'markdown',
-                        when: 'meta.description',
-                        source: '=meta.description'
+                        when: '#.meta.description',
+                        source: '=#.meta.description'
                     },
                     'html:"<br>"',
                     'preset/upload'
