@@ -2,21 +2,22 @@ import Publisher from '../publisher.js';
 
 const resizeObserverSupported = typeof ResizeObserver === 'function';
 
-export class ContentRect extends Publisher {
+export class ContentRect extends Publisher<DOMRectReadOnly | null> {
+    private observer: ResizeObserver;
+    private el: HTMLElement;
+
     constructor() {
-        super();
+        super(null);
         this.el = null;
 
         if (resizeObserverSupported) {
             this.observer = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    this.set(entry.contentRect);
-                }
+                this.set(entries[entries.length - 1]?.contentRect);
             });
         }
     }
 
-    observe(el) {
+    observe(el: HTMLElement) {
         el = el || null;
 
         if (this.observer && this.el !== el) {

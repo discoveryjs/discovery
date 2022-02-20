@@ -1,16 +1,21 @@
 /* eslint-env browser */
-import { localStorageEntry } from './utils/persistent.js';
+import { localStorageEntry, PersistentKey } from './utils/persistent.js';
 
-const validValues = new Set([true, false, 'auto', 'disabled']);
-const instances = new Set();
+export type Value = true | false | 'auto' | 'disabled';
+export type InitValue = Value | 'off' | 'disable';
+export type Mode = 'manual' | Extract<Value, string>;
+export type Handler = (value: Value, mode: Mode) => void;
+
+const validValues = new Set<Value>([true, false, 'auto', 'disabled']);
+const instances = new Set<DarkModeController>();
 const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
 const persistentStorage = localStorageEntry('discoveryjs:darkmode');
-const persistentStorageValueMapping = new Map([
+const persistentStorageValueMapping = new Map<string, Value>([
     ['true', true],
     ['false', false],
     ['auto', 'auto']
 ]);
-let persistentStorageValue = null;
+let persistentStorageValue: Value | null = null;
 
 function applyPrefersColorScheme() {
     for (const instance of instances) {
@@ -20,7 +25,7 @@ function applyPrefersColorScheme() {
     }
 }
 
-function applyLocalStorageValue(value) {
+function applyLocalStorageValue(value: string | null) {
     // eslint-disable-next-statement operator-linebreak
     const newValue = persistentStorageValueMapping.has(value)
         ? persistentStorageValueMapping.get(value)
@@ -41,7 +46,7 @@ applyLocalStorageValue(persistentStorage.value);
 persistentStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
-function resolveInitValue(value, persistent) {
+function resolveInitValue(value: InitValue, persistent: boolean) {
     if (value === 'off' || value === 'disable') {
         value = 'disabled';
     }
@@ -62,7 +67,7 @@ function resolveSetValue(value) {
     return value === 'auto' ? prefersDarkModeMedia.matches : value === true;
 }
 
-export function resolveDarkmodeValue(value, persistent) {
+export function resolveDarkmodeValue(value: InitValue, persistent: boolean) {
     return resolveSetValue(resolveInitValue(value, persistent));
 }
 
@@ -76,7 +81,12 @@ export function resolveDarkmodeValue(value, persistent) {
 // true        | manual   | true
 
 export class DarkModeController {
-    constructor(value, persistent) {
+    persistent: PersistentKey | null;
+    handlers: Array<{ fn: Handler }>;
+    value: Value;
+    mode: Mode;
+
+    constructor(value: InitValue, persistent = false) {
         this.persistent = persistent ? persistentStorage : null;
         this.handlers = [];
         this.set(resolveInitValue(value, persistent), true);
@@ -84,7 +94,7 @@ export class DarkModeController {
         instances.add(this);
     }
 
-    subscribe(fn, fire) {
+    subscribe(fn: Handler, fire = false) {
         let entry = { fn };
         this.handlers.push(entry);
 
@@ -106,7 +116,7 @@ export class DarkModeController {
         instances.delete(this);
     }
 
-    set(value, init) {
+    set(value: Value, init = false) {
         const oldValue = this.value;
         const oldMode = this.mode;
 
@@ -129,7 +139,7 @@ export class DarkModeController {
         }
     }
 
-    toggle(useAutoForManual) {
+    toggle(useAutoForManual = false) {
         switch (this.mode) {
             case 'auto':
                 this.set(!prefersDarkModeMedia.matches);

@@ -1,9 +1,20 @@
 import { createElement } from './dom.js';
 
-export default function injectStyles(el, styles) {
+export type InlineStyle = {
+    type: 'style';
+    content: string;
+};
+export type LinkStyle = {
+    type: 'link';
+    href: string;
+    media?: string;
+};
+export type Style = string | InlineStyle | LinkStyle;
+
+export default function injectStyles(el: HTMLElement, styles: Style[]) {
     const foucFix = createElement('style', null, ':host{display:none}');
     const awaitingStyles = new Set();
-    let readyStyles = Promise.resolve();
+    let readyStyles = Promise.resolve(true);
 
     if (Array.isArray(styles)) {
         el.append(...styles.map(style => {
@@ -19,8 +30,8 @@ export default function injectStyles(el, styles) {
                     return createElement('style', null, style.content);
 
                 case 'link': {
-                    let resolveStyle;
-                    let rejectStyle;
+                    let resolveStyle: (value: any) => void;
+                    let rejectStyle: (err?: any) => void;
                     let state = new Promise((resolve, reject) => {
                         resolveStyle = resolve;
                         rejectStyle = reject;
@@ -54,12 +65,12 @@ export default function injectStyles(el, styles) {
                 }
 
                 default:
-                    throw new Error(`Unknown type "${style.type}" for a style descriptor`);
+                    throw new Error(`Unknown type "${(style as any).type}" for a style descriptor`);
             }
         }));
 
         if (awaitingStyles.size) {
-            readyStyles = Promise.all(awaitingStyles);
+            readyStyles = Promise.all(awaitingStyles).then(() => true);
             el.append(foucFix);
         }
     }

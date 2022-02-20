@@ -1,8 +1,31 @@
 import Emitter from '../emitter.js';
 
-function getStorage(type) {
+export type StorageType = 'localStorage' | 'sessionStorage';
+export type Value = string | null;
+export type PersistentKey = {
+    readonly value: Value,
+    get(): Value,
+    set(value: any): void;
+    delete(): void;
+    forceSync(): Value;
+    on(fn: (value: Value) => void, fire?: boolean): () => void;
+    off(fn: (value: Value) => void): void;
+};
+type PersistentKeyEvents = {
+    change(value: Value): void;
+    foo(): void;
+}
+export type StorageMap = Map<string, PersistentKey> & {
+    storage: Storage | null;
+    getOrCreate: GetOrCreate;
+};
+export type GetOrCreate = ((key: string) => PersistentKey) & {
+    available: boolean;
+};
+
+function getStorage(type: StorageType): Storage | null {
     const key = '__storage_test__' + Math.random();
-    let storage;
+    let storage: Storage;
 
     try {
         storage = window[type];
@@ -35,12 +58,14 @@ function getStorage(type) {
     return storage;
 }
 
-function getStorageMap(type) {
-    const map = new Map();
-
-    map.storage = getStorage(type);
-    map.getOrCreate = key => map.get(key) || createPersistentKey(key, map);
-    map.getOrCreate.available = map.storage !== null;
+function getStorageMap(type: StorageType): StorageMap {
+    const storage = getStorage(type);
+    const map = Object.assign(new Map(), {
+        storage,
+        getOrCreate: Object.assign((key: string) => map.get(key) || createPersistentKey(key, map), {
+            available: storage !== null
+        })
+    });
 
     return map;
 }
@@ -61,15 +86,15 @@ addEventListener('storage', (e) => {
     }
 });
 
-function createPersistentKey(key, map) {
-    let currentValue = null;
-    const emitter = new Emitter(); // TODO: Change for Publisher
+function createPersistentKey(key: string, map: StorageMap) {
+    let currentValue: string | null = null;
+    const emitter = new Emitter<PersistentKeyEvents>(); // TODO: Change for Publisher
     const updateCurrentValue = (newValue = map.storage.getItem(key)) => {
         if (currentValue !== newValue) {
             emitter.emit('change', currentValue = newValue);
         }
     };
-    const api = {
+    const api: PersistentKey = {
         get value() {
             return this.get();
         },

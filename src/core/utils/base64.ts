@@ -12,7 +12,7 @@ for (var i = 0; i < 255; i++) {
 }
 
 // utf16 string -> utf8 string
-function toUTF8(input) {
+function toUTF8(input: string): string {
     let output = '';
 
     for (let i = 0; i < input.length; i++) {
@@ -31,11 +31,12 @@ function toUTF8(input) {
             }
         }
     }
+
     return output;
 }
 
 // utf16 string -> utf8 bytes array
-function toUTF8Bytes(input) {
+function toUTF8Bytes(input: string): number[] {
     // utf16 -> utf8
     input = toUTF8(input);
 
@@ -50,7 +51,7 @@ function toUTF8Bytes(input) {
 }
 
 // utf8 string -> utf16 string
-function fromUTF8(input) {
+function fromUTF8(input: string) {
     let output = '';
 
     for (let i = 0; i < input.length;) {
@@ -67,17 +68,16 @@ function fromUTF8(input) {
             }
         }
     }
+
     return output;
 }
 
 // utf8 bytes array -> utf16 string
-function fromUTF8Bytes(input) {
-    return fromUTF8(input.map(function(b) {
-        return chars[b];
-    }).join(''));
+function fromUTF8Bytes(input: number[]) {
+    return fromUTF8(input.map(b => chars[b]).join(''));
 }
 
-export function encode(input) {
+export function encode(input: string | number[]) {
     let output = '';
 
     // convert to bytes array if necessary
@@ -107,14 +107,12 @@ export function encode(input) {
     return output;
 }
 
-export function decode(input) {
-    let output = [];
-    let enc1;
-    let enc2;
-    let enc3;
-    let enc4;
-
-    input = input.replace(/[^a-zA-Z0-9\+\/]/g, '');
+export function decode(input: string) {
+    let output: number[] = [];
+    let enc1: number;
+    let enc2: number;
+    let enc3: number;
+    let enc4: number;
 
     // decode
     for (let i = 0; i < input.length;) {

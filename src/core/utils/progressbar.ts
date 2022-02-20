@@ -1,34 +1,69 @@
 import { createElement } from './dom.js';
 
+export type Stage = keyof typeof loadStages;
+export type Timing = {
+    stage: Stage,
+    title: string,
+    duration: number
+};
+export type OnTimingCallback = (timing: Timing) => void;
+export type OnFinishCallback = (timings: Timing[]) => void;
+export type Options = {
+    onTiming: OnTimingCallback,
+    onFinish: OnFinishCallback,
+    delay?: number | true,
+    domReady?: Promise<any>
+};
+export type ProgressbarState = {
+    stage: Stage,
+    progress?: {
+        done: boolean;
+        elapsed: number;
+        units?: 'bytes';
+        completed: number;
+        total: number;
+    }
+} | {
+    error: Error
+};
+
 export const loadStages = {
+    init: {
+        value: 0,
+        duration: 0,
+        title: 'Init'
+    },
     request: {
         value: 0.0,
+        duration: 0.1,
         title: 'Awaiting data'
     },
     receive: {
         value: 0.1,
+        duration: 0.8,
         title: 'Receiving data'
     },
     received: {
         value: 0.9,
+        duration: 0.025,
         title: 'Await app ready'
     },
     prepare: {
         value: 0.925,
+        duration: 0.050,
         title: 'Processing data (prepare)'
     },
     initui: {
         value: 0.975,
+        duration: 0.025,
         title: 'Rendering UI'
     },
     done: {
         value: 1.0,
+        duration: 0,
         title: 'Done!'
     }
 };
-Object.values(loadStages).forEach((item, idx, array) => {
-    item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
-});
 
 const int = value => value | 0;
 const ensureFunction = value => typeof value === 'function' ? value : () => {};
@@ -44,7 +79,20 @@ const letRepaintIfNeeded = async () => {
 };
 
 export default class Progressbar {
-    constructor({ onTiming, onFinish, delay, domReady }) {
+    startTime: number | null;
+    finished: boolean;
+    awaitRepaint: number | null;
+    lastStage: Stage | null;
+    lastStageStart: number | null;
+    timings: Timing[];
+    onTiming: OnTimingCallback;
+    onFinish: OnFinishCallback;
+    appearanceDelay: number;
+    domReady: Promise<any>;
+    el: HTMLElement;
+
+    constructor({ onTiming, onFinish, delay, domReady }: Options) {
+        this.startTime = null;
         this.finished = false;
         this.awaitRepaint = null;
         this.lastStage = null;
@@ -53,7 +101,7 @@ export default class Progressbar {
         this.onTiming = ensureFunction(onTiming);
         this.onFinish = ensureFunction(onFinish);
         this.appearanceDelay = delay === true ? 200 : Number(delay) || 0;
-        this.domReady = domReady || Promise.resolve();
+        this.domReady = domReady || Promise.resolve(true);
 
         this.el = createElement('div', 'view-progress init', [
             createElement('div', 'title'),
@@ -61,8 +109,8 @@ export default class Progressbar {
         ]);
     }
 
-    recordTiming(stage, start, end = performance.now()) {
-        const entry = {
+    recordTiming(stage: Stage, start: number, end = performance.now()) {
+        const entry: Timing = {
             stage,
             title: loadStages[stage].title,
             duration: int(end - start)
@@ -77,18 +125,17 @@ export default class Progressbar {
         this.onTiming(entry);
     }
 
-    async setState(state) {
-        const { stage, progress, error } = state;
-
-        if (error || this.finished) {
+    async setState(state: ProgressbarState) {
+        if ('error' in state || this.finished) {
             return;
         }
 
-        const { value, title, duration } = loadStages[stage];
+        const { stage, progress } = state;
+        const { value, duration, title } = loadStages[stage];
         const stageChanged = stage !== this.lastStage;
         const now = performance.now();
         let progressValue = 0;
-        let progressLabel;
+        let progressLabel: string;
 
         if (!this.lastStage) {
             this.startTime = now;
@@ -136,11 +183,11 @@ export default class Progressbar {
                 progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
                 progressLabel = units === 'bytes'
                     ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
-                    : completed;
+                    : `${completed}`;
             }
         }
 
-        this.el.style.setProperty('--progress', value + progressValue * duration);
+        this.el.style.setProperty('--progress', String(value + progressValue * duration));
         this.el.querySelector('.title').textContent = progressLabel
             ? `${title} (${progressLabel})...`
             : stage !== 'done'

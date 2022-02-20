@@ -1,6 +1,18 @@
 import Publisher from '../publisher.js';
 import { streamFromBlob } from './blob-polyfill.js';
-import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
+import { parseChunked } from '@discoveryjs/json-ext';
+import Progressbar, { ProgressbarState, Stage } from './progressbar.js';
+
+type Loader = {
+    state: Publisher<ProgressbarState>,
+    result: {
+        data: any;
+        size: number;
+        payloadSize: number;
+        time: number;
+        requestTime: number;
+    }
+};
 
 export const dataSource = {
     stream: loadDataFromStream,
@@ -64,8 +76,8 @@ export function jsonFromStream(stream, totalSize, setProgress) {
     }).then(data => ({ data, size }));
 }
 
-async function loadDataFromStreamInternal(request, progress) {
-    const stage = async (stage, fn) => {
+async function loadDataFromStreamInternal(request, progress: Publisher<ProgressbarState>) {
+    const stage = async (stage: Stage, fn: () => Promise<any>) => {
         await progress.asyncSet({ stage });
         return await fn();
     };
@@ -101,13 +113,13 @@ async function loadDataFromStreamInternal(request, progress) {
         };
     } catch (error) {
         console.error('[Discovery] Error loading data:', error);
-        await progress.asyncSet({ stage: 'error', error });
+        await progress.asyncSet({ error });
         throw error;
     }
 }
 
 export function loadDataFromStream(request, prepare, ext) {
-    const state = new Publisher();
+    const state = new Publisher<ProgressbarState>({ stage: 'init' });
 
     return {
         state,
@@ -122,7 +134,7 @@ export function loadDataFromStream(request, prepare, ext) {
     };
 }
 
-export function loadDataFromFile(file) {
+export function loadDataFromFile(file: File) {
     return loadDataFromStream(
         () => ({
             stream: streamFromBlob(file),
@@ -140,8 +152,8 @@ export function loadDataFromFile(file) {
     );
 }
 
-export function loadDataFromEvent(event) {
-    const source = event.dataTransfer || event.target;
+export function loadDataFromEvent(event: Event & { dataTransfer?: DataTransfer }) {
+    const source = event.dataTransfer || (event.target as HTMLInputElement);
     const file = source && source.files && source.files[0];
 
     event.stopPropagation();
@@ -150,7 +162,12 @@ export function loadDataFromEvent(event) {
     return loadDataFromFile(file);
 }
 
-export function loadDataFromUrl(url, dataField, options) {
+export function loadDataFromUrl(url: string | any, dataField?: string, options?: {
+    isResponseOk?: (response: Response) => boolean;
+    getContentSize?: (url: string, response: Response) => number;
+    fetch?: RequestInit;
+    validateData?: (data: any) => void;
+}) {
     options = options || {};
 
     const explicitData = typeof url === 'string' ? undefined : url;
@@ -178,14 +195,12 @@ export function loadDataFromUrl(url, dataField, options) {
 
             if (contentType.toLowerCase().startsWith('application/json')) {
                 const json = JSON.parse(error);
-                error = json.error || json;
+                error = json.error || error;
             }
 
-            error = new Error(error);
-            error.stack = null;
-            throw error;
+            return Object.assign(new Error(error), { stack: null });
         },
-        data => ({
+        (data: any) => ({
             data: dataField ? data[dataField] : data,
             context: {
                 name: 'Discovery',
@@ -197,8 +212,8 @@ export function loadDataFromUrl(url, dataField, options) {
     );
 }
 
-export function loadDataFromPush(size, createdAt) {
-    let controller;
+export function loadDataFromPush(size?: number, createdAt?: number) {
+    let controller: ReadableStreamController<string | Uint8Array>;
 
     return loadDataFromStream(
         () => ({
@@ -212,7 +227,7 @@ export function loadDataFromPush(size, createdAt) {
                 }
             })
         }),
-        data => ({
+        (data: any) => ({
             data: data.data,
             context: {
                 name: data.name || 'Discovery',
@@ -221,7 +236,7 @@ export function loadDataFromPush(size, createdAt) {
             }
         }),
         {
-            push(chunk) {
+            push(chunk: string | Uint8Array) {
                 controller.enqueue(chunk);
             },
             finish() {
@@ -232,21 +247,21 @@ export function loadDataFromPush(size, createdAt) {
     );
 }
 
-export function syncLoaderWithProgressbar({ result, state }, progressbar) {
+export function syncLoaderWithProgressbar({ result, state }: Loader, progressbar: Progressbar) {
     return new Promise((resolve, reject) => {
-        const unsubscribeLoader = state.subscribeSync(({ stage, progress, error }) => {
-            if (error) {
+        const unsubscribeLoader = state.subscribeSync((state) => {
+            if ('error' in state) {
                 unsubscribeLoader();
-                reject(error);
+                reject(state.error);
                 return;
             }
 
-            if (stage === 'received') {
+            if (state.stage === 'received') {
                 unsubscribeLoader();
                 resolve(result);
             }
 
-            return progressbar.setState({ stage, progress });
+            return progressbar.setState(state);
         });
     });
 }

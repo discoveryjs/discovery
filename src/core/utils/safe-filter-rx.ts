@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-function buildRx(pattern, flags) {
+function buildRx(pattern: string, flags?: string) {
     try {
         return new RegExp('((?:' + pattern + ')+)', flags);
     } catch (e) {}
@@ -8,10 +8,8 @@ function buildRx(pattern, flags) {
     return new RegExp('((?:' + pattern.replace(/[\[\]\(\)\?\+\*\{\}\\]/g, '\\$&') + ')+)', flags);
 }
 
-export default function safeFilterRx(pattern, flags = 'i') {
-    const rx = buildRx(pattern, flags);
-
-    rx.rawSource = pattern;
-
-    return rx;
+export default function safeFilterRx(pattern: string, flags = 'i') {
+    return Object.assign(buildRx(pattern, flags), {
+        rawSource: pattern
+    });
 }

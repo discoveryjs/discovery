@@ -1,6 +1,6 @@
 const { hasOwnProperty } = Object;
 
-export function equal(a, b) {
+export function equal(a: Record<any, any>, b: Record<any, any>) {
     if (a === b) {
         return true;
     }
@@ -24,13 +24,13 @@ export function equal(a, b) {
     return true;
 }
 
-function isQuoteChar(str, index) {
+function isQuoteChar(str: string, index: number) {
     const code = str.charCodeAt(index);
 
     return code === 34 /* " */ || code === 39 /* ' */ ? 1 : 0;
 }
 
-export function fuzzyStringCompare(a, b) {
+export function fuzzyStringCompare(a: string, b: string) {
     const start = isQuoteChar(a, 0);
     const end = isQuoteChar(a, a.length - 1);
 
