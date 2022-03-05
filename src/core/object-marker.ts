@@ -2,7 +2,37 @@
 
 import Dict from './dict.js';
 
-let warnings = new Map();
+type Getter = string | ((object: Object) => any);
+export type MarkerConfig = {
+    refs?: Getter[];
+    lookupRefs?: Getter[];
+    page?: string;
+    ref?: Getter;
+    title?: Getter;
+};
+type CreateObjectMarkerConfig = {
+    name: string;
+    indexRefs?: Function[];
+    lookupRefs?: Function[];
+    page?: string;
+    getRef?: Function | null;
+    getTitle?: Function;
+};
+export type ObjectMarkerDescriptor = {
+    type: string;
+    object: Object;
+    ref: any;
+    title: string;
+    href: string | null;
+};
+export type ObjectMarker = {
+    page: string | null;
+    mark(value: Object): void;
+    lookup(value: Object | string | number): ObjectMarkerDescriptor | null
+};
+
+const { hasOwnProperty } = Object.prototype;
+let warnings = new Map<string, any[][]>();
 let groupWarningsTimer = null;
 
 function flushWarnings() {
@@ -17,7 +47,7 @@ function flushWarnings() {
     warnings.clear();
 }
 
-function groupWarning(caption, ...details) {
+function groupWarning(caption: string, ...details: any[]) {
     if (groupWarningsTimer === null && warnings.size === 0) {
         groupWarningsTimer = setTimeout(flushWarnings, 1);
     }
@@ -29,25 +59,30 @@ function groupWarning(caption, ...details) {
     }
 }
 
-function getter(name, getter, reference) {
+function getter(name: string, getter: Getter, reference: string) {
     switch (typeof getter) {
         case 'function':
             return getter;
 
         case 'string':
             return Object.assign(
-                value => value && Object.hasOwnProperty.call(value, getter)
+                (value: Object) => value && hasOwnProperty.call(value, getter)
                     ? value[getter]
                     : undefined,
                 { getterFromString: `object[${JSON.stringify(getter)}]` }
             );
 
         default:
-            throw new Error(`[Discovery] Bad type "${typeof key}" for ${reference} in object marker "${name}" config (must be a string or a function)`);
+            throw new Error(`[Discovery] Bad type "${typeof getter}" for ${reference} in object marker "${name}" config (must be a string or a function)`);
     }
 }
 
-function configGetter(name, config, property, fallback) {
+function configGetter(
+    name: string,
+    config: MarkerConfig,
+    property: 'ref' | 'title', // TODO: infer using `keyof MarkerConfig`
+    fallback: Function | null
+) {
     if (config && hasOwnProperty.call(config, property)) {
         return getter(name, config[property], `"${property}" option`);
     }
@@ -55,12 +90,16 @@ function configGetter(name, config, property, fallback) {
     return fallback;
 }
 
-function configArrayGetter(name, config, property) {
+function configArrayGetter(
+    name: string,
+    config: MarkerConfig,
+    property: 'refs' | 'lookupRefs' // TODO: infer using `keyof MarkerConfig`
+) {
     return (Array.isArray(config[property]) ? config[property] : [])
-        .map(key => getter(name, key, `"${property}" option`));
+        .map(value => getter(name, value, `"${property}" option`));
 }
 
-function createObjectMarker(config) {
+function createObjectMarker(config: CreateObjectMarkerConfig): ObjectMarker {
     const {
         name,
         indexRefs,
@@ -87,7 +126,7 @@ function createObjectMarker(config) {
     const markers = new Map();
     const weakRefs = new WeakMap();
 
-    const mark = value => {
+    const mark = (value: Object) => {
         if (value === null || typeof value !== 'object') {
             console.warn(`Invalid value used for "${name}" marker (should be an object)`);
             return;
@@ -117,10 +156,11 @@ function createObjectMarker(config) {
             }
         }
     };
-    const lookup = value => {
+    const lookup = (value: Object | string | number) => {
         const valueType = value === null ? 'null' : typeof value;
+        const isObject = value !== null && typeof value === 'object';
 
-        if (valueType !== 'object' && valueType !== 'string' && valueType !== 'number') {
+        if (!isObject && valueType !== 'string' && valueType !== 'number') {
             return null;
         }
 
@@ -128,11 +168,11 @@ function createObjectMarker(config) {
             return markers.get(value);
         }
 
-        if (weakRefs.has(value)) {
+        if (isObject && weakRefs.has(value)) {
             return weakRefs.get(value);
         }
 
-        let marker = null;
+        let marker: ObjectMarkerDescriptor = null;
         let resolvedValue = null;
 
         if (markedObjects.has(value)) {
@@ -168,10 +208,10 @@ function createObjectMarker(config) {
             }
 
             if (value !== resolvedValue) {
-                if (typeof value !== 'object') {
-                    markers.set(value, marker);
-                } else {
+                if (isObject) {
                     weakRefs.set(value, marker);
+                } else {
+                    markers.set(value, marker);
                 }
             }
         }
@@ -186,8 +226,8 @@ function createObjectMarker(config) {
     };
 }
 
-export default class ObjectMarker extends Dict {
-    define(name, config) {
+export default class ObjectMarkerDict extends Dict<ObjectMarker> {
+    define(name: string, config: MarkerConfig) {
         if (this.isDefined(name)) {
             console.error(`[Discovery] Object marker "${name}" is already defined, new definition ignored`);
             return;
@@ -199,7 +239,7 @@ export default class ObjectMarker extends Dict {
         const lookupRefs = configArrayGetter(name, config, 'lookupRefs');
         const page = typeof config.page === 'string' ? config.page : null;
         const getRef = configGetter(name, config, 'ref', null);
-        const getTitle = configGetter(name, config, 'title', getRef || (() => null));
+        const getTitle : Function= configGetter(name, config, 'title', getRef || (() => null));
 
         return super.define(name, createObjectMarker({
             name,
@@ -211,7 +251,7 @@ export default class ObjectMarker extends Dict {
         }));
     }
 
-    lookup(value, marker) {
+    lookup(value: Object | string | number, marker?: string) {
         if (marker) {
             return this.get(marker).lookup(value);
         }
@@ -226,8 +266,9 @@ export default class ObjectMarker extends Dict {
 
         return null;
     }
-    resolveAll(value) {
-        const markers = [];
+
+    lookupAll(value: Object | string | number) {
+        const markers: ObjectMarkerDescriptor[] = [];
 
         for (const { lookup } of this.values) {
             const marker = lookup(value);
@@ -237,6 +278,6 @@ export default class ObjectMarker extends Dict {
             }
         }
 
-        return null;
+        return markers.length ? markers : null;
     }
 }

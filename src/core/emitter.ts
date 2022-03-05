@@ -24,8 +24,8 @@ export default class Emitter<Events extends EventMap> {
         return this;
     }
 
-    once<E extends keyof Events, C extends Events[E]>(event: E, callback: C) {
-        return this.on(event, function wrapper(...args: Parameters<C>) {
+    once<E extends keyof Events>(event: E, callback: Events[E]) {
+        return this.on(event, function wrapper(...args) {
             callback.apply(this, args);
             this.off(event, wrapper);
         } as Events[E]);

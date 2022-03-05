@@ -1,13 +1,33 @@
-import ObjectMarker from '../core/object-marker.js';
+import ObjectMarkerDict, { MarkerConfig, ObjectMarker } from '../core/object-marker.js';
+import { AnnotationConfig } from '../views/struct/render-annotations.js';
 import jora from 'jora';
 
+type Annotation = {
+    query: string | ((value: any, context: any) => AnnotationConfig);
+    debug?: boolean;
+};
+type PrepareApi = {
+    rejectData(message: string, renderContent): void;
+    lookupObjectMarker;
+    lookupObjectMarkerAll;
+    resolveValueLinks;
+    defineObjectMarker(name: string, options: MarkerConfig): ObjectMarker['mark'],
+    addValueAnnotation,
+    addQueryHelpers(helpers: Object): void;
+    query(query, ...args): void;
+};
+type DataExtensionApi = {
+    apply(): void;
+    methods: PrepareApi;
+};
+
 export function createDataExtensionApi(instance) {
-    const objectMarkers = new ObjectMarker();
+    const objectMarkers = new ObjectMarkerDict();
     const linkResolvers = [];
-    const annotations = [];
+    const annotations: Annotation[] = [];
     const lookupObjectMarker = (value, type) => objectMarkers.lookup(value, type);
     const lookupObjectMarkerAll = (value) => objectMarkers.lookupAll(value);
-    const addValueAnnotation = (query, options = false) => {
+    const addValueAnnotation = (query: Annotation['query'], options: Omit<Annotation, 'query'> | boolean = false) => {
         if (typeof options === 'boolean') {
             options = {
                 debug: options
@@ -19,7 +39,7 @@ export function createDataExtensionApi(instance) {
             ...options
         });
     };
-    const resolveValueLinks = (value) => {
+    const resolveValueLinks = (value: any) => {
         const result = [];
         const type = typeof value;
 
@@ -56,13 +76,13 @@ export function createDataExtensionApi(instance) {
             });
         },
         methods: {
-            rejectData(message, renderContent) {
+            rejectData(message: string, renderContent) {
                 throw Object.assign(new Error(message), { renderContent });
             },
             lookupObjectMarker,
             lookupObjectMarkerAll,
             resolveValueLinks,
-            defineObjectMarker(name, options) {
+            defineObjectMarker(name: string, options: MarkerConfig) {
                 const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 
                 if (!lookup) {
@@ -88,7 +108,7 @@ export function createDataExtensionApi(instance) {
                         }
                     });
 
-                    addValueAnnotation((value, context) => {
+                    addValueAnnotation((value: any, context: any) => {
                         const marker = lookup(value);
 
                         if (marker && marker.object !== context.host) {
@@ -101,7 +121,7 @@ export function createDataExtensionApi(instance) {
                         }
                     });
                 } else {
-                    addValueAnnotation((value, context) => {
+                    addValueAnnotation((value: any, context: any) => {
                         const marker = lookup(value);
 
                         if (marker && marker.object !== context.host) {

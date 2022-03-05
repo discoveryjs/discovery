@@ -1,8 +1,19 @@
 import { createElement } from '../../core/utils/dom.js';
 
+export type AnnotationConfig = {
+    style?: 'none' | 'default' | 'badge';
+    place?: 'before' | 'after';
+    className?: string;
+    text?: string;
+    title?: string;
+    icon?: string;
+    href?: string;
+    external?: boolean;
+};
+
 const styles = ['none', 'default', 'badge'];
 
-export default function renderAnnotations(annotations) {
+export default function renderAnnotations(annotations: { el: HTMLElement, data: AnnotationConfig }[]) {
     const startTime = Date.now();
     let i = 0;
 

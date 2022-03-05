@@ -2,10 +2,23 @@
 
 import Dict from './dict.js';
 import Publisher from './publisher.js';
-import { createElement } from '../core/utils/dom.js';
+import { createElement } from './utils/dom.js';
+import ViewRenderer from './view.js';
+
+type PageOptions = {
+    reuseEl?: boolean;
+    init?(newPageEl: HTMLElement): void;
+    keepScrollOffset?: boolean;
+};
+type Page = {
+    name: string;
+    render(el: HTMLElement, data: any, context: any): any;
+    options?: PageOptions;
+    [CONFIG]?: any;
+};
 
 const CONFIG = Symbol('config');
-const BUILDIN_NOT_FOUND = {
+const BUILDIN_NOT_FOUND: Page = {
     name: 'not-found',
     render: (el, { name }) => {
         el.style.cssText = 'color:#a00';
@@ -13,15 +26,21 @@ const BUILDIN_NOT_FOUND = {
     }
 };
 
-export default class PageRenderer extends Dict {
+export default class PageRenderer extends Dict<Page> {
+    view: ViewRenderer;
+    lastPage: string | null;
+    lastPageRef: string | null;
+    pageOverscrolled: Publisher<boolean>;
+    setPageOverscroll: (el: HTMLElement) => void;
+
     constructor(host) {
         super();
 
         this.view = host.view;
         this.lastPage = null;
-        this.lastPageId = null;
+        this.lastPageRef = null;
 
-        this.pageOverscrolled = new Publisher(false);
+        this.pageOverscrolled = new Publisher<boolean>(false);
         this.setPageOverscroll = () => {};
 
         if (typeof IntersectionObserver === 'function') {
@@ -42,7 +61,7 @@ export default class PageRenderer extends Dict {
                     { root }
                 );
 
-                this.setPageOverscroll = newPageEl => {
+                this.setPageOverscroll = (newPageEl: HTMLElement) => {
                     overscrollObserver.unobserve(pageOverscrollTriggerEl);
                     unsubscribe();
 
@@ -58,18 +77,18 @@ export default class PageRenderer extends Dict {
         }
     }
 
-    define(name, render, options) {
+    define(name: string, render: Page, options?: PageOptions) {
         super.define(name, Object.freeze({
             name,
             render: typeof render === 'function'
                 ? render.bind(this.view)
-                : (el, data, context) => this.view.render(el, render, data, context),
+                : (el: HTMLElement, data: any, context: any) => this.view.render(el, render, data, context),
             options: Object.freeze({ ...options }),
             [CONFIG]: render
         }));
     }
 
-    render(prevPageEl, name, data, context) {
+    render(prevPageEl: HTMLElement, name: string, data, context) {
         const renderStartTime = Date.now();
         let page = this.get(name);
         let rendered;
@@ -82,12 +101,12 @@ export default class PageRenderer extends Dict {
         const { reuseEl, init, keepScrollOffset = true } = page.options || {};
         const pageChanged = this.lastPage !== name;
         const pageRef = context && context.id;
-        const pageRefChanged = this.lastPageId !== pageRef;
+        const pageRefChanged = this.lastPageRef !== pageRef;
         const newPageEl = reuseEl && !pageChanged ? prevPageEl : document.createElement('article');
-        const parentEl = prevPageEl.parentNode;
+        const parentEl = prevPageEl.parentNode as HTMLElement;
 
         this.lastPage = name;
-        this.lastPageId = pageRef;
+        this.lastPageRef = pageRef;
         newPageEl.id = prevPageEl.id;
         newPageEl.classList.add('page', 'page-' + name);
 

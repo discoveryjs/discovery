@@ -3,6 +3,18 @@ import { getOffsetParent, getBoundingRect, getViewportRect } from '../core/utils
 import { passiveCaptureOptions } from '../core/utils/dom.js';
 import { pointerXY } from '../core/utils/pointer.js';
 
+type RenderCallback = (el: HTMLElement, triggerEl: HTMLElement, hide: () => void) => void;
+type Options = {
+    className?: string;
+    hoverPin?: boolean;
+    hoverTriggers?: string | null;
+
+    position: 'trigger' | 'pointer';
+    hideIfEventOutside: boolean;
+    hideOnResize: boolean;
+    render: undefined | RenderCallback
+}
+
 const openedPopups = [];
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 const defaultOptions = {
@@ -138,6 +150,14 @@ export default function(host) {
     );
 
     host.view.Popup = class Popup {
+        options: Options;
+        el: HTMLElement;
+        hideTimer: number | void;
+        lastTriggerEl: HTMLElement = null;
+        lastHoverTriggerEl: HTMLElement = null;
+        hoverPinned = false;
+        frozen = false;
+
         constructor(options) {
             this.options = {
                 ...defaultOptions,
@@ -166,7 +186,7 @@ export default function(host) {
 
             if (this.options.hoverTriggers) {
                 this.el.classList.add('show-on-hover');
-                this.el.dataset.pinMode = this.options.hoverPin || 'none';
+                this.el.dataset.pinMode = this.options.hoverPin ? '' : 'none';
 
                 hoverTriggerInstances.push(this);
                 addHostElHoverListeners();
@@ -181,15 +201,15 @@ export default function(host) {
             return openedPopups.includes(this);
         }
 
-        toggle(...args) {
+        toggle(triggerEl?: HTMLElement, render?: RenderCallback) {
             if (this.visible) {
                 this.hide();
             } else {
-                this.show(...args);
+                this.show(triggerEl, render);
             }
         }
 
-        show(triggerEl, render = this.options.render) {
+        show(triggerEl?: HTMLElement, render = this.options.render) {
             const hostEl = host.dom.container;
 
             this.hideTimer = clearTimeout(this.hideTimer);
