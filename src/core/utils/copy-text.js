@@ -36,10 +36,17 @@ function execCommandFallback(text) {
     copyTextBufferEl.remove();
 }
 
-export default function copyText(text) {
+export default async function copyText(text) {
     if (navigator.clipboard) {
-        navigator.clipboard.writeText(text);
-    } else {
-        execCommandFallback(text);
+        const permissionStatus = await navigator.permissions.query({
+            name: 'clipboard-write'
+        });
+
+        if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
+            return navigator.clipboard.writeText(text);
+        }
     }
+
+    execCommandFallback(text);
+    return Promise.resolve();
 }

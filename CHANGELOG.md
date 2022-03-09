@@ -1,3 +1,7 @@
+## next
+
+- Fixed "copy text to clipboard" feature to use a fallback in case of `clipboard-write` permission is not granted (#90)
+
 ## 1.0.0-beta.64 (15-02-2022)
 
 - Fixed loading stage order
