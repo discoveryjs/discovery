@@ -56,7 +56,7 @@ class Editor extends Emitter {
 
         cm.on('change', () => this.emit('change', cm.getValue()));
 
-        const completionTriggerType = ['variable', 'property'];
+        const completionTriggerType = ['variable', 'property', 'operator'];
         const completionTriggerKeys = ['.', '$'];
 
         cm.on('keyup', function(editor, event) {
