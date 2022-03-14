@@ -9,6 +9,12 @@ import modeView from './editor-mode-view';
 import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
+function getMethodPostfix(value, type) {
+    if (type === 'method' && !value.includes('(')) {
+        return '()';
+    }
+}
+
 function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
     const startChar = current[0];
     const lastChar = current[current.length - 1];
@@ -16,6 +22,7 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
     const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
     const pattern = current.toLowerCase().substring(start, current.length - end);
     const offset = pattern ? value.toLowerCase().indexOf(pattern, value[0] === '"' || value[0] === "'" ? 1 : 0) : -1;
+    const postfix = getMethodPostfix(value, type);
 
     if (offset !== -1) {
         value = (
@@ -23,6 +30,10 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
             '<span class="match">' + escapeHtml(value.substr(offset, pattern.length)) + '</span>' +
             escapeHtml(value.substr(offset + pattern.length))
         );
+    }
+
+    if (postfix) {
+        value += `<span class="postfix">${postfix}</span>`;
     }
 
     el.appendChild(createElement('span', 'name', value));
