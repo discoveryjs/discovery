@@ -9,7 +9,32 @@ import modeView from './editor-mode-view';
 import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
-function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
+function renderMethodSignature(meta) {
+    meta = meta || {};
+
+    function renderParam(param) {
+        const paramParts = [
+            param.isRest ? '...' : null,
+            escapeHtml(param.name),
+            param.isOptional ? '?' : null
+        ];
+
+        return `<span class="param">${paramParts.filter(Boolean).join('')}</span>`;
+    }
+
+    const params = meta.params || [];
+    const paramsPart = params.map(param => {
+        if (typeof param === 'string') {
+            return renderParam({name: param});
+        }
+
+        return renderParam(param);
+    });
+
+    return `<span class="signature">(${paramsPart.join(', ')})</span>`;
+}
+
+function renderQueryAutocompleteItem(el, self, { entry: { value, current, type, meta }}) {
     const startChar = current[0];
     const lastChar = current[current.length - 1];
     const start = startChar === '"' || startChar === "'" ? 1 : 0;
@@ -26,7 +51,7 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
     }
 
     if (type === 'method') {
-        value += '<span class="postfix">()</span>';
+        value += renderMethodSignature(meta);
     }
 
     el.appendChild(createElement('span', 'name', value));

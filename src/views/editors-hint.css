@@ -57,7 +57,7 @@
     padding: 0 .5ex 0 2ex;
 }
 
-.discovery-view-editor-hint .postfix {
+.discovery-view-editor-hint .signature {
     color: rgba(153, 153, 153, 0.5);
     font-family: Tahoma;
     font-size: 95%;
