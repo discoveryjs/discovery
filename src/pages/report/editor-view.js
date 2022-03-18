@@ -1,3 +1,4 @@
+import debounce from '../../core/utils/debounce.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
@@ -155,7 +156,7 @@ export default function(host, updateParams) {
                 .join('');
 
     updateAvailableViewList();
-    host.view.on('define', updateAvailableViewList);
+    host.view.on('define', debounce(updateAvailableViewList, 100));
 
     // sync view list
     // const updateAvailablePresetList = (name, preset) =>

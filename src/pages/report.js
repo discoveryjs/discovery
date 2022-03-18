@@ -13,28 +13,51 @@ export default function(host) {
         }, replace);
     }
 
-    const header = createHeader(host, updateParams);
-    const queryEditor = createQueryEditor(host, updateParams);
-    const viewEditor = createViewEditor(host, updateParams);
+    function get() {
+        if (refs !== null) {
+            return refs;
+        }
 
-    //
-    // Report layout
-    //
-    const reportEditorEl = createElement('div', { class: 'report-editor discovery-hidden-in-dzen', hidden: true }, [
-        queryEditor.el,
-        viewEditor.el
-    ]);
-    const reportContentEl = createElement('div', 'report-content');
-    const layout = [
-        ...header.el,
-        reportEditorEl,
-        reportContentEl
-    ];
+        const header = createHeader(host, updateParams);
+        const queryEditor = createQueryEditor(host, updateParams);
+        const viewEditor = createViewEditor(host, updateParams);
+
+        // layout elements
+        const reportEditorEl = createElement('div', { class: 'report-editor discovery-hidden-in-dzen', hidden: true }, [
+            queryEditor.el,
+            viewEditor.el
+        ]);
+        const reportContentEl = createElement('div', 'report-content');
+        const layout = [
+            ...header.el,
+            reportEditorEl,
+            reportContentEl
+        ];
+
+        return refs = {
+            header,
+            queryEditor,
+            viewEditor,
+            reportEditorEl,
+            reportContentEl,
+            layout
+        };
+    }
+
+    let refs = null;
 
     //
     // Page
     //
     host.page.define('report', function(el, data, context) {
+        const {
+            header,
+            queryEditor,
+            viewEditor,
+            reportEditorEl,
+            reportContentEl
+        } = get();
+
         // process noedit setting
         reportEditorEl.hidden = context.params.noedit;
 
@@ -57,7 +80,7 @@ export default function(host) {
     }, {
         reuseEl: true,
         init(el) {
-            layout.forEach(child => el.appendChild(child));
+            get().layout.forEach(child => el.appendChild(child));
         },
         encodeParams,
         decodeParams
