@@ -9,7 +9,32 @@ import modeView from './editor-mode-view';
 import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
-function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
+function renderMethodSignature(meta) {
+    meta = meta || {};
+
+    function renderParam(param) {
+        const paramParts = [
+            param.isRest ? '...' : null,
+            escapeHtml(param.name),
+            param.isOptional ? '?' : null
+        ];
+
+        return `<span class="param">${paramParts.filter(Boolean).join('')}</span>`;
+    }
+
+    const params = meta.params || [];
+    const paramsPart = params.map(param => {
+        if (typeof param === 'string') {
+            return renderParam({name: param});
+        }
+
+        return renderParam(param);
+    });
+
+    return `<span class="signature">(${paramsPart.join(', ')})</span>`;
+}
+
+function renderQueryAutocompleteItem(el, self, { entry: { value, current, type, meta }}) {
     const startChar = current[0];
     const lastChar = current[current.length - 1];
     const start = startChar === '"' || startChar === "'" ? 1 : 0;
@@ -25,6 +50,10 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
         );
     }
 
+    if (type === 'method') {
+        value += renderMethodSignature(meta);
+    }
+
     el.appendChild(createElement('span', 'name', value));
     el.appendChild(createElement('span', 'type', type));
 }
@@ -38,7 +67,7 @@ class Editor extends Emitter {
 
         const self = this;
         const cm = CodeMirror(this.el, {
-            extraKeys: { 'Alt-Space': 'autocomplete' },
+            extraKeys: { 'Ctrl-Space': 'showHint' },
             mode: mode || 'javascript',
             theme: 'neo',
             indentUnit: 0,
@@ -50,24 +79,31 @@ class Editor extends Emitter {
             }
         });
 
+        CodeMirror.commands.showHint = (cm)=>{
+            cm.showHint();
+        };
+
         cm.on('change', () => this.emit('change', cm.getValue()));
 
-        if (typeof hint === 'function') {
-            // patch prepareSelection to inject a context hint
-            // const ps = cm.display.input.prepareSelection;
-            // cm.display.input.prepareSelection = function(...args) {
-            //     const selection = ps.apply(this, args);
-            //     if (selection.cursors.firstChild) {
-            //         selection.cursors.firstChild.appendChild(createElement('div', 'context-hint', 'asd'));
-            //     }
-            //     return selection;
-            // };
+        const completionTriggerType = ['variable', 'property', 'operator'];
+        const completionTriggerKeys = ['.', '$'];
 
-            cm.on('cursorActivity', cm => {
-                cm.state.focused && cm.showHint();
-            });
-            cm.on('focus', cm => !cm.state.completionActive && cm.showHint());
-        }
+        cm.on('keyup', function(editor, event) {
+            if (event.keyCode < 48) {
+                return;
+            }
+
+            const cursor = editor.getDoc().getCursor();
+            const token = editor.getTokenAt(cursor);
+
+            if (!completionTriggerType.includes(token.type) && !completionTriggerKeys.includes(token.string)) {
+                return;
+            }
+
+            if (!editor.state.completionActive) {
+                editor.showHint();
+            }
+        });
 
         this.cm = cm;
     }

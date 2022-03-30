@@ -57,6 +57,13 @@
     padding: 0 .5ex 0 2ex;
 }
 
+.discovery-view-editor-hint .signature {
+    color: rgba(153, 153, 153, 0.5);
+    font-family: Tahoma;
+    font-size: 95%;
+    padding: 0 0 0 0.3ex;
+}
+
 .discovery-view-editor-hint.active {
     background: rgba(0, 170, 255, .2);
 }

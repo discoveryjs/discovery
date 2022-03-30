@@ -43,7 +43,8 @@ export function createDataExtensionApi(instance) {
         marker: lookupObjectMarker,
         markerAll: lookupObjectMarkerAll
     };
-    let joraSetup = jora.setup(queryCustomMethods);
+    let queryCustomMethodsInfo = {};
+    let joraSetup = jora.setup(queryCustomMethods, queryCustomMethodsInfo);
 
     return {
         apply() {
@@ -118,9 +119,24 @@ export function createDataExtensionApi(instance) {
             },
             addValueAnnotation,
             addQueryHelpers(helpers) {
+                const helpersMethods = {};
+                const helpersMethodsInfo = {};
+
+                for (const [name, descriptor] of Object.entries(helpers)) {
+                    if (typeof descriptor === 'function') {
+                        helpersMethods[name] = descriptor;
+                    } else {
+                        helpersMethods[name] = descriptor.method;
+                        helpersMethodsInfo[name] = descriptor;
+                    }
+                }
+
                 joraSetup = jora.setup(queryCustomMethods = {
                     ...queryCustomMethods,
-                    ...helpers
+                    ...helpersMethods
+                }, queryCustomMethodsInfo = {
+                    ...queryCustomMethodsInfo,
+                    ...helpersMethodsInfo
                 });
             },
             query(query, ...args) {
