@@ -19,10 +19,10 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
-const maxStringLength = 150;
-const maxLinearStringLength = 50;
+const defaultMaxStringLength = 165;
+const defaultLinearStringLength = 65;
 
-function isValueExpandable(value) {
+function isValueExpandable(value, maxStringLength) {
     // array
     if (Array.isArray(value)) {
         return value.length > 0;
@@ -148,7 +148,7 @@ export default function(host) {
     }
 
     function renderValue(container, value, autoExpandLimit, options, context) {
-        const expandable = isValueExpandable(value);
+        const expandable = isValueExpandable(value, options.maxStringLength);
         const valueEl = valueProtoEl.cloneNode(true);
 
         elementData.set(valueEl, value);
@@ -437,8 +437,16 @@ export default function(host) {
     host.addHostElEventListener('click', clickHandler, false);
 
     host.view.define('struct', function(el, config, data) {
-        const { expanded, limit, limitCollapsed, annotations } = config;
-        const expandable = isValueExpandable(data);
+        const {
+            expanded,
+            limit,
+            limitCollapsed,
+            annotations,
+            maxStringLength = defaultMaxStringLength,
+            maxLinearStringLength = defaultLinearStringLength
+        } = config;
+
+        const expandable = isValueExpandable(data, maxStringLength);
         const options = {
             limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limit: host.view.listLimit(limit, defaultExpandedItemsLimit),

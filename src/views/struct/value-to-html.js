@@ -36,7 +36,7 @@ export default function value2html(value, linear, options) {
         case 'string': {
             const maxLength = linear ? options.maxLinearStringLength : options.maxStringLength;
 
-            if (value.length > maxLength + 15) {
+            if (value.length > maxLength) {
                 return token(
                     'string',
                     escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(0, -1)) +
