@@ -4,10 +4,10 @@
     border-radius: 3px;
     white-space: pre;
     font-family: Consolas, Monaco, monospace;
-    font-size: 12px;
-    line-height: 18px;
+    font-size: 11px;
+    line-height: 17px;
     color: var(--discovery-fmt-color);
-    background-color: rgba(180, 180, 180, 0.2);
+    background-color: rgba(205, 205, 205, .1);
 }
 .view-source .lines {
     float: left;
