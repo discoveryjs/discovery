@@ -4,6 +4,7 @@
 - Reduced init time of `Widget` by lazy init for the report page views, i.e. init views only when the report page is opened for the first time
 - Tweaked `source` view styles
 - Fixed badge views styles to change a color on hover only when `href` attribute is set
+- Fixed exception when `lookup()` method of object marker is called with an unknown type, return `undefined` instead
 
 ## 1.0.0-beta.64 (15-02-2022)
 
