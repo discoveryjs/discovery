@@ -59,16 +59,16 @@ export function matchAll(text, pattern, onText, onMatch, ignoreCase) {
     do {
         const match = next(matchText, pattern, lastIndex);
 
-        if (match === null) {
+        if (match === null || (match.length === 0 && match.offset === lastIndex)) {
             onText(lastIndex > 0 ? text.slice(lastIndex) : text);
             break;
         }
 
-        if (match.offset !== lastIndex) {
-            onText(text.slice(lastIndex, match.offset));
-        }
-
         if (match.length !== 0) {
+            if (match.offset !== lastIndex) {
+                onText(text.slice(lastIndex, match.offset));
+            }
+
             onMatch(text.substr(match.offset, match.length));
         }
 

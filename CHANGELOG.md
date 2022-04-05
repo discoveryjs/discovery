@@ -5,6 +5,7 @@
 - Tweaked `source` view styles
 - Fixed badge views styles to change a color on hover only when `href` attribute is set
 - Fixed exception when `lookup()` method of object marker is called with an unknown type, return `undefined` instead
+- Fixed hanging up when a pattern matches zero-length substring (i.e. in `input` view with type `regexp`)
 
 ## 1.0.0-beta.64 (15-02-2022)
 
