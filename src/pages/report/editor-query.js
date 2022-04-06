@@ -102,7 +102,7 @@ export default function(host, updateParams) {
                     if (loc) {
                         const [start, end] = error.details.loc.range;
 
-                        errorMarker = error.details.token === 'EOF' || start === end
+                        errorMarker = error.details.token === 'EOF' || start === end || pageQuery[start] === '\n'
                             ? doc.setBookmark(
                                 doc.posFromIndex(start),
                                 { widget: createElement('span', 'discovery-editor-error', ' ') }
