@@ -64,9 +64,24 @@ class Editor extends Emitter {
             // };
 
             cm.on('cursorActivity', cm => {
-                cm.state.focused && cm.showHint();
+                if (cm.state.completionEnabled && cm.state.focused) {
+                    cm.showHint();
+                }
             });
-            cm.on('focus', cm => !cm.state.completionActive && cm.showHint());
+            cm.on('focus', cm => {
+                if (cm.getValue() === '') {
+                    cm.state.completionEnabled = true;
+                }
+
+                if (cm.state.completionEnabled && !cm.state.completionActive) {
+                    cm.showHint();
+                }
+            });
+            cm.on('change', (_, change) => {
+                if (change.origin !== 'complete') {
+                    cm.state.completionEnabled = true;
+                }
+            });
         }
 
         this.cm = cm;
