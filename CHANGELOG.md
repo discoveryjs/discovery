@@ -8,6 +8,7 @@
 - Fixed hanging up when a pattern matches zero-length substring (i.e. in `input` view with type `regexp`)
 - Fixed edge cases in displaying an error location in query editor
 - Changed suggestions behaviour in query editor to be less intrusive
+- Changed style for suggestions popup, use icons for value types instead of captions
 
 ## 1.0.0-beta.64 (15-02-2022)
 

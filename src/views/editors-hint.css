@@ -16,6 +16,7 @@
     font-size: 90%;
     font-family: monospace;
 
+    min-width: 200px;
     max-height: 20em;
     overflow-y: auto;
 
@@ -60,6 +61,36 @@
 .discovery-view-editor-hint.active {
     background: rgba(0, 170, 255, .2);
 }
+
+.discovery-view-editor-hint::before {
+    content: '?';
+    display: inline-block;
+    place-self: center;
+    aspect-ratio: 1 / 1;
+    height: 1em;
+    margin-left: -2px;
+    margin-right: 4px;
+    padding: 2px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    color: #888;
+    font-size: 8px;
+    line-height: 1;
+    text-align: center;
+}
+.discovery-view-editor-hint.type-variable::before {
+    content: '$';
+}
+.discovery-view-editor-hint.type-property::before {
+    content: 'P';
+}
+.discovery-view-editor-hint.type-value::before {
+    content: 'V';
+}
+.discovery-view-editor-hint.type-method::before {
+    content: 'M';
+}
+
 
 /* .CodeMirror-cursor .context-hint {
     display: none;

@@ -25,8 +25,8 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
         );
     }
 
+    el.classList.add('type-' + type);
     el.appendChild(createElement('span', 'name', value));
-    el.appendChild(createElement('span', 'type', type));
 }
 
 class Editor extends Emitter {
