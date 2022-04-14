@@ -43,6 +43,10 @@
 }
 .page-report > .report-header .report-header-text::before {
     content: attr(data-title);
+    white-space: pre;
+}
+.page-report > .report-header .report-header-text:focus-within:before {
+    visibility: hidden;
 }
 .page-report > .report-header .report-header-text input {
     font: inherit;
