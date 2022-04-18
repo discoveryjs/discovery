@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.65 (18-04-2022)
 
 - Fixed "copy text to clipboard" feature to use a fallback in case of `clipboard-write` permission is not granted (#90)
 - Reduced init time of `Widget` by lazy init for the report page views, i.e. init views only when the report page is opened for the first time
