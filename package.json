@@ -31,7 +31,7 @@
         "@discoveryjs/json-ext": "^0.5.7",
         "codemirror": "^5.65.1",
         "hitext": "^1.0.0-beta.1",
-        "jora": "1.0.0-beta.5",
+        "jora": "1.0.0-beta.6",
         "marked": "^4.0.2"
     },
     "devDependencies": {

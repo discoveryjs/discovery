@@ -10,15 +10,15 @@ import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import injectStyles from '../core/utils/inject-styles.js';
 import inspector from '../extensions/inspector.js';
-import { equal, fuzzyStringCompare } from '../core/utils/compare.js';
+import { equal } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';
 import * as lib from '../lib.js'; // FIXME: temporary solution to expose discovery's lib API
 import { createDataExtensionApi } from './data-extension-api.js';
 import jora from 'jora';
+import { querySuggestions } from './query-suggestions.js';
 
 const lastSetDataPromise = new WeakMap();
-const lastQuerySuggestionsStat = new WeakMap();
 const renderScheduler = new WeakMap();
 
 const defaultEncodeParams = (params) => params;
@@ -327,42 +327,7 @@ export default class Widget extends Emitter {
     }
 
     querySuggestions(query, offset, data, context) {
-        const typeOrder = ['property', 'value', 'method'];
-        let suggestions;
-
-        try {
-            let stat = lastQuerySuggestionsStat.get(this);
-
-            if (!stat || stat.query !== query || stat.data !== data || stat.context !== context) {
-                const options = {
-                    tolerant: true,
-                    stat: true
-                };
-
-                lastQuerySuggestionsStat.set(this, stat = { query, data, context, suggestion() {} });
-                Object.assign(stat, this.queryFnFromString(query, options)(data, context));
-            }
-
-            suggestions = stat.suggestion(offset);
-
-            if (suggestions) {
-                return suggestions
-                    .filter(item =>
-                        item.value !== item.current && fuzzyStringCompare(item.current, item.value)
-                    )
-                    .sort((a, b) => {
-                        const at = typeOrder.indexOf(a.type);
-                        const bt = typeOrder.indexOf(b.type);
-
-                        return at - bt || (a.value < b.value ? -1 : 1);
-                    });
-            }
-        } catch (e) {
-            console.groupCollapsed('[Discovery] Error on getting suggestions for query');
-            console.error(e);
-            console.groupEnd();
-            return;
-        }
+        return querySuggestions(this, query, offset, data, context);
     }
 
     pathToQuery(path) {

@@ -24,18 +24,3 @@ export function equal(a, b) {
     return true;
 }
 
-function isQuoteChar(str, index) {
-    const code = str.charCodeAt(index);
-
-    return code === 34 /* " */ || code === 39 /* ' */ ? 1 : 0;
-}
-
-export function fuzzyStringCompare(a, b) {
-    const start = isQuoteChar(a, 0);
-    const end = isQuoteChar(a, a.length - 1);
-
-    return b.toLowerCase().indexOf(
-        a.toLowerCase().substring(start, a.length - end),
-        isQuoteChar(b, 0)
-    ) !== -1;
-}

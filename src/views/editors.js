@@ -9,12 +9,12 @@ import modeView from './editor-mode-view';
 import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
-function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
-    const startChar = current[0];
-    const lastChar = current[current.length - 1];
+function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) {
+    const startChar = text[0];
+    const lastChar = text[text.length - 1];
     const start = startChar === '"' || startChar === "'" ? 1 : 0;
     const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-    const pattern = current.toLowerCase().substring(start, current.length - end);
+    const pattern = text.toLowerCase().substring(start, text.length - end);
     const offset = pattern ? value.toLowerCase().indexOf(pattern, value[0] === '"' || value[0] === "'" ? 1 : 0) : -1;
 
     if (offset !== -1) {
