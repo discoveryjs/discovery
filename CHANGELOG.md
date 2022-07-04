@@ -1,3 +1,7 @@
+## next
+
+- Added `destroy()` method to Popup view
+
 ## 1.0.0-beta.65 (18-04-2022)
 
 - Fixed "copy text to clipboard" feature to use a fallback in case of `clipboard-write` permission is not granted (#90)
