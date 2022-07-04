@@ -23,7 +23,7 @@ export default {
         },
         {
             title: 'Interpolation',
-            beforeDemo: ['md:"Interpolation can be used almost anywhere in a markdown to embed the result of a jora query into resulting HTML. Just wrap a jora query in `{{`{{}` + `}`}}`:"'],
+            beforeDemo: ['md:"Interpolation can be used almost anywhere in a markdown to embed the result of a jora query into resulting HTML. Just place a jora query between `{{`{{`}}` and `{{`}`+`}`}}`:"'],
             demo: {
                 view: 'md',
                 source: [
