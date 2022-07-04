@@ -1,6 +1,7 @@
 ## next
 
 - Added `destroy()` method to Popup view
+- Added `external` data option for `badge` views
 
 ## 1.0.0-beta.65 (18-04-2022)
 
