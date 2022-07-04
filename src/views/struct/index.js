@@ -283,21 +283,37 @@ export default function(host) {
             } else {
                 const path = host.pathToQuery(buildPathForElement(el));
                 const maxAllowedSize = 1024 * 1024 * 1024;
-                const { minLength: compactSize, circular } = jsonStringifyInfo(data);
                 let jsonFormattedStringifyError = false;
                 let jsonCompactStringifyError = false;
+                let compactSize = 0;
                 let formattedSize = 0;
 
-                if (circular.length) {
-                    jsonCompactStringifyError = 'Can\'t be copied: Converting circular structure to JSON';
-                    jsonFormattedStringifyError = jsonCompactStringifyError;
-                } else if (compactSize > maxAllowedSize) {
-                    jsonCompactStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
-                    jsonFormattedStringifyError = jsonCompactStringifyError;
-                } else {
-                    formattedSize = jsonStringifyInfo(data, null, 4).minLength;
-                    if (formattedSize > maxAllowedSize) {
-                        jsonFormattedStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
+                try {
+                    const { minLength, circular } = jsonStringifyInfo(data);
+
+                    compactSize = minLength;
+
+                    if (circular.length) {
+                        jsonCompactStringifyError = 'Converting circular structure to JSON';
+                    } else if (compactSize > maxAllowedSize) {
+                        jsonCompactStringifyError = 'Resulting JSON is over 1 Gb';
+                    } else {
+                        formattedSize = jsonStringifyInfo(data, null, 4).minLength;
+                        if (formattedSize > maxAllowedSize) {
+                            jsonFormattedStringifyError = 'Resulting JSON is over 1 Gb';
+                        }
+                    }
+                } catch (e) {
+                    jsonCompactStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
+                        ? 'Too much nested structure'
+                        : e.message;
+                }
+
+                if (jsonCompactStringifyError) {
+                    jsonCompactStringifyError = 'Can\'t be copied: ' + jsonCompactStringifyError;
+
+                    if (!jsonFormattedStringifyError) {
+                        jsonFormattedStringifyError = jsonCompactStringifyError;
                     }
                 }
 
