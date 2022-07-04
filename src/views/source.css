@@ -3,7 +3,7 @@
     overflow: auto;
     border-radius: 3px;
     white-space: pre;
-    font-family: Consolas, Monaco, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 11px;
     line-height: 17px;
     color: var(--discovery-fmt-color);

@@ -23,7 +23,7 @@
 
 .view-markdown code {
     padding: .2em .4em;
-    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 90%;
     background-color: rgba(210, 220, 230, 0.2);
     border-radius: 3px;
@@ -39,7 +39,7 @@
 .view-markdown pre {
     padding: 4px;
     overflow: auto;
-    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 90%;
     line-height: 1.25;
     background-color: rgba(155, 155, 155, 0.1);

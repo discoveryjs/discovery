@@ -7,7 +7,7 @@
     overflow-y: hidden !important;
     padding: 4px 8px;
     margin-bottom: 5px;
-    font-family: Consolas, Monaco, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 12px;
     background-color: var(--discovery-input-bg-color);
     transition: .25s ease-in;
