@@ -92,7 +92,7 @@ export default function(host) {
             tabs: [
                 { value: 'config', text: 'Config (JS)' },
                 { value: 'config-json', text: 'Config (JSON)' },
-                { value: 'html', text: 'HTML' }
+                { value: 'html', text: 'Output (HTML)' }
             ],
             content: {
                 view: 'switch',
