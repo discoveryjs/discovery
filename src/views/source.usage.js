@@ -1,7 +1,9 @@
+const codeExample = 'let name = "world";\n\nconsole.log(`Hello, ${name}!`);';
+
 export default {
     demo: {
         view: 'source',
-        data: { content: 'var hello = "world";', syntax: 'js' }
+        data: { content: codeExample, syntax: 'js' }
     },
     examples: [
         {
@@ -25,7 +27,7 @@ export default {
             demo: {
                 view: 'source',
                 data: {
-                    content: 'const a = 1; // line number 5',
+                    content: codeExample,
                     syntax: 'js',
                     lineNum: idx => idx + 5
                 }
@@ -36,7 +38,7 @@ export default {
             demo: {
                 view: 'source',
                 data: {
-                    content: 'const a = 1;',
+                    content: codeExample,
                     syntax: 'js',
                     lineNum: false
                 }
