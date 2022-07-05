@@ -21,6 +21,7 @@ const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
 const maxStringLength = 150;
 const maxLinearStringLength = 50;
+const maxLinearPropertyLength = 35;
 
 function isValueExpandable(value) {
     // array
@@ -460,7 +461,8 @@ export default function(host) {
             limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
             annotations: host.annotations.concat(annotations || []),
             maxStringLength,
-            maxLinearStringLength
+            maxLinearStringLength,
+            maxLinearPropertyLength
         };
 
         structViewRoots.add(el);

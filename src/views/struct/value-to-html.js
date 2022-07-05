@@ -97,7 +97,12 @@ export default function value2html(value, linear, options) {
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
                     if (count < limitCollapsed) {
-                        content.push(`${token('property', key)}: ${value2html(value[key], true, options)}`);
+                        const property = escapeHtml(!linear && key.length > options.maxLinearPropertyLength
+                            ? key.slice(0, options.maxLinearPropertyLength) + '…'
+                            : key
+                        );
+
+                        content.push(`${token('property', property)}: ${value2html(value[key], true, options)}`);
                     }
 
                     count++;
