@@ -213,7 +213,7 @@ export default class ObjectMarker extends Dict {
 
     lookup(value, marker) {
         if (marker) {
-            return this.get(marker).lookup(value);
+            return this.get(marker)?.lookup(value);
         }
 
         for (const { lookup } of this.values) {

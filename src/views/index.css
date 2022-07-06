@@ -60,7 +60,7 @@
     border-radius: 3px;
     font-size: 11px;
     line-height: 12px;
-    font-family: system-ui, Arial, sans-serif;
+    font-family: var(--discovery-ui-font-family);
     cursor: pointer;
 }
 @supports not (gap: 5px) {

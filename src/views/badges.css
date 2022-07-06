@@ -22,13 +22,9 @@
     text-shadow: 1px 1px rgba(0, 0, 0, .1);
 }
 
-.view-badge:hover,
-.view-pill-badge:hover {
-    color: var(--discovery-color);
-}
-
 .view-badge[href]:hover,
 .view-pill-badge[href]:hover {
+    color: var(--discovery-color);
     background-image: linear-gradient(to top, rgba(0, 0, 0, .1), rgba(0, 0, 0, .1));
 }
 

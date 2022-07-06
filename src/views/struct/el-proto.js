@@ -27,6 +27,13 @@ const valueButtons = {
             'data-action': 'toggle-string-mode'
         });
     },
+    get viewAsTable() {
+        return createElement('span', {
+            class: 'struct-action-button',
+            title: 'Toggle view as table',
+            'data-action': 'toggle-view-as-table'
+        });
+    },
     get sortKeys() {
         return createElement('span', {
             class: 'struct-action-button',
@@ -52,6 +59,7 @@ export const arrayValueProto = createFragment(
     valueButtons.collapse,
     valueButtons.signature,
     valueButtons.actions,
+    valueButtons.viewAsTable,
     createElement('span', 'value-size'),
     ']'
 );
@@ -60,6 +68,7 @@ export const objectValueProto = createFragment(
     valueButtons.collapse,
     valueButtons.signature,
     valueButtons.actions,
+    valueButtons.viewAsTable,
     valueButtons.sortKeys,
     createElement('span', 'value-size'),
     '}'
@@ -67,7 +76,7 @@ export const objectValueProto = createFragment(
 export const entryProtoEl = createElement('div', 'entry-line');
 export const valueProtoEl = createElement('span', 'value');
 export const objectKeyProtoEl = createElement('span', 'label', [
-    '\xA0 \xA0 ',
+    '\xA0\xA0\xA0\xA0',
     createElement('span', 'property'),
     ':\xA0'
 ]);

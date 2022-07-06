@@ -9,12 +9,12 @@ import modeView from './editor-mode-view';
 import 'codemirror/mode/javascript/javascript';
 import './editors-hint.js';
 
-function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }}) {
-    const startChar = current[0];
-    const lastChar = current[current.length - 1];
+function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) {
+    const startChar = text[0];
+    const lastChar = text[text.length - 1];
     const start = startChar === '"' || startChar === "'" ? 1 : 0;
     const end = lastChar === '"' || lastChar === "'" ? 1 : 0;
-    const pattern = current.toLowerCase().substring(start, current.length - end);
+    const pattern = text.toLowerCase().substring(start, text.length - end);
     const offset = pattern ? value.toLowerCase().indexOf(pattern, value[0] === '"' || value[0] === "'" ? 1 : 0) : -1;
 
     if (offset !== -1) {
@@ -25,8 +25,8 @@ function renderQueryAutocompleteItem(el, self, { entry: { value, current, type }
         );
     }
 
+    el.classList.add('type-' + type);
     el.appendChild(createElement('span', 'name', value));
-    el.appendChild(createElement('span', 'type', type));
 }
 
 class Editor extends Emitter {
@@ -64,9 +64,24 @@ class Editor extends Emitter {
             // };
 
             cm.on('cursorActivity', cm => {
-                cm.state.focused && cm.showHint();
+                if (cm.state.completionEnabled && cm.state.focused) {
+                    cm.showHint();
+                }
             });
-            cm.on('focus', cm => !cm.state.completionActive && cm.showHint());
+            cm.on('focus', cm => {
+                if (cm.getValue() === '') {
+                    cm.state.completionEnabled = true;
+                }
+
+                if (cm.state.completionEnabled && !cm.state.completionActive) {
+                    cm.showHint();
+                }
+            });
+            cm.on('change', (_, change) => {
+                if (change.origin !== 'complete') {
+                    cm.state.completionEnabled = true;
+                }
+            });
         }
 
         this.cm = cm;

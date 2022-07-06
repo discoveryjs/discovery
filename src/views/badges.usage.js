@@ -58,7 +58,8 @@ export default (view, group) => ({
                 data: {
                     prefix: 'prefix',
                     postfix: 'postfix',
-                    text: 'text'
+                    text: 'link',
+                    external: true
                 }
             }
         },

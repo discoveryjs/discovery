@@ -10,7 +10,7 @@
 
     position: relative;
 
-    font-family: Tahoma, Verdana, Arial, sans-serif;
+    font-family: var(--discovery-font-family);
     font-size: 14px;
     line-height: 1.6;
     -webkit-text-size-adjust: none;
@@ -22,6 +22,9 @@
     transition-duration: .25s;
     transition-timing-function: ease-in;
 
+    --discovery-font-family: Tahoma, Verdana, Arial, sans-serif;
+    --discovery-monospace-font-family: Menlo, Monaco, Consolas, monospace;
+    --discovery-ui-font-family: system-ui, Arial, sans-serif;
     --discovery-background-color: white;
     --discovery-color: black;
     --discovery-input-bg-color: white;

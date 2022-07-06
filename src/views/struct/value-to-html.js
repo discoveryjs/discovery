@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../core/utils/html.js';
+import { escapeHtml, numDelim } from '../../core/utils/html.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 
@@ -7,25 +7,18 @@ function token(type, str) {
 }
 
 function more(num) {
-    return token('more', `…${num} more…`);
+    return token('more', `…${numDelim(num)} more…`);
 }
 
-export default function value2html(value, linear, options) {
+export default function value2html(value, compact, options) {
     switch (typeof value) {
         case 'boolean':
         case 'undefined':
             return token('keyword', value);
 
         case 'number':
-        case 'bigint': {
-            let str = String(value);
-
-            if (str.length > 3) {
-                str = str.replace(/\..+$|\B(?=(\d{3})+(\D|$))/g, m => m || '<span class="num-delim"></span>');
-            }
-
-            return token('number', str);
-        }
+        case 'bigint':
+            return token('number', numDelim(value));
 
         case 'symbol':
             return token('symbol', String(value));
@@ -34,9 +27,9 @@ export default function value2html(value, linear, options) {
             return 'ƒn';
 
         case 'string': {
-            const maxLength = linear ? options.maxLinearStringLength : options.maxStringLength;
+            const maxLength = compact ? options.maxLinearStringLength : options.maxStringLength;
 
-            if (value.length > maxLength) {
+            if (value.length > maxLength + options.allowedExcessStringLength) {
                 return token(
                     'string',
                     escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(0, -1)) +
@@ -48,7 +41,7 @@ export default function value2html(value, linear, options) {
 
             return token(
                 'string',
-                !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
+                !compact && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
                     ? `"<a href="${escapeHtml(value)}" target="_blank">${escapeHtml(str.slice(1, -1))}</a>"`
                     : escapeHtml(str)
             );
@@ -80,7 +73,7 @@ export default function value2html(value, linear, options) {
                     return token('regexp', value);
             }
 
-            if (linear) {
+            if (compact) {
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
                         return '{…}';
@@ -97,7 +90,12 @@ export default function value2html(value, linear, options) {
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
                     if (count < limitCollapsed) {
-                        content.push(`${token('property', key)}: ${value2html(value[key], true, options)}`);
+                        const property = escapeHtml(key.length > options.maxLinearPropertyLength
+                            ? key.slice(0, options.maxLinearPropertyLength) + '…'
+                            : key
+                        );
+
+                        content.push(`${token('property', property)}: ${value2html(value[key], true, options)}`);
                     }
 
                     count++;

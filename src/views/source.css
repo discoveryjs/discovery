@@ -3,11 +3,11 @@
     overflow: auto;
     border-radius: 3px;
     white-space: pre;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 12px;
+    font-family: var(--discovery-monospace-font-family);
+    font-size: 11px;
     line-height: 18px;
     color: var(--discovery-fmt-color);
-    background-color: rgba(180, 180, 180, 0.2);
+    background-color: rgba(205, 205, 205, .1);
 }
 .view-source .lines {
     float: left;
@@ -101,6 +101,7 @@
 .view-source .token.selector,
 .view-source .token.attr-value,
 .view-source .token.string,
+.view-source .token.string-2,
 .view-source .token.char,
 .view-source .token.builtin,
 .view-source .token.inserted {
@@ -113,7 +114,7 @@
 .view-source .token.deleted {
 	color: var(--discovery-fmt-property-color);
 }
-.view-source .token.operator,
+/* .view-source .token.operator, */
 .view-source .token.entity,
 .view-source .token.url {
 	color: #9a6e3a;
@@ -131,7 +132,9 @@
 }
 .view-source .token.regex,
 .view-source .token.important,
-.view-source .token.variable {
+.view-source .token.def,
+.view-source .token.variable,
+.view-source .token.variable-2 {
 	color: var(--discovery-fmt-variable-color);
 }
 .view-source .token.discovery-view-name {

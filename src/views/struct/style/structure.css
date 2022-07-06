@@ -16,21 +16,25 @@
 .view-struct .keyword {
     color: var(--discovery-fmt-keyword-color);
 }
-.view-struct .number {
+.view-struct .value > .number {
     color: var(--discovery-fmt-number-color);
 }
-.view-struct .num-delim {
+.view-struct .value > .number .num-delim {
     padding-left: 3px;
 }
-.view-struct .string,
-.view-struct .string a {
+.view-struct .value > .string,
+.view-struct .value > .string a {
     color: var(--discovery-fmt-string-color);
     text-decoration-color: var(--discovery-fmt-string-underline-color);
     white-space: pre;
 }
-.view-struct .string a:hover {
+.view-struct .value > .string a:hover {
     color: var(--discovery-fmt-string-hover-color);
     text-decoration-color: currentColor;
+}
+.view-struct .value > .regexp {
+    color: var(--discovery-fmt-string-color);
+    white-space: pre;
 }
 .view-struct .value-size,
 .view-struct .string-length {
@@ -39,6 +43,14 @@
     font-size: 9px;
     line-height: 11px;
     vertical-align: text-bottom;
+}
+.view-struct .value-size:hover,
+.view-struct .string-length:hover {
+    color: inherit;
+}
+.view-struct .value-size > .num-delim,
+.view-struct .string-length > .num-delim {
+    padding-left: 2px;
 }
 .view-struct .string-text-wrapper {
     display: block;
@@ -58,13 +70,33 @@
     background: rgba(145, 145, 145, 0.1);
     color: var(--discovery-fmt-color);
 }
+.view-struct .view-as-table > .entry-line,
+.view-struct .view-as-table > .more-buttons {
+    display: none;
+}
 .view-struct .more {
     color: rgba(127, 127, 127, 0.8);
     white-space: nowrap;
 }
-.view-struct .string .more {
+.view-struct .more > .num-delim {
+    padding-left: 2px;
+}
+.view-struct .string > .more {
     margin: 0 3px;
 }
-.view-struct .more-buttons {
+.view-struct .value > .more-buttons {
     padding-left: 4ch;
+}
+
+.view-struct .value > .view-table {
+    margin-top: 2px;
+    margin-left: 4ch;
+    margin-right: 4px;
+    padding: 0 1px 1px;
+    font-family: var(--discovery-font-family);
+    background-color: var(--discovery-background-color);
+    color: var(--discovery-color);
+}
+.view-struct .value > .view-table .more-buttons {
+    margin: 2px 5px 4px;
 }

@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import { escapeHtml } from '../../core/utils/html.js';
+import { escapeHtml, numDelim } from '../../core/utils/html.js';
 import { jsonStringifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
@@ -19,8 +19,10 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
-const defaultMaxStringLength = 165;
-const defaultLinearStringLength = 65;
+const defaultAllowedExcessStringLength = 15;
+const defaultMaxStringLength = 150;
+const defaultCompactStringLength = 50;
+const defaultMaxCompactPropertyLength = 35;
 
 function isValueExpandable(value, maxStringLength) {
     // array
@@ -59,7 +61,8 @@ function formatSize(size) {
 
 function renderValueSize(el, entries, unit) {
     if (entries.length > 1) {
-        appendText(el.lastElementChild, entries.length + ' ' + unit);
+        el.lastElementChild
+            .innerHTML = numDelim(entries.length) + ' ' + unit;
     }
 }
 
@@ -94,7 +97,7 @@ export default function(host) {
 
         el.classList.remove('struct-expand-value');
 
-        // at this point we assume that a data is a string, an array or an object,
+        // at this point we assume data is a string, an array or an object,
         // since only such types of data expandable
         if (typeof data === 'string') {
             // string
@@ -103,7 +106,7 @@ export default function(host) {
             const text = JSON.stringify(data);
 
             appendText(stringValueEl.firstChild, text.slice(1, -1));
-            appendText(stringValueEl.previousSibling, `length: ${text.length} chars`);
+            stringValueEl.previousSibling.innerHTML = `length: ${numDelim(text.length)} chars`;
 
             el.innerHTML = '';
             el.appendChild(valueEl);
@@ -205,6 +208,17 @@ export default function(host) {
         );
     }
 
+    function renderTable(el) {
+        let data = elementData.get(el);
+
+        if (!Array.isArray(data)) {
+            data = Object.entries(data).map(([key, value]) => ({ '[key]': key, '[value]': value }));
+        }
+
+        host.view.render(el, 'table', data, {});
+        el.append(el.lastChild.previousSibling);
+    }
+
     function buildPathForElement(el) {
         let path = [];
         let context = elementContext.get(el);
@@ -283,21 +297,37 @@ export default function(host) {
             } else {
                 const path = host.pathToQuery(buildPathForElement(el));
                 const maxAllowedSize = 1024 * 1024 * 1024;
-                const { minLength: compactSize, circular } = jsonStringifyInfo(data);
                 let jsonFormattedStringifyError = false;
                 let jsonCompactStringifyError = false;
+                let compactSize = 0;
                 let formattedSize = 0;
 
-                if (circular.length) {
-                    jsonCompactStringifyError = 'Can\'t be copied: Converting circular structure to JSON';
-                    jsonFormattedStringifyError = jsonCompactStringifyError;
-                } else if (compactSize > maxAllowedSize) {
-                    jsonCompactStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
-                    jsonFormattedStringifyError = jsonCompactStringifyError;
-                } else {
-                    formattedSize = jsonStringifyInfo(data, null, 4).minLength;
-                    if (formattedSize > maxAllowedSize) {
-                        jsonFormattedStringifyError = 'Can\'t be copied: Resulting JSON is over 1 Gb';
+                try {
+                    const { minLength, circular } = jsonStringifyInfo(data);
+
+                    compactSize = minLength;
+
+                    if (circular.length) {
+                        jsonCompactStringifyError = 'Converting circular structure to JSON';
+                    } else if (compactSize > maxAllowedSize) {
+                        jsonCompactStringifyError = 'Resulting JSON is over 1 Gb';
+                    } else {
+                        formattedSize = jsonStringifyInfo(data, null, 4).minLength;
+                        if (formattedSize > maxAllowedSize) {
+                            jsonFormattedStringifyError = 'Resulting JSON is over 1 Gb';
+                        }
+                    }
+                } catch (e) {
+                    jsonCompactStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
+                        ? 'Too much nested structure'
+                        : e.message;
+                }
+
+                if (jsonCompactStringifyError) {
+                    jsonCompactStringifyError = 'Can\'t be copied: ' + jsonCompactStringifyError;
+
+                    if (!jsonFormattedStringifyError) {
+                        jsonFormattedStringifyError = jsonCompactStringifyError;
                     }
                 }
 
@@ -402,6 +432,7 @@ export default function(host) {
                 collapseValue(cursor);
                 scheduleApplyAnnotations();
                 cursor.parentNode.classList.remove('struct-expanded-value');
+                cursor.classList.remove('view-as-table');
 
                 if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.add('struct-expand');
@@ -430,6 +461,22 @@ export default function(host) {
                     ? JSON.parse(`"${stringTextNode.nodeValue}"`)
                     : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
                 break;
+
+            case 'toggle-view-as-table':
+                cursor = cursor.parentNode;
+
+                const asTable = cursor.classList.toggle('view-as-table');
+
+                if (asTable) {
+                    renderTable(cursor);
+                } else {
+                    const tableEl = cursor.querySelector(':scope > .view-table');
+
+                    if (tableEl) {
+                        tableEl.remove();
+                    }
+                }
+                break;
         }
     };
 
@@ -442,8 +489,10 @@ export default function(host) {
             limit,
             limitCollapsed,
             annotations,
+            allowedExcessStringLength = defaultAllowedExcessStringLength,
             maxStringLength = defaultMaxStringLength,
-            maxLinearStringLength = defaultLinearStringLength
+            maxLinearStringLength = defaultLinearStringLength,
+            maxCompactPropertyLength = defaultMaxCompactPropertyLength
         } = config;
 
         const expandable = isValueExpandable(data, maxStringLength);
@@ -451,8 +500,10 @@ export default function(host) {
             limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
             annotations: host.annotations.concat(annotations || []),
+            allowedExcessStringLength,
             maxStringLength,
-            maxLinearStringLength
+            maxCompactStringLength,
+            maxCompactPropertyLength
         };
 
         structViewRoots.add(el);

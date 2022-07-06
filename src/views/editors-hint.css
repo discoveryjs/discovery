@@ -2,10 +2,14 @@
     position: absolute;
     z-index: 1000;
     overflow: hidden;
+    overflow-y: auto;
     list-style: none;
 
     margin: 0;
     padding: 0;
+
+    min-width: 200px;
+    max-height: 20em;
 
     box-shadow: 2px 3px 5px rgba(0, 0, 0, .2);
     border-radius: 2px;
@@ -13,13 +17,8 @@
 
     background: white;
     color: black;
-    font-size: 90%;
-    font-family: monospace;
 
-    max-height: 20em;
-    overflow-y: auto;
-
-    font-family: Consolas, Monaco, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 12px;
     line-height: 18px;
 }
@@ -49,33 +48,36 @@
 .discovery-root-darkmode .discovery-view-editor-hints-popup .discovery-view-editor-hint .match {
     color: #4d8bca;
 }
-.discovery-view-editor-hint .type {
-    color: rgba(153, 153, 153, 0.5);
-    font-family: Tahoma;
-    font-style: italic;
-    font-size: 85%;
-    padding: 0 .5ex 0 2ex;
-}
 
 .discovery-view-editor-hint.active {
     background: rgba(0, 170, 255, .2);
 }
 
-/* .CodeMirror-cursor .context-hint {
-    display: none;
-    position: absolute;
-    margin-bottom: 1px;
-    margin-left: -1px;
-    bottom: 100%;
-    visibility: visible;
-    background: rgba(0, 0, 0, .7);
-    border: 1px solid rgba(0, 0, 0, .4);
-    border-radius: 2px;
-    color: white;
-    padding: 1px 4px;
-    font-family: Arial;
-    font-size: 10px;
+.discovery-view-editor-hint::before {
+    content: '?';
+    display: inline-block;
+    place-self: center;
+    aspect-ratio: 1 / 1;
+    height: 1em;
+    margin-left: -2px;
+    margin-right: 4px;
+    padding: 2px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    color: #888;
+    font-size: 8px;
+    line-height: 1;
+    text-align: center;
 }
-.CodeMirror-focused .CodeMirror-cursor .context-hint {
-    display: block;
-} */
+.discovery-view-editor-hint.type-variable::before {
+    content: '$';
+}
+.discovery-view-editor-hint.type-property::before {
+    content: 'P';
+}
+.discovery-view-editor-hint.type-value::before {
+    content: 'V';
+}
+.discovery-view-editor-hint.type-method::before {
+    content: 'M';
+}

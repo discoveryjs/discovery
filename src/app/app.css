@@ -33,7 +33,7 @@
     color: inherit;
 }
 .discovery > .loading-overlay.error .view-alert pre {
-    font-family: Consolas, Liberation Mono, Menlo, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 13px;
     margin: 0;
 }

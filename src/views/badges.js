@@ -15,7 +15,18 @@ function maybeFix(el, type, value) {
 export default function(host) {
     function render(el, config, data, context) {
         const { content } = config;
-        let { color, textColor, darkColor, darkTextColor, text, href, prefix, postfix, hint } = data || {};
+        let {
+            color,
+            textColor,
+            darkColor,
+            darkTextColor,
+            text,
+            href,
+            external,
+            prefix,
+            postfix,
+            hint
+        } = data || {};
         let render;
 
         if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
@@ -40,6 +51,10 @@ export default function(host) {
 
         if (href) {
             el.href = href;
+        }
+
+        if (external) {
+            el.target = '_blank';
         }
 
         if (hint) {

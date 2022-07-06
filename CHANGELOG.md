@@ -1,7 +1,35 @@
 ## next
 
+- Added a view as table for array and object values in `struct` view
+- Added a thousandth delimiter for all numeric indicators in `struct` view
+- Added `destroy()` method to Popup view
+- Added `external` data option for `badge` views
+- Fixed a crush on open actions popup in `struct` view when a value has too much nested structure
+- Uniformed a monospace font family across all views
+- Fixed highlighting issues in `source` view
+- Changes in `table` view:
+    - Added `scalarAsStruct` and `colSpan` config options to `table-cell`
+    - Added `cols` and `isScalar()` to the `table-row`'s context
+    - Changed rendering of scalar values using `struct` view
+    - Changed rendering of `null` value as `null` string instead of an empty cell
+    - Fixed rendering of arrays when object values mixed with scalar values
+    - Fixed collapsing a row height when all cells are empty
+    - Hide a more buttons row when no buttons (gave a few extra pixels in the bottom of a table)
+
+## 1.0.0-beta.65 (18-04-2022)
+
 - Fixed "copy text to clipboard" feature to use a fallback in case of `clipboard-write` permission is not granted (#90)
 - Reduced init time of `Widget` by lazy init for the report page views, i.e. init views only when the report page is opened for the first time
+- Tweaked `source` view styles
+- Fixed badge views styles to change a color on hover only when `href` attribute is set
+- Fixed exception when `lookup()` method of object marker is called with an unknown type, return `undefined` instead
+- Fixed hanging up when a pattern matches zero-length substring (i.e. in `input` view with type `regexp`)
+- Fixed edge cases in displaying an error location in query editor
+- Bumped jora to [1.0.0-beta.6](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.6)
+- Improved performance of variants generation for suggestions popup up to 30-40 times
+- Changed suggestions behaviour in query editor to be less intrusive
+- Changed style for suggestions popup, use icons for value types instead of captions
+- Fixed report page header editing to not re-render a report on input
 
 ## 1.0.0-beta.64 (15-02-2022)
 

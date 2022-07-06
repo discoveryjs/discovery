@@ -102,6 +102,8 @@ class Completion {
     pick(data, idx) {
         const completion = data.list[idx];
 
+        this.cm.state.completionEnabled = false;
+
         if (completion.hint) {
             completion.hint(this.cm, data, completion);
         } else {
@@ -232,7 +234,10 @@ class Widget {
             Down: () => this.changeActive(this.selectedHint + 1),
             Enter: () => this.pick(),
             Tab: () => this.pick(),
-            Esc: () => completion.close()
+            Esc: () => {
+                cm.state.completionEnabled = false;
+                completion.close();
+            }
         });
 
         this.updatePosSize();
@@ -241,14 +246,15 @@ class Widget {
             el.addEventListener('scroll', this.onScroll, passiveCaptureOptions);
         }
 
-        CodeMirror.on(hintsEl, 'mousedown', () => setTimeout(() => cm.focus(), 20));
-        CodeMirror.on(hintsEl, 'click', (e) => {
+        CodeMirror.on(hintsEl, 'mousedown', (e) => {
             const el = getHintElement(hintsEl, e.target);
             const idx = this.items.indexOf(el);
 
             if (idx !== -1) {
-                this.changeActive(idx);
+                this.close();
+                this.selectedHint = idx;
                 this.pick();
+                setTimeout(() => cm.focus(), 1);
             }
         });
 

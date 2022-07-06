@@ -24,7 +24,7 @@
     padding: 8px 12px;
     font-size: 12px;
     white-space: pre-wrap;
-    font-family: Consolas, Monaco, monospace;
+    font-family: var(--discovery-monospace-font-family);
     font-size: 11px;
 }
 .page-report > .report-editor .report-error::before,

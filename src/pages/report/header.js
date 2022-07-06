@@ -66,14 +66,23 @@ export default function(host, updateParams) {
         })
     ]);
 
+    const updateHeaderTitle = target => {
+        target.parentNode.dataset.title = target.value || target.placeholder;
+    };
     const headerEl = createElement('div', 'report-header', [
         createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
                 class: 'discovery-hidden-in-dzen',
                 placeholder: 'Untitled report',
-                oninput: ({ target }) => updateParams({
-                    title: target.value
-                }, true),
+                oninput: ({ target }) => {
+                    updateHeaderTitle(target);
+                },
+                onchange: ({ target }) => {
+                    updateHeaderTitle(target);
+                    updateParams({
+                        title: target.value
+                    }, true);
+                },
                 onkeypress: (e) => {
                     if (e.charCode === 13 || e.keyCode === 13) {
                         e.target.blur();
@@ -95,8 +104,8 @@ export default function(host, updateParams) {
         render(data, context) {
             const { title, noedit } = context.params;
 
-            titleInputEl.parentNode.dataset.title = title || titleInputEl.placeholder;
             titleInputEl.value = title;
+            updateHeaderTitle(titleInputEl);
 
             noeditToggleEl.classList.toggle('disabled', noedit);
             dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'

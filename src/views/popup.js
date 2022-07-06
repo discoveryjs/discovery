@@ -148,7 +148,7 @@ export default function(host) {
             this.el.classList.add('discovery-view-popup');
 
             this.hide = this.hide.bind(this);
-            this.hideTimer;
+            this.hideTimer = null;
 
             this.lastTriggerEl = null;
             this.lastHoverTriggerEl = null;
@@ -344,6 +344,21 @@ export default function(host) {
             }
 
             this.hide();
+        }
+
+        destroy() {
+            inspectorLockedInstances.delete(this);
+
+            const popupIndex = hoverTriggerInstances.indexOf(this);
+            if (popupIndex !== -1) {
+                hoverTriggerInstances.splice(popupIndex, 1);
+            }
+
+            this.hide();
+
+            this.el = null;
+            this.lastTriggerEl = null;
+            this.lastHoverTriggerEl = null;
         }
     };
 };

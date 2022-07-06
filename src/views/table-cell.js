@@ -1,19 +1,20 @@
 /* eslint-env browser */
 
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
+const hasOwnProperty = Object.hasOwnProperty;
 
-function defaultCellRender(el, data) {
+function defaultCellRender(el, data, isDataObject) {
     if (Array.isArray(data)) {
         el.classList.add('complex');
         el.textContent = data.length ? '[…]' : '[]';
         return;
     }
 
-    if (data && typeof data === 'object') {
+    if (isDataObject) {
         el.classList.add('complex');
 
         for (let k in data) {
-            if (Object.prototype.hasOwnProperty.call(data, k)) {
+            if (hasOwnProperty.call(data, k)) {
                 el.textContent = '{…}';
                 return;
             }
@@ -24,7 +25,6 @@ function defaultCellRender(el, data) {
     }
 
     if (data === undefined) {
-        el.textContent = '';
         return;
     }
 
@@ -42,12 +42,20 @@ function defaultCellRender(el, data) {
         return;
     }
 
-    el.textContent = data;
+    el.textContent = String(data);
 }
 
 export default function(host) {
     host.view.define('table-cell', function(el, config, data, context) {
-        let { content, details } = config;
+        let { content, details, colSpan, scalarAsStruct } = config;
+        const isDataObject =
+            data !== null &&
+            typeof data === 'object' &&
+            data instanceof RegExp === false;
+
+        if (typeof colSpan === 'number' && colSpan > 1) {
+            el.colSpan = colSpan;
+        }
 
         if (typeof content === 'function') {
             content = content(data, context);
@@ -59,7 +67,7 @@ export default function(host) {
             content = content.content;
         }
 
-        if (details || (!content && (data && typeof data === 'object'))) {
+        if (details || (!content && isDataObject)) {
             el.classList.add('details');
             el.addEventListener('click', (e) => {
                 let node = e.target;
@@ -105,11 +113,15 @@ export default function(host) {
             });
         }
 
+        if (scalarAsStruct && !content && !isDataObject) {
+            content = 'struct';
+        }
+
         if (content) {
             return host.view.render(el, content, data, context);
-        } else {
-            defaultCellRender(el, data);
         }
+
+        defaultCellRender(el, data, isDataObject);
     }, {
         tag: 'td'
     });
