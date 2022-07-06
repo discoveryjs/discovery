@@ -40,6 +40,25 @@ export default {
                     level1_7: 7
                 }
             }
+        },
+        {
+            title: 'Set up maxStringLength and maxLineraStringLength for string values',
+            beforeDemo: 'maxStringLength defines max length for string values. maxLinearStringLength defines max length for string values inside objects values ',
+            demo: {
+                view: 'struct',
+                expanded: 2,
+                maxStringLength: 20,
+                maxLinearStringLength: 10,
+                data: {
+                    string: 'Quite a long string value',
+                    level1: {
+                        string: 'Quite a long string value',
+                        level2: {
+                            linerString: 'Quite a long string value'
+                        }
+                    }
+                }
+            }
         }
     ]
 };
