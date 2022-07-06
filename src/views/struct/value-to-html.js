@@ -10,7 +10,7 @@ function more(num) {
     return token('more', `…${numDelim(num)} more…`);
 }
 
-export default function value2html(value, linear, options) {
+export default function value2html(value, compact, options) {
     switch (typeof value) {
         case 'boolean':
         case 'undefined':
@@ -27,9 +27,9 @@ export default function value2html(value, linear, options) {
             return 'ƒn';
 
         case 'string': {
-            const maxLength = linear ? options.maxLinearStringLength : options.maxStringLength;
+            const maxLength = compact ? options.maxLinearStringLength : options.maxStringLength;
 
-            if (value.length > maxLength + 15) {
+            if (value.length > maxLength + options.allowedExcessStringLength) {
                 return token(
                     'string',
                     escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(0, -1)) +
@@ -41,7 +41,7 @@ export default function value2html(value, linear, options) {
 
             return token(
                 'string',
-                !linear && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
+                !compact && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
                     ? `"<a href="${escapeHtml(value)}" target="_blank">${escapeHtml(str.slice(1, -1))}</a>"`
                     : escapeHtml(str)
             );
@@ -73,7 +73,7 @@ export default function value2html(value, linear, options) {
                     return token('regexp', value);
             }
 
-            if (linear) {
+            if (compact) {
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
                         return '{…}';
@@ -90,7 +90,7 @@ export default function value2html(value, linear, options) {
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
                     if (count < limitCollapsed) {
-                        const property = escapeHtml(!linear && key.length > options.maxLinearPropertyLength
+                        const property = escapeHtml(key.length > options.maxLinearPropertyLength
                             ? key.slice(0, options.maxLinearPropertyLength) + '…'
                             : key
                         );
