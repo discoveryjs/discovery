@@ -41,8 +41,8 @@
 }
 .view-table-cell.details-expanded {
     background-image:
-        linear-gradient(to top, rgba(170, 170, 170, 0.35), transparent),
-        linear-gradient(to top, rgba(170, 170, 170, 0.35), transparent);
+        linear-gradient(to top, rgba(170, 170, 170, 0.2), transparent),
+        linear-gradient(to top, rgba(170, 170, 170, 0.2), transparent);
     background-repeat: no-repeat;
     background-size: 1px 100%;
     background-position: left top, right top;
