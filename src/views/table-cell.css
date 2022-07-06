@@ -1,5 +1,6 @@
 .view-table-cell {
     padding: 2px 8px;
+    height: 19px; /* min cell height */
     vertical-align: top;
 }
 .view-table-cell.number {
@@ -11,6 +12,7 @@
 .view-table-cell.complex {
     color: #888;
 }
+
 .view-table-cell.details {
     padding-left: 14px;
     position: relative;
@@ -64,4 +66,11 @@
 }
 .view-table-cell-details-row > .view-cell-details-content > :last-child {
     margin-bottom: 0 !important;
+}
+
+.view-table-cell > .view-struct,
+.view-table-cell > .view-struct:hover {
+    margin: -1px -8px -2px;
+    padding: 2px 8px 1px;
+    background-color: transparent;
 }

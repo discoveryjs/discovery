@@ -5,6 +5,14 @@
 - Fixed a crush on open actions popup in `struct` view when a value has too much nested structure
 - Uniformed a monospace font family across all views
 - Fixed highlighting issues in `source` view
+- Changes in `table` view:
+    - Added `scalarAsStruct` and `colSpan` config options to `table-cell`
+    - Added `cols` and `isScalar()` to the `table-row`'s context
+    - Changed rendering of scalar values using `struct` view
+    - Changed rendering of `null` value as `null` string instead of an empty cell
+    - Fixed rendering of arrays when object values mixed with scalar values
+    - Fixed collapsing a row height when all cells are empty
+    - Hide a more buttons row when no buttons (gave a few extra pixels in the bottom of a table)
 
 ## 1.0.0-beta.65 (18-04-2022)
 

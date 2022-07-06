@@ -97,11 +97,14 @@ function getOrder(data, sorting) {
     return -order;
 }
 
+function isScalar(value) {
+    return value === null || typeof value !== 'object' || value instanceof RegExp;
+}
+
 export default function(host) {
     host.view.define('table', function(el, config, data, context) {
         let { cols, rowConfig, limit } = config;
-        let colsMap = cols && typeof cols === 'object' ? cols : {};
-        let scalarCol = false;
+        let renderRowConfig;
 
         if (!Array.isArray(data)) {
             data = data ? [data] : [];
@@ -110,14 +113,14 @@ export default function(host) {
         const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
         const headerCells = [];
         const bodyEl = el.appendChild(createElement('tbody'));
-        const moreEl = el
-            .appendChild(createElement('tbody'))
+        const moreEl = el.appendChild(createElement('tbody'));
+        const moreButtonsEl = moreEl
             .appendChild(createElement('tr'))
             .appendChild(createElement('td'));
 
         const render = (orderedData) => {
             bodyEl.innerHTML = '';
-            moreEl.innerHTML = '';
+            moreButtonsEl.innerHTML = '';
 
             for (const headerCell of headerCells) {
                 const order = getOrder(orderedData, headerCell.sorting);
@@ -125,10 +128,15 @@ export default function(host) {
                 headerCell.el.classList.toggle('desc', order === -1);
             }
 
-            return host.view.renderList(bodyEl, this.composeConfig({
-                view: 'table-row',
-                cols
-            }, rowConfig), orderedData, context, 0, host.view.listLimit(limit, 25), moreEl);
+            return host.view.renderList(
+                bodyEl,
+                renderRowConfig,
+                orderedData,
+                { ...context, isScalar, cols },
+                0,
+                host.view.listLimit(limit, 25),
+                moreButtonsEl
+            ).then(() => moreEl.hidden = !moreButtonsEl.firstChild);
         };
 
         if (Array.isArray(cols)) {
@@ -143,37 +151,46 @@ export default function(host) {
             );
         } else {
             const colNames = new Set();
+            const colsMap = cols && typeof cols === 'object' ? cols : {};
+            let scalarCol = false;
+
             cols = [];
 
-            data
-                .forEach(item => {
-                    if (item && typeof item === 'object') {
-                        for (const key in item) {
-                            colNames.add(key);
-                        }
-                    } else {
-                        scalarCol = true;
+            for (const value of data) {
+                if (isScalar(value)) {
+                    scalarCol = true;
+                } else {
+                    for (const key of Object.keys(value)) {
+                        colNames.add(key);
                     }
-                });
+                }
+            }
 
-            Object.keys(colsMap)
-                .forEach(name => colsMap[name] ? colNames.add(name) : colNames.delete(name));
+            for (const key of Object.keys(colsMap)) {
+                if (colsMap[key]) {
+                    colNames.add(key);
+                } else {
+                    colNames.delete(key);
+                }
+            }
 
             if (scalarCol) {
                 cols.push({
                     header: '[value]',
                     view: 'table-cell',
-                    data: String
+                    sorting: '$ ascN',
+                    scalarAsStruct: true,
+                    colSpan: '=$isScalar:#.isScalar;$isScalar() ? #.cols.size() : 1'
                 });
             }
 
-            colNames.forEach(name =>
+            for (const name of colNames) {
                 cols.push(
                     hasOwnProperty.call(colsMap, name)
                         ? resolveColConfig(name, colsMap[name])
                         : configFromName(name)
-                )
-            );
+                );
+            }
         }
 
         cols = cols.filter(col =>
@@ -222,7 +239,12 @@ export default function(host) {
             }
         }
 
-        moreEl.colSpan = cols.length;
+        moreButtonsEl.colSpan = cols.length;
+        renderRowConfig = this.composeConfig({
+            view: 'table-row',
+            cols: '=$isScalar:#.isScalar;$isScalar() ? [#.cols[]] : #.cols'
+        }, rowConfig);
+
         return render(data);
     }, {
         tag: 'table',
