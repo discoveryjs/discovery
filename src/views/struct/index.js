@@ -19,19 +19,27 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
-const defaultAllowedExcessStringLength = 15;
+const defaultAllowedExcessStringLength = 10;
 const defaultMaxStringLength = 150;
-const defaultCompactStringLength = 50;
+const defaultCompactStringLength = 40;
 const defaultMaxCompactPropertyLength = 35;
 
-function isValueExpandable(value, maxStringLength) {
+function intOption(value, defaultValue) {
+    if (typeof value === 'number' && isFinite(value) && value >= 1) {
+        return parseInt(value, 10);
+    }
+
+    return defaultValue;
+}
+
+function isValueExpandable(value, options) {
     // array
     if (Array.isArray(value)) {
         return value.length > 0;
     }
 
     // string
-    if (typeof value === 'string' && (value.length > maxStringLength || /[\r\n\f\t]/.test(value))) {
+    if (typeof value === 'string' && (value.length > options.maxStringLength || /[\r\n\f\t]/.test(value))) {
         return true;
     }
 
@@ -151,7 +159,7 @@ export default function(host) {
     }
 
     function renderValue(container, value, autoExpandLimit, options, context) {
-        const expandable = isValueExpandable(value, options.maxStringLength);
+        const expandable = isValueExpandable(value, options);
         const valueEl = valueProtoEl.cloneNode(true);
 
         elementData.set(valueEl, value);
@@ -489,21 +497,20 @@ export default function(host) {
             limit,
             limitCollapsed,
             annotations,
-            allowedExcessStringLength = defaultAllowedExcessStringLength,
-            maxStringLength = defaultMaxStringLength,
-            maxLinearStringLength = defaultLinearStringLength,
-            maxCompactPropertyLength = defaultMaxCompactPropertyLength
-        } = config;
-
-        const expandable = isValueExpandable(data, maxStringLength);
-        const options = {
-            limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
-            limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
-            annotations: host.annotations.concat(annotations || []),
             allowedExcessStringLength,
             maxStringLength,
             maxCompactStringLength,
             maxCompactPropertyLength
+        } = config;
+
+        const options = {
+            limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
+            limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
+            annotations: host.annotations.concat(annotations || []),
+            allowedExcessStringLength: intOption(allowedExcessStringLength, defaultAllowedExcessStringLength),
+            maxStringLength: intOption(maxStringLength, defaultMaxStringLength),
+            maxCompactStringLength: intOption(maxCompactStringLength, defaultCompactStringLength),
+            maxCompactPropertyLength: intOption(maxCompactPropertyLength, defaultMaxCompactPropertyLength)
         };
 
         structViewRoots.add(el);
@@ -515,7 +522,7 @@ export default function(host) {
         });
         scheduleApplyAnnotations();
 
-        if (expandable && !expanded) {
+        if (!expanded && isValueExpandable(data, options)) {
             el.classList.add('struct-expand');
         }
     }, {

@@ -42,20 +42,17 @@ export default {
             }
         },
         {
-            title: 'Set up maxStringLength and maxLineraStringLength for string values',
-            beforeDemo: 'maxStringLength defines max length for string values. maxLinearStringLength defines max length for string values inside objects values ',
+            title: 'Setup maximum length for strings',
+            beforeDemo: ['md:"There 3 options to define limit for a string length:\\n* `maxStringLength` (default: 150) defines max length for strings in expanded values\\n* `maxCompactStringLength` (default: 40) defines max length for strings in collapsed objects and arrays\\n* `allowedExcessStringLength` (default: 10) defines allowed excess in length before a string will be cut and \\"N more\\" label will be added"'],
             demo: {
                 view: 'struct',
-                expanded: 2,
-                maxStringLength: 20,
-                maxLinearStringLength: 10,
+                expanded: 1,
+                maxStringLength: 30,
+                maxCompactStringLength: 10,
                 data: {
-                    string: 'Quite a long string value',
-                    level1: {
-                        string: 'Quite a long string value',
-                        level2: {
-                            linerString: 'Quite a long string value'
-                        }
+                    stringInExpandedObject: 'Quite a long string value Quite a long string value',
+                    level2: {
+                        stringInCollapsedObject: 'Quite a long string value Quite a long string value'
                     }
                 }
             }

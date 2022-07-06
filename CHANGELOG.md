@@ -1,12 +1,14 @@
 ## next
 
-- Added a view as table for array and object values in `struct` view
-- Added a thousandth delimiter for all numeric indicators in `struct` view
 - Added `destroy()` method to Popup view
 - Added `external` data option for `badge` views
-- Fixed a crush on open actions popup in `struct` view when a value has too much nested structure
 - Uniformed a monospace font family across all views
 - Fixed highlighting issues in `source` view
+- Changes in `struct` view:
+    - Added a view as table for array and object values
+    - Added a thousandth delimiter for all numeric indicators
+    - Added `allowedExcessStringLength`, `maxStringLength`, `maxCompactStringLength` and `maxCompactPropertyLength` options 
+    - Fixed a crush on open actions popup view when a value has too much nested structure
 - Changes in `table` view:
     - Added `scalarAsStruct` and `colSpan` config options to `table-cell`
     - Added `cols` and `isScalar()` to the `table-row`'s context

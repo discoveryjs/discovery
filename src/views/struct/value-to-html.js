@@ -27,7 +27,7 @@ export default function value2html(value, compact, options) {
             return 'ƒn';
 
         case 'string': {
-            const maxLength = compact ? options.maxLinearStringLength : options.maxStringLength;
+            const maxLength = compact ? options.maxCompactStringLength : options.maxStringLength;
 
             if (value.length > maxLength + options.allowedExcessStringLength) {
                 return token(
@@ -90,8 +90,8 @@ export default function value2html(value, compact, options) {
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
                     if (count < limitCollapsed) {
-                        const property = escapeHtml(key.length > options.maxLinearPropertyLength
-                            ? key.slice(0, options.maxLinearPropertyLength) + '…'
+                        const property = escapeHtml(key.length > options.maxCompactPropertyLength
+                            ? key.slice(0, options.maxCompactPropertyLength) + '…'
                             : key
                         );
 
