@@ -1,6 +1,7 @@
 ## next
 
 - Added a view as table for array and object values in `struct` view
+- Added a thousandth delimiter for all numeric indicators in `struct` view
 - Added `destroy()` method to Popup view
 - Added `external` data option for `badge` views
 - Fixed a crush on open actions popup in `struct` view when a value has too much nested structure

@@ -44,6 +44,14 @@
     line-height: 11px;
     vertical-align: text-bottom;
 }
+.view-struct .value-size:hover,
+.view-struct .string-length:hover {
+    color: inherit;
+}
+.view-struct .value-size > .num-delim,
+.view-struct .string-length > .num-delim {
+    padding-left: 2px;
+}
 .view-struct .string-text-wrapper {
     display: block;
     padding: 4px 4px 4px 5.5ex;
@@ -70,7 +78,10 @@
     color: rgba(127, 127, 127, 0.8);
     white-space: nowrap;
 }
-.view-struct .string .more {
+.view-struct .more > .num-delim {
+    padding-left: 2px;
+}
+.view-struct .string > .more {
     margin: 0 3px;
 }
 .view-struct .value > .more-buttons {

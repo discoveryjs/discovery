@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../core/utils/html.js';
+import { escapeHtml, numDelim } from '../../core/utils/html.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 
@@ -7,7 +7,7 @@ function token(type, str) {
 }
 
 function more(num) {
-    return token('more', `…${num} more…`);
+    return token('more', `…${numDelim(num)} more…`);
 }
 
 export default function value2html(value, linear, options) {
@@ -17,15 +17,8 @@ export default function value2html(value, linear, options) {
             return token('keyword', value);
 
         case 'number':
-        case 'bigint': {
-            let str = String(value);
-
-            if (str.length > 3) {
-                str = str.replace(/\..+$|\B(?=(\d{3})+(\D|$))/g, m => m || '<span class="num-delim"></span>');
-            }
-
-            return token('number', str);
-        }
+        case 'bigint':
+            return token('number', numDelim(value));
 
         case 'symbol':
             return token('symbol', String(value));

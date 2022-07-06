@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import { escapeHtml } from '../../core/utils/html.js';
+import { escapeHtml, numDelim } from '../../core/utils/html.js';
 import { jsonStringifyInfo } from '../../core/utils/json.js';
 import copyText from '../../core/utils/copy-text.js';
 import value2html from './value-to-html.js';
@@ -60,7 +60,8 @@ function formatSize(size) {
 
 function renderValueSize(el, entries, unit) {
     if (entries.length > 1) {
-        appendText(el.lastElementChild, entries.length + ' ' + unit);
+        el.lastElementChild
+            .innerHTML = numDelim(entries.length) + ' ' + unit;
     }
 }
 
@@ -104,7 +105,7 @@ export default function(host) {
             const text = JSON.stringify(data);
 
             appendText(stringValueEl.firstChild, text.slice(1, -1));
-            appendText(stringValueEl.previousSibling, `length: ${text.length} chars`);
+            stringValueEl.previousSibling.innerHTML = `length: ${numDelim(text.length)} chars`;
 
             el.innerHTML = '';
             el.appendChild(valueEl);
