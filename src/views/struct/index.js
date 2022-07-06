@@ -95,7 +95,7 @@ export default function(host) {
 
         el.classList.remove('struct-expand-value');
 
-        // at this point we assume that a data is a string, an array or an object,
+        // at this point we assume data is a string, an array or an object,
         // since only such types of data expandable
         if (typeof data === 'string') {
             // string
@@ -204,6 +204,17 @@ export default function(host) {
             limit,
             (offset, limit) => renderEntries(container, beforeEl, entries, renderEntryContent, offset, limit)
         );
+    }
+
+    function renderTable(el) {
+        let data = elementData.get(el);
+
+        if (!Array.isArray(data)) {
+            data = Object.entries(data).map(([key, value]) => ({ '[key]': key, '[value]': value }));
+        }
+
+        host.view.render(el, 'table', data, {});
+        el.append(el.lastChild.previousSibling);
     }
 
     function buildPathForElement(el) {
@@ -419,6 +430,7 @@ export default function(host) {
                 collapseValue(cursor);
                 scheduleApplyAnnotations();
                 cursor.parentNode.classList.remove('struct-expanded-value');
+                cursor.classList.remove('view-as-table');
 
                 if (structViewRoots.has(cursor.parentNode)) {
                     cursor.parentNode.classList.add('struct-expand');
@@ -446,6 +458,22 @@ export default function(host) {
                 stringTextNode.nodeValue = cursor.classList.toggle('string-value-as-text')
                     ? JSON.parse(`"${stringTextNode.nodeValue}"`)
                     : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
+                break;
+
+            case 'toggle-view-as-table':
+                cursor = cursor.parentNode;
+
+                const asTable = cursor.classList.toggle('view-as-table');
+
+                if (asTable) {
+                    renderTable(cursor);
+                } else {
+                    const tableEl = cursor.querySelector(':scope > .view-table');
+
+                    if (tableEl) {
+                        tableEl.remove();
+                    }
+                }
                 break;
         }
     };

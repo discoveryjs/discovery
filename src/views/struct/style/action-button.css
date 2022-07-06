@@ -20,7 +20,8 @@
     border-color: rgba(137, 137, 137, 0.4);
 }
 .view-struct .sort-keys > .struct-action-button[data-action="toggle-sort-keys"],
-.view-struct .string-value-as-text > .struct-action-button[data-action="toggle-string-mode"] {
+.view-struct .string-value-as-text > .struct-action-button[data-action="toggle-string-mode"],
+.view-struct .view-as-table > .struct-action-button[data-action="toggle-view-as-table"] {
     color: var(--discovery-view-struct-toggle-color, #686);
     background-color: rgba(151, 223, 151, 0.25);
     border-color: rgba(137, 177, 137, 0.4);
@@ -47,6 +48,9 @@
 .discovery-view-popup .view-struct .struct-action-button[data-action="show-signature"] {
     display: none;
 }
+.view-struct .view-as-table > .struct-action-button[data-action="toggle-sort-keys"] {
+    display: none;
+}
 .view-struct .struct-action-button[data-action="collapse"]::before {
     content: "–";
 }
@@ -61,6 +65,9 @@
 }
 .view-struct .struct-action-button[data-action="toggle-string-mode"]::before {
     content: "as text";
+}
+.view-struct .struct-action-button[data-action="toggle-view-as-table"]::before {
+    content: "as table";
 }
 
 .discovery-view-popup.view-struct-actions-popup .notes {
