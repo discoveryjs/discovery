@@ -19,6 +19,7 @@ Hackable JSON discovery tool
 ## Examples of usage
 
 - [Statoscope](https://github.com/statoscope/statoscope) – a toolkit to analyze and validate webpack bundle
+- [CPUpro](https://github.com/lahmatiy/cpupro) – rethinking of CPU profile analysis
 - [CSS syntax reference](https://csstree.github.io/docs/syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
 - [CSSWG spec drafts index](https://csstree.github.io/csswg-drafts-index/) ([source](https://github.com/csstree/csswg-drafts-index))
 
