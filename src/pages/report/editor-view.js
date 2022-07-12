@@ -2,6 +2,7 @@ import debounce from '../../core/utils/debounce.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
+import { contextWithoutEditorParams } from './params.js';
 import renderUsage from '../../views/_usage.js';
 
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
@@ -167,6 +168,7 @@ export default function(host, updateParams) {
     return {
         el: viewEditorFormEl,
         render(data, context, reportContentEl) {
+            const viewContext = contextWithoutEditorParams(context, lastView.context);
             const viewMode = typeof context.params.view === 'string' ? 'custom' : 'default';
             let pageView = context.params.view;
             let view = null;
@@ -185,12 +187,12 @@ export default function(host, updateParams) {
                 pageView = defaultViewSource;
             }
 
-            if (lastView.data !== data || lastView.view !== pageView) {
+            if (lastView.view !== pageView || lastView.data !== data || lastView.context !== viewContext) {
                 reportContentEl.innerHTML = '';
 
                 try {
                     view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
-                    host.view.render(reportContentEl, view, data, context);
+                    host.view.render(reportContentEl, view, data, viewContext);
                 } catch (e) {
                     host.view.render(reportContentEl, el => {
                         el.className = 'report-error render-error';
@@ -200,7 +202,8 @@ export default function(host, updateParams) {
                 }
 
                 lastView = {
-                    data: data,
+                    data,
+                    context: viewContext,
                     view: pageView
                 };
             }

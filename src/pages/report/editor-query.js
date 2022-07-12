@@ -1,5 +1,6 @@
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
+import { contextWithoutEditorParams } from './params.js';
 
 function count(value, one, many) {
     return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
@@ -76,14 +77,16 @@ export default function(host, updateParams) {
     return {
         el: queryEditorFormEl,
         perform(data, context) {
+            const queryContext = contextWithoutEditorParams(context, lastQuery.context);
             let pageQuery = context.params.query;
             let queryTime;
             let results;
 
+            // update editor
             queryEditor.setValue(pageQuery);
 
             // perform data query
-            if (lastQuery.query === pageQuery && lastQuery.data === data && lastQuery.context === context) {
+            if (lastQuery.query === pageQuery && lastQuery.data === data && lastQuery.context === queryContext) {
                 results = lastQuery.results;
             } else {
                 if (errorMarker) {
@@ -93,7 +96,7 @@ export default function(host, updateParams) {
 
                 try {
                     queryTime = Date.now();
-                    results = host.query(pageQuery, data, context);
+                    results = host.query(pageQuery, data, queryContext);
                     queryTime = Date.now() - queryTime;
                 } catch (error) {
                     const loc = error.details && error.details.loc;
@@ -121,8 +124,8 @@ export default function(host, updateParams) {
 
                 lastQuery = {
                     data,
+                    context: queryContext,
                     query: pageQuery,
-                    context,
                     results
                 };
 

@@ -4,8 +4,10 @@ function ensureString(value, fallback) {
     return typeof value === 'string' ? value : fallback || '';
 }
 
+export const decodedSpecialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
+export const encodedSpecialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
+
 export function encodeParams(params) {
-    const specialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
     const { query, view, title, dzen, noedit, ...extra } = typeof params === 'string' ? { query: params } : params;
     const pairs = [];
 
@@ -30,7 +32,7 @@ export function encodeParams(params) {
     }
 
     Object.keys(extra || {}).sort().forEach(name => {
-        if (!specialParams.includes(name)) {
+        if (!decodedSpecialParams.includes(name)) {
             pairs.push([name, name.endsWith('-b64') && typeof extra[name] === 'string'
                 ? base64.encode(extra[name])
                 : extra[name]
@@ -43,7 +45,6 @@ export function encodeParams(params) {
 
 export function decodeParams(pairs) {
     const params = Object.fromEntries(pairs);
-    const specialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
     const decodedParams = {
         title: params.title || '',
         query: base64.decode(ensureString(params.q, '')),
@@ -53,7 +54,7 @@ export function decodeParams(pairs) {
     };
 
     Object.keys(params).forEach(name => {
-        if (!specialParams.includes(name)) {
+        if (!encodedSpecialParams.includes(name)) {
             decodedParams[name] = name.endsWith('-b64') && typeof params[name] === 'string'
                 ? base64.decode(params[name])
                 : params[name];
@@ -61,4 +62,40 @@ export function decodeParams(pairs) {
     });
 
     return decodedParams;
+}
+
+function filterDecodedParams(params) {
+    return Object.fromEntries(Object.entries(params).filter(([key]) =>
+        !decodedSpecialParams.includes(key)
+    ));
+}
+
+function isEqual(a, b, skipKey) {
+    for (const key of Object.keys(a)) {
+        if (key !== skipKey && a[key] !== b[key]) {
+            return false;
+        }
+    }
+
+    for (const key of Object.keys(b)) {
+        if (key !== skipKey && a[key] !== b[key]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+export function contextWithoutEditorParams(newContext, currentContext = {}) {
+    const stableNewContext = {
+        ...newContext,
+        params: filterDecodedParams(newContext.params)
+    };
+
+    if (!isEqual(currentContext, stableNewContext, 'params') ||
+        !isEqual(currentContext.params, stableNewContext.params)) {
+        return stableNewContext;
+    }
+
+    return currentContext;
 }

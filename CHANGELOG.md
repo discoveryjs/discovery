@@ -2,9 +2,7 @@
 
 - Added `destroy()` method to Popup view
 - Added `external` data option for `badge` views
-- Uniformed a monospace font family across all views
-- Fixed suggestions in query editor to suggest values with the same quotes as a pattern string
-- Fixed highlighting issues in `source` view
+- Eliminated unnecessary query execution and view rendering on a report page when changing non-affecting page params. As a side effect page params `query`, `view`, `title`, `dzen` and `noedit` are not available for the main query and views anymore
 - Changes in `struct` view:
     - Added a view as table for array and object values
     - Added a thousandth delimiter for all numeric indicators
@@ -18,6 +16,9 @@
     - Fixed rendering of arrays when object values mixed with scalar values
     - Fixed collapsing a row height when all cells are empty
     - Hide a more buttons row when no buttons (gave a few extra pixels in the bottom of a table)
+- Uniformed a monospace font family across all views
+- Fixed suggestions in query editor to suggest values with the same quotes as a pattern string
+- Fixed highlighting issues in `source` view
 - Bumped jora to [1.0.0-beta.7](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.7)
 
 ## 1.0.0-beta.65 (18-04-2022)
