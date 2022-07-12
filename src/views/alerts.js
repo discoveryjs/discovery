@@ -12,6 +12,7 @@ export default function(host) {
     }
 
     host.view.define('alert', render, { usage });
+    host.view.define('alert-primary', render, { usage });
     host.view.define('alert-success', render, { usage });
     host.view.define('alert-danger', render, { usage });
     host.view.define('alert-warning', render, { usage });

@@ -17,11 +17,24 @@
     margin-bottom: 0;
 }
 
+.view-alert > :first-child {
+    margin-top: 0;
+}
+
 .page > .view-alert:first-child,
 .page > .view-alert-success:first-child,
 .page > .view-alert-danger:first-child,
 .page > .view-alert-warning:first-child {
     margin-top: 15px;
+}
+
+.view-alert-primary {
+    color: #004085;
+    background-color: rgba(51, 151, 255, 0.25);
+    border-color: rgba(77, 162, 255, 0.4);
+}
+.discovery-root-darkmode .view-alert-primary {
+    color: #6a96c6;
 }
 
 .view-alert-success {
@@ -39,7 +52,7 @@
     border-color: rgba(230, 112, 125, 0.4);
 }
 .discovery-root-darkmode .view-alert-danger {
-    color: #ce7d85;
+    color: #c7888e;
 }
 
 .view-alert-warning {
