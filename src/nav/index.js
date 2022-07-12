@@ -1,5 +1,6 @@
-import { createFragment } from '../core/utils/dom.js';
+import { createElement, createFragment } from '../core/utils/dom.js';
 import { ContentRect } from '../core/utils/size.js';
+import { version } from '../version.js';
 
 function createNavArray(host, defaults) {
     const items = [];
@@ -66,6 +67,16 @@ function createNavArray(host, defaults) {
 export * as buttons from './buttons.js';
 export class WidgetNavigation {
     constructor(host) {
+        const poweredByDiscovery = createElement('div', 'powered-by-discoveryjs', [
+            'powered by ',
+            createElement('a', {
+                class: 'view-link',
+                href: 'https://github.com/discoveryjs/discovery',
+                target: '_blank'
+            }, 'Discovery.js'),
+            ` ${version}`
+        ]);
+
         this.host = host;
         this.popup = null;
         this.data = null;
@@ -100,7 +111,7 @@ export class WidgetNavigation {
                         }, true);
                     }
 
-                    this.popup.toggle(el, (el) => el.append(...nodes));
+                    this.popup.toggle(el, (el) => el.append(...nodes, poweredByDiscovery));
                 }
             },
             this.primary

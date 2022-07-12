@@ -7,8 +7,10 @@ import upload from './extensions/upload.js';
 import router from './extensions/router.js';
 import utils from './core/utils/index.js';
 import { buttons as navButtons } from './nav/index.js';
+import { version } from './version.js';
 
 export {
+    version,
     Widget,
     App,
     views,
