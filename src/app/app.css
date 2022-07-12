@@ -51,10 +51,13 @@
 }
 .discovery-nav-popup > .toggle-menu-item .view-toggle-group {
     display: flex;
+    align-items: center;
 }
 .discovery-nav-popup > .toggle-menu-item .view-toggle-group-before {
     flex: 1;
 }
 .discovery-nav-popup > .toggle-menu-item .view-toggle {
     font-size: 11px;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
