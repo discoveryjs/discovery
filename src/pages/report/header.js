@@ -15,6 +15,28 @@ function exportReportAsJson(pageParams) {
     }\n}`;
 }
 
+function toDate(value) {
+    if (value && (typeof value === 'number' || typeof value === 'string')) {
+        const date = new Date(value);
+
+        return !isNaN(date) ? date : null;
+    }
+
+    return value instanceof Date ? value : null;
+}
+
+function formatDate(value) {
+    const date = toDate(value);
+
+    if (date) {
+        return date
+            .toISOString()
+            .replace(/^(\d{4})-(\d{2})-(\d{2})T([\d:]+).*/, '$3/$2/$1 $4');
+    }
+
+    return null;
+}
+
 export default function(host, updateParams) {
     let titleInputEl;
     let dataDateTimeEl;
@@ -103,15 +125,16 @@ export default function(host, updateParams) {
         ],
         render(data, context) {
             const { title, noedit } = context.params;
+            const createdAt = formatDate(context.createdAt);
 
             titleInputEl.value = title;
             updateHeaderTitle(titleInputEl);
 
             noeditToggleEl.classList.toggle('disabled', noedit);
-            dataDateTimeEl.innerText = context.createdAt && typeof context.createdAt.toLocaleString === 'function'
-                ? 'Data collected at ' + context.createdAt.toLocaleString().replace(',', '') + ' | '
+            dataDateTimeEl.innerText = createdAt
+                ? 'Data collected at ' + createdAt + ' | '
                 : '';
-            viewDateTimeEl.innerText = 'View built at ' + new Date().toLocaleString().replace(',', '');
+            viewDateTimeEl.innerText = 'Rendered at ' + formatDate(new Date());
         }
     };
 }
