@@ -17,6 +17,7 @@
     - Fixed rendering of arrays when object values mixed with scalar values
     - Fixed collapsing a row height when all cells are empty
     - Hide a more buttons row when no buttons (gave a few extra pixels in the bottom of a table)
+- Bumped jora to [1.0.0-beta.7](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.7)
 
 ## 1.0.0-beta.65 (18-04-2022)
 
