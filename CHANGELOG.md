@@ -3,6 +3,7 @@
 - Added `destroy()` method to Popup view
 - Added `external` data option for `badge` views
 - Uniformed a monospace font family across all views
+- Fixed suggestions in query editor to suggest values with the same quotes as a pattern string
 - Fixed highlighting issues in `source` view
 - Changes in `struct` view:
     - Added a view as table for array and object values

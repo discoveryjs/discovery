@@ -9,6 +9,27 @@ const suggestionValueFilter = pattern => value =>
     // Firefox & Safari approximate the same
     (typeof value === 'string' ? value : String(value)).toLowerCase().indexOf(pattern) !== -1;
 
+function stringifyValue(value, text) {
+    if (typeof value !== 'string') {
+        return String(value);
+    }
+
+    value = JSON.stringify(value);
+
+    if (text[0] !== "'") {
+        return value;
+    }
+
+    // convert "string" -> 'string'
+    // \" -> "
+    // '  -> \'
+    // \. -> \. (any other escaped char left as is)
+    return `'${value.slice(1, -1).replace(
+        /\\.|'/g,
+        m => m === '\\"' ? '"' : m === '\'' ? '\\\'' : m
+    )}'`;
+}
+
 function isSameSuggestions(api, pos1, pos2) {
     if (pos1 === pos2) {
         return true;
@@ -21,17 +42,18 @@ function isSameSuggestions(api, pos1, pos2) {
         return false;
     }
 
-    return ranges1.every((range1, idx) => {
-        const range2 = ranges2[idx];
+    for (let i = 0; i < ranges1.length; i++) {
+        const range1 = ranges1[i];
+        const range2 = ranges2[i];
 
         for (const key of Object.keys(range1)) {
             if (range1[key] !== range2[key]) {
                 return false;
             }
         }
+    }
 
-        return true;
-    });
+    return true;
 }
 
 export function querySuggestions(host, query, offset, data, context) {
@@ -84,7 +106,7 @@ export function querySuggestions(host, query, offset, data, context) {
                     to: entry.to,
                     text: entry.text,
                     value: entry.type === 'value'
-                        ? (typeof value === 'string' ? JSON.stringify(value) : String(value))
+                        ? stringifyValue(value, entry.text)
                         : value
                 })));
             }
