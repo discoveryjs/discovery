@@ -32,7 +32,7 @@
     width: 0;
     visibility: hidden;
 }
-.view-button:focus {
+.view-button:focus-visible {
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, 0.2);
     background-color: var(--discovery-view-button-focus-background-color);
     border-color: var(--discovery-view-button-focus-border-color);

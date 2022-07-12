@@ -8,8 +8,8 @@
 .view-struct .value-annotation + .value-annotation {
     margin-left: 4px;
 }
-.view-struct .value-annotation[href]:hover,
-.view-struct .value-annotation[href]:focus {
+.view-struct .value-annotation[href]:focus-visible {
+    outline: none;
     background-color: rgba(187, 187, 187, 0.25);
     box-shadow: 0 0 0 3px rgba(187, 187, 187, 0.25);
 }
@@ -69,6 +69,7 @@
     background: rgba(55, 155, 230, 0.16);
 }
 .view-struct .value-annotation.style-badge[href]:hover {
-    text-decoration: underline;
     color: #89a0bd;
+    text-decoration: underline;
+    text-decoration-color: #89a0bd88;
 }
