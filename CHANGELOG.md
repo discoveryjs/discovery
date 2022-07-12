@@ -1,5 +1,6 @@
 ## next
 
+- Added `text-numeric` view
 - Added `destroy()` method to Popup view
 - Added `external` data option for `badge` views
 - Eliminated unnecessary query execution and view rendering on a report page when changing non-affecting page params. As a side effect page params `query`, `view`, `title`, `dzen` and `noedit` are not available for the main query and views anymore
