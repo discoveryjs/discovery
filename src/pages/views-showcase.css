@@ -55,3 +55,6 @@
     overflow: hidden;
     overflow-y: scroll;
 }
+.page-views-showcase > .content > .view-h1 {
+    margin-top: 0;
+}

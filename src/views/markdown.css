@@ -20,6 +20,9 @@
     color: #6a737d;
     border-left: .25em solid rgba(191, 197, 203, 0.5);
 }
+.discovery-root-darkmode .view-markdown blockquote {
+    color: #808993;
+}
 
 .view-markdown code {
     padding: .2em .4em;
@@ -27,6 +30,9 @@
     font-size: 90%;
     background-color: rgba(210, 220, 230, 0.2);
     border-radius: 3px;
+}
+.discovery-root-darkmode .view-markdown blockquote code {
+    background-color: rgba(116, 126, 136, 0.2);
 }
 
 .view-markdown sup {
