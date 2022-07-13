@@ -4,7 +4,7 @@
 @import url('./extensions/inspector.css');
 @import url('./app/app.css');
 
-.discovery .buildin-view-config-error {
+.discovery-buildin-view-render-error {
     display: inline-block;
     vertical-align: top;
     margin: 1px;
@@ -17,8 +17,8 @@
     font-size: 10px;
     line-height: 1;
 }
-.discovery .buildin-view-config-error::before {
-    content: 'CONFIG ERROR';
+.discovery-buildin-view-render-error::before {
+    content: 'ERROR';
     display: inline-block;
     margin: -4px 1ex -4px -4px;
     border-radius: 3px 0 0 3px;
@@ -27,20 +27,28 @@
     text-shadow: 1px 1px rgb(0, 0, 0, .2);
     padding: 4px;
 }
-.discovery .buildin-view-config-error.expanded::before {
+
+.discovery-buildin-view-render-error[data-type="config"]::before {
+    content: 'CONFIG ERROR';
+}
+.discovery-buildin-view-render-error[data-type="render"]::before {
+    content: 'RENDER ERROR';
+}
+
+.discovery-buildin-view-render-error.expanded::before {
     border-bottom-left-radius: 0;
 }
-.discovery .buildin-view-config-error .toggle-config {
+.discovery-buildin-view-render-error .toggle-config {
     margin-left: 1ex;
     cursor: pointer;
     opacity: .65;
     color: #888;
     user-select: none;
 }
-.discovery .buildin-view-config-error .toggle-config:hover {
+.discovery-buildin-view-render-error .toggle-config:hover {
     opacity: 1;
 }
-.discovery .buildin-view-config-error .view-struct {
+.discovery-buildin-view-render-error .view-struct {
     margin: 5px -4px -4px;
     border-radius: 0 0 3px 3px;
 }

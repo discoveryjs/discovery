@@ -304,24 +304,28 @@ export default class Widget extends Emitter {
                     throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object key type "' + entry.key.type + '"');
             }
 
-            if (key === 'view' || key === 'postRender' || key === 'className') {
-                throw new SyntaxError('[Discovery] Widget#queryToConfig(): set a value for "' + key + '" property via query is prohibited');
+            if (key === 'view' || key === 'postRender') {
+                throw new SyntaxError('[Discovery] Widget#queryToConfig(): set a value for "' + key + '" property in shorthand notation is prohibited');
             }
 
+            // when / data / whenData properties take string values as a jora query
+            // that's why we don't need for a special processing
             if (key === 'when' || key === 'data' || key === 'whenData') {
-                if (entry.value.type === 'Literal') {
-                    config[key] = typeof entry.value.value === 'string'
-                        ? JSON.stringify(entry.value.value)
-                        : entry.value.value;
-                } else {
-                    config[key] = jora.syntax.stringify(entry.value);
-                }
+                // When value is a literal there is no need to compute them using a query,
+                // so add such values to the config as is. However, this doesn't work for string values
+                // since it will be treated as a query
+                config[key] = entry.value.type === 'Literal' && typeof entry.value.value !== 'string'
+                    ? entry.value.value
+                    : jora.syntax.stringify(entry.value);
             } else {
+                // We can use literal values as is excluding strings which start with '=',
+                // since it's an indicator that the string is a query
                 config[key] = entry.value.type === 'Literal' && (typeof entry.value.value !== 'string' || entry.value.value[0] !== '=')
                     ? entry.value.value
                     : '=' + jora.syntax.stringify(entry.value);
             }
         }
+        console.log(config);
 
         return config;
     }

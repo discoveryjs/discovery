@@ -28,8 +28,8 @@ export default class PresetRenderer extends Dict {
             console.error(errorMsg, name);
 
             const el = container.appendChild(document.createElement('div'));
-            el.className = 'buildin-view-config-error';
-            el.innerText = errorMsg;
+            el.className = 'discovery-buildin-view-config-error';
+            el.textContent = errorMsg;
 
             return Promise.resolve();
         }

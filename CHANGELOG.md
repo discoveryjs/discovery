@@ -6,6 +6,8 @@
 - Added `external` data option for `badge` views
 - Added `version` to library exports
 - Added Discovery.js credits into nav popup
+- Allowed `className` in `view{ config }` notation
+- Changed `className` in view config to take a string starting with `=` as a query, e.g. `{ view: 'block', className: '=query' }`
 - Eliminated unnecessary query execution and view rendering on a report page when changing non-affecting page params. As a side effect page params `query`, `view`, `title`, `dzen` and `noedit` are not available for the main query and views anymore
 - Changes in `struct` view:
     - Added a view as table for array and object values
