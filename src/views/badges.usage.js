@@ -9,35 +9,25 @@ export default (view, group) => ({
             demo: group.map(name => `${name}:"${name}"`)
         },
         {
-            title: 'With color',
+            title: 'Custom colors',
+            beforeDemo: {
+                view: 'md',
+                source: [
+                    'Data properties to setup a custom colors:',
+                    '* `color` – default background color',
+                    '* `textColor` – default text color',
+                    '* `darkColor` – background color in dark mode',
+                    '* `textColor` – text color in dark mode'
+                ].join('\n')
+            },
             demo: {
                 view,
                 data: {
+                    text: 'Colored badge',
                     color: 'rgba(237, 177, 9, 0.35)',
-                    text: 'Colored badge'
-                }
-            }
-        },
-        {
-            title: 'With text color',
-            demo: {
-                view,
-                data: {
-                    textColor: 'red',
-                    text: 'Badge with colored text'
-                }
-            }
-        },
-        {
-            title: 'With explicit dark-mode colors',
-            demo: {
-                view,
-                data: {
-                    color: 'blue',
-                    textColor: 'white',
-                    darkColor: 'yellow',
-                    darkTextColor: 'black',
-                    text: 'Badge with colored text'
+                    textColor: 'orange',
+                    darkColor: '#ffff00',
+                    darkTextColor: 'black'
                 }
             }
         },
@@ -46,8 +36,9 @@ export default (view, group) => ({
             demo: {
                 view,
                 data: {
+                    text: 'Link to something',
                     href: '#',
-                    text: 'Click me!'
+                    external: true
                 }
             }
         },
@@ -57,9 +48,8 @@ export default (view, group) => ({
                 view,
                 data: {
                     prefix: 'prefix',
-                    postfix: 'postfix',
                     text: 'link',
-                    external: true
+                    postfix: 'postfix'
                 }
             }
         },
