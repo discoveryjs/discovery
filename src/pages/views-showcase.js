@@ -25,9 +25,10 @@ The following properties are supported by any view:
 The order of evaluation during a view render:
 
 \`\`\`js
-render start                                               
-|          input data  | output data (the result of "data" evaluation if any)
-\\-> [when] --> [data] --> [whenData] --> [postRender] --> [className] --> render finish
+                          input data | output data (the result of "data" evaluation if any)
+                                     |
+render start ---> [when] --> [data] -|-> [whenData] --> [postRender] --> [className] --> render finish
+                                     |
 \`\`\`
 
 When \`data\` property is specified, it changes flow's data according the following rules:

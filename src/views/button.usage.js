@@ -3,7 +3,7 @@
 export default (view, group) => ({
     demo: {
         view,
-        onClick: () => alert('Hello world!'),
+        onClick: Function('return () => alert("Hello world!")')(),
         data: {
             text: 'Button'
         }
