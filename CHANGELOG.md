@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.66 (14-07-2022)
 
 - Added `text-numeric` view
 - Added `alert-primary` view
