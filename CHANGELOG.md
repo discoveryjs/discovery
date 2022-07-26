@@ -1,3 +1,7 @@
+## next
+
+- Fixed suggestions when a pattern contains upper case letters
+
 ## 1.0.0-beta.66 (14-07-2022)
 
 - Added `text-numeric` view
