@@ -325,7 +325,6 @@ export default class Widget extends Emitter {
                     : '=' + jora.syntax.stringify(entry.value);
             }
         }
-        console.log(config);
 
         return config;
     }
