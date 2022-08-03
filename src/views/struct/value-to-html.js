@@ -1,6 +1,6 @@
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
 
-const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9]+(?:\.[a-z0-9]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
+const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 
 function token(type, str) {
     return `<span class="${type}">${str}</span>`;
