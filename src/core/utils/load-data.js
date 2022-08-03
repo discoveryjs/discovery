@@ -150,7 +150,7 @@ export function loadDataFromEvent(event) {
     return loadDataFromFile(file);
 }
 
-export function loadDataFromUrl(url, dataField, options) {
+export function loadDataFromUrl(url, options) {
     options = options || {};
 
     const explicitData = typeof url === 'string' ? undefined : url;
@@ -186,11 +186,11 @@ export function loadDataFromUrl(url, dataField, options) {
             throw error;
         },
         data => ({
-            data: dataField ? data[dataField] : data,
+            data: options.dataField ? data[options.dataField] : data,
             context: {
                 name: 'Discovery',
-                createdAt: dataField && data.createdAt ? new Date(Date.parse(data.createdAt)) : new Date(),
-                ...dataField ? data : { data }
+                createdAt: options.dataField && data.createdAt ? new Date(Date.parse(data.createdAt)) : new Date(),
+                ...options.dataField ? data : { data }
             }
         }),
         { title: 'Load data from url: ' + (explicitData ? '[explicit data]' : url) }

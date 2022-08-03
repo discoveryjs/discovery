@@ -189,8 +189,8 @@ export default class App extends Widget {
         return this.trackLoadDataProgress(loadDataFromFile(file));
     }
 
-    loadDataFromUrl(url, dataField, options) {
-        return this.trackLoadDataProgress(loadDataFromUrl(url, dataField, options));
+    loadDataFromUrl(url, options) {
+        return this.trackLoadDataProgress(loadDataFromUrl(url, options));
     }
 
     unloadData() {

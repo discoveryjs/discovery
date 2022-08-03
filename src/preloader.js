@@ -32,7 +32,7 @@ export function preloader(config) {
 
     const loadData = dataSource[config.dataSource || 'url'];
     const loading = config.data
-        ? config.dataSource === 'push' ? loadData() : loadData(config.data, 'data')
+        ? config.dataSource === 'push' ? loadData() : loadData(config.data, config.loadDataOptions)
         : {
             result: Promise.resolve({})
         };
