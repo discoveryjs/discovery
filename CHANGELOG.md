@@ -3,6 +3,7 @@
 - Fixed suggestions when a pattern contains upper case letters
 - Uniformed number delimeter insertion in all places, added a HTML escaping and fixed pattern matching
 - Fixed testing a string is URL in `struct` view to accept dashes in a domain name
+- Added `darkmode` attribute when dark mode is used on a preloader container
 
 ## 1.0.0-beta.66 (14-07-2022)
 

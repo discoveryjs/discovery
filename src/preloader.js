@@ -24,7 +24,11 @@ export function preloader(config) {
         throw new Error(`dataSource "${config.dataSource}" is not supported`);
     }
 
-    applyContainerStyles(container, config);
+    const darkmode = applyContainerStyles(container, config);
+
+    if (darkmode) {
+        el.setAttribute('darkmode', '');
+    }
 
     const loadData = dataSource[config.dataSource || 'url'];
     const loading = config.data

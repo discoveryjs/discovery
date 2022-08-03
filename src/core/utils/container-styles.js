@@ -56,6 +56,8 @@ export function applyContainerStyles(container, config) {
     }
 
     knowContainer.add(container);
+
+    return darkmode;
 }
 
 export function rollbackContainerStyles(container) {
