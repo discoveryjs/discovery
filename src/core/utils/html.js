@@ -6,12 +6,17 @@ export function escapeHtml(str) {
         .replace(/>/g, '&gt;');
 }
 
-export function numDelim(num) {
-    const strNum = String(num);
+export function numDelim(value, escape = true) {
+    const strValue = escape && typeof value !== 'number'
+        ? escapeHtml(String(value))
+        : String(value);
 
-    if (strNum.length > 3) {
-        return strNum.replace(/\..+$|\B(?=(\d{3})+(\D|$))/g, m => m || '<span class="num-delim"></span>');
+    if (strValue.length > 3) {
+        return strValue.replace(
+            /\.\d+(eE[-+]?\d+)?|\B(?=(\d{3})+(\D|$))/g,
+            m => m || '<span class="num-delim"></span>'
+        );
     }
 
-    return strNum;
+    return strValue;
 }

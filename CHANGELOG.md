@@ -1,6 +1,7 @@
 ## next
 
 - Fixed suggestions when a pattern contains upper case letters
+- Uniformed number delimeter insertion in all places, added a HTML escaping and fixed pattern matching
 
 ## 1.0.0-beta.66 (14-07-2022)
 

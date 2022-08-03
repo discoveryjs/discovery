@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+import { numDelim } from "../core/utils/html";
+
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
 const hasOwnProperty = Object.hasOwnProperty;
 
@@ -34,7 +36,7 @@ function defaultCellRender(el, data, isDataObject) {
         el.classList.add('number');
 
         if (str.length > 3) {
-            el.innerHTML = str.replace(/\..+$|\B(?=(\d{3})+(\D|$))/g, m => m || '<span class="num-delim"></span>');
+            el.innerHTML = numDelim(str, false);
         } else {
             el.textContent = str;
         }

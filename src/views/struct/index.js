@@ -64,7 +64,7 @@ function formatSize(size) {
         return '';
     }
 
-    return ', ' + String(size).replace(/\B(?=(\d{3})+$)/g, '<span class="num-delim"></span>') + ' bytes';
+    return ', ' + numDelim(size) + ' bytes';
 }
 
 function renderValueSize(el, entries, unit) {
