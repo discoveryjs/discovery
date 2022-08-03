@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import { numDelim } from "../core/utils/html";
+import { numDelim } from '../core/utils/html.js';
 
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
 const hasOwnProperty = Object.hasOwnProperty;
