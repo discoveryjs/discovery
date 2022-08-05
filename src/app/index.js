@@ -18,7 +18,7 @@ import {
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 
 export default class App extends Widget {
-    constructor(container, options = {}) {
+    constructor(options = {}) {
         const extensions = options.extensions ? [options.extensions] : [];
 
         extensions.push(navButtons.darkmodeToggle);
@@ -41,7 +41,7 @@ export default class App extends Widget {
             extensions.push(navButtons.inspect);
         }
 
-        super(container, null, {
+        super({
             ...options,
             extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
             upload: options.upload,

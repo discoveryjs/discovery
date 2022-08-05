@@ -49,7 +49,7 @@ function getPageMethod(host, pageId, name, fallback) {
 }
 
 export default class Widget extends Emitter {
-    constructor(container, defaultPage, options) {
+    constructor(options = {}) {
         super();
 
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
@@ -106,8 +106,8 @@ export default class Widget extends Emitter {
         this.apply(views);
         this.apply(pages);
 
-        if (defaultPage) {
-            this.page.define(this.defaultPageId, defaultPage);
+        if (this.options.defaultPage) {
+            this.page.define(this.defaultPageId, this.options.defaultPage);
         }
 
         if (extensions) {
@@ -119,7 +119,7 @@ export default class Widget extends Emitter {
         }
 
         this.nav.render(this.dom.nav, this.data, this.getRenderContext());
-        this.setContainer(container);
+        this.setContainer(this.options.container);
     }
 
     apply(extensions) {
@@ -201,7 +201,7 @@ export default class Widget extends Emitter {
         this.scheduleRender('sidebar');
         this.scheduleRender('page');
         await Promise.all([
-            this.dom.ready,
+            this.dom.wrapper.parentNode ? this.dom.ready : true,
             renderScheduler.get(this).timer
         ]);
 
@@ -386,7 +386,7 @@ export default class Widget extends Emitter {
             true
         );
         this.dom.ready.then(() => {
-            getComputedStyle(this.dom.wrapper).opacity;
+            getComputedStyle(this.dom.wrapper).opacity; // trigger repaint
             this.dom.wrapper.classList.remove('init');
         });
     }
