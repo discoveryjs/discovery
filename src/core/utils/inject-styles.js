@@ -16,7 +16,9 @@ export default function injectStyles(el, styles) {
 
             switch (style.type) {
                 case 'style':
-                    return createElement('style', null, style.content);
+                    return createElement('style', {
+                        media: style.media
+                    }, style.content);
 
                 case 'link': {
                     let resolveStyle;

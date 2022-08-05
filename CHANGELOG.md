@@ -9,6 +9,14 @@
 - Changed `Widget` constructor from `Widget(container, defaultPage, options)` to `Widget(options)`, `container` and `defaultPage` values can be specified via `options` as `options.container` and `options.defaultPage` respectively
 - Changed `App` constructor from `App(container, options)` to `App(options)`, `container` value can be specified via `options` as `options.container`
 - Changed `App`'s default value for `container` option to `document.body`
+- Added support for `media` atrribute for inline styles in `styles` option of `Widget` & `App`, e.g.
+  ```js
+  new App({
+    styles: [
+      { type: 'style', content: '...', media: 'all and (max-width: 1000px)' }
+    ]
+  })
+  ```
 
 ## 1.0.0-beta.66 (14-07-2022)
 
