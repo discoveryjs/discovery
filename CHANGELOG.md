@@ -8,6 +8,7 @@
 - Added option `loadDataOptions` in preloader's config to pass it as `options` to load data methods
 - Changed `Widget` constructor from `Widget(container, defaultPage, options)` to `Widget(options)`, `container` and `defaultPage` values can be specified via `options` as `options.container` and `options.defaultPage` respectively
 - Changed `App` constructor from `App(container, options)` to `App(options)`, `container` value can be specified via `options` as `options.container`
+- Changed `App`'s default value for `container` option to `document.body`
 
 ## 1.0.0-beta.66 (14-07-2022)
 

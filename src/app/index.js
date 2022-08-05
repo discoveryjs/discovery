@@ -42,6 +42,7 @@ export default class App extends Widget {
         }
 
         super({
+            container: document.body,
             ...options,
             extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
             upload: options.upload,
