@@ -16,11 +16,13 @@ export default function injectStyles(el, styles) {
 
             switch (style.type) {
                 case 'style':
+                case 'inline':
                     return createElement('style', {
                         media: style.media
                     }, style.content);
 
-                case 'link': {
+                case 'link':
+                case 'external': {
                     let resolveStyle;
                     let rejectStyle;
                     let state = new Promise((resolve, reject) => {
