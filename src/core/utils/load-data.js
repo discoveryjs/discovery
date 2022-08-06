@@ -1,5 +1,5 @@
 import Publisher from '../publisher.js';
-import { streamFromBlob } from './blob-polyfill.js';
+import { streamFromBlob } from './stream-from-blob.js';
 import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
 
 export const dataSource = {

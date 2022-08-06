@@ -3,6 +3,7 @@
 - Fixed suggestions when a pattern contains upper case letters
 - Uniformed number delimeter insertion in all places, added a HTML escaping and fixed pattern matching
 - Fixed testing a string is URL in `struct` view to accept dashes in a domain name
+- Fixed an unnecessary caught exception on the lib loading
 - Added `darkmode` attribute on a preloader container when dark mode is used
 - Removed `dataField` parameter in `loadDataFromUrl()` method, this parameter might be passed via `options`
 - Added option `loadDataOptions` in preloader's config to pass it as `options` to load data methods
