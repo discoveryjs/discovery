@@ -6,7 +6,7 @@ import router from '../extensions/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Progressbar from '../core/utils/progressbar.js';
-import * as navButtons from '../nav/buttons';
+import * as navButtons from '../nav/buttons.js';
 import {
     loadDataFromStream,
     loadDataFromFile,
@@ -45,7 +45,7 @@ export default class App extends Widget {
             container: document.body,
             ...options,
             extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
-            upload: options.upload,
+            upload: Boolean(options.upload),
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
