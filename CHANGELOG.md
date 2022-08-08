@@ -1,6 +1,7 @@
-## next
+## 1.0.0-beta.67 (09-08-2022)
 
-- Fixed suggestions when a pattern contains upper case letters
+- Added `type: module` to `package.json`
+- Fixed suggestions in query editor when a pattern contains upper case letters
 - Uniformed number delimeter insertion in all places, added a HTML escaping and fixed pattern matching
 - Fixed testing a string is URL in `struct` view to accept dashes in a domain name
 - Fixed an unnecessary caught exception on the lib loading
