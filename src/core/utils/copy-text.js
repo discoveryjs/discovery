@@ -29,24 +29,31 @@ function execCommandFallback(text) {
     try {
         document.execCommand('copy');
     } catch (err) {
-        console.error(err);
+        return Promise.reject(err);
     }
 
     selection.removeAllRanges();
     copyTextBufferEl.remove();
+
+    return Promise.resolve();
 }
 
 export default async function copyText(text) {
     if (navigator.clipboard) {
-        const permissionStatus = await navigator.permissions.query({
-            name: 'clipboard-write'
-        });
+        let permissionStatus;
+
+        try {
+            permissionStatus = await navigator.permissions.query({
+                name: 'clipboard-write'
+            });
+        } catch (_) {
+            return execCommandFallback(text);
+        }
 
         if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
             return navigator.clipboard.writeText(text);
         }
     }
 
-    execCommandFallback(text);
-    return Promise.resolve();
+    return execCommandFallback(text);
 }
