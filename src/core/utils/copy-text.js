@@ -16,37 +16,34 @@ const copyTextBufferEl = createElement('div', {
 }, ['text']);
 
 function execCommandFallback(text) {
-    let selection = window.getSelection();
-    let range = document.createRange();
-
-    document.body.appendChild(copyTextBufferEl);
-    copyTextBufferEl.firstChild.nodeValue = text;
-
-    range.selectNodeContents(copyTextBufferEl);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    document.body.append(copyTextBufferEl);
 
     try {
-        document.execCommand('copy');
-    } catch (err) {
-        console.error(err);
-    }
+        const selection = window.getSelection();
+        const range = document.createRange();
 
-    selection.removeAllRanges();
-    copyTextBufferEl.remove();
+        copyTextBufferEl.firstChild.nodeValue = text;
+        range.selectNodeContents(copyTextBufferEl);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand('copy');
+    } finally {
+        copyTextBufferEl.remove();
+    }
 }
 
 export default async function copyText(text) {
-    if (navigator.clipboard) {
-        const permissionStatus = await navigator.permissions.query({
-            name: 'clipboard-write'
-        });
+    try {
+        if (navigator.clipboard) {
+            const permissionStatus = await navigator.permissions.query({
+                name: 'clipboard-write'
+            });
 
-        if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
-            return navigator.clipboard.writeText(text);
+            if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
+                return navigator.clipboard.writeText(text);
+            }
         }
-    }
+    } catch (_) {}
 
     execCommandFallback(text);
-    return Promise.resolve();
 }

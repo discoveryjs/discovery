@@ -1,3 +1,7 @@
+## Next
+
+- Fixed copy to clipboard in FireFox
+
 ## 1.0.0-beta.67 (09-08-2022)
 
 - Added `type: module` to `package.json`
@@ -36,7 +40,7 @@
 - Changes in `struct` view:
     - Added a view as table for array and object values
     - Added a thousandth delimiter for all numeric indicators
-    - Added `allowedExcessStringLength`, `maxStringLength`, `maxCompactStringLength` and `maxCompactPropertyLength` options 
+    - Added `allowedExcessStringLength`, `maxStringLength`, `maxCompactStringLength` and `maxCompactPropertyLength` options
     - Fixed a crush on open actions popup view when a value has too much nested structure
 - Changes in `table` view:
     - Added `scalarAsStruct` and `colSpan` config options to `table-cell`
