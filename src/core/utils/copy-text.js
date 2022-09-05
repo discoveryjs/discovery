@@ -35,9 +35,7 @@ function execCommandFallback(text) {
 export default async function copyText(text) {
     try {
         if (navigator.clipboard) {
-            let permissionStatus;
-
-            permissionStatus = await navigator.permissions.query({
+            const permissionStatus = await navigator.permissions.query({
                 name: 'clipboard-write'
             });
 
