@@ -22,7 +22,7 @@
         "prepublishOnly": "node scripts/bake-version.cjs && npm run build",
         "postpublish": "node scripts/bake-version.cjs --rollback",
         "cypress": "npx cypress open",
-        "cypress:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.js -p 8124",
+        "cypress:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.cjs -p 8124",
         "start": "discovery -c models/index.cjs",
         "test": "./cypress/test.sh"
     },
