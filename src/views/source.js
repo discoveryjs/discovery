@@ -2,10 +2,10 @@
 
 import hitext from 'hitext';
 import CodeMirror from 'codemirror';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/mode/css/css';
-import 'codemirror/mode/xml/xml';
-import { equal } from '../core/utils/compare';
+import 'codemirror/mode/javascript/javascript.js';
+import 'codemirror/mode/css/css.js';
+import 'codemirror/mode/xml/xml.js';
+import { equal } from '../core/utils/compare.js';
 import usage from './source.usage.js';
 
 const maxSourceSizeToHighlight = 100 * 1024;

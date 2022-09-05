@@ -4,9 +4,9 @@ import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
 import Emitter from '../core/emitter.js';
 import CodeMirror from 'codemirror';
-import modeQuery from './editor-mode-query';
-import modeView from './editor-mode-view';
-import 'codemirror/mode/javascript/javascript';
+import modeQuery from './editor-mode-query.js';
+import modeView from './editor-mode-view.js';
+import 'codemirror/mode/javascript/javascript.js';
 import './editors-hint.js';
 
 function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) {
