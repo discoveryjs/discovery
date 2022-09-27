@@ -14,6 +14,14 @@ export default (view, group) => ({
             demo: group.map(name => `${name}:{ text: "${name}" }`)
         },
         {
+            title: 'Disabled state',
+            demo: group.map(name => ({
+                view: name,
+                disabled: true,
+                data: { text: name }
+            }))
+        },
+        {
             title: 'Button as a link',
             demo: {
                 view: 'button',

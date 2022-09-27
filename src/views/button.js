@@ -16,10 +16,10 @@ export default function(host) {
             el.addEventListener('click', () => onClick(el, data, context));
             el.classList.add('onclick');
         } else if (href) {
-            el.addEventListener('click', (e) => createElement('a', {
+            el.addEventListener('click', () => createElement('a', {
                 href,
                 target: external ? '_blank' : ''
-            }).click(e));
+            }).click());
         }
 
         if (content) {
