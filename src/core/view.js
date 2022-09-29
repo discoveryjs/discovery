@@ -4,6 +4,7 @@ import Dict from './dict.js';
 
 const STUB_OBJECT = Object.freeze({});
 const { hasOwnProperty } = Object;
+const tooltipEls = new WeakMap();
 const rootViewEls = new WeakMap();
 const viewEls = new WeakMap();      // FIXME: should be isolated by ViewRenderer instance
 const fragmentEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
@@ -114,6 +115,34 @@ function condition(type, host, config, data, context, inputData, placeholder) {
     return false;
 }
 
+function computeClassName(host, className, data, context) {
+    let classNames = className;
+
+    if (typeof classNames === 'string' && classNames.startsWith('=')) {
+        classNames = host.queryFn(classNames.slice(1));
+    }
+
+    if (typeof classNames === 'function') {
+        classNames = classNames(data, context);
+    }
+
+    if (typeof classNames === 'string') {
+        classNames = classNames.trim().split(/\s+/);
+    }
+
+    if (Array.isArray(classNames)) {
+        classNames = classNames
+            .map(item => typeof item === 'function' ? item(data, context) : item)
+            .filter(Boolean);
+
+        if (classNames.length) {
+            return classNames;
+        }
+    }
+
+    return null;
+}
+
 function renderDom(host, renderer, placeholder, config, props, data, context, inputData) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
@@ -143,27 +172,15 @@ function renderDom(host, renderer, placeholder, config, props, data, context, in
                 }
 
                 if (config.className) {
-                    let classNames = config.className;
+                    const classNames = computeClassName(host, config.className, data, context);
 
-                    if (typeof classNames === 'string' && classNames.startsWith('=')) {
-                        classNames = host.queryFn(classNames.slice(1));
+                    if (classNames !== null) {
+                        el.classList.add(...classNames);
                     }
+                }
 
-                    if (typeof classNames === 'function') {
-                        classNames = classNames(data, context);
-                    }
-
-                    if (typeof classNames === 'string') {
-                        classNames = classNames.trim().split(/\s+/);
-                    }
-
-                    if (Array.isArray(classNames)) {
-                        el.classList.add(
-                            ...classNames
-                                .map(item => typeof item === 'function' ? item(data, context) : item)
-                                .filter(Boolean)
-                        );
-                    }
+                if (config.tooltip) {
+                    attachTooltip(host, el, config.tooltip, data, context);
                 }
             } else {
                 for (let child of el.childNodes) {
@@ -179,7 +196,7 @@ function renderDom(host, renderer, placeholder, config, props, data, context, in
         });
 }
 
-function createRenderContext(host, name) {
+function createRenderContext(viewRenderer, name) {
     return {
         name,
         // block() {
@@ -194,16 +211,71 @@ function createRenderContext(host, name) {
         // elementMod(elementName, modifierName, value = true) {
         //     return `${this.element(elementName)}_${modifierName}${value === true ? '' : '_' + value}`;
         // },
-        normalizeConfig: host.normalizeConfig.bind(host),
-        ensureValidConfig: host.ensureValidConfig.bind(host),
-        composeConfig: host.composeConfig.bind(host),
-        propsFromConfig: host.propsFromConfig.bind(host),
-        render: host.render.bind(host),
-        listLimit: host.listLimit.bind(host),
-        renderList: host.renderList.bind(host),
-        maybeMoreButtons: host.maybeMoreButtons.bind(host),
-        renderMoreButton: host.renderMoreButton.bind(host)
+        normalizeConfig: viewRenderer.normalizeConfig.bind(viewRenderer),
+        ensureValidConfig: viewRenderer.ensureValidConfig.bind(viewRenderer),
+        composeConfig: viewRenderer.composeConfig.bind(viewRenderer),
+        propsFromConfig: viewRenderer.propsFromConfig.bind(viewRenderer),
+        render: viewRenderer.render.bind(viewRenderer),
+        listLimit: viewRenderer.listLimit.bind(viewRenderer),
+        renderList: viewRenderer.renderList.bind(viewRenderer),
+        maybeMoreButtons: viewRenderer.maybeMoreButtons.bind(viewRenderer),
+        renderMoreButton: viewRenderer.renderMoreButton.bind(viewRenderer),
+        tooltip(el, config, data, context) {
+            if (el && el.nodeType === 1) {
+                attachTooltip(viewRenderer.host, el, config, data, context);
+            } else {
+                console.warn('A tooltip can be attached to a HTML element only');
+            }
+        }
     };
+}
+
+function attachTooltip(host, el, config, data, context) {
+    el.classList.add('discovery-view-with-tooltip');
+    tooltipEls.set(el, [config, data, context]);
+
+    if (!host.view.tooltip) {
+        host.view.tooltip = createTooltip(host);
+    }
+}
+
+function createTooltip(host) {
+    let classNames = null;
+
+    return new host.view.Popup({
+        className: 'discovery-buildin-view-tooltip',
+        hoverTriggers: '.discovery-view-with-tooltip',
+        position: 'pointer',
+        render(el, triggerEl) {
+            let [config, data, context] = tooltipEls.get(triggerEl) || [];
+
+            if (classNames !== null) {
+                el.classList.remove(...classNames);
+                classNames = null;
+            }
+
+            if (config) {
+                if (!Array.isArray(config) && typeof config !== 'string' && typeof config !== 'function' && !config.view) {
+                    classNames = computeClassName(host, config.className, data, context);
+
+                    if (classNames !== null) {
+                        el.classList.add(...classNames);
+                    }
+
+                    config = config.content;
+                }
+            }
+
+            if (config) {
+                return host.view.render(el, config, data, context);
+            }
+
+            host.view.render(el, {
+                view: host.view.defaultRenderErrorRenderer.render,
+                reason: 'Element marked as having a tooltip but related data is not found'
+            });
+        }
+    });
 }
 
 function render(container, config, data, context) {

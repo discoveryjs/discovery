@@ -106,7 +106,7 @@ export default function(host) {
             host.addHostElEventListener('click', (event) => {
                 clearTimeout(hideAllPopups);
                 hideIfEventOutside(event);
-                setTimeout(hideIfTriggerElementNotInDocument, 0);
+                setTimeout(hideIfTriggerElementNotInDocument, 50);
 
                 for (const instance of hoverTriggerInstances) {
                     if (instance.options.hoverPin === 'trigger-click') {
@@ -238,10 +238,10 @@ export default function(host) {
             const box = this.options.position !== 'pointer'
                 ? getBoundingRect(this.lastTriggerEl, hostEl)
                 : {
-                    left: pointerX + pointerOffset,
-                    right: pointerX - pointerOffset,
-                    top: pointerY - pointerOffset,
-                    bottom: pointerY + pointerOffset
+                    left: parseInt(pointerX) + pointerOffset,
+                    right: parseInt(pointerX) - pointerOffset,
+                    top: parseInt(pointerY) - pointerOffset,
+                    bottom: parseInt(pointerY) + pointerOffset
                 };
             const availHeightTop = box.top - viewport.top - 3;
             const availHeightBottom = viewport.bottom - box.bottom - 3;

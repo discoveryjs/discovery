@@ -52,3 +52,17 @@
     margin: 5px -4px -4px;
     border-radius: 0 0 3px 3px;
 }
+
+.discovery-buildin-view-tooltip {
+    padding: 5px 10px;
+    min-width: 120px;
+    border: 0.5px solid #fff5;
+    border-radius: 3px;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+.discovery-root-darkmode .discovery-buildin-view-tooltip {
+    background: rgba(36, 36, 36, 0.8);
+}

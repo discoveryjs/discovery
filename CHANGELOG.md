@@ -1,3 +1,7 @@
+## next
+
+- Implemented `tooltip` as a view wide option
+
 ## 1.0.0-beta.68 (05-09-2022)
 
 - Fixed copy to clipboard in FireFox

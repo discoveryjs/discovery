@@ -52,3 +52,12 @@
     border-radius: 0 8px 8px 0;
     background-color: rgba(0, 0, 0, .12);
 }
+
+.discovery-buildin-view-tooltip .view-badge,
+.discovery-buildin-view-tooltip .view-pill-badge {
+    display: inline-block;
+    margin: 0 0 3px -5px;
+    padding-top: 0;
+    padding-bottom: 1px;
+    line-height: 19px;
+}

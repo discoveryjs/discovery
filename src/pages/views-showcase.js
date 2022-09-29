@@ -21,6 +21,7 @@ The following properties are supported by any view:
 - \`whenData\` – control view rendering after an input data is transformed
 - \`className\` – add class name(s) to the root element of view if any
 - \`postRender\` - a function which should be invoked after view rendering but before placing to destination place in DOM
+- \`tooltip\` – setup a tooltip to show on view hovering, can be applied for views with a container only
 
 The order of evaluation during a view render:
 
@@ -74,7 +75,7 @@ you can use a query like \`="=some string"\`,<br>e.g. \`{ view: 'example', prop:
 
 ## Shorthand notations
 
-| Shorhand notation | Expanding into ... |
+| Shorhand notation | Expands into ... |
 | --- | --- |
 | \`'name'\` | \`{ view: 'name' }\`
 | \`'name:<query>'\` | \`{ view: 'name', data: '<query>' }\`
@@ -97,6 +98,27 @@ An array with view definitions can be passed anywhere a view is accepted as a va
     'table{ limit: 10 }'
 ]
 \`\`\`
+
+## Tooltip
+
+A canonical form for a toolup setup is an object with fields (all are optional):
+
+\`\`\`js
+{
+    className: 'string',
+    content: 'a view setup'
+}
+\`\`\`
+
+Instead of such object, any view notation can be used, i.e. a string, an object with \`view\` property, an array or a function:
+
+| Shorhand notation | Expands into ... |
+| --- | --- |
+| \`'name'\` | \`{ content: 'name' }\`
+| \`{ view: 'name' }\` | \`{ content: { view: 'name' } }\`
+| \`['view', { view: 'name' }]\` | \`{ content: ['view', { view: 'name' }] }\`
+
+A content is rendering into a popup container. When \`className\` is used it behaves the same as for a view but applies to a popup container.
 `;
 
 export default function(host) {
