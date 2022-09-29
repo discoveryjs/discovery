@@ -106,6 +106,7 @@ A canonical form for a toolup setup is an object with fields (all are optional):
 \`\`\`js
 {
     className: 'string',
+    position: 'trigger', // 'trigger' or 'pointer' (default)
     content: 'a view setup'
 }
 \`\`\`

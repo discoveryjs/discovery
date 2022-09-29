@@ -231,7 +231,7 @@ function createRenderContext(viewRenderer, name) {
 }
 
 function attachTooltip(host, el, config, data, context) {
-    el.classList.add('discovery-view-with-tooltip');
+    el.classList.add('discovery-view-has-tooltip');
     tooltipEls.set(el, [config, data, context]);
 
     if (!host.view.tooltip) {
@@ -241,13 +241,13 @@ function attachTooltip(host, el, config, data, context) {
 
 function createTooltip(host) {
     let classNames = null;
-
-    return new host.view.Popup({
+    const popup = new host.view.Popup({
         className: 'discovery-buildin-view-tooltip',
-        hoverTriggers: '.discovery-view-with-tooltip',
+        hoverTriggers: '.discovery-view-has-tooltip',
         position: 'pointer',
         render(el, triggerEl) {
             let [config, data, context] = tooltipEls.get(triggerEl) || [];
+            let position = 'pointer';
 
             if (classNames !== null) {
                 el.classList.remove(...classNames);
@@ -262,9 +262,12 @@ function createTooltip(host) {
                         el.classList.add(...classNames);
                     }
 
+                    position = config.position === 'trigger' ? 'trigger' : 'pointer';
                     config = config.content;
                 }
             }
+
+            popup.options.position = position;
 
             if (config) {
                 return host.view.render(el, config, data, context);
@@ -276,6 +279,8 @@ function createTooltip(host) {
             });
         }
     });
+
+    return popup;
 }
 
 function render(container, config, data, context) {
