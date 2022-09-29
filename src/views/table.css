@@ -36,3 +36,7 @@
 .view-table > thead th.sortable:hover {
     background-color: rgba(141, 141, 141, 0.3);
 }
+
+.view-table-cell-details-row > .view-cell-details-content > .view-table:first-child {
+    margin-top: -1px !important;
+}
