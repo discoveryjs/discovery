@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.69 (29-09-2022)
 
 - Implemented `tooltip` as a view wide option
 - Changes in `source` view
