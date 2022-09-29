@@ -22,8 +22,11 @@
     display: block;
 }
 .view-source .spotlight {
-    background: #fdf8cc;
+    background: #f5e69a;
     padding: 1px 2px 2px;
+}
+.discovery-root-darkmode .view-source .spotlight {
+    background: #686246;
 }
 .view-source .spotlight.error {
     background: #ffc9c9;
@@ -32,38 +35,20 @@
     background: #d3e7fb;
 }
 .view-source .spotlight.ref {
-    background: #ebfdca;
+    background: #cee99b;
 }
 .view-source .spotlight.global-ref {
     background: #ffd8a3;
 }
 .view-source a.spotlight {
     position: relative;
-    color: #444;
+    color: inherit;
     text-decoration: none;
 }
 .view-source a.spotlight:hover {
     background-color: #f3eec4;
     color: #aa6622 !important;
     text-decoration: none
-}
-.view-source a.spotlight::before {
-    bottom: 100%;
-    position: absolute;
-    margin-bottom: -8px;
-    padding: 2px 8px;
-    opacity: 0;
-    border-radius: 3px;
-    background: black;
-    color: white;
-    pointer-events: none;
-    font-size: 11px;
-    content: 'Resolved to ' attr(href);
-}
-.view-source a.spotlight:hover::before {
-    margin-bottom: 2px;
-    opacity: .75;
-    transition: all .1s ease-in-out;
 }
 .view-source .spotlight-ignore {
     background: #ddd;
@@ -141,18 +126,4 @@
     background-color: var(--discovery-fmt-string-highlight-color);
     box-shadow: 0 0 0 1px var(--discovery-fmt-string-highlight-color);
     color: #6a9c11;
-}
-
-.view-source.error {
-    margin: 0;
-    padding: 12px;
-    background: #f9dbdb;
-    color: black;
-}
-
-.view-source.disabled {
-    margin: 0;
-    padding: 12px;
-    background: #fff0bf;
-    color: black;
 }

@@ -8,7 +8,7 @@ import 'codemirror/mode/xml/xml.js';
 import { equal } from '../core/utils/compare.js';
 import usage from './source.usage.js';
 
-const maxSourceSizeToHighlight = 100 * 1024;
+const defaultMaxSourceSizeToHighlight = 250 * 1024;
 CodeMirror.modeToMime = {
     js: 'application/javascript',
     ts: 'application/typescript',
@@ -124,14 +124,24 @@ function classNames(options, defaultClassNames) {
     return classNames ? ` class="${classNames}"` : '';
 }
 
+function refAttrs(data) {
+    return `${
+        classNames(data, 'spotlight')
+    }${
+        data.marker ? ` data-marker="${data.marker}"` : ''
+    }${
+        typeof data.tooltipId === 'number' ? ` data-tooltip-id="${data.tooltipId}"` : ''
+    }`;
+}
+
 const refsPrinter = {
     html: {
         open({ data }) {
             switch (data.type) {
                 case 'link':
-                    return `<a href="${data.href}"${classNames(data)}${data.marker ? ` data-marker="${data.marker}"` : ''}>`;
+                    return `<a href="${data.href}"${refAttrs(data)}>`;
                 case 'spotlight':
-                    return `<span ${classNames(data, 'spotlight')}${data.marker ? ` data-marker="${data.marker}"` : ''}>`;
+                    return `<span${refAttrs(data)}>`;
             }
         },
         close({ data }) {
@@ -146,31 +156,19 @@ const refsPrinter = {
 };
 
 export default function(host) {
-    host.view.define('source', function(el, config, data) {
+    host.view.define('source', function(el, config, data, context) {
+        const refsTooltips = new Map();
         const decorators = [];
         const {
             mime, // deprecated, syntax = name or mime
             binary,
             size,
+            maxSourceSizeToHighlight = defaultMaxSourceSizeToHighlight,
             syntax,
             lineNum = true,
             content,
-            refs,
-            error,
-            disabled
+            refs
         } = data;
-
-        if (disabled) {
-            el.classList.add('disabled');
-            el.textContent = error;
-            return;
-        }
-
-        if (error) {
-            el.classList.add('error');
-            el.textContent = error;
-            return;
-        }
 
         if (typeof content !== 'string') {
             return;
@@ -194,10 +192,16 @@ export default function(host) {
             decorators.push([
                 (_, createRange) => refs.forEach(ref => {
                     if (ref.range) {
+                        let tooltipId = undefined;
+
+                        if (ref.tooltip) {
+                            refsTooltips.set(tooltipId = refsTooltips.size, ref);
+                        }
+
                         createRange(
                             ref.range[0],
                             ref.range[1],
-                            { type: 'spotlight', ...ref }
+                            { type: 'spotlight', ...ref, tooltipId }
                         );
                     }
                 }),
@@ -221,6 +225,13 @@ export default function(host) {
                 '<div>' +
                     hitext(decorators, 'html')(content) +
                 '</div>';
+
+            for (const refEl of el.querySelectorAll(':scope [data-tooltip-id]')) {
+                const ref = refsTooltips.get(Number(refEl.dataset.tooltipId));
+
+                delete refEl.dataset.tooltipId;
+                this.tooltip(refEl, ref.tooltip, ref, context);
+            }
         }
     }, {
         usage,

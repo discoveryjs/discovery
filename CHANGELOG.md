@@ -1,6 +1,12 @@
 ## next
 
 - Implemented `tooltip` as a view wide option
+- Changes in `source` view
+    - Added `maxSourceSizeToHighlight` option
+    - Added `tooltip` option for refs, e.g. `source:{ refs: [{ range: [1, 4], tooltip: "struct" }] }`
+    - Tweaked styles for refs
+    - Removed `error` option
+    - Removed `disabled` option
 
 ## 1.0.0-beta.68 (05-09-2022)
 
