@@ -44,6 +44,29 @@ function nodeHtml(node, level = '\n') {
     return '';
 }
 
+function highlightRefs(data, content) {
+    const refs = [];
+    const highlights = [...Array.isArray(data.highlight)
+        ? data.highlight
+        : data.highlight ? [data.highlight] : []
+    ];
+
+    if (Array.isArray(data.highlightProps)) {
+        highlights.push(`(")?(?:${data.highlightProps.join('|')})\\1(?=:)`);
+    }
+
+    for (const highlight of highlights) {
+        const rx = new RegExp(highlight, 'gm');
+        let match;
+
+        while (match = rx.exec(content)) {
+            refs.push({ range: [match.index, match.index + match[0].length] });
+        }
+    }
+
+    return refs;
+}
+
 export default function(host) {
     const renderDemo = {
         view: 'context',
@@ -68,6 +91,7 @@ export default function(host) {
                 content: {
                     view: 'render',
                     config: 'demo or view',
+                    data: 'demoData',
                     context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
                 }
             },
@@ -92,26 +116,54 @@ export default function(host) {
             tabs: [
                 { value: 'config', text: 'Config (JS)' },
                 { value: 'config-json', text: 'Config (JSON)' },
-                { value: 'html', text: 'Output (HTML)' }
+                { value: 'html', text: 'Rendered HTML' }
             ],
             content: {
                 view: 'switch',
                 content: [
-                    { when: '#.code="config"', content: {
+                    { when: '#.code="config"', content: [{
+                        view: 'expand',
+                        when: '"demoData" in $',
+                        header: 'text:"Input data"',
+                        content: {
+                            view: 'struct',
+                            expanded: 2,
+                            data: 'demoData'
+                        }
+                    }, {
                         view: 'source',
                         className: 'first-tab',
-                        data: (data) => ({
-                            syntax: 'discovery-view',
-                            content: jsonStringifyAsJavaScript(data.demo || data.view)
-                        })
-                    } },
-                    { when: '#.code="config-json"', content: {
+                        data: (data) => {
+                            const content = jsonStringifyAsJavaScript(data.demo || data.view);
+
+                            return {
+                                syntax: 'discovery-view',
+                                content,
+                                refs: highlightRefs(data, content)
+                            };
+                        }
+                    }] },
+                    { when: '#.code="config-json"', content: [{
+                        view: 'expand',
+                        when: '"demoData" in $',
+                        header: 'text:"Input data"',
+                        content: {
+                            view: 'struct',
+                            expanded: 2,
+                            data: 'demoData'
+                        }
+                    }, {
                         view: 'source',
-                        data: (data) => ({
-                            syntax: 'json',
-                            content: JSON.stringify(data.demo || data.view, null, 4)
-                        })
-                    } },
+                        data: (data) => {
+                            const content = JSON.stringify(data.demo || data.view, null, 4);
+
+                            return {
+                                syntax: 'json',
+                                content,
+                                refs: highlightRefs(data, content)
+                            };
+                        }
+                    }] },
                     { when: '#.code="html"', content: {
                         view: 'source',
                         data: (data, context) => ({

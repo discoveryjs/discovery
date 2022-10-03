@@ -38,6 +38,18 @@
     border-radius: 0 0 3px 3px;
     padding: 2px;
 }
+.discovery-view-usage .view-tabs.usage-sources .view-tabs-content .view-expand {
+    margin-bottom: 1px;
+}
+.discovery-view-usage .view-tabs.usage-sources .view-tabs-content .view-expand > .header {
+    --discovery-view-expand-trigger-size: 32px;
+}
+.discovery-view-usage .view-tabs.usage-sources .view-tabs-content .view-expand .view-struct.struct-expand {
+    padding-left: 28px;
+}
+.discovery-view-usage .view-tabs.usage-sources .view-tabs-content .view-expand .view-struct:not(.struct-expand) {
+    border-left: 20px solid rgba(205,205,205,.1);
+}
 .discovery-view-usage .view-tabs.usage-sources .view-source {
     background: rgba(155, 155, 155, 0.1);
     border-top-left-radius: 0;
@@ -45,4 +57,12 @@
 }
 .discovery-view-usage .view-tabs.usage-sources .view-source.first-tab {
     border-top-left-radius: 0;
+}
+.discovery-view-usage .view-tabs.usage-sources .view-source .spotlight {
+    padding: 3px 2px 2px;
+    margin: 0 -2px;
+}
+.discovery-root-darkmode .discovery-view-usage .view-tabs.usage-sources .view-source .spotlight {
+    background: #92926654;
+    color: #b6aa6a;
 }
