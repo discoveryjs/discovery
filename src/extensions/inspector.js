@@ -1,9 +1,12 @@
 /* eslint-env browser */
 
 import { createElement, passiveCaptureOptions } from '../core/utils/dom.js';
-import { getBoundingRect, getOverflowParent } from '../core/utils/layout.js';
+import { getBoundingRect } from '../core/utils/layout.js';
 import { pointerXY } from '../core/utils/pointer.js';
 import debounce from '../core/utils/debounce.js';
+import { resetViewTreeScrollTopBeforeSelect, viewTree } from './inspector/view-tree.js';
+import { propsConfigView } from './inspector/props-config.js';
+import { dataView } from './inspector/data.js';
 
 function isBoxChanged(oldBox, newBox) {
     if (oldBox === null) {
@@ -19,36 +22,6 @@ function isBoxChanged(oldBox, newBox) {
     return false;
 }
 
-function scrollIntoViewIfNeeded(element) {
-    const viewportEl = getOverflowParent(element);
-    const elementRect = getBoundingRect(element, viewportEl);
-    const scrollMarginTop = 0;
-    const scrollMarginLeft = 0;
-
-    const { scrollTop, scrollLeft, clientWidth, clientHeight } = viewportEl;
-    const viewportTop = scrollTop + scrollMarginTop;
-    const viewportLeft = scrollLeft + scrollMarginLeft;
-    const viewportRight = scrollLeft + clientWidth;
-    const viewportBottom = scrollTop + clientHeight;
-    const elementTop = scrollTop + elementRect.top;
-    const elementLeft = scrollLeft + elementRect.left;
-    const elementRight = elementLeft + elementRect.width;
-    let scrollToTop = scrollTop;
-    let scrollToLeft = scrollLeft;
-
-    if (elementTop < viewportTop || elementTop > viewportBottom) {
-        scrollToTop = elementTop - scrollMarginTop;
-    }
-
-    if (elementLeft < viewportLeft) {
-        scrollToLeft = elementLeft - scrollMarginLeft;
-    } else if (elementRight > viewportRight) {
-        scrollToLeft = Math.max(elementLeft, scrollLeft - (elementRight - viewportRight)) - scrollMarginLeft;
-    }
-
-    viewportEl?.scrollTo(scrollToLeft, scrollToTop);
-}
-
 export default (host) => {
     let inspectorActivated = false;
     let lastOverlayEl = null;
@@ -56,7 +29,6 @@ export default (host) => {
     let selectedTreeViewLeaf = null;
     let hideTimer = null;
     let syncOverlayTimer;
-    let scrollTopBeforeSelect = 0;
 
     const detailsSidebarLeafExpanded = new Set();
     const viewByEl = new Map();
@@ -202,7 +174,7 @@ export default (host) => {
             host.inspectMode.set(false);
         } else {
             detailsSidebarLeafExpanded.clear();
-            scrollTopBeforeSelect = 0;
+            resetViewTreeScrollTopBeforeSelect();
             hide();
             syncOverlayState();
         }
@@ -265,18 +237,6 @@ export default (host) => {
             const targetLeaf = selectedTreeViewLeaf || lastHoverViewTreeLeaf;
             const stack = [];
             let cursor = targetLeaf;
-            const sidebarLeafBadges = [
-                {
-                    view: 'badge',
-                    when: 'view.data != parent.(view or viewRoot).data or "data" in view.config',
-                    data: { text: 'D' }
-                },
-                {
-                    view: 'badge',
-                    when: 'view.context != parent.(view or viewRoot).context',
-                    data: { text: 'C' }
-                }
-            ];
 
             while (cursor !== null && (cursor.view || cursor.viewRoot)) {
                 if (cursor !== targetLeaf && selectedTreeViewLeaf !== null) {
@@ -289,69 +249,19 @@ export default (host) => {
 
             host.view.render(el, {
                 view: 'context',
-                modifiers: {
-                    view: 'tree',
-                    when: selectedTreeViewLeaf !== null,
-                    data: '$[0]',
-                    className: 'sidebar',
-                    limitLines: false,
-                    itemConfig: {
-                        collapsible: '=not viewRoot',
-                        expanded: leaf => detailsSidebarLeafExpanded.has(leaf),
-                        onToggle: (state, _, leaf) => state
-                            ? detailsSidebarLeafExpanded.add(leaf)
-                            : detailsSidebarLeafExpanded.delete(leaf)
-                    },
-                    item: {
-                        view: 'switch',
-                        content: [
-                            {
-                                when: 'viewRoot',
-                                content: {
-                                    view: 'block',
-                                    className: 'view-root',
-                                    content: 'text:viewRoot.name'
-                                }
-                            },
-                            {
-                                when: '$ = #.selected',
-                                content: [
-                                    {
-                                        view: 'block',
-                                        className: [
-                                            data => data.view && data.view.skipped ? 'skipped' : false,
-                                            'selected'
-                                        ],
-                                        content: 'text:view.config.view or "#root" | $ + "" = $ ? $ : "ƒn"',
-                                        postRender(el_) {
-                                            requestAnimationFrame(() => {
-                                                el.querySelector('.sidebar').scrollTop = scrollTopBeforeSelect;
-                                                scrollIntoViewIfNeeded(el_);
-                                            });
-                                        }
-                                    },
-                                    ...sidebarLeafBadges
-                                ]
-                            },
-                            {
-                                content: [
-                                    {
-                                        view: 'link',
-                                        className: data => data.leaf.view && data.leaf.view.skipped ? 'skipped' : false,
-                                        data: '{ text: view.config.view or "#root" | $ + "" = $ ? $ : "ƒn", href: false, leaf: $ }',
-                                        onClick(_, data) {
-                                            scrollTopBeforeSelect = el.querySelector('.sidebar')?.scrollTop || 0;
-                                            selectTreeViewLeaf(data.leaf);
-                                        }
-                                    },
-                                    ...sidebarLeafBadges
-                                ]
-                            }
-                        ]
-                    }
-                },
+                modifiers: [viewTree(el, {
+                    selectTreeViewLeaf,
+                    detailsSidebarLeafExpanded
+                })],
                 content: {
                     view: 'context',
+                    data(data, context) {
+                        // hack to change context, to extend queries with additional methods,
+                        // but avoid polution of user's setup with custom methods
+                        context.isString = value => typeof value === 'string';
+
+                        return data;
+                    },
                     modifiers: {
                         view: 'block',
                         className: 'toolbar',
@@ -368,23 +278,23 @@ export default (host) => {
                                         data => data.value.view && data.value.view.skipped ? 'skipped' : false
                                     ],
                                     content: [
-                                        'text:value | viewRoot.name or view.config.view | $ + "" = $ ? $ : "ƒn"', // FIXME: `$ + "" = $` is a hack to check value is a string
-                                        {
-                                            view: 'list',
-                                            when: false, // postponed to next release
-                                            className: 'data-flow-changes',
-                                            data: `
-                                                $self: value | viewRoot or view;
-                                                $parent: value.parent | viewRoot or view or #.host;
-                                                ['data', 'context'].[$parent[$] != $self[$]]
-                                            `,
-                                            whenData: true,
-                                            itemConfig: {
-                                                view: 'block',
-                                                className: data => data,
-                                                content: 'text:$[0]'
-                                            }
-                                        }
+                                        'text:value | viewRoot.name or view.config.view | $ + "" = $ ? $ : "ƒn"' // FIXME: `$ + "" = $` is a hack to check value is a string
+                                        // {
+                                        //     view: 'list',
+                                        //     when: false, // postponed for future releases
+                                        //     className: 'data-flow-changes',
+                                        //     data: `
+                                        //         $self: value | viewRoot or view;
+                                        //         $parent: value.parent | viewRoot or view or #.host;
+                                        //         ['data', 'context'].[$parent[$] != $self[$]]
+                                        //     `,
+                                        //     whenData: true,
+                                        //     itemConfig: {
+                                        //         view: 'block',
+                                        //         className: data => data,
+                                        //         content: 'text:$[0]'
+                                        //     }
+                                        // }
                                     ]
                                 }
                             },
@@ -399,125 +309,30 @@ export default (host) => {
                         ]
                     },
                     content: [
-                        {
-                            view: 'block',
-                            className: ['content', 'props-config'],
-                            data: '#.view | view or viewRoot',
-                            content: [
-                                {
-                                    view: 'block',
-                                    className: 'content-section skip',
-                                    when: 'skipped',
-                                    content: 'block{ content: "badge:{ text: skipped }" }'
-                                },
-                                {
-                                    view: 'block',
-                                    className: 'content-section render',
-                                    when: 'config | view + "" != view',
-                                    content: 'source:{ content: config.view + "", syntax: "js" }'
-                                },
-                                {
-                                    view: 'block',
-                                    when: 'props != undefined',
-                                    className: 'content-section props',
-                                    content: {
-                                        view: 'struct',
-                                        expanded: 2,
-                                        data: 'props'
-                                    }
-                                },
-                                {
-                                    view: 'block',
-                                    className: 'content-section config',
-                                    content: [
-                                        {
-                                            view: 'struct',
-                                            expanded: 1,
-                                            data: 'config'
-                                        },
-                                        {
-                                            view: 'tree',
-                                            data: data => host.view.getViewConfigTransitionTree(data.config).deps,
-                                            whenData: true,
-                                            expanded: 3,
-                                            children: 'deps',
-                                            item: {
-                                                view: 'struct',
-                                                expanded: 1,
-                                                data: 'value'
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
+                        propsConfigView,
                         {
                             view: 'block',
                             className: ['content', 'data-context'],
-                            data: '$map: => parent and { ..., v: view or viewRoot, parent: parent.$map() }; #.view.$map()',
                             content: [
-                                {
-                                    view: 'block',
-                                    className: 'content-section data',
-                                    content: [
-                                        {
-                                            view: 'context',
-                                            when: '"data" in v.config',
-                                            content: [
-                                                {
-                                                    view: 'struct',
-                                                    data: 'v.inputData'
-                                                },
-                                                {
-                                                    view: 'block',
-                                                    className: 'flow-down'
-                                                },
-                                                {
-                                                    view: 'source',
-                                                    when: '(v.config.data + "") = v.config.data',
-                                                    data: '{ content: v.config.data, syntax: "jora", lineNum: false }'
-                                                },
-                                                {
-                                                    view: 'struct',
-                                                    when: '(v.config.data + "") != v.config.data',
-                                                    data: 'v.config.data'
-                                                },
-                                                {
-                                                    view: 'block',
-                                                    className: 'flow-down'
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            view: 'struct',
-                                            expanded: 1,
-                                            data: 'v.data'
-                                        }
-                                    ]
-                                },
-                                {
-                                    view: 'tree',
-                                    when: false, // postponed to next release
-                                    children: '[..parent[=>v.data != @.v.data]].[]',
-                                    item: [
-                                        'struct:v.data',
-                                        'source:{ content: v | config.data or "???", syntax: "discovery-query" }'
-                                    ]
-                                },
+                                dataView,
                                 {
                                     view: 'block',
                                     className: 'content-section context',
+                                    data: '$[-1] | view or viewRoot',
                                     content: {
                                         view: 'struct',
                                         expanded: 1,
-                                        data: 'v.context'
+                                        data: 'context'
                                     }
                                 }
                             ]
                         }
                     ]
                 }
-            }, stack, { selected: targetLeaf, host });
+            }, stack, {
+                selectedView: selectedTreeViewLeaf,
+                host
+            });
         }
     });
 

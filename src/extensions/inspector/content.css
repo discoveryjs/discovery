@@ -28,8 +28,8 @@
 .discovery-inspect-details-popup .content-section::before {
     content: var(--header);
     display: inline-block;
-    padding: 8px 10px 2px 3px;
-    margin-left: 6px;
+    padding: 8px 10px 2px 1px;
+    margin-left: 7px;
     text-transform: uppercase;
     font-size: 10px;
     color: #444;
@@ -65,11 +65,60 @@
 .discovery-inspect-details-popup .content-section.data {
     --header: 'Data';
 }
-.discovery-inspect-details-popup .content-section.data .flow-down {
-    margin: -4px 1.5ex;
+.discovery-inspect-details-popup .content-section.data .data-flow-transitions {
+    display: flex;
+    flex-direction: column-reverse;
 }
-.discovery-inspect-details-popup .content-section.data .flow-down::before {
-    content: '↓';
+.discovery-inspect-details-popup .content-section.data .data-flow-transitions > .more-buttons {
+    margin-top: 0;
+    padding: 6px 0 0 8px;
+    margin-bottom: -4px;
+}
+.discovery-inspect-details-popup .content-section.data .data-flow-transitions > .more-buttons .more-button {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.discovery-inspect-details-popup .content-section.data .root-data {
+    padding: 6px 0 0 8px;
+    pointer-events: none;
+    margin-bottom: -6px;
+}
+.discovery-inspect-details-popup .content-section.data .root-data .view-badge {
+    padding: 2px 8px;
+    font-size: 9px;
+    text-transform: uppercase;
+}
+.discovery-inspect-details-popup .content-section.data .data-flow-transition {
+    position: relative;
+    padding: 12px 0 0 4px;
+    margin: -4px 0 -2px 11px;
+    border-left: 1px solid #888;
+}
+/* .discovery-inspect-details-popup .content-section.data .data-flow-transition .ttt {
+    display: inline-block;
+    padding: 2px;
+    border: 1px solid red;
+} */
+.discovery-inspect-details-popup .content-section.data .data-flow-transition > .view-name {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0px 4px;
+    background: #3a4955;
+    font-size: 10px;
+    opacity: .75;
+}
+.discovery-inspect-details-popup .content-section.data .data-flow-transition::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    bottom: -2px;
+    width: 7px;
+    height: 7px;
+    border: 3.5px solid transparent;
+    border-bottom: none;
+    border-top: 7px solid #888;
+    box-sizing: border-box;
 }
 .discovery-inspect-details-popup .content-section.context {
     --header: 'Context';

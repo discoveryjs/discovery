@@ -1,6 +1,7 @@
 ## next
 
 - Added new options for usage sections: `demoData`, `highlight` and `highlightProps`
+- Improved the view inspector to display entire data flow transitions
 
 ## 1.0.0-beta.69 (29-09-2022)
 

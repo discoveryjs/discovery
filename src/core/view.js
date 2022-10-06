@@ -96,12 +96,12 @@ function createDefaultRenderErrorView(view) {
     };
 }
 
-function condition(type, host, config, data, context, inputData, placeholder) {
+function condition(type, host, config, queryData, context, inputData, inputDataIndex, placeholder) {
     if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
 
-    if (host.queryBool(config[type] === true ? '' : config[type], data, context)) {
+    if (host.queryBool(config[type] === true ? '' : config[type], queryData, context)) {
         return true;
     }
 
@@ -109,7 +109,8 @@ function condition(type, host, config, data, context, inputData, placeholder) {
         skipped: type,
         config,
         inputData,
-        data,
+        inputDataIndex,
+        data: queryData,
         context
     });
     return false;
@@ -143,7 +144,7 @@ function computeClassName(host, className, data, context) {
     return null;
 }
 
-function renderDom(host, renderer, placeholder, config, props, data, context, inputData) {
+function renderDom(host, renderer, placeholder, config, props, data, context, inputData, inputDataIndex) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
@@ -160,6 +161,7 @@ function renderDom(host, renderer, placeholder, config, props, data, context, in
                 config,
                 props,
                 inputData,
+                inputDataIndex,
                 data,
                 context
             };
@@ -283,11 +285,16 @@ function createTooltip(host) {
     return popup;
 }
 
-function render(container, config, data, context) {
+function render(viewRenderer, container, config, inputData, inputDataIndex, context) {
     if (Array.isArray(config)) {
-        return Promise.all(config.map(config => render.call(this, container, config, data, context)));
+        return Promise.all(config.map(config =>
+            render(viewRenderer, container, config, inputData, inputDataIndex, context)
+        ));
     }
 
+    const queryData = inputData && typeof inputDataIndex === 'number'
+        ? inputData[inputDataIndex]
+        : inputData;
     let renderer = null;
 
     switch (typeof config.view) {
@@ -310,16 +317,16 @@ function render(container, config, data, context) {
                     name: false,
                     options: { tag: false },
                     render: (el, _, _data) => {
-                        const _config = configQuery !== '' ? this.host.query(configQuery, data, context) : _data;
-                        const _context = this.host.query(contextQuery, context, data);
+                        const _config = configQuery !== '' ? viewRenderer.host.query(configQuery, queryData, context) : _data;
+                        const _context = viewRenderer.host.query(contextQuery, context, queryData);
                         // config only   -> _config=query(data) _data=data
                         // data only     -> _config=query(data) _data=query(data)
                         // config & data -> _config=query(data) _data=query(data)
 
-                        return this.render(
+                        return viewRenderer.render(
                             el,
                             _config,
-                            _data !== _config ? _data : data,
+                            _data !== _config ? _data : queryData,
                             _context
                         );
                     }
@@ -330,12 +337,12 @@ function render(container, config, data, context) {
                 renderer = {
                     name: false,
                     options: { tag: false },
-                    render: this.host.preset.isDefined(presetName)
-                        ? this.host.preset.get(presetName).render
+                    render: viewRenderer.host.preset.isDefined(presetName)
+                        ? viewRenderer.host.preset.get(presetName).render
                         : () => {}
                 };
             } else {
-                renderer = this.get(config.view);
+                renderer = viewRenderer.get(config.view);
             }
             break;
     }
@@ -347,7 +354,7 @@ function render(container, config, data, context) {
 
         console.error(errorMsg, config);
 
-        renderer = this.defaultRenderErrorRenderer;
+        renderer = viewRenderer.defaultRenderErrorRenderer;
         config = { type: 'config', reason: errorMsg, config };
     }
 
@@ -357,30 +364,31 @@ function render(container, config, data, context) {
 
     const placeholder = container.appendChild(document.createComment(''));
 
-    if (condition('when', this.host, config, data, context, data, placeholder)) {
+    if (condition('when', viewRenderer.host, config, queryData, context, inputData, inputDataIndex, placeholder)) {
         // immediately append a view insert point (a placeholder)
         const getData = 'data' in config
-            ? Promise.resolve().then(() => this.host.query(config.data, data, context))
-            : Promise.resolve(data);
+            ? Promise.resolve(viewRenderer.host.query(config.data, queryData, context))
+            : Promise.resolve(queryData);
 
         // resolve data and render a view when ready
         return getData
-            .then(newData =>
-                condition('whenData', this.host, config, newData, context, data, placeholder)
+            .then(outputData =>
+                condition('whenData', viewRenderer.host, config, outputData, context, inputData, inputDataIndex, placeholder)
                     ? renderDom(
-                        this.host,
+                        viewRenderer.host,
                         renderer,
                         placeholder,
                         config,
-                        this.propsFromConfig(config, newData, context),
-                        newData,
+                        viewRenderer.propsFromConfig(config, outputData, context),
+                        outputData,
                         context,
-                        data
+                        inputData,
+                        inputDataIndex
                     )
                     : null // placeholder.remove()
             )
             .catch(e => {
-                renderDom(this.host, this.defaultRenderErrorRenderer, placeholder, STUB_OBJECT, {
+                renderDom(viewRenderer.host, viewRenderer.defaultRenderErrorRenderer, placeholder, STUB_OBJECT, {
                     type: 'render',
                     reason: String(e),
                     config
@@ -512,12 +520,13 @@ export default class ViewRenderer extends Dict {
         return props;
     }
 
-    render(container, config, data, context) {
-        return render.call(
+    render(container, config, data, context, dataIndex) {
+        return render(
             this,
             container,
             this.ensureValidConfig(this.normalizeConfig(config)),
             data,
+            dataIndex,
             context
         );
     }
@@ -542,14 +551,14 @@ export default class ViewRenderer extends Dict {
         const result = Promise.all(
             data
                 .slice(offset, offset + limit)
-                .map((value, sliceIndex, slice) =>
-                    this.render(container, itemConfig, value, {
+                .map((_, sliceIndex, slice) =>
+                    this.render(container, itemConfig, data, {
                         ...context,
                         index: offset + sliceIndex,
                         array: data,
                         sliceIndex,
                         slice
-                    })
+                    }, offset + sliceIndex)
                 )
         );
 
