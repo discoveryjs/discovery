@@ -87,7 +87,14 @@ export default function(host) {
                 view: 'block',
                 when: 'demo or view',
                 className: 'usage-render',
-                postRender: (el, { onInit }) => onInit(el, 'root'),
+                postRender: (el, { onInit }, { demoFixed }) => {
+                    if (demoFixed) {
+                        el.classList.add('demo-fixed');
+                        el.style.height = demoFixed + 'px';
+                    }
+
+                    onInit(el, 'root');
+                },
                 content: {
                     view: 'render',
                     config: 'demo or view',
@@ -179,7 +186,7 @@ export default function(host) {
     return {
         view: 'block',
         className: 'discovery-view-usage',
-        data({ name, options }) {
+        data({ name, options }, context) {
             const group = [...host.view.values]
                 .filter(view => view.options.usage === options.usage)
                 .map(view => view.name);
@@ -188,7 +195,7 @@ export default function(host) {
                 group.unshift(name);
             }
 
-            return {
+            return context.viewDef = {
                 demo: { view: name, data: '"' + name + '"' },
                 ...typeof options.usage === 'function'
                     ? options.usage(name, group)
@@ -205,8 +212,7 @@ export default function(host) {
             renderDemo,
             {
                 view: 'list',
-                data: 'examples.({ ..., viewDef: @ })',
-                whenData: true,
+                data: 'examples',
                 itemConfig: {
                     className: 'usage-section'
                 },

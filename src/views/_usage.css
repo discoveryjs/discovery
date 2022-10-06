@@ -1,3 +1,6 @@
+.discovery-view-usage {
+    margin-top: 20px;
+}
 .discovery-view-usage  > .view-header:first-child {
     margin-top: 0;
 }
@@ -10,6 +13,22 @@
     border-width: 2px;
     border-radius: 3px;
 }
+.discovery-view-usage .usage-render.demo-fixed {
+    --image-preview-bg-color: rgba(119, 119, 119, 0.125);
+    margin-top: 29px; 
+    padding:
+        var(--discovery-page-padding-top)
+        var(--discovery-page-padding-right)
+        var(--discovery-page-padding-bottom)
+        var(--discovery-page-padding-left);
+    border-top-left-radius: 0;
+    background-clip: padding-box;
+    background-image:
+        linear-gradient(45deg, var(--image-preview-bg-color) 25%, transparent 0, transparent 75%, var(--image-preview-bg-color) 75%),
+        linear-gradient(45deg, var(--image-preview-bg-color) 25%, transparent 0, transparent 75%, var(--image-preview-bg-color) 75%);
+    background-position: 0 0, 10px 10px;
+    background-size: 20px 20px;
+}
 .discovery-view-usage .usage-render::before {
     content: 'DEMO';
     position: absolute;
@@ -20,6 +39,12 @@
     line-height: 1;
     background-color: rgba(170, 170, 170, 0.2);
     border-bottom-right-radius: 4px;
+}
+.discovery-view-usage .usage-render.demo-fixed::before {
+    top: -16px;
+    left: -2px;
+    padding-left: 26px;
+    border-radius: 4px 4px 0 0;
 }
 .discovery-view-usage .usage-section > .view-h2 {
     margin-top: 1.2em;
