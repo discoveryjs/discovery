@@ -122,6 +122,9 @@
 .view-source .token.variable-2 {
 	color: var(--discovery-fmt-variable-color);
 }
+.view-source .token.type {
+    color: var(--discovery-fmt-type-color);
+}
 .view-source .token.discovery-view-name {
     background-color: var(--discovery-fmt-string-highlight-color);
     box-shadow: 0 0 0 1px var(--discovery-fmt-string-highlight-color);

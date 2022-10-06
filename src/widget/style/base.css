@@ -44,6 +44,7 @@
     --discovery-fmt-keyword-color: #07a;
     --discovery-fmt-number-color: #07a;
     --discovery-fmt-atom-color: #07a;
+    --discovery-fmt-type-color: #1b965f;
     --discovery-fmt-string-color: #690;
     --discovery-fmt-string-highlight-color: rgba(35, 165, 25, 0.1);
     --discovery-fmt-comment-color: #75787b;
@@ -76,6 +77,7 @@
     --discovery-fmt-keyword-color: #0f8dc2;
     --discovery-fmt-number-color: #0f8dc2;
     --discovery-fmt-atom-color: #0f8dc2;
+    --discovery-fmt-type-color: #48bc88;
     --discovery-fmt-string-color: #7faf20;
     --discovery-fmt-string-underline-color: #85ab51;
     --discovery-fmt-string-hover-color: #97cf26;
