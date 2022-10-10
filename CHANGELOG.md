@@ -2,6 +2,12 @@
 
 - Added new options for usage sections: `demoData`, `highlight` and `highlightProps`
 - Improved the view inspector to display entire data flow transitions
+- Changes for annotations in `struct`:
+    - Accept strings and functions in `annotations` option (beside `{ query: ... }` notation)
+    - Changed `debug` option to take a string value which will be used in debug messages
+    - Added `#.context` for annotation's queries to have an access to `struct`'s context
+    - Added `tooltip` option
+    - Removed `title` option
 
 ## 1.0.0-beta.69 (29-09-2022)
 

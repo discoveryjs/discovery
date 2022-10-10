@@ -240,17 +240,35 @@ export default function(host) {
     }
 
     function applyAnnotations(el, value, options, context) {
+        if (!options.annotations.length) {
+            return;
+        }
+
         for (const annotation of options.annotations) {
             try {
                 const { query, debug } = annotation;
-                const data = host.query(query, value, context);
+                const queryContext = { ...context, context: options.context };
+                const config = host.query(query, value, queryContext);
 
                 if (debug) {
-                    console.info({ annotation, value, context, data });
+                    console.info(
+                        `Compute struct view annotation${typeof debug === 'string' ? ` "${debug}"` : ''}:`,
+                        { data: value, context: queryContext, query, queryResult: config }
+                    );
                 }
 
-                if (data) {
-                    annotationsToRender.push({ el, data });
+                if (config) {
+                    annotationsToRender.push(
+                        config.tooltip
+                            ? {
+                                el,
+                                config,
+                                renderer: options.renderer,
+                                data: value,
+                                context: queryContext
+                            }
+                            : { el, config }
+                    );
                 }
             } catch (e) {
                 console.error(e);
@@ -491,7 +509,7 @@ export default function(host) {
     // single event handler for all `struct` view instances
     host.addHostElEventListener('click', clickHandler, false);
 
-    host.view.define('struct', function(el, config, data) {
+    host.view.define('struct', function(el, config, data, context) {
         const {
             expanded,
             limit,
@@ -502,11 +520,20 @@ export default function(host) {
             maxCompactStringLength,
             maxCompactPropertyLength
         } = config;
+        const normalizedAnnotations = annotations
+            ? (host.annotations || []).concat(annotations.map(annotation =>
+                typeof annotation === 'string' || typeof annotation === 'function'
+                    ? { query: annotation }
+                    : annotation
+            ))
+            : host.annotations;
 
         const options = {
+            renderer: this,
+            context,
             limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
-            annotations: host.annotations.concat(annotations || []),
+            annotations: normalizedAnnotations,
             allowedExcessStringLength: intOption(allowedExcessStringLength, defaultAllowedExcessStringLength),
             maxStringLength: intOption(maxStringLength, defaultMaxStringLength),
             maxCompactStringLength: intOption(maxCompactStringLength, defaultCompactStringLength),

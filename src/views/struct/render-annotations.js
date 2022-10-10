@@ -3,25 +3,25 @@ import { createElement } from '../../core/utils/dom.js';
 const styles = ['none', 'default', 'badge'];
 
 export default function renderAnnotations(annotations) {
-    const startTime = Date.now();
+    const renderUntil = Date.now() + 8; // render as much annotations as possible in 8 ms
     let i = 0;
 
     for (; i < annotations.length; i++) {
-        if (i % 20 === 0 && Date.now() - startTime > 10) {
+        if (Date.now() > renderUntil) {
             break;
         }
 
-        const { el, data } = annotations[i];
+        const { el, config, renderer, data, context } = annotations[i];
         const {
             place = 'after',
             className,
-            text = typeof data !== 'object' ? String(data) : '',
-            title,
+            text = typeof config !== 'object' ? String(config) : '',
             icon,
             href,
-            external
-        } = data;
-        const style = styles.includes(data.style) ? data.style : (place === 'before' ? 'none' : 'default');
+            external,
+            tooltip
+        } = config;
+        const style = styles.includes(config.style) ? config.style : (place === 'before' ? 'none' : 'default');
         const hasText = text !== '';
         const elClassName = [
             'value-annotation',
@@ -33,10 +33,9 @@ export default function renderAnnotations(annotations) {
 
         const annotationEl = createElement(href ? 'a' : 'span', {
             class: elClassName,
-            title,
             href,
             target: external ? '_blank' : undefined
-        }, text !== '' ? [text] : undefined);
+        }, hasText ? [text] : undefined);
 
         if (icon) {
             annotationEl.classList.add('icon');
@@ -46,6 +45,10 @@ export default function renderAnnotations(annotations) {
             } else {
                 annotationEl.style.setProperty('--annotation-image', `url("${icon}")`);
             }
+        }
+
+        if (tooltip) {
+            renderer.tooltip(annotationEl, tooltip, data, { ...context, config });
         }
 
         if (place === 'before') {
