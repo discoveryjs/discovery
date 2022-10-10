@@ -60,7 +60,7 @@
     margin-left: 6px;
 }
 .discovery-inspect-details-popup .content-section.config .view-tree-leaf-content > .view-struct {
-    margin: -4px;
+    margin: -4px 0 -4px -4px;
 }
 .discovery-inspect-details-popup .content-section.data {
     --header: 'Data';
