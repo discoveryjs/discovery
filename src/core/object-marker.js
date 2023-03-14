@@ -226,7 +226,7 @@ export default class ObjectMarker extends Dict {
 
         return null;
     }
-    resolveAll(value) {
+    lookupAll(value) {
         const markers = [];
 
         for (const { lookup } of this.values) {
@@ -237,6 +237,6 @@ export default class ObjectMarker extends Dict {
             }
         }
 
-        return null;
+        return markers;
     }
 }
