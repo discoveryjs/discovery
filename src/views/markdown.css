@@ -10,7 +10,8 @@
 .view-markdown :is(p, blockquote, ul, ol, dl, table, pre):not(:first-child) {
     margin-top: 15px;
 }
-.view-markdown :is(ul, ol) + :is(ul, ol) {
+.view-markdown :is(ul, ol) + :is(ul, ol),
+.view-markdown li > :is(ul, ol) {
     margin-top: 0 !important;
 }
 

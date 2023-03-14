@@ -1,6 +1,7 @@
 ## next
 
 - Fixed `markerAll()` jora helper
+- Tweaked nested list styles in `markdown` view
 
 ## 1.0.0-beta.70 (10-10-2022)
 
