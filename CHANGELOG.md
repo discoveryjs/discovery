@@ -1,6 +1,9 @@
 ## next
 
 - Fixed `markerAll()` jora helper
+- Fixed `upload` options setting.
+- Added `setup()` method for `upload` extension to specify custom settings
+- Added `#.actions.uploadFile.dragdrop` to indicate drag&drop file supported or not (provided by `upload` extension)
 - Tweaked nested list styles in `markdown` view
 
 ## 1.0.0-beta.70 (10-10-2022)

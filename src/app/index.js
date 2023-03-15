@@ -33,7 +33,7 @@ export default class App extends Widget {
         }
 
         if (coalesceOption(options.upload, false)) {
-            extensions.push(upload);
+            extensions.push(upload.setup(options.upload));
             extensions.push(navButtons.loadData);
         }
 
@@ -45,7 +45,6 @@ export default class App extends Widget {
             container: document.body,
             ...options,
             extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
-            upload: Boolean(options.upload),
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
