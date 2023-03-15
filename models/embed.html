@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<div id="layout">
+    <div id="toolbar">
+        <div id="upload-buttons">
+            <button data-value="raw">Raw</button>
+            <button data-value="file">From file</button>
+            <button data-value="url">From URL</button>
+        </div>
+        <button id="unload-data">Unload data</button>
+        <div id="location-nav">
+            <button data-page-id="default">Index page</button>
+            <button data-page-id="report">Make report</button>
+            <div id="location"></div>
+        </div>
+        <div id="darkmode-buttons">
+            <button data-value="light">Light</button>
+            <button data-value="dark">Dark</button>
+            <button data-value="auto">Auto</button>
+        </div>
+    </div>
+    <iframe id="discoveryApp" src="http://localhost:888/" style="width:100%;height:calc(100vh - 3.2em);background:#fff;border:none"></iframe>
+    <div id="logs"></div>
+</div>
+<script type="module">
+    import { connectToEmbedApp } from "./embed-host.js";
+    
+    connectToEmbedApp($('#discoveryApp'), (app) => {
+        app.pageHash.subscribeSync((hash) =>
+            $('#location').textContent = hash || '<empty string>'
+        );
+        app.pageId.subscribeSync((pageId) =>
+            $('#location-nav').dataset.pageId = pageId
+        );
+        app.on('pageHashChanged', (pageHash, replace) => {
+            logMsg('Change location to', { replace, pageHash });
+        });
+
+        app.darkmode.subscribeSync(({ value }) => {
+            $('#darkmode-buttons').dataset.value = value;
+        });
+        app.on('darkmodeChanged', (data) => {
+            logMsg('Change darkmode to', data);
+        });
+
+        $('#darkmode-buttons').addEventListener('click', onDarkmodeClick);
+        $('#upload-buttons').addEventListener('click', onDataUpload);
+        $('#location-nav').addEventListener('click', onPageNav);
+        $('#unload-data').addEventListener('click', app.unloadData);
+
+        $('#layout').classList.add('ready');
+        logMsg('App connected');
+
+        app.nav.primary.append({
+            data: { text: 'alert!' },
+            onClick: () => logMsg('Command "alert!" from nav') || setTimeout(() => alert('hello world!'))
+        });
+        app.nav.secondary.before('inspect', {
+            name: 'before',
+            data: '{ text: "test: goto wiki", href: "https://www.wikipedia.org/" }'
+            
+        });
+        app.nav.menu.insert({
+            view: 'block',
+            className: 'toggle-menu-item',
+            content: [
+                'text:"Test complex: "',
+                {
+                    view: 'link',
+                    content: 'text:"One"',
+                    onClick: () => {
+                        logMsg('Command "One" from nav menu');
+                        alert('One!');
+                    }
+                },
+                'text:" "',
+                {
+                    view: 'link',
+                    content: 'text:"Two"',
+                    onClick: () => {
+                        logMsg('Command "Two" from nav menu');
+                        alert('Two!');
+                    }
+                }
+            ]
+        }, 1);
+
+        return () => {
+            $('#darkmode-buttons').removeEventListener('click', onDarkmodeClick);
+            $('#upload-buttons').removeEventListener('click', onDataUpload);
+            $('#location-nav').removeEventListener('click', onPageNav);
+            $('#unload-data').removeEventListener('click', app.unloadData);
+            $('#layout').classList.remove('ready');
+            logMsg('App disconnected');
+        };
+
+        function onDarkmodeClick({ target }) {
+            if (target.parentNode === $('#darkmode-buttons')) {
+                app.setDarkmode(target.dataset.value);
+            }
+        }
+
+        function onDataUpload({ target }) {
+            switch (target.dataset.value) {
+                case 'raw':
+                    app.loadData(() => JSON.stringify({ test: 'raw' }));
+                    break;
+
+                case 'file': {
+                    const fileInput = document.createElement('input');
+
+                    fileInput.setAttribute('type', 'file');
+                    fileInput.addEventListener('change', event => {
+                        const file = event.target.files[0];
+                        app.loadData(() => file.stream());
+                    });
+                    fileInput.click();
+
+                    break;
+                }
+
+                case 'url':
+                    app.loadData(() => fetch('data:text/plain,{"test":"url"}'))
+                    break;
+            }
+        }
+
+        function onPageNav({ target }) {
+            const pageId = target.dataset.pageId;
+
+            if (pageId) {
+                app.setPage(pageId);
+            }
+        }
+    });
+
+    function $(selector) {
+        return document.querySelector(selector);
+    }
+    function d2(num) {
+        return String(num).padStart(2, '0');
+    }
+    function logMsg(msg, ...args) {
+        const time = new Date();
+        const itemEl = document.createElement('div');
+        itemEl.className = 'msg';
+        itemEl.textContent = [msg, ...args.map(value => JSON.stringify(value))].join(' ');
+        itemEl.dataset.time = `${time.toLocaleTimeString()}.${String(time % 1000).padStart(3, 0)}`;
+
+        $('#logs').append(itemEl);
+        $('#logs').scrollTop = 1e6;
+    }
+</script>
+<style>
+    html,
+    body {
+        padding: 0;
+        margin: 0;
+        font-family: Helvetica, sans-serif;
+        background-color: #4158D0;
+        background-image: linear-gradient(50deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+    }
+    #layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    #layout::before {
+        content: 'Discovery.js app is not connected';
+        position: absolute;
+        font-size: 12px;
+        top: 32px;
+        left: 50%;
+        color: #222;
+        transform: translateX(-50%);
+        padding: 2px 8px;
+        border-radius: 2px;
+        background-color: #fff6;
+        opacity: 0;
+        transition: ease-out .5s;
+        transition-property: opacity;
+    }
+    #layout:not(.ready)::before {
+        top: 6px;
+        opacity: .8;
+        transition: ease-in-out .35s .25s;
+        transition-property: opacity, top;
+    }
+    #toolbar {
+        display: flex;
+        padding: 4px;
+        gap: 4px;
+        opacity: 1;
+        transition: ease-in .25s .1s;
+        transition-property: opacity, visibility;
+    }
+    #layout:not(.ready) #toolbar {
+        pointer-events: none;
+        visibility: hidden;
+        opacity: 0;
+        transition-delay: .25s;
+    }
+    #darkmode-buttons {
+        display: flex;
+        gap: 1px;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    #darkmode-buttons button {
+        border: none;
+        box-sizing: border-box;
+        opacity: .65;
+        cursor: pointer;
+        padding: 0 8px;
+        font-size: 12px;
+    }
+    #darkmode-buttons button:hover {
+        opacity: .85;
+    }
+    #darkmode-buttons[data-value="light"] > [data-value="light"],
+    #darkmode-buttons[data-value="dark"] > [data-value="dark"],
+    #darkmode-buttons[data-value="auto"] > [data-value="auto"] {
+        background: white;
+        opacity: 1;
+        cursor: default;
+    }
+
+    #location-nav {
+        flex: 1;
+        display: flex;
+        gap: 1px;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    #location-nav[data-page-id="default"] > [data-page-id="default"],
+    #location-nav[data-page-id="report"] > [data-page-id="report"] {
+        display: none;
+    }
+    #location-nav button {
+        border: none;
+        box-sizing: border-box;
+        background-color: #fffa;
+        cursor: pointer;
+        padding: 0 8px;
+        font-size: 12px;
+    }
+    #location-nav button:hover {
+        background-color: #fffd;
+    }
+    #location {
+        flex: 1;
+        overflow: hidden;
+        padding: 4px;
+        font-size: 12px;
+        background-color: #fffc;
+        background-clip: padding-box;
+    }
+    #location::before {
+        content: 'pageHash:';
+        color: #666;
+        padding-right: .5ex;
+    }
+
+    #upload-buttons {
+        display: flex;
+        gap: 1px;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    /* #upload-buttons::before {
+        content: 'Upload data:';
+        color: #333;
+        padding-right: .5ex;
+        font-size: 12px;
+    } */
+    #upload-buttons button,
+    #unload-data {
+        border: none;
+        background-color: #fffa;
+        font-size: 12px;
+        padding: 0 8px;
+        cursor: pointer;
+    }
+    #unload-data {
+        border-radius: 3px;
+    }
+    #upload-buttons button:hover,
+    #unload-data:hover {
+        background-color: #fffd;
+    }
+
+    #discoveryApp {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    #logs {
+        max-height: 25%;
+        font-size: 12px;
+        overflow: auto;
+        background-color: #fffa;
+        padding: 1px;
+    }
+    #logs .msg {
+        padding: 4px 8px;
+        background-color: #fff8;
+        margin-bottom: 1px;
+        border-left: 3px solid #8e2f467d;
+    }
+    #logs .msg::before {
+        content: attr(data-time);
+        margin-right: 1ex;
+        opacity: .5;
+        font-size: 11px;
+    }
+</style>

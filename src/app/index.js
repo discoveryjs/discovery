@@ -2,6 +2,7 @@
 
 import Widget from '../widget/index.js';
 import upload from '../extensions/upload.js';
+import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import { createElement } from '../core/utils/dom.js';
 import { escapeHtml } from '../core/utils/html.js';
@@ -35,6 +36,10 @@ export default class App extends Widget {
         if (coalesceOption(options.upload, false)) {
             extensions.push(upload.setup(options.upload));
             extensions.push(navButtons.loadData);
+        }
+
+        if (coalesceOption(options.embed, false)) {
+            extensions.push(embed);
         }
 
         if (coalesceOption(options.inspector, true)) {

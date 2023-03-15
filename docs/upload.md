@@ -3,7 +3,7 @@
 To enable upload data feature:
 
 ```js
-import { App, Widget, upload, navButtons } from '@discovery/discovery';
+import { App, Widget, upload, navButtons } from '@discoveryjs/discovery';
 
 // App
 const myapp = new App({ upload: true }); // or the same as for Widget
@@ -52,7 +52,7 @@ To specify custom settings:
 
 
 ```js
-import { App, Widget, upload, navButtons } from '@discovery/discovery';
+import { App, Widget, upload, navButtons } from '@discoveryjs/discovery';
 
 // App
 const myapp = new App({ upload: { /* options */ } }); // or the same as for Widget

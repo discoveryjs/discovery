@@ -199,19 +199,17 @@ export function loadDataFromUrl(url, options) {
 
 export function loadDataFromPush(size, createdAt) {
     let controller;
+    const stream = new ReadableStream({
+        start(controller_) {
+            controller = controller_;
+        },
+        cancel() {
+            controller = null;
+        }
+    });
 
     return loadDataFromStream(
-        () => ({
-            size,
-            stream: new ReadableStream({
-                start(controller_) {
-                    controller = controller_;
-                },
-                cancel() {
-                    controller = null;
-                }
-            })
-        }),
+        () => ({ size, stream }),
         data => ({
             data: data.data,
             context: {
