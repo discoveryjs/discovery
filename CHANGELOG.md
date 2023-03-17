@@ -7,6 +7,7 @@
 - Tweaked nested list styles in `markdown` view
 - Fixed applying twice the extensions passed via `App`'s options
 - Added `startLoadData`, `startSetData` and `unloadData` events
+- Changed `Progressbar` to be inherited from `Publisher`
 
 ## 1.0.0-beta.70 (10-10-2022)
 

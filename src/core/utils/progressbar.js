@@ -1,3 +1,4 @@
+import Publisher from '../publisher.js';
 import { createElement } from './dom.js';
 
 export const loadStages = {
@@ -43,11 +44,51 @@ const letRepaintIfNeeded = async () => {
     }
 };
 
-export default class Progressbar {
+export function decodeStageProgress(stage, progress) {
+    const { value, title: stageTitle, duration } = loadStages[stage];
+    let progressValue = 0;
+    let progressText = null;
+
+    if (progress) {
+        const {
+            done,
+            elapsed,
+            units,
+            completed,
+            total
+        } = progress;
+
+        if (total) {
+            progressValue = done ? 1.0 : completed / total;
+            progressText = units === 'bytes'
+                ? Math.round(progressValue * 100) + '%'
+                : `${completed}/${total}`;
+        } else {
+            progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
+            progressText = units === 'bytes'
+                ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
+                : completed;
+        }
+    }
+
+    return {
+        stageTitle,
+        progressValue: value + progressValue * duration,
+        progressText,
+        title: progressText
+            ? `${stageTitle} (${progressText})...`
+            : stage !== 'done'
+                ? `${stageTitle}...`
+                : stageTitle
+    };
+}
+
+export default class Progressbar extends Publisher {
     constructor({ onTiming, onFinish, delay, domReady }) {
+        super({ stage: null, progress: null, error: null });
         this.finished = false;
         this.awaitRepaint = null;
-        this.lastStage = null;
+        this.lastStage = 'created';
         this.lastStageStart = null;
         this.timings = [];
         this.onTiming = ensureFunction(onTiming);
@@ -80,17 +121,25 @@ export default class Progressbar {
     async setState(state) {
         const { stage, progress, error } = state;
 
-        if (error || this.finished) {
+        if (this.finished) {
             return;
         }
 
-        const { value, title, duration } = loadStages[stage];
+        if (error) {
+            this.set(
+                'stage' in state
+                    ? { stage, progress, error }
+                    : { ...this.value, error }
+            );
+            return;
+        }
+
+        this.set(state);
+
         const stageChanged = stage !== this.lastStage;
         const now = performance.now();
-        let progressValue = 0;
-        let progressLabel;
 
-        if (!this.lastStage) {
+        if (this.lastStage === 'created') {
             this.startTime = now;
             this.domReady.then(() => {
                 const appearanceDelay = Math.max(0, this.appearanceDelay - int(performance.now() - now));
@@ -118,34 +167,10 @@ export default class Progressbar {
             this.awaitRepaint = now;
         }
 
-        if (progress) {
-            const {
-                done,
-                elapsed,
-                units,
-                completed,
-                total
-            } = progress;
+        const { title, progressValue } = decodeStageProgress(stage, progress);
 
-            if (total) {
-                progressValue = done ? 1.0 : completed / total;
-                progressLabel = units === 'bytes'
-                    ? Math.round(progressValue * 100) + '%'
-                    : `${completed}/${total}`;
-            } else {
-                progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
-                progressLabel = units === 'bytes'
-                    ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
-                    : completed;
-            }
-        }
-
-        this.el.style.setProperty('--progress', value + progressValue * duration);
-        this.el.querySelector('.title').textContent = progressLabel
-            ? `${title} (${progressLabel})...`
-            : stage !== 'done'
-                ? `${title}...`
-                : title;
+        this.el.querySelector('.title').textContent = title;
+        this.el.style.setProperty('--progress', progressValue);
 
         if (stageChanged || (now - this.awaitRepaint > 65 && now - this.lastStageStart > 200)) {
             await letRepaintIfNeeded();
@@ -166,6 +191,7 @@ export default class Progressbar {
 
             this.recordTiming('done', this.startTime);
             this.onFinish(this.timings);
+            this.set({ stage: 'done' });
         }
     }
 

@@ -87,7 +87,6 @@ export default class App extends Widget {
                 loadingOverlayEl.classList.add('error');
                 loadingOverlayEl.innerHTML = '';
 
-                console.error(error);
                 this.view.render(loadingOverlayEl, [
                     {
                         view: 'block',
@@ -113,15 +112,12 @@ export default class App extends Widget {
                         ]
                     }
                 ], {
-                    options: this.options,
                     errorText: escapeHtml(error.message || String(error)),
                     errorStack: error.stack ? escapeHtml(error.stack).replace(/^Error:\s*(\S+Error:)/, '$1') : ''
                 }, {
                     actions: this.actions
                 }).then(() => {
-                    if (progressbar?.onErrorRender) {
-                        progressbar.onErrorRender(error, loadingOverlayEl);
-                    }
+                    progressbar?.setState({ error });
                 });
 
                 break;
