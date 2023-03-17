@@ -164,6 +164,7 @@ export default class App extends Widget {
         const progressbar = this.progressbar({ title: loader.title });
 
         this.setLoadingState('init', { progressbar });
+        this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
 
         syncLoaderWithProgressbar(loader, progressbar).then(
             ({ data, context }) => this.setDataProgress(data, context, progressbar),

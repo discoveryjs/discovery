@@ -191,7 +191,9 @@ export default class Widget extends Emitter {
         return setDataPromise;
     }
 
-    async setDataProgress(data, context, progressbar = { setState() {}, finish() {} }) {
+    async setDataProgress(data, context, progressbar = { setState() {}, subscribeSync() {}, finish() {} }) {
+        this.emit('startSetData', progressbar.subscribeSync.bind(progressbar));
+
         // set new data & context
         await progressbar.setState({ stage: 'prepare' });
         await this.setData(data, context, { render: false });
@@ -219,6 +221,8 @@ export default class Widget extends Emitter {
 
         this.scheduleRender('sidebar');
         this.scheduleRender('page');
+
+        this.emit('unloadData');
     }
 
     // TODO: remove
