@@ -49,7 +49,7 @@ export default class App extends Widget {
         super({
             container: document.body,
             ...options,
-            extensions: options.extensions ? extensions.concat(options.extensions) : extensions,
+            extensions,
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
