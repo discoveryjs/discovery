@@ -23,7 +23,7 @@ export default function(host, updateParams) {
     let lastQuery = {};
 
     let queryEditorLiveEditEl;
-    const getQuerySuggestions = (query, offset) => host.querySuggestions(query, offset, host.data, host.context);
+    const getQuerySuggestions = (query, offset, data, context) => console.log(query, offset, data, context) || host.querySuggestions(query, offset, data, context);
     const queryEditor = new host.view.QueryEditor(getQuerySuggestions).on('change', value =>
         queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
     );
@@ -83,7 +83,7 @@ export default function(host, updateParams) {
             let results;
 
             // update editor
-            queryEditor.setValue(pageQuery);
+            queryEditor.setValue(pageQuery, data, queryContext);
 
             // perform data query
             if (lastQuery.query === pageQuery && lastQuery.data === data && lastQuery.context === queryContext) {

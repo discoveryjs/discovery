@@ -108,11 +108,13 @@ class Editor extends Emitter {
 
 class QueryEditor extends Editor {
     constructor(getSuggestions) {
-        super({ mode: 'discovery-query', hint: function(cm) {
+        super({ mode: 'discovery-query', hint: (cm) => {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),
-                cm.doc.indexFromPos(cursor)
+                cm.doc.indexFromPos(cursor),
+                this.queryData,
+                this.queryContext
             );
 
             if (!suggestions) {
@@ -131,6 +133,11 @@ class QueryEditor extends Editor {
                 })
             };
         } });
+    }
+    setValue(value, data, context) {
+        this.queryData = data;
+        this.queryContext = context;
+        super.setValue(value);
     }
 }
 

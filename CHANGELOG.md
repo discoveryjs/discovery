@@ -11,6 +11,7 @@
 - Fixed applying twice the extensions passed via `App`'s options
 - Added `startLoadData`, `startSetData` and `unloadData` events
 - Changed `Progressbar` to be inherited from `Publisher`
+- Fixed suggestions for context value (`#`) in report's query editor
 
 ## 1.0.0-beta.70 (10-10-2022)
 
