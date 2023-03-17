@@ -289,6 +289,7 @@ export default class Widget extends Emitter {
             }
 
             let key;
+            let value = entry.value;
             switch (entry.key.type) {
                 case 'Literal':
                     key = entry.key.value;
@@ -296,12 +297,12 @@ export default class Widget extends Emitter {
 
                 case 'Identifier':
                     key = entry.key.name;
-                    entry.value = entry.value || entry.key;
+                    value ||= entry.key;
                     break;
 
                 case 'Reference':
                     key = entry.key.name.name;
-                    entry.value = entry.value || entry.key;
+                    value ||= entry.key;
                     break;
 
                 default:
@@ -318,15 +319,15 @@ export default class Widget extends Emitter {
                 // When value is a literal there is no need to compute them using a query,
                 // so add such values to the config as is. However, this doesn't work for string values
                 // since it will be treated as a query
-                config[key] = entry.value.type === 'Literal' && typeof entry.value.value !== 'string'
-                    ? entry.value.value
-                    : jora.syntax.stringify(entry.value);
+                config[key] = value.type === 'Literal' && typeof value.value !== 'string'
+                    ? value.value
+                    : jora.syntax.stringify(value);
             } else {
                 // We can use literal values as is excluding strings which start with '=',
                 // since it's an indicator that the string is a query
-                config[key] = entry.value.type === 'Literal' && (typeof entry.value.value !== 'string' || entry.value.value[0] !== '=')
-                    ? entry.value.value
-                    : '=' + jora.syntax.stringify(entry.value);
+                config[key] = value.type === 'Literal' && (typeof value.value !== 'string' || value.value[0] !== '=')
+                    ? value.value
+                    : '=' + jora.syntax.stringify(value);
             }
         }
 
