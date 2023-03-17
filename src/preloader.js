@@ -2,6 +2,7 @@ import Progressbar from './core/utils/progressbar.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
 import { applyContainerStyles } from './core/utils/container-styles.js';
 import injectStyles from './core/utils/inject-styles.js';
+import { randomId } from './core/utils/id.js';
 
 function createProgressbar(domReady, title) {
     return new Progressbar({
@@ -13,26 +14,26 @@ function createProgressbar(domReady, title) {
     });
 }
 
-export function preloader(config) {
-    config = config || {};
+export function preloader(options) {
+    options = options || {};
 
-    const container = config.container || document.body;
+    const container = options.container || document.body;
     const el = document.createElement('div');
     const shadowRoot = el.attachShadow({ mode: 'open' });
 
-    if (config.dataSource && !dataSource.hasOwnProperty(config.dataSource)) {
-        throw new Error(`dataSource "${config.dataSource}" is not supported`);
+    if (options.dataSource && !dataSource.hasOwnProperty(options.dataSource)) {
+        throw new Error(`dataSource "${options.dataSource}" is not supported`);
     }
 
-    const darkmode = applyContainerStyles(container, config);
+    const darkmode = applyContainerStyles(container, options);
 
     if (darkmode) {
         el.setAttribute('darkmode', '');
     }
 
-    const loadData = dataSource[config.dataSource || 'url'];
-    const loading = config.data
-        ? config.dataSource === 'push' ? loadData() : loadData(config.data, config.loadDataOptions)
+    const loadData = dataSource[options.dataSource || 'url'];
+    const loading = options.data
+        ? options.dataSource === 'push' ? loadData() : loadData(options.data, options.loadDataOptions)
         : {
             result: Promise.resolve({})
         };
@@ -47,8 +48,9 @@ export function preloader(config) {
         };
     }
 
-    const domReady = injectStyles(shadowRoot, config.styles);
-    const progressbar = config.progressbar || createProgressbar(domReady, loading.title);
+    const domReady = injectStyles(shadowRoot, options.styles);
+    const progressbar = options.progressbar || createProgressbar(domReady, loading.title);
+    const disposeEmbed = options.embed ? initPreloadEmbedApi(loading) : () => {};
 
     if (loading.state) {
         syncLoaderWithProgressbar(loading, progressbar);
@@ -59,6 +61,74 @@ export function preloader(config) {
 
     return Object.assign(
         loading.result,
-        { el, shadowRoot, progressbar }
+        { el, shadowRoot, progressbar, disposeEmbed }
     );
+}
+
+function initPreloadEmbedApi(loading) {
+    const hostId = randomId();
+    const parentWindow = window.parent;
+    const postponeMessages = [];
+    const sendMessage = (type, payload = null) => {
+        // console.log('[post-message]', type, payload);
+        parentWindow.postMessage({
+            from: 'discoveryjs-app',
+            id: hostId,
+            type,
+            payload
+        }, '*');
+    };
+
+    const sendDestroyMessage = () => sendMessage('destroy');
+    const processIncomingMessage = (event) => {
+        const { id, type } = event.data || {};
+
+        if (id === hostId) {
+            switch (type) {
+                // case 'name': {
+                //     postponeMessages.push(event.data);
+                //     break;
+                // }
+
+                default:
+                    console.error(`[Discovery/loader] Unknown preload message type "${type}"`);
+            }
+        }
+    };
+
+    // if no parent then host's document doesn't embeded into another document (e.g. <iframe>)
+    if (parentWindow === window) {
+        return;
+    }
+
+    addEventListener('message', processIncomingMessage, false);
+    addEventListener('unload', sendDestroyMessage, false);
+    sendMessage('preinit', {
+        page: {
+            hash: location.hash || '#'
+        }
+    });
+
+    const unsubscribeLoading = loading.state
+        ? loading.state.subscribeSync(({ stage, progress, error }) => {
+            if (error || stage === 'received') {
+                unsubscribeLoading();
+            }
+
+            return sendMessage('loadingState', { stage, progress, error });
+        })
+        : () => {};
+
+    return () => {
+        removeEventListener('message', processIncomingMessage, false);
+        removeEventListener('unload', sendDestroyMessage, false);
+
+        unsubscribeLoading();
+        sendDestroyMessage();
+
+        return {
+            hostId,
+            postponeMessages
+        };
+    };
 }

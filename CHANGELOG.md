@@ -4,6 +4,9 @@
 - Fixed `upload` options setting.
 - Added `setup()` method for `upload` extension to specify custom settings
 - Added `#.actions.uploadFile.dragdrop` to indicate drag&drop file supported or not (provided by `upload` extension)
+- Added `embed` extension to provide a communication with a host in case when an app is loaded into iframe
+- Added `dist/discovery-embed-host.js` a ESM module which provides an API to communicate with an app loaded into a sandbox (iframe)
+- Added `embed` support for preloader
 - Tweaked nested list styles in `markdown` view
 - Fixed applying twice the extensions passed via `App`'s options
 - Added `startLoadData`, `startSetData` and `unloadData` events

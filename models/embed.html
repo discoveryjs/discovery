@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
 <div id="layout">
+    <div id="pulse"></div>
+    <div id="preloader-toolbar">
+        <div id="preloader-data-loading-state">
+            <span class="title"></span>
+            <span class="progressbar"></span>
+        </div>
+    </div>
     <div id="toolbar">
         <div id="upload-buttons">
             <button data-value="raw">Raw</button>
@@ -19,13 +26,30 @@
             <button data-value="auto">Auto</button>
         </div>
     </div>
-    <iframe id="discoveryApp" src="http://localhost:888/" style="width:100%;height:calc(100vh - 3.2em);background:#fff;border:none"></iframe>
+    <iframe id="discoveryApp" src="http://localhost:8123"></iframe>
     <div id="logs"></div>
 </div>
 <script type="module">
-    import { connectToEmbedApp } from "./embed-host.js";
+    import { connectToEmbedApp, decodeStageProgress } from "./embed-host.js";
     
-    connectToEmbedApp($('#discoveryApp'), (app) => {
+    connectToEmbedApp($('#discoveryApp'), (preloader) => {
+        $('#layout').classList.add('preloader');
+        logMsg('App preloader connected');
+
+        preloader.on('loadingStateChanged', ({ stage, progress }) => {
+            const { title, progressValue } = decodeStageProgress(stage, progress);
+
+            $('#preloader-data-loading-state .title').textContent = title;
+            $('#preloader-data-loading-state .progressbar').classList.toggle('visible', true);
+            $('#preloader-data-loading-state .progressbar').style.setProperty('--progress', progressValue);
+            logMsg('Loading data state', { stage, progress });
+        });
+
+        return () => {
+            $('#layout').classList.remove('preloader');
+            logMsg('App preloader disconnected');
+        }
+    }, (app) => {
         app.pageHash.subscribeSync((hash) =>
             $('#location').textContent = hash || '<empty string>'
         );
@@ -43,13 +67,18 @@
             logMsg('Change darkmode to', data);
         });
 
+        app.on('data', () => logMsg('Set new data'));
+        app.on('unloadData', () => logMsg('Data unloaded'));
+        app.on('loadingStateChanged', (state) => logMsg('Loading data state', state));
+
         $('#darkmode-buttons').addEventListener('click', onDarkmodeClick);
         $('#upload-buttons').addEventListener('click', onDataUpload);
         $('#location-nav').addEventListener('click', onPageNav);
         $('#unload-data').addEventListener('click', app.unloadData);
 
-        $('#layout').classList.add('ready');
+        // $('#layout').classList.add('ready');
         logMsg('App connected');
+        $('#layout').classList.add('ready');
 
         app.nav.primary.append({
             data: { text: 'alert!' },
@@ -160,10 +189,33 @@
         background-color: #4158D0;
         background-image: linear-gradient(50deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
     }
+
+    @keyframes foo {
+        0% { top: 0px }
+        100% { top: calc(100% - 10vh) }
+    }
+    #pulse {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 3px;
+    }
+    #pulse::before {
+        content: '';
+        position: absolute;
+        display: block;
+        background: black;
+        width: 100%;
+        height: 10vh;
+        animation: infinite alternate linear 2s foo;
+    }
+
     #layout {
         display: flex;
         flex-direction: column;
         height: 100vh;
+        margin-left: 3px;
     }
     #layout::before {
         content: 'Discovery.js app is not connected';
@@ -180,12 +232,21 @@
         transition: ease-out .5s;
         transition-property: opacity;
     }
-    #layout:not(.ready)::before {
+
+    #discoveryApp {
+        width: 100%;
+        height: calc(100vh - 3.2em);
+        background: #fff;
+        border: none;
+    }
+
+    #layout:not(.preloader, .ready)::before {
         top: 6px;
         opacity: .8;
         transition: ease-in-out .35s .25s;
         transition-property: opacity, top;
     }
+    #preloader-toolbar,
     #toolbar {
         display: flex;
         padding: 4px;
@@ -194,12 +255,56 @@
         transition: ease-in .25s .1s;
         transition-property: opacity, visibility;
     }
+    #toolbar {
+        position: relative;
+        z-index: 1;
+    }
+    #preloader-toolbar {
+        position: absolute;
+    }
+    #layout:not(.preloader) #preloader-toolbar,
     #layout:not(.ready) #toolbar {
         pointer-events: none;
         visibility: hidden;
         opacity: 0;
         transition-delay: .25s;
     }
+    #layout:not(.preloader) #preloader-toolbar {
+        transition-delay: 0s;
+    }
+
+    #preloader-data-loading-state {
+        position: relative;
+        width: 260px;
+        box-sizing: border-box;
+        padding: 0 2px 7px;
+        font-size: 13px;
+        color: #fffb;
+    }
+    #preloader-data-loading-state .progressbar {
+        display: inline-block;
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        min-width: 300px;
+        height: 3px;
+        background: rgba(0, 0, 0, .1);
+        background: white;
+        opacity: 0;
+    }
+    #preloader-data-loading-state .progressbar.visible {
+        opacity: 1;
+    }
+    #preloader-data-loading-state .progressbar::before {
+        content: '';
+        position: absolute;
+        background: #6f259599;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: calc(100% * (1 - var(--progress)));
+    }
+
     #darkmode-buttons {
         display: flex;
         gap: 1px;
@@ -298,12 +403,12 @@
         max-height: 25%;
         font-size: 12px;
         overflow: auto;
-        background-color: #fffa;
         padding: 1px;
+        background-color: #fff6;
     }
     #logs .msg {
         padding: 4px 8px;
-        background-color: #fff8;
+        background-color: #fff6;
         margin-bottom: 1px;
         border-left: 3px solid #8e2f467d;
     }
