@@ -1,7 +1,7 @@
 import { createElement } from '../core/utils/dom.js';
 
-// export a factory which creates handler with default settings
-export default Object.assign(() => setup(), { setup });
+// export an integration with default settings
+export default Object.assign(setup(), { setup });
 
 const isExtension = (value) => /^\./.test(value);
 
