@@ -12,6 +12,11 @@
 - Added `startLoadData`, `startSetData` and `unloadData` events
 - Changed `Progressbar` to be inherited from `Publisher`
 - Fixed suggestions for context value (`#`) in report's query editor
+- Removed obsoleted methods:
+    - `Widget#addEntityResolver()`
+    - `Widget#addValueLinkResolver()`
+    - `Widget#addBadge()`
+    - `Widget#addQueryHelpers()`
 
 ## 1.0.0-beta.70 (10-10-2022)
 

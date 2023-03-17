@@ -225,17 +225,7 @@ export default class Widget extends Emitter {
         this.emit('unloadData');
     }
 
-    // TODO: remove
-    addEntityResolver() {
-        console.error('[Discovery] "Widget#addEntityResolver()" method was removed, use "defineObjectMarker()" instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker(...)))');
-    }
-
-    // TODO: remove
-    addValueLinkResolver() {
-        console.error('[Discovery] "Widget#addValueLinkResolver()" method was removed, use "defineObjectMarker()" with "page" option instead, i.e. setPrepare((data, { defineObjectMarker }) => objects.forEach(defineObjectMarker("marker-name", { ..., page: "page-name" })))');
-    }
-
-    // The method is overridden by createDataExtensionApi().apply()
+    // The method is overriding by createDataExtensionApi().apply()
     resolveValueLinks() {
         return null;
     }
@@ -356,11 +346,6 @@ export default class Widget extends Emitter {
         };
     }
 
-    // TODO: remove
-    addQueryHelpers() {
-        console.error('[Discovery] "Widget#addQueryHelpers()" method was removed, use "addQueryHelpers()" instead, i.e. setPrepare((data, { addQueryHelpers }) => addQueryHelpers(...))');
-    }
-
     //
     // UI
     //
@@ -423,10 +408,6 @@ export default class Widget extends Emitter {
 
         el.addEventListener(eventName, handler, options);
         return () => el.removeEventListener(eventName, handler, options);
-    }
-
-    addBadge() {
-        console.error('Widget#addBadge() is obsoleted, use Widget#nav API instead');
     }
 
     //
