@@ -1,7 +1,7 @@
 .view-menu-item {
     display: block;
     padding: 4px 12px;
-    color: var(--discovery-color);
+    color: inherit;
     text-decoration: none;
     cursor: pointer;
 }

@@ -25,5 +25,5 @@
 }
 
 .discovery-root-darkmode .view-nav-button {
-    color: var(--discovery-color);
+    color: inherit;
 }

@@ -9,6 +9,9 @@
     border: 1px solid rgba(176, 176, 176, 0.65);
     box-shadow: 3px 3px 18px rgba(0, 0, 0, .2);
     background-color: var(--discovery-background-color);
+    transition-property: background-color;
+    transition-duration: .25s;
+    transition-timing-function: ease-in;
 }
 .discovery-view-popup.inspect {
     z-index: 2002;
