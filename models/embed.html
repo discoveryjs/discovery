@@ -45,6 +45,24 @@
             logMsg('Loading data state', { stage, progress });
         });
 
+        // override model navigation logic
+        // preloader.defineAction('openModel', (slug, url) => {
+        //     logMsg('Action "openModel" (will be opened in 1 second)', { slug, url });
+        //     $('#discoveryApp').style.transition = 'opacity .5s';
+        //     $('#discoveryApp').style.opacity = 0;
+        //     setTimeout(() => {
+        //         $('#discoveryApp').style.transition = '';
+        //         $('#discoveryApp').style.opacity = 1;
+        //         $('#discoveryApp').src = new URL(url, $('#discoveryApp').src);
+        //     }, 1000);
+        // });
+        // preloader.defineAction('openModelIndex', (url) => {
+        //     logMsg('Action "openModelIndex" (will be opened in 1 second)', { url });
+        //     setTimeout(() => {
+        //         $('#discoveryApp').src = new URL(url, $('#discoveryApp').src);
+        //     }, 1000);
+        // });
+
         return () => {
             $('#layout').classList.remove('preloader');
             logMsg('App preloader disconnected');

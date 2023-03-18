@@ -28,6 +28,7 @@ function setup(options) {
         let loadDataUnsubscribe = noop;
         const hostId = options.hostId || randomId();
         const parentWindow = window.parent;
+        const actionCalls = new Map();
         const sendMessage = (type, payload = null) => {
             // console.log('[post-message]', type, payload);
             parentWindow.postMessage({
@@ -50,12 +51,48 @@ function setup(options) {
 
             if (id === hostId) {
                 switch (type) {
+                    case 'defineAction': {
+                        const name = payload;
+                        host.defineAction(name, (...args) =>
+                            new Promise((resolve, reject) => {
+                                const callId = randomId();
+                                actionCalls.set(callId, { resolve, reject });
+                                setTimeout(() => {
+                                    actionCalls.delete(callId);
+                                    reject(new Error('Timeout'));
+                                }, 30_000);
+                                sendMessage('action', {
+                                    callId,
+                                    name,
+                                    args
+                                });
+                            })
+                        );
+                        break;
+                    }
+                    case 'actionResult': {
+                        const { callId, value, error } = payload;
+
+                        if (!actionCalls.has(callId)) {
+                            console.error(`[Discovery.js] Unknown action call id "${callId}"`);
+                            break;
+                        }
+
+                        const { resolve, reject } = actionCalls.get(callId);
+
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve(value);
+                        }
+                        break;
+                    }
+
                     case 'setPageHash': {
                         const { replace, hash } = payload || {};
                         host.setPageHash(hash || '', replace || false);
                         break;
                     }
-
                     case 'setPage': {
                         const { replace, id, ref, params } = payload || {};
                         host.setPage(id, ref, params, replace);
@@ -235,14 +272,22 @@ function setup(options) {
 
         // apply captured messages if any
         if (options.postponeMessages) {
-            for (let message of options.postponeMessages) {
-                processIncomingMessage({ data: message });
-            }
+            Promise.resolve().then(() => {
+                for (let message of options.postponeMessages) {
+                    processIncomingMessage({ data: message });
+                }
+            });
         }
 
         // main life cycle handlers
         addEventListener('message', processIncomingMessage, false); // TODO: remove on destroy
         addEventListener('unload', () => sendMessage('destroy'), false); // TODO: send on destroy
+        console.log(host.pageHash,{
+            hash: host.pageHash || '#',
+            id: host.pageId,
+            ref: host.pageRef,
+            params: host.pageParams
+        });
         sendMessage('ready', {
             page: {
                 hash: host.pageHash || '#',

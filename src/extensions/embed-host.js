@@ -1,7 +1,7 @@
-import Emitter from './core/emitter.js';
-import Publisher from './core/publisher.js';
-import { randomId } from './core/utils/id.js';
-import { loadStages, decodeStageProgress } from './core/utils/progressbar.js';
+import Emitter from '../core/emitter.js';
+import Publisher from '../core/publisher.js';
+import { randomId } from '../core/utils/id.js';
+import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
 
 const isObject = value => value !== null && typeof value === 'object';
 const ReadableStreamDefaultReader = new ReadableStream().getReader().constructor;
@@ -30,13 +30,19 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
         }
     }
     class EmbedPreinitApp extends BaseApp {
-        constructor(window, id) {
+        constructor(window, id, actions) {
             super(window, id);
 
+            this.actions = actions;
             this.publicApi = Object.freeze({
                 on: this.on.bind(this),
                 once: this.once.bind(this),
-                off: this.off.bind(this)
+                off: this.off.bind(this),
+
+                defineAction: (name, fn) => {
+                    this.actions.set(name, fn);
+                    this.sendMessage('defineAction', name);
+                }
             });
         }
         processMessage(message) {
@@ -49,9 +55,10 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
         }
     }
     class EmbedApp extends BaseApp {
-        constructor(window, id) {
+        constructor(window, id, actions) {
             super(window, id);
 
+            this.actions = actions;
             this.commandMap = new Map();
             this.requestDataLoadToken = undefined;
             this.requestDataLoader = undefined;
@@ -82,6 +89,11 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
 
                 nav: Object.assign(nav.secondary, nav),
 
+                defineAction: (name, fn) => {
+                    this.actions.set(name, fn);
+                    this.sendMessage('defineAction', name);
+                },
+
                 setPageHash: (hash, replace) => {
                     this.sendMessage('setPageHash', { hash, replace });
                 },
@@ -111,6 +123,23 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
             switch (message.type) {
                 case 'destroy': {
                     resetIfNeeded();
+                    break;
+                }
+
+                case 'action': {
+                    const { callId, name, args } = message.payload;
+                    const fn = this.actions.get(name);
+
+                    if (typeof fn === 'function') {
+                        try {
+                            this.sendMessage('actionResult', { callId, value: await fn(...args) });
+                        } catch (error) {
+                            this.sendMessage('actionResult', { callId, error });
+                        }
+                    } else {
+                        console.warn(`Action "${name}" was not found`);
+                    }
+
                     break;
                 }
 
@@ -237,6 +266,7 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
         }
     }
 
+    const actions = new Map();
     let embedApp = null;
     let onDisconnect = null;
 
@@ -273,7 +303,13 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
             if (data.type === 'ready') {
                 resetIfNeeded();
 
-                embedApp = new EmbedApp(iframe.contentWindow, data.id);
+                if (actions.id !== data.id) {
+                    actions.clear();
+                    actions.id = data.id;
+                }
+
+                embedApp = new EmbedApp(iframe.contentWindow, data.id, actions);
+                console.log('>>>', data.payload);
                 embedApp.pageHash.set(data.payload.page.hash);
                 embedApp.pageId.set(data.payload.page.id);
                 embedApp.pageRef.set(data.payload.page.ref);
@@ -289,7 +325,12 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                 resetIfNeeded();
 
                 if (typeof onPreinit === 'function') {
-                    embedApp = new EmbedPreinitApp(iframe.contentWindow, data.id);
+                    if (actions.id !== data.id) {
+                        actions.clear();
+                        actions.id = data.id;
+                    }
+
+                    embedApp = new EmbedPreinitApp(iframe.contentWindow, data.id, actions);
                     onDisconnect = onPreinit(embedApp.publicApi);
                 }
 

@@ -71,6 +71,7 @@ const myapp = new Widget({
     * on(eventName, fn)
     * once(eventName, fn)
     * off(eventName, fn)
+    * defineAction(name, fn)
 
 ## Embed App API
 
@@ -90,6 +91,7 @@ const myapp = new Widget({
     * on(eventName, fn)
     * once(eventName, fn)
     * off(eventName, fn)
+    * defineAction(name, fn)
     * setPageHash(hash, replace)
     * setPage(id, ref, params, replace)
     * setPageRef(ref, replace)

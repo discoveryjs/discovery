@@ -85,10 +85,10 @@ function initPreloadEmbedApi(loading) {
 
         if (id === hostId) {
             switch (type) {
-                // case 'name': {
-                //     postponeMessages.push(event.data);
-                //     break;
-                // }
+                case 'defineAction': {
+                    postponeMessages.push(event.data);
+                    break;
+                }
 
                 default:
                     console.error(`[Discovery/loader] Unknown preload message type "${type}"`);
