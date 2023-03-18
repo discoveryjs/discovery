@@ -44,10 +44,10 @@ function setup(options) {
         ]);
 
         // add actions
-        host.actions.unloadData = () => {
+        host.defineAction('unloadData', () => {
             host.unloadData();
-        };
-        host.actions.uploadFile = Object.assign(
+        });
+        host.defineAction('uploadFile', Object.assign(
             () => {
                 createElement('input', {
                     type: 'file',
@@ -60,6 +60,6 @@ function setup(options) {
                 mimeTypes: acceptTokens.filter(token => !isExtension(token)),
                 dragdrop
             }
-        );
+        ));
     };
 }

@@ -17,6 +17,7 @@
     - `Widget#addValueLinkResolver()`
     - `Widget#addBadge()`
     - `Widget#addQueryHelpers()`
+- Added `Widget#defineAction(name, callback, skipRender)` and `Widget#revokeAction(name, skipRender)` methods to specify and revoke actions (also available via `#.actions` in queries)
 
 ## 1.0.0-beta.70 (10-10-2022)
 

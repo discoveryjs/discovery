@@ -55,7 +55,7 @@ export default class Widget extends Emitter {
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
-        this.actions = {};
+        this.actions = Object.create(null);
         const {
             darkmode = 'disabled',
             darkmodePersistent = false,
@@ -408,6 +408,32 @@ export default class Widget extends Emitter {
 
         el.addEventListener(eventName, handler, options);
         return () => el.removeEventListener(eventName, handler, options);
+    }
+
+    //
+    // Actions
+    //
+
+    defineAction(name, callback, skipRender) {
+        if (typeof callback !== 'function') {
+            throw new Error('callback is not a function');
+        }
+
+        this.actions[name] = callback;
+
+        if (this.context && !skipRender) {
+            this.scheduleRender('sidebar');
+            this.scheduleRender('page');
+        }
+    }
+
+    revokeAction(name, skipRender) {
+        delete this.actions[name];
+
+        if (this.context && !skipRender) {
+            this.scheduleRender('sidebar');
+            this.scheduleRender('page');
+        }
     }
 
     //
