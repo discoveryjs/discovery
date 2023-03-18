@@ -19,6 +19,7 @@
     - `Widget#addQueryHelpers()`
 - Added `Widget#defineAction(name, callback, skipRender)` and `Widget#revokeAction(name, skipRender)` methods to specify and revoke actions (also available via `#.actions` in queries)
 - Added `callAction` and `actionHandler` jora helpers
+- Changed `tooltip` to use evaluated value instead of raw config value
 
 ## 1.0.0-beta.70 (10-10-2022)
 

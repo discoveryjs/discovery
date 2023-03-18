@@ -181,8 +181,8 @@ function renderDom(host, renderer, placeholder, config, props, data, context, in
                     }
                 }
 
-                if (config.tooltip) {
-                    attachTooltip(host, el, config.tooltip, data, context);
+                if (props.tooltip) {
+                    attachTooltip(host, el, props.tooltip, data, context);
                 }
             } else {
                 for (let child of el.childNodes) {
