@@ -41,7 +41,11 @@ export function createDataExtensionApi(instance) {
         pageLink: (pageRef, pageId, pageParams) =>
             instance.encodePageHash(pageId, pageRef, pageParams),
         marker: lookupObjectMarker,
-        markerAll: lookupObjectMarkerAll
+        markerAll: lookupObjectMarkerAll,
+        callAction: (actionName, ...args) => instance.actions[actionName](...args),
+        actionHandler: (actionName, ...args) => instance.actions[actionName]
+            ? () => instance.actions[actionName](...args)
+            : undefined
     };
     let joraSetup = jora.setup(queryCustomMethods);
 
