@@ -1,25 +1,25 @@
-## next
+## 1.0.0-beta.71 (20-03-2023)
 
-- Fixed `markerAll()` jora helper
-- Fixed `upload` options setting.
+- Added `embed` extension to provide a communication with a host in case when an app is loaded into iframe
+- Added `embed` support for preloader
+- Added `dist/discovery-embed-host.js` into package, a ESM module which provides an API to communicate with an app loaded into a sandbox (iframe)
 - Added `setup()` method for `upload` extension to specify custom settings
 - Added `#.actions.uploadFile.dragdrop` to indicate drag&drop file supported or not (provided by `upload` extension)
-- Added `embed` extension to provide a communication with a host in case when an app is loaded into iframe
-- Added `dist/discovery-embed-host.js` into package, a ESM module which provides an API to communicate with an app loaded into a sandbox (iframe)
-- Added `embed` support for preloader
-- Tweaked nested list styles in `markdown` view
-- Fixed applying twice the extensions passed via `App`'s options
 - Added `startLoadData`, `startSetData` and `unloadData` events
+- Added `callAction(name, ...args, callback?)` and `actionHandler(name, ...args, callback?)` jora helpers, the `callback` is applying to handle a result of an action call when specified
+- Changed `tooltip` to use evaluated value instead of raw config value
 - Changed `Progressbar` to be inherited from `Publisher`
+- Replaced `Widget#actions` with `Widget#action` which is a dictionary, i.e. now available `Widget#action.define(name, callback)`, `Widget#action.revoke(name)`, `Widget#action.call(name, ...args)` and the rest methods of `Dict` (actions also available via `#.actions` in jora queries)
+- Fixed `markerAll()` jora helper
+- Fixed `upload` options setting
+- Fixed applying twice the extensions passed via `App`'s options
 - Fixed suggestions for context value (`#`) in report's query editor
+- Tweaked nested list styles in `markdown` view
 - Removed obsoleted methods:
     - `Widget#addEntityResolver()`
     - `Widget#addValueLinkResolver()`
     - `Widget#addBadge()`
     - `Widget#addQueryHelpers()`
-- Replaced `Widget#actions` with `Widget#action` which is a dictionary, i.e. now available `Widget#action.define(name, callback)`, `Widget#action.revoke(name)`, `Widget#action.call(name, ...args)` and the rest methods of `Dict` (actions also available via `#.actions` in jora queries)
-- Added `callAction(name, ...args, callback?)` and `actionHandler(name, ...args, callback?)` jora helpers, the `callback` is applying to handle a result of an action call when specified
-- Changed `tooltip` to use evaluated value instead of raw config value
 
 ## 1.0.0-beta.70 (10-10-2022)
 
