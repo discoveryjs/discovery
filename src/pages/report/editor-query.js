@@ -23,7 +23,7 @@ export default function(host, updateParams) {
     let lastQuery = {};
 
     let queryEditorLiveEditEl;
-    const getQuerySuggestions = (query, offset, data, context) => console.log(query, offset, data, context) || host.querySuggestions(query, offset, data, context);
+    const getQuerySuggestions = (query, offset, data, context) => host.querySuggestions(query, offset, data, context);
     const queryEditor = new host.view.QueryEditor(getQuerySuggestions).on('change', value =>
         queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
     );

@@ -282,12 +282,6 @@ function setup(options) {
         // main life cycle handlers
         addEventListener('message', processIncomingMessage, false); // TODO: remove on destroy
         addEventListener('unload', () => sendMessage('destroy'), false); // TODO: send on destroy
-        console.log(host.pageHash,{
-            hash: host.pageHash || '#',
-            id: host.pageId,
-            ref: host.pageRef,
-            params: host.pageParams
-        });
         sendMessage('ready', {
             page: {
                 hash: host.pageHash || '#',

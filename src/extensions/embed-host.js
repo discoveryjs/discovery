@@ -309,7 +309,6 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                 }
 
                 embedApp = new EmbedApp(iframe.contentWindow, data.id, actions);
-                console.log('>>>', data.payload);
                 embedApp.pageHash.set(data.payload.page.hash);
                 embedApp.pageId.set(data.payload.page.id);
                 embedApp.pageRef.set(data.payload.page.ref);
