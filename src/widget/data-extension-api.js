@@ -35,6 +35,21 @@ export function createDataExtensionApi(instance) {
 
         return result.length ? result : null;
     };
+    function callAction(actionName, ...args) {
+        let callback = null;
+
+        if (typeof args[args.length - 1] === 'function') {
+            callback = args.pop();
+        }
+
+        const ret = instance.action.call(actionName, ...args);
+
+        if (ret && callback && typeof ret.then === 'function') {
+            return ret.then(callback);
+        }
+
+        return callback ? callback(ret) : ret;
+    }
 
     let queryCustomMethods = {
         query: (...args) => instance.query(...args),
@@ -42,9 +57,9 @@ export function createDataExtensionApi(instance) {
             instance.encodePageHash(pageId, pageRef, pageParams),
         marker: lookupObjectMarker,
         markerAll: lookupObjectMarkerAll,
-        callAction: (actionName, ...args) => instance.action.call(actionName, ...args),
+        callAction,
         actionHandler: (actionName, ...args) => instance.action.has(actionName)
-            ? () => instance.action.call(actionName, ...args)
+            ? () => callAction(actionName, ...args)
             : undefined
     };
     let joraSetup = jora.setup(queryCustomMethods);

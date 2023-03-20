@@ -18,7 +18,7 @@
     - `Widget#addBadge()`
     - `Widget#addQueryHelpers()`
 - Replaced `Widget#actions` with `Widget#action` which is a dictionary, i.e. now available `Widget#action.define(name, callback)`, `Widget#action.revoke(name)`, `Widget#action.call(name, ...args)` and the rest methods of `Dict` (actions also available via `#.actions` in jora queries)
-- Added `callAction` and `actionHandler` jora helpers
+- Added `callAction(name, ...args, callback?)` and `actionHandler(name, ...args, callback?)` jora helpers, the `callback` is applying to handle a result of an action call when specified
 - Changed `tooltip` to use evaluated value instead of raw config value
 
 ## 1.0.0-beta.70 (10-10-2022)
