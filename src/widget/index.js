@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import Emitter from '../core/emitter.js';
+import ActionManager from '../core/action.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import PageRenderer from '../core/page.js';
@@ -55,7 +56,6 @@ export default class Widget extends Emitter {
         this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
-        this.actions = Object.create(null);
         const {
             darkmode = 'disabled',
             darkmodePersistent = false,
@@ -69,11 +69,24 @@ export default class Widget extends Emitter {
         this.inspectMode = new Publisher(false);
         this.initDom();
 
+        this.action = new ActionManager(null)
+            .on('define', () => {
+                if (this.context) {
+                    this.scheduleRender('sidebar');
+                    this.scheduleRender('page');
+                }
+            })
+            .on('revoke', () => {
+                if (this.context) {
+                    this.scheduleRender('sidebar');
+                    this.scheduleRender('page');
+                }
+            });
+
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
-        this.page = new PageRenderer(this);
-        this.page.on('define', (pageId, page) => {
+        this.page = new PageRenderer(this).on('define', (pageId, page) => {
             const { resolveLink } = page.options;
 
             if (typeof resolveLink !== 'undefined') {
@@ -411,32 +424,6 @@ export default class Widget extends Emitter {
     }
 
     //
-    // Actions
-    //
-
-    defineAction(name, callback, skipRender) {
-        if (typeof callback !== 'function') {
-            throw new Error('callback is not a function');
-        }
-
-        this.actions[name] = callback;
-
-        if (this.context && !skipRender) {
-            this.scheduleRender('sidebar');
-            this.scheduleRender('page');
-        }
-    }
-
-    revokeAction(name, skipRender) {
-        delete this.actions[name];
-
-        if (this.context && !skipRender) {
-            this.scheduleRender('sidebar');
-            this.scheduleRender('page');
-        }
-    }
-
-    //
     // Render common
     //
 
@@ -488,7 +475,7 @@ export default class Widget extends Emitter {
             page: this.pageId,
             id: this.pageRef,
             params: this.pageParams,
-            actions: this.actions,
+            actions: this.action.actionMap,
             dataLoaded: this.dataLoaded,
             ...this.context
         };

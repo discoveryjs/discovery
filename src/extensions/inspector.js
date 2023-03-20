@@ -337,8 +337,8 @@ export default (host) => {
     });
 
     // attach to host
-    host.defineAction('startInspect', enableInspect);
-    host.defineAction('stopInspect', disableInspect);
+    host.action.define('startInspect', enableInspect);
+    host.action.define('stopInspect', disableInspect);
     host.inspectMode.subscribeSync(
         enabled => enabled ? enableInspect() : disableInspect()
     );

@@ -5,10 +5,17 @@ import Emitter from './emitter.js';
 const entries = new WeakMap();
 
 export default class Dictionary extends Emitter {
-    constructor() {
+    constructor(allowRevoke) {
         super();
 
         entries.set(this, new Map());
+
+        if (allowRevoke) {
+            this.revoke = (key) => {
+                entries.get(this).delete(key);
+                this.emit('revoke', key);
+            };
+        }
     }
 
     define(key, value) {
@@ -19,6 +26,9 @@ export default class Dictionary extends Emitter {
     }
 
     isDefined(key) {
+        return entries.get(this).has(key);
+    }
+    has(key) {
         return entries.get(this).has(key);
     }
 

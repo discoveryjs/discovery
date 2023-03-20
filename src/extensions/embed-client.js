@@ -53,7 +53,7 @@ function setup(options) {
                 switch (type) {
                     case 'defineAction': {
                         const name = payload;
-                        host.defineAction(name, (...args) =>
+                        host.action.define(name, (...args) =>
                             new Promise((resolve, reject) => {
                                 const callId = randomId();
                                 actionCalls.set(callId, { resolve, reject });

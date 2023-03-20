@@ -44,10 +44,10 @@ function setup(options) {
         ]);
 
         // add actions
-        host.defineAction('unloadData', () => {
+        host.action.define('unloadData', () => {
             host.unloadData();
         });
-        host.defineAction('uploadFile', Object.assign(
+        host.action.define('uploadFile', Object.assign(
             () => {
                 createElement('input', {
                     type: 'file',

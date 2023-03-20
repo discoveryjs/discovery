@@ -17,7 +17,7 @@
     - `Widget#addValueLinkResolver()`
     - `Widget#addBadge()`
     - `Widget#addQueryHelpers()`
-- Added `Widget#defineAction(name, callback, skipRender)` and `Widget#revokeAction(name, skipRender)` methods to specify and revoke actions (also available via `#.actions` in queries)
+- Replaced `Widget#actions` with `Widget#action` which is a dictionary, i.e. now available `Widget#action.define(name, callback)`, `Widget#action.revoke(name)`, `Widget#action.call(name, ...args)` and the rest methods of `Dict` (actions also available via `#.actions` in jora queries)
 - Added `callAction` and `actionHandler` jora helpers
 - Changed `tooltip` to use evaluated value instead of raw config value
 
