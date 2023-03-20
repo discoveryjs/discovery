@@ -42,6 +42,10 @@ export default class ActionManager extends Dict {
     }
 
     call(name, ...args) {
+        if (!this.has(name)) {
+            throw new Error(`action "${name}" doesn't exist`);
+        }
+
         const { callback } = this.get(name);
 
         return callback(...args);
