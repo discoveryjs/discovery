@@ -1,6 +1,7 @@
 import Publisher from '../publisher.js';
 import { streamFromBlob } from './stream-from-blob.js';
 import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
+import { decode as decodeJsonxl } from '../../tmp/jsonxl-snapshot9.js';
 
 export const dataSource = {
     stream: loadDataFromStream,
@@ -18,49 +19,89 @@ function isSameOrigin(url) {
     }
 }
 
+const JSONXL_MAGIC_NUMBER = [0x00, 0x00, 0x4a, 0x53, 0x4f, 0x4e, 0x58, 0x4c]; // \x0\x0JSONXL
+function isJsonxl(chunk) {
+    return JSONXL_MAGIC_NUMBER.every((code, idx) => code === chunk[idx]);
+}
+
+async function parseJsonxl(iterator) {
+    const chunks = [];
+    let totalLength = 0;
+
+    // Consume chunks
+    for await (const chunk of iterator) {
+        chunks.push(chunk);
+        totalLength += chunk.byteLength;
+    }
+
+    // Create a new TypedArray with the combined length
+    const combinedChunks = new Uint8Array(totalLength);
+
+    // Iterate through the input arrays and set their values in the combinedChunks array
+    let offset = 0;
+    for (const array of chunks) {
+        combinedChunks.set(array, offset);
+        offset += array.length;
+    }
+
+    // Decode data
+    return decodeJsonxl(combinedChunks);
+}
+
 export function jsonFromStream(stream, totalSize, setProgress) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
+    const reader = stream.getReader();
+    const streamStartTime = Date.now();
     let size = 0;
 
-    return parseChunked(async function*() {
-        const reader = stream.getReader();
-        const streamStartTime = Date.now();
+    return reader.read().then(firstChunk => {
+        const streamConsumer = async function*() {
+            try {
+                while (true) {
+                    const { done, value } = firstChunk || await reader.read();
 
-        try {
-            while (true) {
-                const { done, value } = await reader.read();
+                    firstChunk = undefined;
 
-                if (done) {
-                    await setProgress({
-                        done: true,
-                        elapsed: Date.now() - streamStartTime,
-                        units: 'bytes',
-                        completed: size,
-                        total: totalSize
-                    });
-                    break;
+                    if (done) {
+                        await setProgress({
+                            done: true,
+                            elapsed: Date.now() - streamStartTime,
+                            units: 'bytes',
+                            completed: size,
+                            total: totalSize
+                        });
+                        break;
+                    }
+
+                    for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
+                        const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
+                            ? value
+                            : value.slice(offset, offset + CHUNK_SIZE);
+
+                        size += chunk.length;
+                        yield chunk;
+
+                        await setProgress({
+                            done: false,
+                            elapsed: Date.now() - streamStartTime,
+                            units: 'bytes',
+                            completed: size,
+                            total: totalSize
+                        });
+                    }
                 }
-
-                for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
-                    const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
-                        ? value
-                        : value.slice(offset, offset + CHUNK_SIZE);
-
-                    size += chunk.length;
-                    yield chunk;
-
-                    await setProgress({
-                        done: false,
-                        elapsed: Date.now() - streamStartTime,
-                        units: 'bytes',
-                        completed: size,
-                        total: totalSize
-                    });
-                }
+            } finally {
+                reader.releaseLock();
             }
-        } finally {
-            reader.releaseLock();
+        };
+
+        if (isJsonxl(firstChunk.value)) {
+            // parse binary format (JSONXL)
+            return parseJsonxl(streamConsumer());
         }
+
+        // parse standard JSON
+        return parseChunked(streamConsumer);
     }).then(data => ({ data, size }));
 }
 

@@ -1,3 +1,7 @@
+## next
+
+- Added support for loading binary encoded data (jsonxl snapshot 9)
+
 ## 1.0.0-beta.71 (20-03-2023)
 
 - Added `embed` extension to provide a communication with a host in case when an app is loaded into iframe
