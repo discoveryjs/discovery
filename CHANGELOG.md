@@ -8,6 +8,7 @@
     - Fixed a potential crash on JSON parse for a bad response with `application/json` content type
     - Removed `dataField` option
     - Removed support for loading raw data using this function
+- Removed `Widget#lib`
 
 ## 1.0.0-beta.71 (20-03-2023)
 

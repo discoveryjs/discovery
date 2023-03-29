@@ -14,7 +14,6 @@ import inspector from '../extensions/inspector.js';
 import { equal } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';
-import * as lib from '../lib.js'; // FIXME: temporary solution to expose discovery's lib API
 import { createDataExtensionApi } from './data-extension-api.js';
 import jora from 'jora';
 import { querySuggestions } from './query-suggestions.js';
@@ -52,8 +51,6 @@ function getPageMethod(host, pageId, name, fallback) {
 export default class Widget extends Emitter {
     constructor(options = {}) {
         super();
-
-        this.lib = lib; // FIXME: temporary solution to expose discovery's lib API
 
         this.options = options || {};
         const {
