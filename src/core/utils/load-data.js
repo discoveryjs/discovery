@@ -19,6 +19,42 @@ function isSameOrigin(url) {
     }
 }
 
+// FIXME: That's a temporary solution to make data loading work with a data wrapper
+// used in old versions of @discoveryjs/cli
+function isDiscoveryCliLegacyDataWrapper(input) {
+    const keys = input ? Object.keys(input) : [];
+    const expectedKeys = ['name', 'createdAt', 'elapsedTime', 'data'];
+
+    if (keys.length !== 4 || keys.some(key => !expectedKeys.includes(key))) {
+        return false;
+    }
+
+    return true;
+}
+
+function buildDataResultWithMeta(input, overrideMeta) {
+    const { data, meta } = isDiscoveryCliLegacyDataWrapper(input)
+        ? {
+            data: input.data,
+            meta: { ...input, ...overrideMeta }
+        }
+        : {
+            data: input,
+            meta: overrideMeta || {}
+        };
+    const name = meta.name || 'Unknown';
+    const createdAt = Date.parse(meta.createdAt) || Date.now();
+
+    return {
+        data,
+        context: {
+            name,
+            createdAt,
+            data
+        }
+    };
+}
+
 const JSONXL_MAGIC_NUMBER = [0x00, 0x00, 0x4a, 0x53, 0x4f, 0x4e, 0x58, 0x4c]; // \x0\x0JSONXL
 function isJsonxl(chunk) {
     return JSONXL_MAGIC_NUMBER.every((code, idx) => code === chunk[idx]);
@@ -48,7 +84,7 @@ async function parseJsonxl(iterator) {
     return decodeJsonxl(combinedChunks);
 }
 
-export function jsonFromStream(stream, totalSize, setProgress) {
+export function dataFromStream(stream, totalSize, setProgress) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const reader = stream.getReader();
     const streamStartTime = Date.now();
@@ -121,7 +157,7 @@ async function loadDataFromStreamInternal(request, progress) {
         } = await stage('request', request);
         const requestTime = Date.now() - startTime;
         const { data, size } = explicitData || await stage('receive', () =>
-            jsonFromStream(stream, Number(payloadSize) || 0, state => progress.asyncSet({
+            dataFromStream(stream, Number(payloadSize) || 0, state => progress.asyncSet({
                 stage: 'receive',
                 progress: state
             }))
@@ -194,22 +230,29 @@ export function loadDataFromEvent(event) {
 export function loadDataFromUrl(url, options) {
     options = options || {};
 
-    const explicitData = typeof url === 'string' ? undefined : url;
+    let createdAt;
     const isResponseOk = options.isResponseOk || (response => response.ok);
-    const getContentSize = options.getContentSize || ((url, response) => {
-        return isSameOrigin(url) && !response.headers.get('content-encoding')
+    const getContentSize = options.getContentSize || ((response) =>
+        response.headers.get('x-file-size') ||
+        (isSameOrigin(url) && !response.headers.get('content-encoding')
             ? response.headers.get('content-length')
-            : response.headers.get('x-file-size');
-    });
+            : undefined)
+    );
+    const getContentCreatedAt = options.getContentSize || ((response) =>
+        response.headers.get('x-file-created-at') ||
+        response.headers.get('last-modified')
+    );
 
     return loadDataFromStream(
         async () => {
-            const response = await fetch(explicitData ? 'data:application/json,{}' : url, options.fetch);
+            const response = await fetch(url, options.fetch);
 
             if (isResponseOk(response)) {
-                return explicitData ? { data: explicitData } : {
+                createdAt = getContentCreatedAt(response);
+
+                return {
                     stream: response.body,
-                    size: getContentSize(url, response),
+                    size: getContentSize(response),
                     validateData: options.validateData
                 };
             }
@@ -218,23 +261,21 @@ export function loadDataFromUrl(url, options) {
             let error = await response.text();
 
             if (contentType.toLowerCase().startsWith('application/json')) {
-                const json = JSON.parse(error);
-                error = json.error || json;
+                try {
+                    const json = JSON.parse(error);
+                    error = json.error || json;
+                } catch {}
             }
 
             error = new Error(error);
             error.stack = null;
             throw error;
         },
-        data => ({
-            data: options.dataField ? data[options.dataField] : data,
-            context: {
-                name: 'Discovery',
-                createdAt: options.dataField && data.createdAt ? new Date(Date.parse(data.createdAt)) : new Date(),
-                ...options.dataField ? data : { data }
-            }
+        data => buildDataResultWithMeta(data, {
+            createdAt,
+            ...options.dataMeta
         }),
-        { title: 'Load data from url: ' + (explicitData ? '[explicit data]' : url) }
+        { title: `Load data from url: ${url}` }
     );
 }
 

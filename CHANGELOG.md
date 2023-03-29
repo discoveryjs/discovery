@@ -1,6 +1,13 @@
 ## next
 
 - Added support for loading binary encoded data (jsonxl snapshot 9)
+- Changes of `loadDataFromUrl()`:
+    - Changed `getContentSize` option to not take `url` parameter anymore
+    - Changed the default `getContentSize` handler to prefer `X-File-Size` header over `Content-Length`
+    - Added `getContentCreatedAt` option to specify a function to retrieve `createdAt` from a fetch's response (by default, retrieve a value from `X-File-Created-At` and `Last-Modified` headers)
+    - Fixed a potential crash on JSON parse for a bad response with `application/json` content type
+    - Removed `dataField` option
+    - Removed support for loading raw data using this function
 
 ## 1.0.0-beta.71 (20-03-2023)
 
