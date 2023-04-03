@@ -17,7 +17,7 @@ export function reportPage(host) {
 export function loadData(host) {
     host.nav.append({
         name: 'load-data',
-        when: '#.actions.uploadFile and (#.dataLoaded or (#.widget | pageId != defaultPageId))',
+        when: '#.actions.uploadFile and (#.datasets or (#.widget | pageId != defaultPageId))',
         content: 'text:"Open file…"',
         onClick: '=#.actions.uploadFile'
     });

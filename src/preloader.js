@@ -16,14 +16,15 @@ function createProgressbar(domReady, title) {
 
 export function preloader(options) {
     options = options || {};
+    const dataSourceType = options.dataSource;
+
+    if (dataSourceType && !dataSource.hasOwnProperty(dataSourceType)) {
+        throw new Error(`dataSource "${dataSourceType}" is not supported`);
+    }
 
     const container = options.container || document.body;
     const el = document.createElement('div');
     const shadowRoot = el.attachShadow({ mode: 'open' });
-
-    if (options.dataSource && !dataSource.hasOwnProperty(options.dataSource)) {
-        throw new Error(`dataSource "${options.dataSource}" is not supported`);
-    }
 
     const darkmode = applyContainerStyles(container, options);
 
@@ -31,9 +32,11 @@ export function preloader(options) {
         el.setAttribute('darkmode', '');
     }
 
-    const loadData = dataSource[options.dataSource || 'url'];
+    const loadData = dataSource[dataSourceType || 'url'];
     const loading = options.data
-        ? options.dataSource === 'push' ? loadData() : loadData(options.data, options.loadDataOptions)
+        ? dataSourceType === 'push'
+            ? loadData(options.loadDataOptions)
+            : loadData(options.data, options.loadDataOptions)
         : {
             result: Promise.resolve({})
         };

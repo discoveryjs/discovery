@@ -125,10 +125,13 @@ export default class App extends Widget {
         }
     }
 
-    async setDataProgress(data, context, progressbar = this.progressbar({ title: 'Set data' })) {
+    async setDataProgress(data, context, options) {
+        const dataset = options?.dataset;
+        const progressbar = options?.progressbar || this.progressbar({ title: 'Set data' });
+
         try {
             this.setLoadingState('init', { progressbar });
-            await super.setDataProgress(data, context, progressbar);
+            await super.setDataProgress(data, context, { dataset, progressbar });
             this.setLoadingState('success');
         } catch (error) {
             this.setLoadingState('error', { error, progressbar });
@@ -163,20 +166,21 @@ export default class App extends Widget {
         this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
 
         syncLoaderWithProgressbar(loader, progressbar).then(
-            ({ data, context }) => this.setDataProgress(data, context, progressbar),
+            ({ dataset }) => this.setDataProgress(dataset.data, context, { dataset, progressbar }),
             error => this.setLoadingState('error', { error, progressbar })
         );
 
         return loader.result;
     }
 
-    loadDataFromStream(stream, totalSize) {
+    loadDataFromStream(stream, options) {
         return this.trackLoadDataProgress(loadDataFromStream(
-            () => ({ stream, totalSize })
+            stream,
+            typeof options === 'number' ? { size: options } : options
         ));
     }
 
-    loadDataFromEvent(event) {
+    loadDataFromEvent(event, options) {
         if (this.options.mode === 'modelfree' && this.defaultPageId !== this.reportPageId) {
             this._defaultPageId = this.defaultPageId;
             this.defaultPageId = this.reportPageId;
@@ -184,11 +188,11 @@ export default class App extends Widget {
             this.cancelScheduledRender();
         }
 
-        return this.trackLoadDataProgress(loadDataFromEvent(event));
+        return this.trackLoadDataProgress(loadDataFromEvent(event, options));
     }
 
-    loadDataFromFile(file) {
-        return this.trackLoadDataProgress(loadDataFromFile(file));
+    loadDataFromFile(file, options) {
+        return this.trackLoadDataProgress(loadDataFromFile(file, options));
     }
 
     loadDataFromUrl(url, options) {
@@ -196,7 +200,7 @@ export default class App extends Widget {
     }
 
     unloadData() {
-        if (this.dataLoaded && this.options.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
+        if (this.hasDatasets() && this.options.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
             this.defaultPageId = this._defaultPageId;
             this.setPageHash(this.pageHash, true);
             this.cancelScheduledRender();

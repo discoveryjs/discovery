@@ -31,7 +31,7 @@ function formatDate(value) {
     if (date) {
         return date
             .toISOString()
-            .replace(/^(\d{4})-(\d{2})-(\d{2})T([\d:]+).*/, '$3/$2/$1 $4');
+            .replace(/^(\d{4})-(\d{2})-(\d{2})T([\d:]+).*/, '$3/$2/$1 $4 UTC');
     }
 
     return null;
@@ -125,7 +125,7 @@ export default function(host, updateParams) {
         ],
         render(data, context) {
             const { title, noedit } = context.params;
-            const createdAt = formatDate(context.createdAt);
+            const createdAt = formatDate(context.datasets[0]?.createdAt);
 
             titleInputEl.value = title;
             updateHeaderTitle(titleInputEl);

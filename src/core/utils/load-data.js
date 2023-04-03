@@ -32,30 +32,31 @@ function isDiscoveryCliLegacyDataWrapper(input) {
     return true;
 }
 
-function buildDataResultWithMeta(input, overrideMeta) {
-    const { data, meta } = isDiscoveryCliLegacyDataWrapper(input)
-        ? {
-            data: input.data,
-            meta: { ...input, ...overrideMeta }
-        }
-        : {
-            data: input,
-            meta: overrideMeta || {}
-        };
-    const name = meta.name || 'Unknown';
-    const createdAt = Date.parse(meta.createdAt) || Date.now();
+function buildDataset({ data: input, ...attributes }, rawMeta) {
+    if (isDiscoveryCliLegacyDataWrapper(input)) {
+        const { data, ...inputMeta } = input;
+
+        input = data;
+        rawMeta = { ...inputMeta, ...rawMeta };
+    }
+
+    const data = input;
+    const meta = rawMeta || {};
+
+    const { sourceType, sourceName, createdAt, ...restMeta } = meta;
 
     return {
-        data,
-        context: {
-            name,
-            createdAt,
-            data
-        }
+        sourceType,
+        sourceName,
+        loadedAt: new Date(),
+        createdAt: new Date(Date.parse(createdAt) || Date.now()),
+        ...attributes,
+        meta: restMeta,
+        data
     };
 }
 
-const JSONXL_MAGIC_NUMBER = [0x00, 0x00, 0x4a, 0x53, 0x4f, 0x4e, 0x58, 0x4c]; // \x0\x0JSONXL
+const JSONXL_MAGIC_NUMBER = [0x00, 0x00, 0x4a, 0x53, 0x4f, 0x4e, 0x58, 0x4c]; // \0\0JSONXL
 function isJsonxl(chunk) {
     return JSONXL_MAGIC_NUMBER.every((code, idx) => code === chunk[idx]);
 }
@@ -163,6 +164,7 @@ async function loadDataFromStreamInternal(request, progress) {
             }))
         );
 
+        // FIXME: add 'validate' stage?
         if (typeof validateData === 'function') {
             validateData(data);
         }
@@ -183,7 +185,7 @@ async function loadDataFromStreamInternal(request, progress) {
     }
 }
 
-export function loadDataFromStream(request, prepare, ext) {
+function createLoadDataState(request, meta = {}, extra) {
     const state = new Publisher();
 
     return {
@@ -193,38 +195,57 @@ export function loadDataFromStream(request, prepare, ext) {
         result: loadDataFromStreamInternal(request, state)
             .then(res => ({
                 ...res,
-                ...prepare(res.data)
+                dataset: buildDataset(
+                    res,
+                    typeof meta === 'function' ? meta() : meta
+                )
             })),
-        ...ext
+        ...extra
     };
 }
 
-export function loadDataFromFile(file) {
-    return loadDataFromStream(
+export function loadDataFromStream(stream, options) {
+    return createLoadDataState(
+        () => ({
+            stream,
+            size: options.size
+        }),
+        () => ({
+            sourceType: 'stream',
+            sourceName: null,
+            ...options.dataMeta
+        })
+    );
+}
+
+export function loadDataFromFile(file, options) {
+    return createLoadDataState(
         () => ({
             stream: streamFromBlob(file),
             size: file.size
         }),
-        data => ({
-            data,
-            context: {
-                name: file.name,
-                createdAt: new Date(file.lastModified || Date.now()),
-                data
-            }
+        () => ({
+            sourceType: 'file',
+            sourceName: file.name,
+            createdAt: file.lastModified,
+            ...options.dataMeta
         }),
         { title: 'Load data from file: ' + file.name }
     );
 }
 
-export function loadDataFromEvent(event) {
+export function loadDataFromEvent(event, options) {
     const source = event.dataTransfer || event.target;
     const file = source && source.files && source.files[0];
 
     event.stopPropagation();
     event.preventDefault();
 
-    return loadDataFromFile(file);
+    if (!file) {
+        throw new Error('Can\'t extract a file from an event object');
+    }
+
+    return loadDataFromFile(file, options);
 }
 
 export function loadDataFromUrl(url, options) {
@@ -243,7 +264,7 @@ export function loadDataFromUrl(url, options) {
         response.headers.get('last-modified')
     );
 
-    return loadDataFromStream(
+    return createLoadDataState(
         async () => {
             const response = await fetch(url, options.fetch);
 
@@ -271,7 +292,9 @@ export function loadDataFromUrl(url, options) {
             error.stack = null;
             throw error;
         },
-        data => buildDataResultWithMeta(data, {
+        () => ({
+            sourceType: 'url',
+            sourceName: url,
             createdAt,
             ...options.dataMeta
         }),
@@ -279,7 +302,7 @@ export function loadDataFromUrl(url, options) {
     );
 }
 
-export function loadDataFromPush(size, createdAt) {
+export function loadDataFromPush(options) {
     let controller;
     const stream = new ReadableStream({
         start(controller_) {
@@ -290,15 +313,14 @@ export function loadDataFromPush(size, createdAt) {
         }
     });
 
-    return loadDataFromStream(
-        () => ({ size, stream }),
-        data => ({
-            data: data.data,
-            context: {
-                name: data.name || 'Discovery',
-                createdAt: createdAt || data.createdAt || Date.now(),
-                data: data.data
-            }
+    options = options || {};
+
+    return createLoadDataState(
+        () => ({ stream, size: options.size }),
+        () => ({
+            sourceType: 'push',
+            sourceName: null,
+            ...options.dataMeta
         }),
         {
             push(chunk) {

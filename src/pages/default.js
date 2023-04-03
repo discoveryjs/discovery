@@ -3,7 +3,7 @@ export default function(host) {
         view: 'switch',
         content: [
             {
-                when: 'not #.dataLoaded',
+                when: 'not #.datasets',
                 content: [
                     {
                         view: 'h1',

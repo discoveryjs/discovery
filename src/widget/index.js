@@ -100,7 +100,7 @@ export default class Widget extends Emitter {
         });
         renderScheduler.set(this, new Set());
 
-        this.dataLoaded = false;
+        this.datasets = [];
         this.data = undefined;
         this.context = undefined;
         this.prepare = data => data;
@@ -178,9 +178,9 @@ export default class Widget extends Emitter {
             .then((data) => {
                 checkIsNotPrevented();
 
-                this.dataLoaded = true;
+                this.datasets = [{ ...options.dataset, data }];
                 this.data = data;
-                this.context = { ...context, data };
+                this.context = context;
                 dataExtension.apply();
 
                 this.emit('data');
@@ -201,15 +201,23 @@ export default class Widget extends Emitter {
         return setDataPromise;
     }
 
-    async setDataProgress(data, context, progressbar = { setState() {}, subscribeSync() {}, finish() {} }) {
-        this.emit('startSetData', progressbar.subscribeSync.bind(progressbar));
+    async setDataProgress(data, context, options) {
+        const {
+            dataset,
+            progressbar
+        } = options || {};
+
+        this.emit('startSetData', (...args) => progressbar?.subscribeSync(...args));
 
         // set new data & context
-        await progressbar.setState({ stage: 'prepare' });
-        await this.setData(data, context, { render: false });
+        await progressbar?.setState({ stage: 'prepare' });
+        await this.setData(data, context, {
+            dataset,
+            render: false
+        });
 
         // await dom is ready and everything is rendered
-        await progressbar.setState({ stage: 'initui' });
+        await progressbar?.setState({ stage: 'initui' });
         this.scheduleRender('sidebar');
         this.scheduleRender('page');
         await Promise.all([
@@ -217,15 +225,16 @@ export default class Widget extends Emitter {
             renderScheduler.get(this).timer
         ]);
 
-        await progressbar.finish();
+        // finish progress
+        await progressbar?.finish();
     }
 
     unloadData() {
-        if (!this.dataLoaded) {
+        if (!this.hasDatasets()) {
             return;
         }
 
-        this.dataLoaded = false;
+        this.datasets = [];
         this.data = undefined;
         this.context = undefined;
 
@@ -233,6 +242,10 @@ export default class Widget extends Emitter {
         this.scheduleRender('page');
 
         this.emit('unloadData');
+    }
+
+    hasDatasets() {
+        return this.datasets.length !== 0;
     }
 
     // The method is overriding by createDataExtensionApi().apply()
@@ -473,7 +486,8 @@ export default class Widget extends Emitter {
             id: this.pageRef,
             params: this.pageParams,
             actions: this.action.actionMap,
-            dataLoaded: this.dataLoaded,
+            datasets: this.datasets,
+            data: this.data,
             ...this.context
         };
     }
@@ -486,7 +500,7 @@ export default class Widget extends Emitter {
         // cancel scheduled renderSidebar
         renderScheduler.get(this).delete('sidebar');
 
-        if (this.dataLoaded && this.view.isDefined('sidebar')) {
+        if (this.hasDatasets() && this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
             const data = this.data;
             const context = this.getRenderContext();
