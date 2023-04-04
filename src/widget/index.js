@@ -546,7 +546,7 @@ export default class Widget extends Emitter {
 
     decodePageHash(hash) {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
-        const [pageId, pageRef] = hash.substring(1, delimIndex).split(':').map(decodeURIComponent);
+        const [pageId, pageRef] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
         const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
         const pairs = hash.substr(delimIndex + 1).split('&').filter(Boolean).map(pair => {
             const eqIndex = pair.indexOf('=');

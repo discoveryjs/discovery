@@ -22,6 +22,7 @@ The `options` optional parameter an object which structure depends on a method. 
 
 ### All the changes
 
+- Changed `Widget#setPageHash()` to make leading `#` optional, i.e. `Widget#setPageHash('#report')` and `Widget#setPageHash('report')` give the same result now
 - Added support for loading binary encoded data (jsonxl snapshot 9)
 - Reworked loading data API and internals:
     - Changed loading data logic to always expect raw data and meta info specified aside (via `options`) if provided (see release notes for details)
