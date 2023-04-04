@@ -18,9 +18,7 @@ This release uniforms API shape responsible for data loading. This related to `l
 - `loadDataFromStream(stream, options)`
 - `loadDataFromPush(options)`
 
-The `options` optional parameter an object which structure depends on a method. However, there are 2 common options:
-- `size` – the size of data being loaded, used to compute progress of loading
-- `dataMeta` – a meta info related to data, like `name` and `createdAt`, which will be added to dataset info
+The `options` optional parameter an object which structure depends on a method. However, there are one common option `resource`, which specify meta info related to a loading dataset.
 
 ### All the changes
 
@@ -29,11 +27,12 @@ The `options` optional parameter an object which structure depends on a method. 
     - Changed loading data logic to always expect raw data and meta info specified aside (via `options`) if provided (see release notes for details)
     - Changed preloader to pass `loadDataOptions` into all the loading methods as `options`
     - Added `Widget#datasets` and `#.datasets` to store loaded datasets (data itself and its meta data as an object). Current APIs assume to work with a single dataset (data), so this list contains zero or one element for now. However, future version will allow to load and work with multiple datasets (still need to think about the details)
-    - Added `dataset` option in `Widget#setData()` method options to provide dataset's attributes, which is optional and a dataset object will has only `data` field if the option is not provided
+    - Added `dataset` option in `Widget#setData()` method options to provide dataset's attributes, which is optional and a dataset object will has `data` field only if the option is not provided
     - Changed `Widget#setDataProgress(data, context, progressbar)` signature into `setDataProgress(data, context, options)`, where `options` is an object `{ dataset?, progressbar? }`
-    - Removed `#.name` and `#.createdAt`, use `#.datasets[] | { name, createdAt }` instead
+    - Removed `#.name` and `#.createdAt`, use `#.datasets[].resource | { name, createdAt }` instead
     - Removed `data` from `Windget#context`, however, `data` is still available in a render context as `data` of default dataset, i.e. `#.data` which the same as `#.datasets[].data`
     - Removed `Widget#dataLoaded` and `#.dataLoaded` flags, use `Widget#hasDatasets()` method or `#.datasets` in jora queries
+    - Added `start(resource)` method to `loadFromPush()` API
     - Changes in `loadDataFromUrl()` method:
         - Changed `getContentSize` option to not take `url` parameter anymore
         - Changed the default `getContentSize` handler to prefer `X-File-Size` header over `Content-Length` header
@@ -42,6 +41,9 @@ The `options` optional parameter an object which structure depends on a method. 
         - Removed `dataField` option
         - Removed support for loading raw data using this function
 - Removed `Widget#lib`
+- Embed API:
+    - Reworked internals for more efficient data transfer, e.g. transfer a data stream intead of tranfering data with chunks
+    - Replaced `App#loadData` with `App#uploadData(source, extractResourceMetadata)` method, which takes source instead of a function returning a source
 
 ## 1.0.0-beta.71 (20-03-2023)
 

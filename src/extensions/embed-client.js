@@ -1,5 +1,5 @@
 import { randomId } from '../core/utils/id.js';
-import { loadDataFromPush } from '../core/utils/load-data.js';
+import { loadDataFromPush, loadDataFromStream } from '../core/utils/load-data.js';
 
 // export an integration with default settings
 export default Object.assign(setup(), { setup });
@@ -24,8 +24,12 @@ function setup(options) {
     options = options || {};
 
     return function(host) {
-        let loadDataApi = null;
+        let loadChunkedDataStatus = null;
         let loadDataUnsubscribe = noop;
+        const cancelLoadChunkedDataApi = () => {
+            loadChunkedDataStatus?.finish();
+            loadChunkedDataStatus = null;
+        };
         const hostId = options.hostId || randomId();
         const parentWindow = window.parent;
         const actionCalls = new Map();
@@ -45,6 +49,15 @@ function setup(options) {
                     fn();
                 }
             };
+        };
+        const trackDataLoading = (loadDataStatus) => {
+            const result = typeof host.trackLoadDataProgress === 'function'
+                ? host.trackLoadDataProgress(loadDataStatus)
+                : loadDataStatus.result
+                    .then(dataset => host.setData(dataset.data, null, { dataset }));
+
+            // do nothing
+            result.catch(() => {});
         };
         const processIncomingMessage = (event) => {
             const { id, type, payload } = event.data || {};
@@ -172,51 +185,58 @@ function setup(options) {
                     }
 
                     case 'unloadData': {
-                        loadDataApi = null;
+                        cancelLoadChunkedDataApi();
                         host.unloadData();
                         break;
                     }
 
-                    case 'startDataLoad': {
-                        const { request, size } = payload;
+                    case 'dataStream': {
+                        const { stream, resource } = payload;
 
-                        loadDataApi = Object.assign(loadDataFromPush(size), { acceptToken: randomId() });
-                        sendMessage('readyForDataLoad', { request, acceptToken: loadDataApi.acceptToken });
-
-                        loadDataApi.push('{"data":');
-
-                        if (typeof host.trackLoadDataProgress === 'function') {
-                            host.trackLoadDataProgress(loadDataApi);
-                        } else {
-                            loadDataApi.result.then(({ data, context }) =>
-                                host.setData(data, context)
-                            );
-                        }
+                        cancelLoadChunkedDataApi();
+                        trackDataLoading(loadDataFromStream(stream, { resource }));
 
                         break;
+                    }
+
+                    case 'startChunkedDataUpload': {
+                        const { acceptToken, resource } = payload;
+
+                        cancelLoadChunkedDataApi();
+                        loadChunkedDataStatus = Object.assign(loadDataFromPush({ resource }), { acceptToken });
+
+                        trackDataLoading(loadChunkedDataStatus);
+
+                        break;
+                    }
+
+                    case 'cancelChunkedDataUpload': {
+                        const { acceptToken, error } = payload;
+
+                        if (loadChunkedDataStatus?.acceptToken === acceptToken) {
+                            cancelLoadChunkedDataApi(error);
+                        }
                     }
 
                     case 'dataChunk': {
                         const { acceptToken, value, done } = payload;
 
-                        if (loadDataApi === null) {
+                        if (loadChunkedDataStatus === null) {
                             console.warn('[Discovery.js] Loading data is not inited');
                             break;
                         }
 
-                        if (loadDataApi.acceptToken !== acceptToken) {
+                        if (loadChunkedDataStatus.acceptToken !== acceptToken) {
                             console.warn('[Discovery.js] Bad accept token');
                             break;
                         }
 
                         if (value) {
-                            loadDataApi.push(value);
+                            loadChunkedDataStatus.push(value);
                         }
 
                         if (done) {
-                            loadDataApi.push('}');
-                            loadDataApi.finish();
-                            loadDataApi = null;
+                            cancelLoadChunkedDataApi();
                         }
 
                         break;

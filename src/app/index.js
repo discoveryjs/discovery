@@ -117,6 +117,7 @@ export default class App extends Widget {
                 }, {
                     actions: this.actions
                 }).then(() => {
+                    console.error(error);
                     progressbar?.setState({ error });
                 });
 
@@ -166,7 +167,7 @@ export default class App extends Widget {
         this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
 
         syncLoaderWithProgressbar(loader, progressbar).then(
-            ({ dataset }) => this.setDataProgress(dataset.data, context, { dataset, progressbar }),
+            (dataset) => this.setDataProgress(dataset.data, null, { dataset, progressbar }),
             error => this.setLoadingState('error', { error, progressbar })
         );
 

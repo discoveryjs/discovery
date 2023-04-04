@@ -43,10 +43,11 @@ export function preloader(options) {
 
     if (loading.push) {
         window.discoveryLoader = {
+            start: loading.start,
             push: loading.push,
-            finish: () => {
+            finish(...args) {
                 delete window.discoveryLoader;
-                loading.finish();
+                loading.finish(...args);
             }
         };
     }

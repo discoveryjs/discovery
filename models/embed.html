@@ -159,7 +159,7 @@
         function onDataUpload({ target }) {
             switch (target.dataset.value) {
                 case 'raw':
-                    app.loadData(() => JSON.stringify({ test: 'raw' }));
+                    uploadData(JSON.stringify({ test: 'raw' }));
                     break;
 
                 case 'file': {
@@ -167,8 +167,7 @@
 
                     fileInput.setAttribute('type', 'file');
                     fileInput.addEventListener('change', event => {
-                        const file = event.target.files[0];
-                        app.loadData(() => file.stream());
+                        uploadData(event.target.files[0]);
                     });
                     fileInput.click();
 
@@ -176,8 +175,15 @@
                 }
 
                 case 'url':
-                    app.loadData(() => fetch('data:text/plain,{"test":"url"}'))
+                    uploadData(fetch('data:text/plain,{"test":"url"}'))
                     break;
+            }
+
+            function uploadData(from) {
+                app.uploadData(from).catch((err) => {
+                    console.error('Data upload failed:', err);
+                    logMsg('Data upload failed:', err.message);
+                });
             }
         }
 

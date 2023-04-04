@@ -1,6 +1,6 @@
+import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
 import Publisher from '../publisher.js';
 import { streamFromBlob } from './stream-from-blob.js';
-import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
 import { decode as decodeJsonxl } from '../../tmp/jsonxl-snapshot9.js';
 
 export const dataSource = {
@@ -11,12 +11,43 @@ export const dataSource = {
     push: loadDataFromPush
 };
 
+function isObject(value) {
+    return value !== null && typeof value === 'object';
+}
+
 function isSameOrigin(url) {
     try {
         return new URL(url, location.origin).origin === location.origin;
     } catch (e) {
         return false;
     }
+}
+
+function defaultFetchOk(response) {
+    return response.ok;
+}
+
+function defaultFetchContentEncodedSize(response) {
+    return (
+        response.headers.get('x-file-encoded-size') ||
+        response.headers.get('content-length')
+    );
+}
+
+function defaultFetchContentSize(response) {
+    return (
+        response.headers.get('x-file-size') ||
+        (isSameOrigin(response.url) && !response.headers.get('content-encoding')
+            ? response.headers.get('content-length')
+            : undefined)
+    );
+}
+
+function defaultFetchContentCreatedAt(response) {
+    return (
+        response.headers.get('x-file-created-at') ||
+        response.headers.get('last-modified')
+    );
 }
 
 // FIXME: That's a temporary solution to make data loading work with a data wrapper
@@ -32,26 +63,32 @@ function isDiscoveryCliLegacyDataWrapper(input) {
     return true;
 }
 
-function buildDataset({ data: input, ...attributes }, rawMeta) {
-    if (isDiscoveryCliLegacyDataWrapper(input)) {
-        const { data, ...inputMeta } = input;
+function buildDataset(rawData, rawResource, rawMeta, { encoding, size }) {
+    if (isDiscoveryCliLegacyDataWrapper(rawData)) {
+        const { data, ...rawDataMeta } = rawData;
 
-        input = data;
-        rawMeta = { ...inputMeta, ...rawMeta };
+        rawData = data;
+        rawResource = { ...rawResource, createdAt: data.createdAt };
+        rawMeta = rawDataMeta;
     }
 
-    const data = input;
+    const data = rawData;
     const meta = rawMeta || {};
-
-    const { sourceType, sourceName, createdAt, ...restMeta } = meta;
+    // eslint-disable-next-line no-unused-vars
+    const { type, name, encoding: ignore1, size: ignore2, encodedSize, createdAt, ...restResource } = rawResource;
+    const resource = {
+        type: type || 'unknown',
+        name: name || 'unknown',
+        encoding,
+        size,
+        ...encodedSize ? { encodedSize } : null,
+        createdAt: new Date(Date.parse(createdAt) || Date.now()),
+        ...restResource
+    };
 
     return {
-        sourceType,
-        sourceName,
-        loadedAt: new Date(),
-        createdAt: new Date(Date.parse(createdAt) || Date.now()),
-        ...attributes,
-        meta: restMeta,
+        resource,
+        meta,
         data
     };
 }
@@ -89,6 +126,7 @@ export function dataFromStream(stream, totalSize, setProgress) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const reader = stream.getReader();
     const streamStartTime = Date.now();
+    let encoding = 'json';
     let size = 0;
 
     return reader.read().then(firstChunk => {
@@ -134,12 +172,13 @@ export function dataFromStream(stream, totalSize, setProgress) {
 
         if (isJsonxl(firstChunk.value)) {
             // parse binary format (JSONXL)
+            encoding = 'jsonxl/snapshot9';
             return parseJsonxl(streamConsumer());
         }
 
         // parse standard JSON
         return parseChunked(streamConsumer);
-    }).then(data => ({ data, size }));
+    }).then(data => ({ data, encoding, size }));
 }
 
 async function loadDataFromStreamInternal(request, progress) {
@@ -149,15 +188,19 @@ async function loadDataFromStreamInternal(request, progress) {
     };
 
     try {
-        const startTime = Date.now();
+        const requestStart = new Date();
         const {
+            method,
             stream,
-            data: explicitData,
-            size: payloadSize,
-            validateData
+            resource: rawResource,
+            options,
+            data: explicitData
         } = await stage('request', request);
-        const requestTime = Date.now() - startTime;
-        const { data, size } = explicitData || await stage('receive', () =>
+
+        const responseStart = new Date();
+        const payloadSize = rawResource?.size;
+        const { validateData } = options || {};
+        const { data: rawData, encoding, size } = explicitData ? { data: explicitData } : await stage('receive', () =>
             dataFromStream(stream, Number(payloadSize) || 0, state => progress.asyncSet({
                 stage: 'receive',
                 progress: state
@@ -165,18 +208,36 @@ async function loadDataFromStreamInternal(request, progress) {
         );
 
         // FIXME: add 'validate' stage?
+        const validationStart = new Date();
         if (typeof validateData === 'function') {
             validateData(data);
         }
 
+        const finishingStart = new Date();
         await progress.asyncSet({ stage: 'received' });
 
+        const finishedTime = new Date();
+        const { data, resource, meta } = buildDataset(rawData, rawResource, null, { size, encoding });
+
         return {
+            loadMethod: method,
+            resource,
+            meta,
             data,
-            size,
-            payloadSize: Number(payloadSize) || 0,
-            time: Date.now() - startTime,
-            requestTime
+            timing: {
+                time: finishedTime - requestStart,
+                start: requestStart,
+                end: finishedTime,
+                requestTime: responseStart - requestStart,
+                requestStart,
+                requestEnd: responseStart,
+                responseTime: validationStart - responseStart,
+                responseStart,
+                responseEnd: validationStart,
+                validateTime: finishingStart - validationStart,
+                validationStart,
+                validationEnd: finishingStart
+            }
         };
     } catch (error) {
         console.error('[Discovery] Error loading data:', error);
@@ -185,21 +246,14 @@ async function loadDataFromStreamInternal(request, progress) {
     }
 }
 
-function createLoadDataState(request, meta = {}, extra) {
+function createLoadDataState(request, extra) {
     const state = new Publisher();
 
     return {
         state,
         // encapsulate logic into separate function since it's async,
         // but we need to return publisher for progress tracking purposes
-        result: loadDataFromStreamInternal(request, state)
-            .then(res => ({
-                ...res,
-                dataset: buildDataset(
-                    res,
-                    typeof meta === 'function' ? meta() : meta
-                )
-            })),
+        result: loadDataFromStreamInternal(request, state),
         ...extra
     };
 }
@@ -207,30 +261,27 @@ function createLoadDataState(request, meta = {}, extra) {
 export function loadDataFromStream(stream, options) {
     return createLoadDataState(
         () => ({
+            method: 'stream',
             stream,
-            size: options.size
-        }),
-        () => ({
-            sourceType: 'stream',
-            sourceName: null,
-            ...options.dataMeta
+            resource: options.resource,
+            options
         })
     );
 }
 
 export function loadDataFromFile(file, options) {
+    const resource = extractResourceMetadata(file);
+
     return createLoadDataState(
-        () => ({
-            stream: streamFromBlob(file),
-            size: file.size
-        }),
-        () => ({
-            sourceType: 'file',
-            sourceName: file.name,
-            createdAt: file.lastModified,
-            ...options.dataMeta
-        }),
-        { title: 'Load data from file: ' + file.name }
+        () => {
+            return {
+                method: 'file',
+                stream: streamFromBlob(file),
+                resource: options.resource || resource, // options.resource takes precedence over an extracted resource
+                options
+            };
+        },
+        { title: 'Load data from file: ' + (resource.name || 'unknown') }
     );
 }
 
@@ -251,30 +302,17 @@ export function loadDataFromEvent(event, options) {
 export function loadDataFromUrl(url, options) {
     options = options || {};
 
-    let createdAt;
-    const isResponseOk = options.isResponseOk || (response => response.ok);
-    const getContentSize = options.getContentSize || ((response) =>
-        response.headers.get('x-file-size') ||
-        (isSameOrigin(url) && !response.headers.get('content-encoding')
-            ? response.headers.get('content-length')
-            : undefined)
-    );
-    const getContentCreatedAt = options.getContentSize || ((response) =>
-        response.headers.get('x-file-created-at') ||
-        response.headers.get('last-modified')
-    );
-
     return createLoadDataState(
         async () => {
             const response = await fetch(url, options.fetch);
+            const resource = extractResourceMetadata(response, options);
 
-            if (isResponseOk(response)) {
-                createdAt = getContentCreatedAt(response);
-
+            if (resource) {
                 return {
+                    method: 'fetch',
                     stream: response.body,
-                    size: getContentSize(response),
-                    validateData: options.validateData
+                    resource: options.resource || resource, // options.resource takes precedence over an extracted resource
+                    options
                 };
             }
 
@@ -292,12 +330,6 @@ export function loadDataFromUrl(url, options) {
             error.stack = null;
             throw error;
         },
-        () => ({
-            sourceType: 'url',
-            sourceName: url,
-            createdAt,
-            ...options.dataMeta
-        }),
         { title: `Load data from url: ${url}` }
     );
 }
@@ -312,23 +344,41 @@ export function loadDataFromPush(options) {
             controller = null;
         }
     });
+    let resolveRequest;
+    let pushResource;
+    // let rejectRequest;
+    const request = new Promise((resolve) => {
+        resolveRequest = (resource) => resolve({
+            method: 'push',
+            stream,
+            resource: (pushResource = resource) || options.resource, // resource takes precedence over options.resource
+            options
+        }) || (resolveRequest = () => {});
+        // rejectRequest = reject;
+    });
 
     options = options || {};
 
     return createLoadDataState(
-        () => ({ stream, size: options.size }),
-        () => ({
-            sourceType: 'push',
-            sourceName: null,
-            ...options.dataMeta
-        }),
+        () => request,
         {
+            start(resource) {
+                resolveRequest(resource);
+            },
             push(chunk) {
+                resolveRequest();
                 controller.enqueue(chunk);
             },
-            finish() {
+            // error(error) {
+            //     rejectRequest(error);
+            // },
+            finish(encodedSize) {
                 controller.close();
                 controller = null;
+
+                if (isFinite(encodedSize) && pushResource) {
+                    pushResource.encodedSize = Number(encodedSize);
+                }
             }
         }
     );
@@ -350,5 +400,115 @@ export function syncLoaderWithProgressbar({ result, state }, progressbar) {
 
             return progressbar.setState({ stage, progress });
         });
+    });
+}
+
+export function extractResourceMetadata(source, options) {
+    if (source instanceof Response) {
+        const isResponseOk = options?.isResponseOk || defaultFetchOk;
+        const getContentSize = options?.getContentSize || defaultFetchContentSize;
+        const getContentEncodedSize = options?.getContentEncodedSize || defaultFetchContentEncodedSize;
+        const getContentCreatedAt = options?.getContentSize || defaultFetchContentCreatedAt;
+
+        if (isResponseOk(source)) {
+            return {
+                type: 'url',
+                name: source.url,
+                size: Number(getContentSize(source)) || null,
+                encodedSize: Number(getContentEncodedSize(source)),
+                createdAt: getContentCreatedAt(source)
+            };
+        }
+    }
+
+    if (source instanceof File) {
+        return {
+            type: 'file',
+            name: source.name,
+            size: source.size,
+            createdAt: source.lastModified
+        };
+    }
+
+    if (source instanceof Blob) {
+        return {
+            size: source.size
+        };
+    }
+
+    if (ArrayBuffer.isView(source)) {
+        return {
+            size: source.byteLength
+        };
+    }
+
+    if (typeof source === 'string') {
+        return {
+            size: source.length
+        };
+    }
+}
+
+function getGeneratorFromSource(source) {
+    if (typeof source === 'string' || DataView.isView(source)) {
+        return function*() {
+            yield new TextEncoder().encode(source);
+        };
+    }
+
+    // allow arrays of strings only
+    if (Array.isArray(source)) {
+        if (source.some(elem => typeof elem !== 'string')) {
+            return;
+        }
+    }
+
+    if (isObject(source)) {
+        if (Symbol.asyncIterator in source) {
+            return source[Symbol.asyncIterator];
+        }
+
+        if (Symbol.iterator in source) {
+            return source[Symbol.iterator];
+        }
+    }
+}
+
+export function getReadableStreamFromSource(source) {
+    if (source instanceof ReadableStream) {
+        return source;
+    }
+
+    if (source instanceof Response) {
+        return source.body;
+    }
+
+    if (source instanceof Blob) {
+        return streamFromBlob(source);
+    }
+
+    return new ReadableStream({
+        start() {
+            const generator = getGeneratorFromSource(source);
+
+            if (!generator) {
+                throw new Error('Bad value type (can\'t convert to a generator)');
+            }
+
+            this.iterator = generator();
+        },
+        async pull(controller) {
+            const { value, done } = await this.iterator.next();
+
+            if (done) {
+                this.iterator = null;
+                controller.close();
+            } else {
+                controller.enqueue(value);
+            }
+        },
+        cancel() {
+            this.iterator = null;
+        }
     });
 }

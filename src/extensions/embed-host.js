@@ -1,10 +1,18 @@
 import Emitter from '../core/emitter.js';
 import Publisher from '../core/publisher.js';
 import { randomId } from '../core/utils/id.js';
+import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
 import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
 
-const isObject = value => value !== null && typeof value === 'object';
-const ReadableStreamDefaultReader = new ReadableStream().getReader().constructor;
+const isStreamTransferable = (() => {
+    try {
+        const stream = new ReadableStream();
+        new MessageChannel().port1.postMessage(stream, [stream]);
+        return true;
+    } catch {
+        return false;
+    }
+})();
 
 export { loadStages, decodeStageProgress };
 export function connectToEmbedApp(iframe, onPreinit, onConnect) {
@@ -17,12 +25,12 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
 
             this.publicApi = Object.freeze({});
         }
-        sendMessage(type, payload) {
+        sendMessage(type, payload, transfer) {
             this.window.postMessage({
                 id: this.id,
                 type,
                 payload: payload || null
-            }, '*');
+            }, '*', transfer);
         }
         destroy() {
             this.window = null;
@@ -112,10 +120,16 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                 unloadData: () => {
                     this.sendMessage('unloadData');
                 },
-                loadData: (dataLoader) => {
-                    this.requestDataLoadToken = randomId();
-                    this.requestDataLoader = dataLoader;
-                    this.sendMessage('startDataLoad', { request: this.requestDataLoadToken });
+                uploadData: (source, getResourceMetadataFromSource) => {
+                    const dataLoadToken = randomId();
+
+                    this.dataLoadToken = dataLoadToken;
+
+                    return uploadData(source, getResourceMetadataFromSource).finally(() => {
+                        if (this.dataLoadToken === dataLoadToken) {
+                            this.dataLoadToken = null;
+                        }
+                    });
                 }
             });
         }
@@ -189,69 +203,6 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
 
                 case 'loadingState': {
                     this.emit('loadingStateChanged', message.payload);
-                    break;
-                }
-
-                case 'readyForDataLoad': {
-                    const requestDataLoadToken = this.requestDataLoadToken;
-                    const { request, acceptToken } = message.payload;
-
-                    if (request === this.requestDataLoadToken) {
-                        if (typeof this.requestDataLoader === 'function') {
-                            const shouldStop = () => this?.requestDataLoadToken !== requestDataLoadToken;
-                            let source = await this.requestDataLoader();
-
-                            if (shouldStop()) {
-                                return;
-                            }
-
-                            if (typeof source === 'string') {
-                                source = [source];
-                            } else if (source instanceof Response) {
-                                source = source.body.getReader();
-                            } else if (source instanceof ReadableStream) {
-                                source = source.getReader();
-                            }
-
-                            if (source instanceof ReadableStreamDefaultReader) {
-                                while (true) {
-                                    // await new Promise(resolve => setTimeout(resolve, 1000));
-                                    const { value, done } = await source.read();
-
-                                    this.sendMessage('dataChunk', { acceptToken, value, done }, [value?.buffer]);
-
-                                    if (done || shouldStop()) {
-                                        source.cancel();
-                                        source.releaseLock();
-                                        break;
-                                    }
-                                }
-
-                                break;
-                            } else if (isObject(source) && (Symbol.iterator in source || Symbol.asyncIterator in source)) {
-                                for await (const value of source) {
-                                    if (shouldStop()) {
-                                        return;
-                                    }
-
-                                    this.sendMessage('dataChunk', { acceptToken, value });
-                                }
-
-                                if (shouldStop()) {
-                                    return;
-                                }
-
-                                this.sendMessage('dataChunk', { acceptToken, done: true });
-
-                                break;
-                            }
-                        }
-
-                        throw new Error(
-                            'Chunk emitter should be generator, async generator or function returning an iterable object'
-                        );
-                    }
-
                     break;
                 }
 
@@ -339,6 +290,52 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
             if (embedApp?.id === data.id) {
                 embedApp.processMessage(data);
                 return;
+            }
+        }
+    }
+
+    async function uploadData(data, getResourceMetadataFromSource = extractResourceMetadata) {
+        const acceptToken = embedApp.dataLoadToken;
+        const maybeAbort = () => {
+            if (embedApp?.dataLoadToken !== acceptToken) {
+                throw new Error('Data upload aborted');
+            }
+        };
+        const source = typeof data === 'function'
+            ? await data()
+            : await data;
+
+        maybeAbort();
+
+        const resource = typeof getResourceMetadataFromSource === 'function'
+            ? getResourceMetadataFromSource(source) || {}
+            : {};
+        const stream = getReadableStreamFromSource(source);
+
+        if (isStreamTransferable) {
+            embedApp.sendMessage('dataStream', { stream, resource }, [stream]);
+        } else {
+            const reader = stream.getReader();
+
+            embedApp.sendMessage('startChunkedDataUpload', { acceptToken, resource });
+
+            try {
+                while (true) {
+                    // await new Promise(resolve => setTimeout(resolve, 1000));
+                    const { value, done } = await reader.read();
+
+                    embedApp.sendMessage('dataChunk', { acceptToken, value, done }, value?.buffer ? [value.buffer] : undefined);
+                    maybeAbort();
+
+                    if (done) {
+                        break;
+                    }
+                }
+            } catch (error) {
+                embedApp.sendMessage('cancelChunkedDataUpload', { acceptToken, error });
+                throw error;
+            } finally {
+                reader.releaseLock();
             }
         }
     }
