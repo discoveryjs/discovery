@@ -394,6 +394,27 @@ export default class Widget extends Emitter {
             ])
         );
 
+        // TODO: use Navigation API when it become mature and wildly supported (https://developer.chrome.com/docs/web-platform/navigation-api/)
+        shadow.addEventListener('click', (event) => {
+            const linkEl = event.target.closest('a');
+
+            // do nothing when there is no <a> in target's ancestors, or it's an external link
+            if (!linkEl || linkEl.getAttribute('target')) {
+                return;
+            }
+
+            // do nothing when the has different origin or pathname
+            if (linkEl.origin !== location.origin || linkEl.pathname !== location.pathname) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (!linkEl.classList.contains('ignore-href')) {
+                this.setPageHash(linkEl.hash);
+            }
+        }, true);
+
         this.dom.detachDarkMode = this.darkmode.subscribe(
             dark => container.classList.toggle('discovery-root-darkmode', dark),
             true

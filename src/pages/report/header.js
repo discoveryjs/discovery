@@ -47,7 +47,7 @@ export default function(host, updateParams) {
         render: (popupEl, _, hide) => host.view.render(popupEl, {
             view: 'menu',
             data: [
-                { text: 'Copy link to report', action: () => copyText(location) },
+                { text: 'Copy link to report', action: () => copyText(new URL(host.pageHash, location).href) },
                 { text: 'Copy report as JSON', action: () => copyText(exportReportAsJson(host.pageParams)) }
             ],
             onClick(item) {
