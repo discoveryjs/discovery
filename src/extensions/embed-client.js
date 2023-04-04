@@ -136,6 +136,11 @@ function setup(options) {
                         break;
                     }
 
+                    case 'setRouterPreventLocationUpdate': {
+                        host.routerPreventLocationUpdate = Boolean(payload);
+                        break;
+                    }
+
                     case 'changeNavButtons': {
                         const {
                             section = 'primary',
@@ -152,7 +157,7 @@ function setup(options) {
                         }
 
                         const commands = rawCommands || {};
-                        const config = JSON.parse(JSON.stringify(rawConfig), (key, value) => commands.includes(value)
+                        const config = JSON.parse(JSON.stringify(rawConfig), (_, value) => commands.includes(value)
                             ? () => sendMessage('navMethod', value)
                             : value
                         );

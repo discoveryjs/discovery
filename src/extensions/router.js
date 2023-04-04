@@ -10,6 +10,10 @@ export default function(host) {
     host.on('pageHashChange', function(replace) {
         const newPageHash = host.pageHash || '#';
 
+        if (host.routerPreventLocationUpdate) {
+            return;
+        }
+
         if (newPageHash === '#' && !location.hash) {
             return;
         }

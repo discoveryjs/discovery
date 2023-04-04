@@ -45,6 +45,8 @@
             logMsg('Loading data state', { stage, progress });
         });
 
+        preloader.setRouterPreventLocationUpdate(true);
+
         // override model navigation logic
         // preloader.defineAction('openModel', (slug, url) => {
         //     logMsg('Action "openModel" (will be opened in 1 second)', { slug, url });

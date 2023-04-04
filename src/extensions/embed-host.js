@@ -50,6 +50,10 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                 defineAction: (name, fn) => {
                     this.actions.set(name, fn);
                     this.sendMessage('defineAction', name);
+                },
+
+                setRouterPreventLocationUpdate: (allow = true) => {
+                    this.sendMessage('setRouterPreventLocationUpdate', allow);
                 }
             });
         }
@@ -114,9 +118,14 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                 setPageParams: (params, replace) => {
                     this.sendMessage('setPageParams', { params, replace });
                 },
+
                 setDarkmode: (value) => {
                     this.sendMessage('setDarkmode', value);
                 },
+                setRouterPreventLocationUpdate: (allow = true) => {
+                    this.sendMessage('setRouterPreventLocationUpdate', allow);
+                },
+
                 unloadData: () => {
                     this.sendMessage('unloadData');
                 },

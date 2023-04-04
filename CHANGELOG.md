@@ -46,6 +46,7 @@ The `options` optional parameter an object which structure depends on a method. 
 - Embed API:
     - Reworked internals for more efficient data transfer, e.g. transfer a data stream intead of tranfering data with chunks
     - Replaced `App#loadData` with `App#uploadData(source, extractResourceMetadata)` method, which takes source instead of a function returning a source
+    - Added `setRouterPreventLocationUpdate()` method for preloader and app to prevent location updates (and browser's history as well) on internal navigation
 
 ## 1.0.0-beta.71 (20-03-2023)
 

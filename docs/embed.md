@@ -72,6 +72,7 @@ const myapp = new Widget({
     * once(eventName, fn)
     * off(eventName, fn)
     * defineAction(name, fn)
+    * setRouterPreventLocationUpdate(allow)
 
 ## Embed App API
 
@@ -97,6 +98,7 @@ const myapp = new Widget({
     * setPageRef(ref, replace)
     * setPageParams(params, replace)
     * setDarkmode(value)
+    * setRouterPreventLocationUpdate(allow)
     * unloadData()
     * loadData(dataLoader)
     * nav {primary, secondary, menu}
