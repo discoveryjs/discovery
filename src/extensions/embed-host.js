@@ -52,6 +52,10 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                     this.sendMessage('defineAction', name);
                 },
 
+                setPageHash: (hash, replace) => {
+                    this.sendMessage('setPageHash', { hash, replace });
+                },
+
                 setRouterPreventLocationUpdate: (allow = true) => {
                     this.sendMessage('setRouterPreventLocationUpdate', allow);
                 }

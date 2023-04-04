@@ -72,6 +72,7 @@ const myapp = new Widget({
     * once(eventName, fn)
     * off(eventName, fn)
     * defineAction(name, fn)
+    * setPageHash(hash, replace)
     * setRouterPreventLocationUpdate(allow)
 
 ## Embed App API

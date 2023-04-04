@@ -90,6 +90,7 @@ function initPreloadEmbedApi(loading) {
         if (id === hostId) {
             switch (type) {
                 case 'defineAction':
+                case 'setPageHash':
                 case 'setRouterPreventLocationUpdate': {
                     postponeMessages.push(event.data);
                     break;
