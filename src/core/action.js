@@ -5,10 +5,9 @@ import Dict from './dict.js';
 const actionMap = new WeakMap();
 
 export default class ActionManager extends Dict {
-    constructor(host) {
+    constructor() {
         super(true);
 
-        this.host = host;
         actionMap.set(this, Object.create(null));
     }
 

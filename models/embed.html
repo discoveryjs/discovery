@@ -48,7 +48,7 @@
         preloader.setRouterPreventLocationUpdate(true);
         // preloader.setPageHash('#report');
 
-        // override model navigation logic
+        // override model actions
         // preloader.defineAction('openModel', (slug, url) => {
         //     logMsg('Action "openModel" (will be opened in 1 second)', { slug, url });
         //     $('#discoveryApp').style.transition = 'opacity .5s';
@@ -73,6 +73,9 @@
         //         content: content,
         //         size: content.length,
         //     }
+        // });
+        // preloader.defineAction('permalink', (pageHash) => {
+        //     return 'yohoho!' + pageHash;
         // });
 
         return () => {

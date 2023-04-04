@@ -66,7 +66,9 @@ export default class Widget extends Emitter {
         this.inspectMode = new Publisher(false);
         this.initDom();
 
-        this.action = new ActionManager(null)
+        this.action = new ActionManager();
+        this.action.define('permalink', (hash) => new URL(hash, location).href);
+        this.action
             .on('define', () => {
                 if (this.context) {
                     this.scheduleRender('sidebar');
