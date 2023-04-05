@@ -38,7 +38,7 @@
         "marked": "^4.0.18"
     },
     "devDependencies": {
-        "@discoveryjs/cli": "^2.4.0",
+        "@discoveryjs/cli": "^2.5.0",
         "cypress": "^9.5.4",
         "esbuild": "~0.14.49",
         "eslint": "^8.19.0",
