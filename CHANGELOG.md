@@ -2,6 +2,7 @@
 
 - Fixed `loadDataFromStream()` and `loadDataFromFile()` methods when no `options` parameter is specified
 - Fixed "data collected at" date displaying on a report page
+- Fixed `#.actions` availability for an App's overlay rendering
 
 ## 1.0.0-beta.72 (05-04-2023)
 

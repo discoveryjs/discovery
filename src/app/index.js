@@ -115,7 +115,7 @@ export default class App extends Widget {
                     errorText: escapeHtml(error.message || String(error)),
                     errorStack: error.stack ? escapeHtml(error.stack).replace(/^Error:\s*(\S+Error:)/, '$1') : ''
                 }, {
-                    actions: this.actions
+                    actions: this.action.actionMap
                 }).then(() => {
                     console.error(error);
                     progressbar?.setState({ error });
