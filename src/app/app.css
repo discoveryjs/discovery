@@ -7,7 +7,6 @@
     left: 0;
     padding: 35px 40px;
     background: var(--discovery-background-color);
-    font-size: 16px;
     will-change: opacity;
 }
 .discovery > .loading-overlay > * {

@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.73 (05-04-2023)
 
 - Fixed `loadDataFromStream()` and `loadDataFromFile()` methods when no `options` parameter is specified
 - Fixed "data collected at" date displaying on a report page
