@@ -1,3 +1,7 @@
+## next
+
+- Fixed `loadDataFromStream()` and `loadDataFromFile()` methods when no `options` parameter is specified
+
 ## 1.0.0-beta.72 (05-04-2023)
 
 - Made internal navigation using anchors (`<a>` tags) work without router extension enabled. Use `ignore-href` class on an anchor to prevent navigation by `href` attribute if needed

@@ -263,7 +263,7 @@ export function loadDataFromStream(stream, options) {
         () => ({
             method: 'stream',
             stream,
-            resource: options.resource,
+            resource: options?.resource,
             options
         })
     );
@@ -277,7 +277,7 @@ export function loadDataFromFile(file, options) {
             return {
                 method: 'file',
                 stream: streamFromBlob(file),
-                resource: options.resource || resource, // options.resource takes precedence over an extracted resource
+                resource: options?.resource || resource, // options.resource takes precedence over an extracted resource
                 options
             };
         },
