@@ -67,7 +67,6 @@ export default class Widget extends Emitter {
         this.initDom();
 
         this.action = new ActionManager();
-        this.action.define('permalink', (hash) => new URL(hash, location).href);
         this.action
             .on('define', () => {
                 if (this.context) {

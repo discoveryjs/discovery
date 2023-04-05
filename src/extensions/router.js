@@ -5,6 +5,9 @@ export default function(host) {
     host.setPageHash(location.hash);
     host.cancelScheduledRender();
 
+    // register action
+    host.action.define('permalink', (hash) => new URL(hash, location).href);
+
     // sync
     window.addEventListener('hashchange', () => host.setPageHash(location.hash), false);
     host.on('pageHashChange', function(replace) {
