@@ -125,7 +125,7 @@ export default function(host, updateParams) {
         ],
         render(data, context) {
             const { title, noedit } = context.params;
-            const createdAt = formatDate(context.datasets[0]?.createdAt);
+            const createdAt = formatDate(context.datasets?.[0]?.resource?.createdAt);
 
             titleInputEl.value = title;
             updateHeaderTitle(titleInputEl);
