@@ -38,7 +38,7 @@ export function preloader(options) {
             ? loadData(options.loadDataOptions)
             : loadData(options.data, options.loadDataOptions)
         : {
-            result: Promise.resolve({})
+            result: Promise.resolve()
         };
 
     if (loading.push) {
