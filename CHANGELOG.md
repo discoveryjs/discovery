@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.74 (06-04-2023)
 
 - Fixed preloader init when no data specified
 
