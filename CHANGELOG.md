@@ -1,3 +1,8 @@
+## next
+
+- Added `.jsonxl` to list of default extensions for upload
+- Improved markdown syntax highlighting in `source` view
+
 ## 1.0.0-beta.74 (06-04-2023)
 
 - Fixed preloader init when no data specified
