@@ -11,7 +11,7 @@ function setup(options) {
     return function(host) {
         const accept = options.accept
             ? String(options.accept)
-            : 'application/json,.json';
+            : 'application/json,application/jsonxl,.json,.jsonxl';
         const dragdrop = Boolean(options.dragdrop || options.dragdrop === undefined);
         const acceptTokens = accept.split(',');
 
