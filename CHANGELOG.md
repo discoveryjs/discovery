@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.75 (15-07-2023)
 
 - Added `.jsonxl` to list of default extensions for upload
 - Improved markdown syntax highlighting in `source` view
