@@ -1,4 +1,5 @@
 const codeExample = 'let name = "world";\n\nconsole.log(`Hello, ${name}!`);';
+const lineNum = new Function('return num => num + 5')();
 
 export default {
     demo: {
@@ -23,7 +24,51 @@ export default {
             source: false
         },
         {
+            title: 'Custom line numbers',
+            highlightProps: ['lineNum'],
+            demo: {
+                view: 'source',
+                data: {
+                    content: codeExample,
+                    syntax: 'js',
+                    lineNum
+                }
+            }
+        },
+        {
+            title: 'Hide line numbers',
+            highlightProps: ['lineNum'],
+            beforeDemo: ['md:"Pass falsy value to `lineNum` option to hide line numbers:"'],
+            demo: {
+                view: 'source',
+                data: {
+                    content: codeExample,
+                    syntax: 'js',
+                    lineNum: false
+                }
+            }
+        },
+        {
+            title: 'Additional action buttons',
+            highlightProps: ['actionButtons'],
+            demo: {
+                view: 'source',
+                actionButtons: [
+                    {
+                        view: 'button',
+                        content: 'text:"Say \\"Hello world\\""',
+                        onClick: new Function('return () => alert("Hello world!")')()
+                    }
+                ],
+                data: {
+                    content: codeExample,
+                    syntax: 'js'
+                }
+            }
+        },
+        {
             title: 'Highlight ranges',
+            highlightProps: ['refs'],
             demo: {
                 view: 'source',
                 data: {
@@ -40,30 +85,9 @@ export default {
             }
         },
         {
-            title: 'Custom line numbers',
-            demo: {
-                view: 'source',
-                data: {
-                    content: codeExample,
-                    syntax: 'js',
-                    lineNum: idx => idx + 5
-                }
-            }
-        },
-        {
-            title: 'Without line numbers',
-            demo: {
-                view: 'source',
-                data: {
-                    content: codeExample,
-                    syntax: 'js',
-                    lineNum: false
-                }
-            }
-        },
-        {
-            title: 'Max content size for highlight',
-            beforeDemo: ['md:"By default a syntax highlighing is not appling to a source which is bigger than 250Kb. Option `maxSourceSizeToHighlight` is using to change max size of source to be highlighted."'],
+            title: 'Max content size for syntax highlight',
+            highlightProps: ['maxSourceSizeToHighlight'],
+            beforeDemo: ['md:"By default a syntax highlighing is not appling to a source longer than 250Kb. Option `maxSourceSizeToHighlight` is using to change max size of source to be syntax highlighted."'],
             demo: {
                 view: 'source',
                 data: {

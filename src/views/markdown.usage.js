@@ -1,7 +1,7 @@
 export default {
     demo: {
         view: 'markdown',
-        source: '# Markdown example\n\n> NOTE: That\'s an experimental view based on [marked](https://github.com/markedjs/marked)\n\nMarkdown is good because:\n* You\'ll get **formatted** *text* with _no tags_\n* It\'s much simpler than `HTML`\n\n```html\n<b>bold</b><i>italic</i>\n```\n[Read more](https://guides.github.com/features/mastering-markdown/)'
+        source: '# Markdown example\n\n> NOTE: The `markdown` view is based on [marked](https://github.com/markedjs/marked) package\n\nMarkdown is good because:\n* You\'ll get **formatted** *text* with _no tags_\n* It\'s much simpler than `HTML`\n\n```html\n<b>bold</b><i>italic</i>\n```\n[Read more](https://guides.github.com/features/mastering-markdown/)'
     },
     examples: [
         {
@@ -35,6 +35,7 @@ export default {
         },
         {
             title: 'Disable anchors for headers',
+            highlightProps: ['anchors'],
             beforeDemo: 'Hover a header to see a chain icon on the left side of header when anchors are enabled:',
             demo: [
                 {
@@ -47,6 +48,22 @@ export default {
                     source: '## header with disabled anchor'
                 }
             ]
+        },
+        {
+            title: 'Additional action buttons for code blocks',
+            highlightProps: ['codeActionButtons'],
+            beforeDemo: 'md:Use `codeActionButtons` to add additional buttons to code blocks. The option is the same as `actionButtons` for `source` view.',
+            demo: {
+                view: 'markdown',
+                codeActionButtons: [
+                    {
+                        view: 'button',
+                        content: 'text:"Say \\"Hello world\\""',
+                        onClick: new Function('return () => alert("Hello world!")')()
+                    }
+                ],
+                source: '```js\nconsole.log("Hello world")\n```'
+            }
         },
         {
             title: 'Showcase',

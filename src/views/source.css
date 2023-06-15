@@ -1,4 +1,5 @@
 .view-source {
+    position: relative;
     padding: 8px;
     overflow: auto;
     border-radius: 3px;
@@ -9,7 +10,65 @@
     color: var(--discovery-fmt-color);
     background-color: rgba(205, 205, 205, .1);
 }
-.view-source .lines {
+
+.view-source > .action-buttons {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    gap: 4px;
+    font-family: var(--discovery-font-family);
+    font-size: 12px;
+    line-height: 1.6;
+}
+.view-source > .action-buttons .view-button {
+    padding: 4px 6px;
+    margin: 0;
+    opacity: 0.25;
+    transition: .5s opacity;
+}
+.view-source:hover > .action-buttons .view-button {
+    opacity: 1;
+    transition-duration: .25s;
+}
+.view-source > .action-buttons .view-button.copied {
+    opacity: 1;
+}
+.view-source > .action-buttons .view-button.copy::before {
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    width: 12px;
+    height: 12px;
+    -webkit-mask: center / 12px no-repeat url("./source-copy.svg");
+    mask: center / 12px no-repeat url("./source-copy.svg");
+    visibility: visible;
+    background-color: currentColor;
+    transition: .1s .25s;
+    transition-property: scale, opacity;
+}
+.view-source > .action-buttons .view-button::after {
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    margin-left: -12px;
+    width: 12px;
+    height: 12px;
+    -webkit-mask: center / 16px no-repeat url("./source-copied.svg");
+    mask: center / 16px no-repeat url("./source-copied.svg");
+    background-color: #6a9c11;
+    transition: .1s .25s;
+    transition-property: scale, opacity;
+}
+.view-source > .action-buttons .view-button.copied::before,
+.view-source > .action-buttons .view-button:not(.copied)::after {
+    scale: 0;
+    opacity: 0;
+    transition-delay: 0s;
+    transition-duration: .2s;
+}
+
+.view-source > .lines {
     float: left;
     text-align: right;
     min-width: 3ex;
@@ -18,9 +77,10 @@
     border-right: 1px solid rgba(170, 170, 170, 0.4);
     color: rgba(150, 150, 150, 0.65);
 }
-.view-source .lines > span {
+.view-source > .lines > span {
     display: block;
 }
+
 .view-source .spotlight {
     background: #f5e69a;
     padding: 1px 2px 2px;

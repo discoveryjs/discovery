@@ -7,6 +7,8 @@ import 'codemirror/mode/css/css.js';
 import 'codemirror/mode/xml/xml.js';
 import { equal } from '../core/utils/compare.js';
 import usage from './source.usage.js';
+import { createElement } from '../core/utils/dom.js';
+import copyText from '../core/utils/copy-text.js';
 
 const defaultMaxSourceSizeToHighlight = 250 * 1024;
 CodeMirror.modeToMime = {
@@ -220,12 +222,29 @@ export default function(host) {
                         .join('') +
                   '</div>'
                 : '';
+
+            // main content
             el.innerHTML =
                 lines +
-                '<div>' +
-                    hitext(decorators, 'html')(content) +
-                '</div>';
+                `<div class="source">${
+                    hitext(decorators, 'html')(content)
+                }</div>`;
 
+            // action buttons
+            const actionButtonsEl = createElement('div', 'action-buttons');
+
+            host.view.render(actionButtonsEl, [
+                config.actionButtons,
+                { view: 'button', className: 'copy', async onClick(btnEl) {
+                    clearTimeout(btnEl.copiedTimer);
+                    await copyText(content);
+                    btnEl.classList.add('copied');
+                    btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
+                } }
+            ], data, context);
+            el.prepend(actionButtonsEl);
+
+            // tooltips
             for (const refEl of el.querySelectorAll(':scope [data-tooltip-id]')) {
                 const ref = refsTooltips.get(Number(refEl.dataset.tooltipId));
 

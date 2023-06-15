@@ -96,12 +96,7 @@ marked.setOptions({
 
 export default function(host) {
     const opts = {
-        discovery: host,
-        highlight(content, syntax, callback) {
-            const buffer = document.createDocumentFragment();
-            host.view.render(buffer, 'source', { syntax, content })
-                .then(() => callback(null, buffer.firstChild.outerHTML));
-        }
+        discovery: host
     };
 
     function applyTextInterpolation(value, values) {
@@ -129,7 +124,7 @@ export default function(host) {
     }
 
     function render(el, config, data, context) {
-        const { source, anchors = true } = config;
+        const { source, anchors = true, codeActionButtons } = config;
         const interpolations = new Map();
         let mdSource = typeof data === 'string' ? data : source || '';
 
@@ -139,6 +134,7 @@ export default function(host) {
 
         mdSource = mdSource.replace(/{{(.+?)}}/gs, (_, query) => {
             query = query.trim();
+
             if (!interpolations.has(query)) {
                 interpolations.set(query, interpolations.size);
             }
@@ -153,8 +149,11 @@ export default function(host) {
                 mdSource,
                 { ...opts, anchors },
                 (er, html) => {
-                    el.innerHTML = html.replace(/\n(<\/code>)/g, '$1'); // FIXME: marked adds extra newline before </code> for unknown reason
+                    const promises = [];
 
+                    el.innerHTML = html;
+
+                    // interpolations
                     if (interpolations.size > 0) {
                         const interpolationValues = new Array(interpolations.size);
 
@@ -169,7 +168,25 @@ export default function(host) {
                         applyInterpolations(el, interpolationValues);
                     }
 
-                    resolve();
+                    // highlight code with a source view
+                    for (const codeEl of [...el.querySelectorAll('pre > code')]) {
+                        const buffer = document.createDocumentFragment();
+                        const content = codeEl.textContent.replace(/\n$/, '');
+                        const syntax = (codeEl.className.match(/discovery-markdown-(\S+)/) || [])[1];
+
+                        promises.push(
+                            host.view.render(
+                                buffer,
+                                { view: 'source', actionButtons: codeActionButtons },
+                                { syntax, content },
+                                context
+                            ).then(() =>
+                                codeEl.replaceWith(buffer.firstChild)
+                            )
+                        );
+                    }
+
+                    Promise.all(promises).then(resolve);
                 }
             );
         });

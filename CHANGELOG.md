@@ -2,6 +2,9 @@
 
 - Added `.jsonxl` to list of default extensions for upload
 - Improved markdown syntax highlighting in `source` view
+- Added "Copy to clipboard" button to `source` view
+- Added `actionButtons` option for `source` view to add extra buttons (or any views) before "Copy to clipboard" button
+- Added `codeActionButtons` option for `markdown` view to pass it as is to `source` view used to render code blocks in markdown
 
 ## 1.0.0-beta.74 (06-04-2023)
 
