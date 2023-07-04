@@ -28,22 +28,19 @@ export default function value2html(value, compact, options) {
 
         case 'string': {
             const maxLength = compact ? options.maxCompactStringLength : options.maxStringLength;
-
-            if (value.length > maxLength + options.allowedExcessStringLength) {
-                return token(
-                    'string',
-                    escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(0, -1)) +
-                    more(value.length - maxLength) + '"'
-                );
-            }
-
-            const str = JSON.stringify(value);
+            const shortString = value.length > maxLength + options.allowedExcessStringLength;
+            const stringContent = shortString
+                ? escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(1, -1))
+                : escapeHtml(JSON.stringify(value).slice(1, -1));
+            const stringRest = shortString
+                ? more(value.length - maxLength)
+                : '';
 
             return token(
                 'string',
                 !compact && (value[0] === 'h' || value[0] === '/') && urlRx.test(value)
-                    ? `"<a href="${escapeHtml(value)}" target="_blank">${escapeHtml(str.slice(1, -1))}</a>"`
-                    : escapeHtml(str)
+                    ? `"<a href="${escapeHtml(value)}" target="_blank">${stringContent}</a>${stringRest}"`
+                    : `"${stringContent}${stringRest}"`
             );
         }
 

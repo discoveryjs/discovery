@@ -1,3 +1,7 @@
+## next
+
+- Fixed rendering of truncated urls in `struct` view
+
 ## 1.0.0-beta.75 (15-07-2023)
 
 - Added `.jsonxl` to list of default extensions for upload
