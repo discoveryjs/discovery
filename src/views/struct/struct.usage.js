@@ -1,8 +1,8 @@
 const defaultDemoData = {
     level_1: {
-        level_2: {
-            level_3: {
-                level_4: {}
+        level_2_1: {
+            level_3_1: {
+                level_4_1: {}
             },
             level_3_2: 2,
             level_3_3: 3,
@@ -10,7 +10,7 @@ const defaultDemoData = {
             level_3_5: 5,
             level_3_6: 6
         },
-        level_2_2: 2,
+        level_2_2: [{ foo: 1, bar: 2 }, { foo: 3 }],
         level_2_3: 3,
         level_2_4: 4,
         level_2_5: 5,
@@ -37,7 +37,7 @@ export default {
         {
             title: 'Default expanded depth',
             highlightProps: ['expanded'],
-            beforeDemo: ['md:"By default `struct` view is collapsed in one line. The `expand` option is using to specify an initial expanded depth. A value for the option can be a boolean or a positive number."'],
+            beforeDemo: ['md:"By default `struct` view is collapsed in one line. The `expanded` option is using to specify an initial expanded depth. A value for the option can be a boolean (`false` → `0`, `true` → `1`) or a positive number."'],
             demoData: defaultDemoData,
             demo: [
                 'badge:"Default (expanded option is not used)"',
@@ -110,16 +110,23 @@ export default {
             }
         },
         {
-            title: 'Limit number of elements and entries',
+            title: 'Limit number of array elements and object entries',
             beforeDemo: {
                 view: 'md',
                 source: [
                     'The following options define the maximum number of elements in array or entries in object:',
-                    '* `limit` (default: 50) defines max count for expanded array/object',
-                    '* `limitCollapsed` (default: 4) defines max count for collapsed array/object'
+                    '* `limit` (default: `50`) – max number of elements/entries for expanded array/object',
+                    '* `limitCollapsed` (default: `4`) – max of elements/entries for collapsed array/object',
+                    '* `limitCompactObjectEntries` (default: `0`) – max number of entries in a object which appears in a collapsed array or object',
+                    '',
+                    '> Use `false` for any of these options to disable a limitation'
                 ]
             },
-            highlightProps: ['limit', 'limitCollapsed'],
+            highlightProps: [
+                'limit',
+                'limitCollapsed',
+                'limitCompactObjectEntries'
+            ],
             demoData: defaultDemoData,
             demo: {
                 view: 'struct',
@@ -134,21 +141,29 @@ export default {
                 view: 'md',
                 source: [
                     'The following options define the maximum string length in various cases:',
-                    '* `maxStringLength` (default: 150) defines max length for strings when a host object is expanded',
-                    '* `maxCompactStringLength` (default: 40) defines max length for strings when a host object is collapsed',
-                    '* `allowedExcessStringLength` (default: 10) defines allowed excess in length before a string will be cut and \\"N more\\" label will be added'
+                    '* `maxStringLength` (default: `150`) – max string length when a host value is expanded',
+                    '* `maxCompactStringLength` (default: `40`) – max of string length when a host value is collapsed',
+                    '* `allowedExcessStringLength` (default: `10`) – allowed excess in length before a string will be cut and \\"N more\\" label will be added',
+                    '* `maxPropertyLength` (default: `Infinity`) – max of property name length',
+                    '* `maxCompactPropertyLength` (default: `35`) – max of property name length in collapsed objects',
+                    '',
+                    '> Expand and collapse `level2` branch to see difference in a value presentation'
                 ]
             },
             highlightProps: [
                 'maxStringLength',
                 'maxCompactStringLength',
-                'allowedExcessStringLength'
+                'allowedExcessStringLength',
+                'maxPropertyLength',
+                'maxCompactPropertyLength'
             ],
             demo: {
                 view: 'struct',
                 maxStringLength: 30,
                 maxCompactStringLength: 10,
                 allowedExcessStringLength: 5,
+                maxPropertyLength: 30,
+                maxCompactPropertyLength: 15,
                 expanded: 1
             },
             demoData: {
@@ -156,6 +171,7 @@ export default {
                 string_34_chars: 'String with 34 chars length demo x',
                 string_35_chars: 'String with 35 chars length demo xx',
                 string_36_chars: 'String with 36 chars length demo xxx',
+                very_very_very_very_very_very_very_very_very_very_long_property_name: 'a property name should be truncated due to settings, but will not be by default',
                 level2: {
                     stringsInCollapsedObject: 'Quite a long string value Quite a long string value',
                     string_14_chars: 'Short string x',

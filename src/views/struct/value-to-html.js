@@ -70,7 +70,7 @@ export default function value2html(value, compact, options) {
                     return token('regexp', value);
             }
 
-            if (compact) {
+            if (compact && options.limitCompactObjectEntries === 0) {
                 for (let key in value) {
                     if (hasOwnProperty.call(value, key)) {
                         return '{…}';
@@ -80,13 +80,15 @@ export default function value2html(value, compact, options) {
                 return '{}';
             }
 
-            const limitCollapsed = options.limitCollapsed === false ? Infinity : options.limitCollapsed;
+            const limitObjectEntries = compact
+                ? options.limitCompactObjectEntries === false ? Infinity : options.limitCompactObjectEntries
+                : options.limitCollapsed === false ? Infinity : options.limitCollapsed;
             const content = [];
             let count = 0;
 
             for (let key in value) {
                 if (hasOwnProperty.call(value, key)) {
-                    if (count < limitCollapsed) {
+                    if (count < limitObjectEntries) {
                         const property = escapeHtml(key.length > options.maxCompactPropertyLength
                             ? key.slice(0, options.maxCompactPropertyLength) + '…'
                             : key
@@ -99,8 +101,8 @@ export default function value2html(value, compact, options) {
                 }
             }
 
-            if (count > limitCollapsed) {
-                content.push(more(count - limitCollapsed));
+            if (count > limitObjectEntries) {
+                content.push(more(count - limitObjectEntries));
             }
 
             return content.length ? `{ ${content.join(', ')} }` : '{}';

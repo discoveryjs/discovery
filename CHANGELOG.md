@@ -1,5 +1,6 @@
 ## next
 
+- Added `limitCompactObjectEntries` and `maxPropertyLength` options to `struct` view
 - Fixed rendering of truncated urls in `struct` view
 
 ## 1.0.0-beta.75 (15-07-2023)

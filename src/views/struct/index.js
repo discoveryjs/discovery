@@ -19,9 +19,11 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
-const defaultAllowedExcessStringLength = 10;
+const defaultCollapsedObjectEntries = 0;
 const defaultMaxStringLength = 150;
-const defaultCompactStringLength = 40;
+const defaultMaxCompactStringLength = 40;
+const defaultAllowedExcessStringLength = 10;
+const defaultMaxPropertyLength = Infinity;
 const defaultMaxCompactPropertyLength = 35;
 
 function intOption(value, defaultValue) {
@@ -84,10 +86,13 @@ function renderSorting(el, entries, sort) {
     }
 }
 
-function renderObjectKey(container, name) {
+function renderObjectKey(container, name, maxLength) {
     const objectKeyEl = objectKeyProtoEl.cloneNode(true);
+    const x = name.length > maxLength
+        ? name.slice(0, maxLength) + '…'
+        : name;
 
-    appendText(objectKeyEl.firstElementChild, name);
+    appendText(objectKeyEl.firstElementChild, x);
     container.appendChild(objectKeyEl);
 }
 
@@ -147,7 +152,7 @@ export default function(host) {
             renderValueSize(el, entries, 'entries');
             renderSorting(el, entries, sort);
             renderEntries(el, el.lastChild, entries, (entryEl, [key, value], index) => {
-                renderObjectKey(entryEl, key);
+                renderObjectKey(entryEl, key, options.maxPropertyLength);
                 renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
                     parent: context,
                     host: data,
@@ -511,13 +516,15 @@ export default function(host) {
 
     host.view.define('struct', function(el, config, data, context) {
         const {
+            annotations,
             expanded,
             limit,
             limitCollapsed,
-            annotations,
-            allowedExcessStringLength,
+            limitCompactObjectEntries,
             maxStringLength,
             maxCompactStringLength,
+            allowedExcessStringLength,
+            maxPropertyLength,
             maxCompactPropertyLength
         } = config;
         const normalizedAnnotations = annotations
@@ -531,12 +538,14 @@ export default function(host) {
         const options = {
             renderer: this,
             context,
-            limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
-            limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
             annotations: normalizedAnnotations,
-            allowedExcessStringLength: intOption(allowedExcessStringLength, defaultAllowedExcessStringLength),
+            limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
+            limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
+            limitCompactObjectEntries: host.view.listLimit(limitCompactObjectEntries, defaultCollapsedObjectEntries),
             maxStringLength: intOption(maxStringLength, defaultMaxStringLength),
-            maxCompactStringLength: intOption(maxCompactStringLength, defaultCompactStringLength),
+            maxCompactStringLength: intOption(maxCompactStringLength, defaultMaxCompactStringLength),
+            allowedExcessStringLength: intOption(allowedExcessStringLength, defaultAllowedExcessStringLength),
+            maxPropertyLength: intOption(maxPropertyLength, defaultMaxPropertyLength),
             maxCompactPropertyLength: intOption(maxCompactPropertyLength, defaultMaxCompactPropertyLength)
         };
 
