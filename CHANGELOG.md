@@ -2,6 +2,9 @@
 
 - Added `limitCompactObjectEntries` and `maxPropertyLength` options to `struct` view
 - Added `prelude` and `postlude` slots (new options in config) for `source` view
+- Added `sectionPrelude` and `sectionPostlude` for `markdown` view to define view config to render in the beggining of the section (right after a header) or in the end of the section (before next header or end of source)
+- Added `codeConfig` option for `markdown` view to specify a config for code block rendering
+- Removed `codeActionButtons` option for `markdown` view, use `codeCofig.actionButtons` instead
 - Changed markup of `source` view:
     - Wrapped `action-buttons`, `lines` and `source` blocks into `view-source__content` block
     - Added `view-source__` prefix for class names of `action-buttons`, `lines` and `source` blocks

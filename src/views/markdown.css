@@ -43,8 +43,7 @@
     vertical-align: bottom;
 }
 
-.view-markdown pre {
-    padding: 4px;
+.view-markdown pre:not(.view-source) {
     overflow: auto;
     font-family: var(--discovery-monospace-font-family);
     font-size: 90%;
@@ -53,7 +52,7 @@
     border-radius: 3px;
     word-break: normal;
 }
-.view-markdown pre code {
+.view-markdown pre:not(.view-source) code {
     padding: 0;
     font-family: inherit;
     font-size: 100%;
@@ -61,9 +60,6 @@
     border-radius: 0;
     text-shadow: none;
     color: inherit;
-}
-.view-markdown .view-source {
-    background: none;
 }
 
 .view-markdown .check-list-item {

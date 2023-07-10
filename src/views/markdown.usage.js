@@ -50,9 +50,22 @@ export default {
             ]
         },
         {
+            title: 'Sections prelude and postlude',
+            highlightProps: [
+                'sectionPrelude',
+                'sectionPostlude'
+            ],
+            demo: {
+                view: 'markdown',
+                sectionPrelude: 'struct',
+                sectionPostlude: { view: 'link', data: '{ href: "#top", text: "Scroll to top ↑" }' },
+                source: 'Some text\n\n## Header level 2\n\nSome text\n\n### Header level 3\n\nSome text\n\n## Header level 2\n\nSome text'
+            }
+        },
+        {
             title: 'Additional action buttons for code blocks',
             highlightProps: ['codeActionButtons'],
-            beforeDemo: 'md:Use `codeActionButtons` to add additional buttons to code blocks. The option is the same as `actionButtons` for `source` view.',
+            beforeDemo: ['md:"Use `codeActionButtons` to add additional buttons to code blocks. The option is the same as `actionButtons` for `source` view."'],
             demo: {
                 view: 'markdown',
                 codeActionButtons: [
@@ -63,6 +76,22 @@ export default {
                     }
                 ],
                 source: '```js\nconsole.log("Hello world")\n```'
+            }
+        },
+        {
+            title: 'Configuration for code blocks',
+            highlightProps: ['codeConfig'],
+            beforeDemo: ['md:"Use `codeConfig` to specify any settings for code blocks available for `source` view."'],
+            demo: {
+                view: 'markdown',
+                codeConfig: {
+                    prelude: {
+                        view: 'block',
+                        content: ['badge:syntax', 'text:"Length: " + content.size()']
+                    },
+                    postlude: 'struct:{ data: $, context: # }'
+                },
+                source: '# Header 1\n\n```js\nconsole.log("Hello world")\n```\n\n## Header 2\n\ntext\n\n## Header 3\n\n\n\n```jora\nfoo.bar.baz\n```'
             }
         },
         {

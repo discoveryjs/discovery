@@ -6,10 +6,10 @@ import { escapeHtml } from '../core/utils/html.js';
 class CustomRenderer extends marked.Renderer {
     heading(text, level, raw, slugger) {
         const { discovery: host, anchors } = this.options;
+        const slug = slugger.slug(raw);
         let anchor = '';
 
         if (anchors) {
-            const slug = slugger.slug(raw);
             const href = host.encodePageHash(
                 host.pageId,
                 host.pageRef,
@@ -19,7 +19,7 @@ class CustomRenderer extends marked.Renderer {
             anchor = `<a class="view-header__anchor" id="!anchor:${escapeHtml(slug)}" href="${href}"></a>`;
         }
 
-        return `<h${level} class="view-header view-h${level}">${anchor}${text}</h${level}>\n`;
+        return `<h${level} class="view-header view-h${level}" data-slug="${slug}">${anchor}${text}</h${level}>\n`;
     }
 
     link(href, title, text) {
@@ -124,7 +124,13 @@ export default function(host) {
     }
 
     function render(el, config, data, context) {
-        const { source, anchors = true, codeActionButtons } = config;
+        const {
+            source,
+            anchors = true,
+            sectionPrelude,
+            sectionPostlude,
+            codeConfig
+        } = config;
         const interpolations = new Map();
         let mdSource = typeof data === 'string' ? data : source || '';
 
@@ -168,22 +174,108 @@ export default function(host) {
                         applyInterpolations(el, interpolationValues);
                     }
 
+                    // index sections if needed
+                    const sectionByHeaderEl = new Map();
+                    let startSectionKey = { after: buffer => el.prepend(buffer) };
+                    if (codeConfig || sectionPrelude || sectionPostlude) {
+                        const { firstElementChild } = el;
+                        let prevSection = {
+                            next: null,
+                            data: {
+                                sectionIdx: 0,
+                                slug: null,
+                                text: null,
+                                href: null
+                            }
+                        };
+
+                        sectionByHeaderEl.set(startSectionKey, prevSection);
+
+                        for (const headerEl of [...el.querySelectorAll(':scope > :is(h1, h2, h3, h4, h5, h6)')]) {
+                            if (headerEl === firstElementChild) {
+                                sectionByHeaderEl.delete(startSectionKey);
+                                startSectionKey = headerEl;
+                                prevSection = null;
+                            }
+
+                            const anchorEl = headerEl.querySelector(':scope > a[id^="!anchor:"]');
+                            const section = {
+                                next: null,
+                                data: {
+                                    sectionIdx: sectionByHeaderEl.size,
+                                    slug: headerEl.dataset.slug,
+                                    text: headerEl.textContent.trim(),
+                                    href: anchorEl?.hash
+                                }
+                            };
+
+                            sectionByHeaderEl.set(headerEl, section);
+
+                            if (prevSection) {
+                                prevSection.next = headerEl;
+                            }
+
+                            prevSection = section;
+                        }
+                    }
+
                     // highlight code with a source view
                     for (const codeEl of [...el.querySelectorAll('pre > code')]) {
                         const buffer = document.createDocumentFragment();
                         const content = codeEl.textContent.replace(/\n$/, '');
                         const syntax = (codeEl.className.match(/discovery-markdown-(\S+)/) || [])[1];
+                        let section = sectionByHeaderEl.get(startSectionKey);
+                        let cursor = codeEl.parentNode;
+
+                        while (cursor !== null && cursor !== el) {
+                            if (sectionByHeaderEl.has(cursor)) {
+                                section = sectionByHeaderEl.get(cursor);
+                                break;
+                            }
+
+                            cursor = cursor.previousSibling || cursor.parentNode;
+                        }
 
                         promises.push(
-                            host.view.render(
+                            this.render(
                                 buffer,
-                                { view: 'source', actionButtons: codeActionButtons },
+                                typeof codeConfig === 'object'
+                                    ? { view: 'source', ...codeConfig }
+                                    : codeConfig || 'source',
                                 { syntax, content },
-                                context
+                                { ...context, section: section?.data }
                             ).then(() =>
-                                codeEl.replaceWith(buffer.firstChild)
+                                codeEl.parentNode.replaceWith(buffer)
                             )
                         );
+                    }
+
+                    if (sectionPrelude || sectionPostlude) {
+                        const renderSectionPrePost = (renderConfig, section, insertCallback) => {
+                            const buffer = document.createDocumentFragment();
+                            promises.push(
+                                this.render(
+                                    buffer,
+                                    renderConfig,
+                                    data,
+                                    { ...context, section: section.data }
+                                ).then(() => insertCallback(buffer))
+                            );
+                        };
+
+                        for (const [sectionStartEl, section] of sectionByHeaderEl) {
+                            if (sectionPrelude) {
+                                renderSectionPrePost(sectionPrelude, section, buffer =>
+                                    sectionStartEl.after(buffer)
+                                );
+                            }
+
+                            if (sectionPostlude) {
+                                renderSectionPrePost(sectionPostlude, section, buffer =>
+                                    section.next ? section.next.before(buffer) : el.append(buffer)
+                                );
+                            }
+                        }
                     }
 
                     Promise.all(promises).then(resolve);
