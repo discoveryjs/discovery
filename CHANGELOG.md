@@ -7,6 +7,7 @@
     - Added `view-source__` prefix for class names of `action-buttons`, `lines` and `source` blocks
     - Added auto scrolling for `source` view content when size of source block is restricted
     - Fixed positioning for actions block when content overflows
+- Improved styles of the expanded section line in `struct` view to no longer rely on paddings used
 - Fixed rendering of truncated urls in `struct` view
 - Fixed `table` view rendering when a column content defined as a view shorthand with config, e.g. `view{ prop: 1 }`
 - Fixed context value for `beforeDemo`, `demo` and `afterDemo` sections in usage render
