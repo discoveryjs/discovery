@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.76 (10-07-2023)
 
 - Added `limitCompactObjectEntries` and `maxPropertyLength` options to `struct` view
 - Added `prelude` and `postlude` slots (new options in config) for `source` view
@@ -15,7 +15,7 @@
 - Fixed `table` view rendering when a column content defined as a view shorthand with config, e.g. `view{ prop: 1 }`
 - Fixed context value for `beforeDemo`, `demo` and `afterDemo` sections in usage render
 
-## 1.0.0-beta.75 (15-07-2023)
+## 1.0.0-beta.75 (15-06-2023)
 
 - Added `.jsonxl` to list of default extensions for upload
 - Improved markdown syntax highlighting in `source` view
