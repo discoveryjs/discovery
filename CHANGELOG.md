@@ -1,6 +1,12 @@
 ## next
 
 - Added `limitCompactObjectEntries` and `maxPropertyLength` options to `struct` view
+- Added `prelude` and `postlude` slots (new options in config) for `source` view
+- Changed markup of `source` view:
+    - Wrapped `action-buttons`, `lines` and `source` blocks into `view-source__content` block
+    - Added `view-source__` prefix for class names of `action-buttons`, `lines` and `source` blocks
+    - Added auto scrolling for `source` view content when size of source block is restricted
+    - Fixed positioning for actions block when content overflows
 - Fixed rendering of truncated urls in `struct` view
 - Fixed `table` view rendering when a column content defined as a view shorthand with config, e.g. `view{ prop: 1 }`
 - Fixed context value for `beforeDemo`, `demo` and `afterDemo` sections in usage render

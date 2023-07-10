@@ -11,6 +11,7 @@ export default {
             title: 'Supported syntaxes',
             beforeDemo: [
                 'md:"Following values (for both `name` and `mime`) are supported for `syntax` option:"',
+                'html:"<br>"',
                 {
                     view: 'table',
                     data: '#.options.syntaxes',
@@ -19,6 +20,7 @@ export default {
                         mime: { content: 'comma-list:mime' }
                     }
                 },
+                'html:"<br>"',
                 'md:"More syntaxes may be added via `import \'codemirror/mode/[name]/[name]\';`"'
             ],
             source: false
@@ -59,6 +61,28 @@ export default {
                         content: 'text:"Say \\"Hello world\\""',
                         onClick: new Function('return () => alert("Hello world!")')()
                     }
+                ],
+                data: {
+                    content: codeExample,
+                    syntax: 'js'
+                }
+            }
+        },
+        {
+            title: 'Prelude and postlude slots',
+            highlightProps: [
+                'prelude',
+                'postlude'
+            ],
+            demo: {
+                view: 'source',
+                prelude: [
+                    'text:"Prelude:"',
+                    'struct:{ data: $, context: # }'
+                ],
+                postlude: [
+                    'text:"Postlude:"',
+                    'struct:{ data: $, context: # }'
                 ],
                 data: {
                     content: codeExample,

@@ -1,40 +1,70 @@
 .view-source {
-    position: relative;
-    padding: 8px;
-    overflow: auto;
+    display: grid;
+    grid-template:
+        'prelude' auto
+        'content' 1fr
+        'postlude' auto;
+    margin: 0;
     border-radius: 3px;
-    white-space: pre;
-    font-family: var(--discovery-monospace-font-family);
-    font-size: 11px;
-    line-height: 18px;
-    color: var(--discovery-fmt-color);
     background-color: rgba(205, 205, 205, .1);
+    color: var(--discovery-color);
+    font-family: var(--discovery-font-family);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: normal;
 }
 
-.view-source > .action-buttons {
-    position: absolute;
-    top: 4px;
-    right: 4px;
+.view-source__prelude {
+    grid-area: prelude;
+    overflow: hidden;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+}
+.view-source__postlude {
+    grid-area: postlude;
+    overflow: hidden;
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+}
+.view-source__content {
+    grid-area: content;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding: 8px;
+    overflow: auto;
+    white-space: pre;
+}
+
+.view-source__action-buttons {
+    order: 2;
+    position: sticky;
+    top: 0px;
+    right: 0px;
+    translate: 3px -3px;
+    margin-left: 1ex;
+    margin-bottom: -8px;
     display: flex;
     gap: 4px;
     font-family: var(--discovery-font-family);
     font-size: 12px;
     line-height: 1.6;
 }
-.view-source > .action-buttons .view-button {
+.view-source__action-buttons .view-button {
     padding: 4px 6px;
     margin: 0;
     opacity: 0.25;
     transition: .5s opacity;
+    line-height: 14px;
 }
-.view-source:hover > .action-buttons .view-button {
+.view-source__content:hover > .view-source__action-buttons .view-button {
     opacity: 1;
     transition-duration: .25s;
 }
-.view-source > .action-buttons .view-button.copied {
+.view-source__action-buttons .view-button.copied {
     opacity: 1;
 }
-.view-source > .action-buttons .view-button.copy::before {
+.view-source__action-buttons .view-button.copy::before {
     content: '';
     display: inline-block;
     vertical-align: top;
@@ -47,7 +77,7 @@
     transition: .1s .25s;
     transition-property: scale, opacity;
 }
-.view-source > .action-buttons .view-button::after {
+.view-source__action-buttons .view-button::after {
     content: '';
     display: inline-block;
     vertical-align: top;
@@ -60,15 +90,15 @@
     transition: .1s .25s;
     transition-property: scale, opacity;
 }
-.view-source > .action-buttons .view-button.copied::before,
-.view-source > .action-buttons .view-button:not(.copied)::after {
+.view-source__action-buttons .view-button.copied::before,
+.view-source__action-buttons .view-button:not(.copied)::after {
     scale: 0;
     opacity: 0;
     transition-delay: 0s;
     transition-duration: .2s;
 }
 
-.view-source > .lines {
+.view-source__lines {
     float: left;
     text-align: right;
     min-width: 3ex;
@@ -76,41 +106,52 @@
     margin-right: 1.5ex;
     border-right: 1px solid rgba(170, 170, 170, 0.4);
     color: rgba(150, 150, 150, 0.65);
+    font-family: var(--discovery-monospace-font-family);
+    font-size: 11px;
+    line-height: 18px;
 }
-.view-source > .lines > span {
+.view-source__lines > span {
     display: block;
 }
 
-.view-source .spotlight {
+.view-source__source {
+    flex-grow: 1;
+    font-family: var(--discovery-monospace-font-family);
+    font-size: 11px;
+    line-height: 18px;
+    color: var(--discovery-fmt-color);
+}
+
+.view-source__source .spotlight {
     background: #f5e69a;
     padding: 1px 2px 2px;
 }
-.discovery-root-darkmode .view-source .spotlight {
+.discovery-root-darkmode .view-source__source .spotlight {
     background: #686246;
 }
-.view-source .spotlight.error {
+.view-source__source .spotlight.error {
     background: #ffc9c9;
 }
-.view-source .spotlight.def {
+.view-source__source .spotlight.def {
     background: #d3e7fb;
 }
-.view-source .spotlight.ref {
+.view-source__source .spotlight.ref {
     background: #cee99b;
 }
-.view-source .spotlight.global-ref {
+.view-source__source .spotlight.global-ref {
     background: #ffd8a3;
 }
-.view-source a.spotlight {
+.view-source__source a.spotlight {
     position: relative;
     color: inherit;
     text-decoration: none;
 }
-.view-source a.spotlight:hover {
+.view-source__source a.spotlight:hover {
     background-color: #f3eec4;
     color: #aa6622 !important;
     text-decoration: none
 }
-.view-source .spotlight-ignore {
+.view-source__source .spotlight-ignore {
     background: #ddd;
     background-image: repeating-linear-gradient(-45deg,
         transparent,
@@ -121,75 +162,75 @@
     );
 }
 
-.view-source .token {
+.view-source__source .token {
     background: none;
 }
-.view-source .token.comment,
-.view-source .token.prolog,
-.view-source .token.doctype,
-.view-source .token.cdata,
-.view-source .token.quote {
+.view-source__source .token.comment,
+.view-source__source .token.prolog,
+.view-source__source .token.doctype,
+.view-source__source .token.cdata,
+.view-source__source .token.quote {
 	color: var(--discovery-fmt-comment-color);
 }
-.view-source .token.punctuation {
+.view-source__source .token.punctuation {
 	color: var(--discovery-fmt-punctuation);
 }
-.view-source .token.namespace {
+.view-source__source .token.namespace {
 	opacity: .7;
 }
-.view-source .token.boolean,
-.view-source .token.atom {
+.view-source__source .token.boolean,
+.view-source__source .token.atom {
     color: var(--discovery-fmt-atom-color);
 }
-.view-source .token.number {
+.view-source__source .token.number {
     color: var(--discovery-fmt-number-color);
 }
-.view-source .token.selector,
-.view-source .token.attr-value,
-.view-source .token.string,
-.view-source .token.string-2,
-.view-source .token.char,
-.view-source .token.builtin,
-.view-source .token.inserted {
+.view-source__source .token.selector,
+.view-source__source .token.attr-value,
+.view-source__source .token.string,
+.view-source__source .token.string-2,
+.view-source__source .token.char,
+.view-source__source .token.builtin,
+.view-source__source .token.inserted {
 	color: var(--discovery-fmt-string-color);
 }
-.view-source .token.property,
-.view-source .token.tag,
-.view-source .token.constant,
-.view-source .token.symbol,
-.view-source .token.deleted,
-.view-source .token.header {
+.view-source__source .token.property,
+.view-source__source .token.tag,
+.view-source__source .token.constant,
+.view-source__source .token.symbol,
+.view-source__source .token.deleted,
+.view-source__source .token.header {
 	color: var(--discovery-fmt-property-color);
 }
-.view-source .token.regex,
-.view-source .token.important,
-.view-source .token.def,
-.view-source .token.variable,
-.view-source .token.variable-2 {
+.view-source__source .token.regex,
+.view-source__source .token.important,
+.view-source__source .token.def,
+.view-source__source .token.variable,
+.view-source__source .token.variable-2 {
 	color: var(--discovery-fmt-variable-color);
 }
-.view-source .token.keyword,
-.view-source .token.atrule,
-.view-source .token.link,
-.view-source .token.url {
+.view-source__source .token.keyword,
+.view-source__source .token.atrule,
+.view-source__source .token.link,
+.view-source__source .token.url {
 	color: var(--discovery-fmt-keyword-color);
 }
-.view-source .token.qualifier,
-.view-source .token.function,
-.view-source .token.attribute,
-.view-source .token.attr-name,
-.view-source .token.class-name {
+.view-source__source .token.qualifier,
+.view-source__source .token.function,
+.view-source__source .token.attribute,
+.view-source__source .token.attr-name,
+.view-source__source .token.class-name {
 	color: var(--discovery-fmt-qualifier);
 }
-/* .view-source .token.operator, */
-.view-source .token.entity {
+/* .view-source__source .token.operator, */
+.view-source__source .token.entity {
 	color: var(--discovery-fmt-entity);
 }
-.view-source .token.image,
-.view-source .token.type {
+.view-source__source .token.image,
+.view-source__source .token.type {
     color: var(--discovery-fmt-type-color);
 }
-.view-source .token.discovery-view-name {
+.view-source__source .token.discovery-view-name {
     background-color: var(--discovery-fmt-string-highlight-color);
     box-shadow: 0 0 0 1px var(--discovery-fmt-string-highlight-color);
     color: #6a9c11;

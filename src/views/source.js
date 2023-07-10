@@ -159,6 +159,9 @@ const refsPrinter = {
 
 export default function(host) {
     host.view.define('source', function(el, config, data, context) {
+        const preludeEl = el.appendChild(createElement('div', 'view-source__prelude'));
+        const contentEl = el.appendChild(createElement('div', 'view-source__content'));
+        const postludeEl = el.appendChild(createElement('div', 'view-source__postlude'));
         const refsTooltips = new Map();
         const decorators = [];
         const {
@@ -212,11 +215,11 @@ export default function(host) {
         }
 
         if (binary) {
-            el.innerHTML = 'Binary content' + (typeof size === 'number' ? ' (' + size + ' bytes)' : '');
+            contentEl.innerHTML = 'Binary content' + (typeof size === 'number' ? ' (' + size + ' bytes)' : '');
         } else {
             const lineOffset = typeof lineNum === 'function' ? lineNum : idx => idx + 1;
             const lines = lineNum
-                ? '<div class="lines">' +
+                ? '<div class="view-source__lines">' +
                     content.split(/\r\n?|\n/g)
                         .map((_, idx) => '<span>' + lineOffset(idx) + '</span>')
                         .join('') +
@@ -224,14 +227,14 @@ export default function(host) {
                 : '';
 
             // main content
-            el.innerHTML =
+            contentEl.innerHTML =
                 lines +
-                `<div class="source">${
+                `<div class="view-source__source">${
                     hitext(decorators, 'html')(content)
                 }</div>`;
 
             // action buttons
-            const actionButtonsEl = createElement('div', 'action-buttons');
+            const actionButtonsEl = createElement('div', 'view-source__action-buttons');
 
             host.view.render(actionButtonsEl, [
                 config.actionButtons,
@@ -242,18 +245,27 @@ export default function(host) {
                     btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
                 } }
             ], data, context);
-            el.prepend(actionButtonsEl);
+            contentEl.prepend(actionButtonsEl);
 
             // tooltips
-            for (const refEl of el.querySelectorAll(':scope [data-tooltip-id]')) {
+            for (const refEl of contentEl.querySelectorAll(':scope [data-tooltip-id]')) {
                 const ref = refsTooltips.get(Number(refEl.dataset.tooltipId));
 
                 delete refEl.dataset.tooltipId;
                 this.tooltip(refEl, ref.tooltip, ref, context);
             }
+
+            if (config.prelude) {
+                host.view.render(preludeEl, config.prelude, data, context);
+            }
+
+            if (config.postlude) {
+                host.view.render(postludeEl, config.postlude, data, context);
+            }
         }
     }, {
         usage,
+        tag: 'pre',
         get syntaxes() {
             return getSupported();
         }
