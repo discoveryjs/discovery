@@ -36,8 +36,9 @@ function sortingFromConfig(col, host, context) {
 
     if (typeof col.content === 'string') {
         const colonIndex = col.content.indexOf(':');
+        const viewName = col.content.slice(0, colonIndex);
 
-        if (colonIndex === -1) {
+        if (colonIndex === -1 || !host.view.has(viewName)) {
             return;
         }
 

@@ -2,6 +2,7 @@
 
 - Added `limitCompactObjectEntries` and `maxPropertyLength` options to `struct` view
 - Fixed rendering of truncated urls in `struct` view
+- Fixed `table` view rendering when a column content defined as a view shorthand with config, e.g. `view{ prop: 1 }`
 - Fixed context value for `beforeDemo`, `demo` and `afterDemo` sections in usage render
 
 ## 1.0.0-beta.75 (15-07-2023)
