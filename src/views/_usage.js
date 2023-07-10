@@ -79,7 +79,7 @@ export default function(host) {
                     { content: {
                         view: 'render',
                         config: 'beforeDemo',
-                        context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
+                        context: '{ __demoContext: true, ...(viewDef | { name, group, options }) }'
                     } }
                 ]
             },
@@ -99,7 +99,7 @@ export default function(host) {
                     view: 'render',
                     config: 'demo or view',
                     data: 'demoData',
-                    context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
+                    context: '{ __demoContext: true, ...(viewDef | { name, group, options }) }'
                 }
             },
             {
@@ -110,7 +110,7 @@ export default function(host) {
                     { content: {
                         view: 'render',
                         config: 'afterDemo',
-                        context: '{ __demoContext: true, ...(#.viewDef | { name, group, options }) }'
+                        context: '{ __demoContext: true, ...(viewDef | { name, group, options }) }'
                     } }
                 ]
             }
