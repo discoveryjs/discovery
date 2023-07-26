@@ -66,6 +66,7 @@ export interface EmbedAppPublicApi extends Emitter<EmbedAppEvents> {
     setPageRef: (ref: string, replace?: boolean) => void;
     setPageParams: (params: PageParams, replace?: boolean) => void;
     setDarkmode: (value: string) => void;
+    setRouterPreventLocationUpdate: (allow: boolean) => void;
     unloadData: () => void;
     uploadData: (source: () => DataSource | Promise<DataSource>, extractResourceMetadata?: (source: DataSource) => unknown) => void;
 }
@@ -76,6 +77,8 @@ export type PreinitEmbedAppEvents = {
 
 export interface PreinitEmbedAppPublicApi extends Emitter<PreinitEmbedAppEvents> {
     defineAction: (name: string, fn: (...args: any[]) => any) => void;
+    setPageHash: (hash: string, replace?: boolean) => void;
+    setRouterPreventLocationUpdate: (allow: boolean) => void;
 }
 
 export type DisconnectCallback = () => void;
