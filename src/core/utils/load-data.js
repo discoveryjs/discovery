@@ -246,7 +246,7 @@ async function loadDataFromStreamInternal(request, progress) {
     }
 }
 
-function createLoadDataState(request, extra) {
+export function createLoadDataState(request, extra) {
     const state = new Publisher();
 
     return {
