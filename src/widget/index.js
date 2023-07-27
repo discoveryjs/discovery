@@ -56,6 +56,7 @@ export default class Widget extends Emitter {
         const {
             darkmode = 'disabled',
             darkmodePersistent = false,
+            defaultPage,
             defaultPageId,
             reportPageId,
             extensions,
@@ -105,7 +106,6 @@ export default class Widget extends Emitter {
         this.data = undefined;
         this.context = undefined;
         this.prepare = data => data;
-        createDataExtensionApi(this).apply();
 
         this.defaultPageId = defaultPageId || 'default';
         this.reportPageId = reportPageId || 'report';
@@ -114,12 +114,13 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
+        if (defaultPage) {
+            this.page.define(this.defaultPageId, defaultPage);
+        }
+
+        this.apply(createDataExtensionApi(this));
         this.apply(views);
         this.apply(pages);
-
-        if (this.options.defaultPage) {
-            this.page.define(this.defaultPageId, this.options.defaultPage);
-        }
 
         if (extensions) {
             this.apply(extensions);
@@ -137,7 +138,7 @@ export default class Widget extends Emitter {
         if (Array.isArray(extensions)) {
             extensions.forEach(extension => this.apply(extension));
         } else if (typeof extensions === 'function') {
-            extensions.call(window, this);
+            extensions.call(null, this);
         } else if (extensions) {
             this.apply(Object.values(extensions));
         } else {
@@ -161,7 +162,7 @@ export default class Widget extends Emitter {
         options = options || {};
 
         const startTime = Date.now();
-        const dataExtension = createDataExtensionApi(this);
+        const prepareExtension = createDataExtensionApi(this);
         const checkIsNotPrevented = () => {
             const lastPromise = lastSetDataPromise.get(this);
 
@@ -174,7 +175,7 @@ export default class Widget extends Emitter {
             .then(() => {
                 checkIsNotPrevented();
 
-                return this.prepare(data, dataExtension.methods) || data;
+                return this.prepare(data, prepareExtension.methods) || data;
             })
             .then((data) => {
                 checkIsNotPrevented();
@@ -182,7 +183,7 @@ export default class Widget extends Emitter {
                 this.datasets = [{ ...options.dataset, data }];
                 this.data = data;
                 this.context = context;
-                dataExtension.apply();
+                this.apply(prepareExtension);
 
                 this.emit('data');
                 console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
