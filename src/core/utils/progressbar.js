@@ -25,6 +25,10 @@ export const loadStages = {
     done: {
         value: 1.0,
         title: 'Done!'
+    },
+    error: {
+        value: 1.0,
+        title: 'Error!'
     }
 };
 Object.values(loadStages).forEach((item, idx, array) => {
@@ -131,6 +135,7 @@ export default class Progressbar extends Publisher {
                     ? { stage, progress, error }
                     : { ...this.value, error }
             );
+            this.finish(error);
             return;
         }
 
@@ -178,7 +183,7 @@ export default class Progressbar extends Publisher {
         }
     }
 
-    finish() {
+    finish(error) {
         if (!this.finished) {
             this.finished = true;
 
@@ -189,7 +194,7 @@ export default class Progressbar extends Publisher {
                 );
             }
 
-            this.recordTiming('done', this.startTime);
+            this.recordTiming(error ? 'error' : 'done', this.startTime);
             this.onFinish(this.timings);
             this.set({ stage: 'done' });
         }
