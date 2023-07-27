@@ -213,6 +213,7 @@ export default function(host) {
             {
                 view: 'list',
                 data: 'examples',
+                whenData: true,
                 itemConfig: {
                     className: 'usage-section'
                 },

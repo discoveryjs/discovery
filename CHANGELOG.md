@@ -1,3 +1,7 @@
+## next
+
+- Fixed displaying "Empty list" in view showcase when a view has no examples
+
 ## 1.0.0-beta.76 (10-07-2023)
 
 - Added `limitCompactObjectEntries` and `maxPropertyLength` options to `struct` view
