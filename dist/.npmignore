@@ -1,6 +1,7 @@
 *
 !discovery-embed-host.js
-!discovery-embed-host.js.map
+!discovery-embed-host.d.ts
+# !discovery-embed-host.js.map
 !discovery-preloader.css
 !discovery-preloader.js
 # !discovery-preloader.js.map

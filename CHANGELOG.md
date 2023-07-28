@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.77 (27-07-2023)
 
 - Exposed `createLoadDataState()` method as utils
 - Introduced internal logging subsystem:
