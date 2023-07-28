@@ -385,22 +385,22 @@ export function loadDataFromPush(options) {
 }
 
 export function syncLoaderWithProgressbar({ result, state }, progressbar) {
-    return new Promise((resolve, reject) => {
-        const unsubscribeLoader = state.subscribeSync(({ stage, progress, error }) => {
+    return new Promise((resolve, reject) =>
+        state.subscribeSync(({ stage, progress, error }, unsubscribe) => {
             if (error) {
-                unsubscribeLoader();
+                unsubscribe();
                 reject(error);
                 return;
             }
 
             if (stage === 'received') {
-                unsubscribeLoader();
+                unsubscribe();
                 resolve(result);
             }
 
             return progressbar.setState({ stage, progress });
-        });
-    });
+        })
+    );
 }
 
 export function extractResourceMetadata(source, options) {
