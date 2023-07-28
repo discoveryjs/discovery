@@ -1,6 +1,10 @@
 ## next
 
 - Exposed `createLoadDataState()` method as utils
+- Introduced internal logging subsystem:
+    - Added `Widget#log()` method
+    - Added `logLevel` option for `Widget` and `App`. Supported values: `silent`, `error`, `warn`, `info`, `perf` (default) and `debug`. To disable any logging set `logLevel` to `silent`
+    - Added `logger` option (default to `console`) to override an interface for a logging. Setting to falsy value will disable any logging
 - Fixed displaying "Empty list" in view showcase when a view has no examples
 - Fixed calling `onFinish()` callback on `Progressbar` getting an error
 - Fixed an exception on unsubscribing from progressbar state sync on loading data error

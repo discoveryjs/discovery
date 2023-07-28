@@ -58,7 +58,7 @@ export function createDataExtensionApi(host) {
 
         if (page !== null) {
             if (!host.page.isDefined(options.page)) {
-                console.error(`[Discovery] Page reference "${options.page}" doesn't exist`);
+                host.log('error', `Page reference "${options.page}" doesn't exist`);
                 return;
             }
 

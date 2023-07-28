@@ -122,9 +122,11 @@ export function querySuggestions(host, query, offset, data, context) {
 
         return stat.suggestions;
     } catch (e) {
-        console.groupCollapsed('[Discovery] Error on getting suggestions for query');
-        console.error(e);
-        console.groupEnd();
+        host.log({
+            level: 'error',
+            message: 'Error while attempting to retrieve suggestions for the query',
+            collapsed: e
+        });
         return;
     }
 }

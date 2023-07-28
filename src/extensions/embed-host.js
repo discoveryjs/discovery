@@ -4,6 +4,7 @@ import { randomId } from '../core/utils/id.js';
 import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
 import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
 
+const logPrefix = '[Discovery/embed-host]';
 const isStreamTransferable = (() => {
     try {
         const stream = new ReadableStream();
@@ -164,20 +165,19 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                             this.sendMessage('actionResult', { callId, error });
                         }
                     } else {
-                        console.warn(`Action "${name}" was not found`);
+                        console.warn(`${logPrefix} Action "${name}" was not found`);
                     }
 
                     break;
                 }
 
                 case 'navMethod': {
-                    // console.log('navMethod', data);
                     const fn = this.commandMap.get(message.payload);
 
                     if (typeof fn === 'function') {
                         fn();
                     } else {
-                        console.warn(`Nav command "${message.payload}" was not found`);
+                        console.warn(`${logPrefix} Nav command "${message.payload}" was not found`);
                     }
 
                     break;
@@ -220,7 +220,7 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
                 }
 
                 default:
-                    console.error(`[Discovery.js] Unknown embed message type "${message.type}"`);
+                    console.error(`${logPrefix} Unknown embed message type "${message.type}"`);
             }
         }
         destroy() {

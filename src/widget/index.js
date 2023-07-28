@@ -20,6 +20,9 @@ import { querySuggestions } from './query-suggestions.js';
 
 const lastSetDataPromise = new WeakMap();
 const renderScheduler = new WeakMap();
+const logLevels = ['silent', 'error', 'warn', 'info', 'perf', 'debug'];
+const logPrefix = '[Discovery]';
+const noopLogger = new Proxy({}, { get: () => () => {} });
 
 const defaultEncodeParams = (params) => params;
 const defaultDecodeParams = (pairs) => Object.fromEntries(pairs);
@@ -54,6 +57,8 @@ export default class Widget extends Emitter {
 
         this.options = options || {};
         const {
+            logLevel,
+            logger = console,
             darkmode = 'disabled',
             darkmodePersistent = false,
             defaultPage,
@@ -62,6 +67,9 @@ export default class Widget extends Emitter {
             extensions,
             inspector: useInspector = false
         } = this.options;
+
+        this.logger = logger || noopLogger;
+        this.logLevel = logLevels.includes(logLevel) ? logLevel : 'perf';
 
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
         this.inspectMode = new Publisher(false);
@@ -85,13 +93,7 @@ export default class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
-        this.page = new PageRenderer(this).on('define', (pageId, page) => {
-            const { resolveLink } = page.options;
-
-            if (typeof resolveLink !== 'undefined') {
-                console.warn('"resolveLink" in "page.define()" options is deprecated, use "page" option for "defineObjectMarker()" method in prepare function');
-            }
-
+        this.page = new PageRenderer(this).on('define', (pageId) => {
             // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
             if (this.pageId === pageId && this.pageHash !== '#') {
                 const hash = this.pageHash;
@@ -141,8 +143,29 @@ export default class Widget extends Emitter {
             extensions.call(null, this);
         } else if (extensions) {
             this.apply(Object.values(extensions));
-        } else {
-            console.error('Bad type of extension:', extensions);
+        }
+    }
+
+    log(levelOrOpts, ...args) {
+        const { level, lazy, message, collapsed } = levelOrOpts && typeof levelOrOpts === 'object' ? levelOrOpts : { level: levelOrOpts };
+        const levelIndex = logLevels.indexOf(level);
+
+        if (levelIndex > 0 && levelIndex <= logLevels.indexOf(this.logLevel)) {
+            const method = level === 'perf' ? 'log' : level;
+
+            if (collapsed) {
+                this.logger.groupCollapsed(`${logPrefix} ${message || args?.[0]}`);
+
+                for (const entry of typeof collapsed === 'function' ? collapsed() : collapsed) {
+                    this.logger[method](...Array.isArray(entry) ? entry : [entry]);
+                }
+
+                this.logger.groupEnd();
+            } else {
+                this.logger[method](logPrefix, ...typeof lazy === 'function' ? lazy() : args);
+            }
+        } else if (levelIndex === -1) {
+            this.logger.error(`${logPrefix} Bad log level "${level}", supported: ${logLevels.slice(1).join(', ')}`);
         }
     }
 
@@ -186,7 +209,7 @@ export default class Widget extends Emitter {
                 this.apply(prepareExtension);
 
                 this.emit('data');
-                console.log(`[Discovery] Data prepared in ${Date.now() - startTime}ms`);
+                this.log('perf', `Data prepared in ${Date.now() - startTime}ms`);
             });
 
         // mark as last setData promise
@@ -529,14 +552,10 @@ export default class Widget extends Emitter {
             const context = this.getRenderContext();
 
             this.view.setViewRoot(this.dom.sidebar, 'sidebar', { data, context });
-
             this.dom.sidebar.innerHTML = '';
-            return this.view.render(
-                this.dom.sidebar,
-                'sidebar',
-                data,
-                context
-            ).then(() => console.log(`[Discovery] Sidebar rendered in ${Date.now() - renderStartTime}ms`));
+
+            return this.view.render(this.dom.sidebar, 'sidebar', data, context)
+                .finally(() => this.log('perf', `Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
 

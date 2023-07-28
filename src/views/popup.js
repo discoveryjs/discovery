@@ -160,7 +160,7 @@ export default function(host) {
             }
 
             if (!hoverPinModes.includes(this.options.hoverPin)) {
-                console.warn(`Bad value for \`Popup#options.hoverPin\` (should be ${hoverPinModes.join(', ')}):`, this.options.hoverPin);
+                host.log('warn', `Bad value for \`Popup#options.hoverPin\` (should be ${hoverPinModes.join(', ')}):`, this.options.hoverPin);
                 this.options.hoverPin = false;
             }
 

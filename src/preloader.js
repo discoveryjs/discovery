@@ -10,7 +10,7 @@ function createProgressbar(domReady, title) {
         domReady,
         title,
         onTiming: ({ title, duration }) =>
-            console.log(`[Discovery/loader] ${title} – ${duration}ms`)
+            console.log(`[Discovery/preloader] ${title} – ${duration}ms`)
     });
 }
 
@@ -97,7 +97,7 @@ function initPreloadEmbedApi(loading) {
                 }
 
                 default:
-                    console.error(`[Discovery/loader] Unknown preload message type "${type}"`);
+                    console.error(`[Discovery/preloader] Unknown preload message type "${type}"`);
             }
         }
     };

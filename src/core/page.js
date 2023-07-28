@@ -17,7 +17,7 @@ export default class PageRenderer extends Dict {
     constructor(host) {
         super();
 
-        this.view = host.view;
+        this.host = host;
         this.lastPage = null;
         this.lastPageId = null;
 
@@ -62,8 +62,8 @@ export default class PageRenderer extends Dict {
         super.define(name, Object.freeze({
             name,
             render: typeof render === 'function'
-                ? render.bind(this.view)
-                : (el, data, context) => this.view.render(el, render, data, context),
+                ? render.bind(this.host.view)
+                : (el, data, context) => this.host.view.render(el, render, data, context),
             options: Object.freeze({ ...options }),
             [CONFIG]: render
         }));
@@ -99,8 +99,8 @@ export default class PageRenderer extends Dict {
             rendered = page.render(newPageEl, data, context);
         } catch (e) {
             // FIXME: Should not to use a view (alert-danger) since it may to be undefined. Replace render with onError hook?
-            rendered = this.view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
-            console.error(e);
+            rendered = this.host.view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
+            this.host.log('error', 'Page render error:', e);
         }
 
         if (pageChanged || pageRefChanged || !keepScrollOffset) {
@@ -115,9 +115,11 @@ export default class PageRenderer extends Dict {
         return {
             pageEl: newPageEl,
             config: page[CONFIG],
-            renderState: Promise.resolve(rendered).then(() =>
-                console.log('[Discovery] Page `' + page.name + '` rendered in ' + (Date.now() - renderStartTime) + 'ms')
-            )
+            renderState: Promise.resolve(rendered)
+                .finally(() => this.host.log(
+                    'perf',
+                    `Page "${page.name}" rendered in ${(Date.now() - renderStartTime)}ms`
+                ))
         };
     }
 }

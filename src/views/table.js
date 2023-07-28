@@ -71,7 +71,7 @@ function resolveColConfig(name, config) {
         };
 }
 
-function getOrder(data, sorting) {
+function getOrder(host, data, sorting) {
     if (typeof sorting !== 'function') {
         return false;
     }
@@ -91,7 +91,7 @@ function getOrder(data, sorting) {
             }
         }
     } catch (e) {
-        console.error('[Discovery] Error on column order detection in table view', e);
+        host.log('error', 'Error on column order detection in table view', e);
         return 0;
     }
 
@@ -124,7 +124,7 @@ export default function(host) {
             moreButtonsEl.innerHTML = '';
 
             for (const headerCell of headerCells) {
-                const order = getOrder(orderedData, headerCell.sorting);
+                const order = getOrder(host, orderedData, headerCell.sorting);
                 headerCell.el.classList.toggle('asc', order === 1);
                 headerCell.el.classList.toggle('desc', order === -1);
             }
@@ -219,7 +219,7 @@ export default function(host) {
                 ? host.query(col.sorting, null, context)
                 : sortingFromConfig(col, host, context);
             const defaultOrder = typeof sorting === 'function'
-                ? getOrder(data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
+                ? getOrder(host, data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
                 : 0;
 
             if (defaultOrder !== 0) {

@@ -34,7 +34,6 @@ function setup(options) {
         const parentWindow = window.parent;
         const actionCalls = new Map();
         const sendMessage = (type, payload = null) => {
-            // console.log('[post-message]', type, payload);
             parentWindow.postMessage({
                 from: 'discoveryjs-app',
                 id: hostId,
@@ -87,7 +86,7 @@ function setup(options) {
                         const { callId, value, error } = payload;
 
                         if (!actionCalls.has(callId)) {
-                            console.error(`[Discovery.js] Unknown action call id "${callId}"`);
+                            host.log('error', `[Discovery.js] Unknown action call id "${callId}"`);
                             break;
                         }
 
@@ -127,7 +126,7 @@ function setup(options) {
                         const supportedValues = ['auto', 'light', 'dark'];
 
                         if (!supportedValues.includes(mode)) {
-                            console.warn(`[Discovery.js] Wrong value for darkmode "${mode}", supported values: ${supportedValues.map(value => JSON.stringify(value)).join(', ')}`);
+                            host.log('warn', `Wrong value for darkmode "${mode}", supported values: ${supportedValues.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
@@ -152,7 +151,7 @@ function setup(options) {
                         } = payload || {};
 
                         if (!navSection.includes(section)) {
-                            console.warn(`[Discovery.js] Wrong value for nav button place "${section}", supported values: ${navSection.map(value => JSON.stringify(value)).join(', ')}`);
+                            host.log('warn', `Wrong value for nav button place "${section}", supported values: ${navSection.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
@@ -183,7 +182,7 @@ function setup(options) {
                                 break;
 
                             default:
-                                console.warn(`[Discovery.js] Wrong value for nav button action "${action}", supported values: ${navAction.map(value => JSON.stringify(value)).join(', ')}`);
+                                host.log('warn', `Wrong value for nav button action "${action}", supported values: ${navAction.map(value => JSON.stringify(value)).join(', ')}`);
                         }
 
                         break;
@@ -227,12 +226,12 @@ function setup(options) {
                         const { acceptToken, value, done } = payload;
 
                         if (loadChunkedDataStatus === null) {
-                            console.warn('[Discovery.js] Loading data is not inited');
+                            host.log('warn', 'Loading data is not inited');
                             break;
                         }
 
                         if (loadChunkedDataStatus.acceptToken !== acceptToken) {
-                            console.warn('[Discovery.js] Bad accept token');
+                            host.log('warn', 'Bad accept token');
                             break;
                         }
 
@@ -248,7 +247,7 @@ function setup(options) {
                     }
 
                     default:
-                        console.warn(`[Discovery.js] Got a post-message addressed to discovery app but with unknown "${type}" type`);
+                        host.log('warn', `Got a post-message addressed to discovery app but with unknown "${type}" type`);
                 }
             }
         };

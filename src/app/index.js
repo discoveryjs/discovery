@@ -117,7 +117,7 @@ export default class App extends Widget {
                 }, {
                     actions: this.action.actionMap
                 }).then(() => {
-                    console.error(error);
+                    this.log('error', error);
                     progressbar?.setState({ error });
                 });
 
@@ -143,19 +143,11 @@ export default class App extends Widget {
         return new Progressbar({
             delay: 200,
             domReady: this.dom.ready,
-            onFinish(timings) {
-                console.groupCollapsed(`[Discovery] ${
-                    options.title || 'Load data'
-                } (${
-                    timings[timings.length - 1].duration
-                }ms)`);
-
-                for (const timing of timings) {
-                    console.log(`${timing.title}: ${timing.duration}ms`);
-                }
-
-                console.groupEnd();
-            },
+            onFinish: (timings) => this.log({
+                level: 'perf',
+                message: `${options.title || 'Load data'} (${timings[timings.length - 1].duration}ms)`,
+                collapsed: () => timings.map(timing => `${timing.title}: ${timing.duration}ms`)
+            }),
             ...options
         });
     }
