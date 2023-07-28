@@ -57,7 +57,7 @@ export function preloader(options) {
     const disposeEmbed = options.embed ? initPreloadEmbedApi(loading) : () => {};
 
     if (loading.state) {
-        syncLoaderWithProgressbar(loading, progressbar);
+        syncLoaderWithProgressbar(loading, progressbar).catch(() => {});
     }
 
     shadowRoot.append(progressbar.el);
