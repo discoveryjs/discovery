@@ -3,6 +3,7 @@
 - Exposed `createLoadDataState()` method as utils
 - Fixed displaying "Empty list" in view showcase when a view has no examples
 - Fixed calling `onFinish()` callback on `Progressbar` getting an error
+- Removed deprecated option `title` in `expand` view config
 - Removed warning on definition `resolveLink()` method in page config
 
 ## 1.0.0-beta.76 (10-07-2023)

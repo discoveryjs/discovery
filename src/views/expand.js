@@ -23,11 +23,6 @@ export default function(host) {
         const headerContentEl = headerEl.appendChild(createElement('div', 'header-content'));
         let contentEl = null;
 
-        if (!header && config.title) {
-            header = config.title;
-            console.warn('expand.title is deprecated, use expand.header instead');
-        }
-
         expanded = host.queryBool(expanded, data, context);
         headerEl.appendChild(createElement('div', 'trigger'));
         headerEl.addEventListener('click', () => {
