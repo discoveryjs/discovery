@@ -1,8 +1,8 @@
 /* eslint-env browser */
 
-import { escapeHtml, numDelim } from '../../core/utils/html.js';
-import { jsonStringifyInfo } from '../../core/utils/json.js';
-import copyText from '../../core/utils/copy-text.js';
+import { numDelim } from '../../core/utils/html.js';
+import { createClickHandler } from './click-handler.js';
+import { createValueActionsPopup } from './popup-value-actions.js';
 import value2html from './value-to-html.js';
 import renderAnnotations from './render-annotations.js';
 import usage from './struct.usage.js';
@@ -14,6 +14,7 @@ import {
     valueProtoEl,
     objectKeyProtoEl
 } from './el-proto.js';
+import { createSignaturePopup } from './poup-signature.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const toString = Object.prototype.toString;
@@ -61,14 +62,6 @@ function appendText(el, text) {
     el.appendChild(document.createTextNode(text));
 }
 
-function formatSize(size) {
-    if (!size) {
-        return '';
-    }
-
-    return ', ' + numDelim(size) + ' bytes';
-}
-
 function renderValueSize(el, entries, unit) {
     if (entries.length > 1) {
         el.lastElementChild
@@ -77,7 +70,8 @@ function renderValueSize(el, entries, unit) {
 }
 
 function renderSorting(el, entries, sort) {
-    let sorted = entries.length <= 1 || entries.every(([key], idx) => idx === 0 || key > entries[idx - 1][0]);
+    const sorted = entries.length < 2 ||
+        entries.every(([key], idx) => idx === 0 || key > entries[idx - 1][0]);
 
     if (sorted) {
         el.querySelector('[data-action="toggle-sort-keys"]').remove();
@@ -88,11 +82,11 @@ function renderSorting(el, entries, sort) {
 
 function renderObjectKey(container, name, maxLength) {
     const objectKeyEl = objectKeyProtoEl.cloneNode(true);
-    const x = name.length > maxLength
+    const fittedToMaxLength = name.length > maxLength
         ? name.slice(0, maxLength) + '…'
         : name;
 
-    appendText(objectKeyEl.firstElementChild, x);
+    appendText(objectKeyEl.firstElementChild, fittedToMaxLength);
     container.appendChild(objectKeyEl);
 }
 
@@ -293,7 +287,7 @@ export default function(host) {
                 if (annotationsToRender.length) {
                     scheduleApplyAnnotations();
                 }
-            }, 0);
+            });
         }
     }
 
@@ -304,213 +298,17 @@ export default function(host) {
     const annotationsToRender = [];
     let annotationsTimer = null;
 
-    const valueActionsPopup = new host.view.Popup({
-        className: 'view-struct-actions-popup',
-        render: (popupEl, triggerEl) => {
-            const el = triggerEl.parentNode;
-            const data = elementData.get(el);
-            let actions = [];
-
-            if (typeof data === 'string') {
-                actions = [
-                    {
-                        text: 'Copy as quoted string',
-                        action: () => copyText(JSON.stringify(data))
-                    },
-                    {
-                        text: 'Copy as unquoted string',
-                        action: () => copyText(JSON.stringify(data).slice(1, -1))
-                    },
-                    {
-                        text: 'Copy a value (unescaped)',
-                        action: () => copyText(data)
-                    }
-                ];
-            } else {
-                const path = host.pathToQuery(buildPathForElement(el));
-                const maxAllowedSize = 1024 * 1024 * 1024;
-                let jsonFormattedStringifyError = false;
-                let jsonCompactStringifyError = false;
-                let compactSize = 0;
-                let formattedSize = 0;
-
-                try {
-                    const { minLength, circular } = jsonStringifyInfo(data);
-
-                    compactSize = minLength;
-
-                    if (circular.length) {
-                        jsonCompactStringifyError = 'Converting circular structure to JSON';
-                    } else if (compactSize > maxAllowedSize) {
-                        jsonCompactStringifyError = 'Resulting JSON is over 1 Gb';
-                    } else {
-                        formattedSize = jsonStringifyInfo(data, null, 4).minLength;
-                        if (formattedSize > maxAllowedSize) {
-                            jsonFormattedStringifyError = 'Resulting JSON is over 1 Gb';
-                        }
-                    }
-                } catch (e) {
-                    jsonCompactStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
-                        ? 'Too much nested structure'
-                        : e.message;
-                }
-
-                if (jsonCompactStringifyError) {
-                    jsonCompactStringifyError = 'Can\'t be copied: ' + jsonCompactStringifyError;
-
-                    if (!jsonFormattedStringifyError) {
-                        jsonFormattedStringifyError = jsonCompactStringifyError;
-                    }
-                }
-
-                if (path) {
-                    actions.push({
-                        text: 'Copy path:',
-                        notes: escapeHtml(path),
-                        action: () => copyText(path)
-                    });
-                }
-
-                actions.push({
-                    text: 'Copy as JSON',
-                    notes: `(formatted${formatSize(formattedSize)})`,
-                    error: jsonFormattedStringifyError,
-                    disabled: Boolean(jsonFormattedStringifyError),
-                    action: () => copyText(JSON.stringify(data, null, 4))
-                });
-                actions.push({
-                    text: 'Copy as JSON',
-                    notes: `(compact${jsonCompactStringifyError ? '' : formatSize(compactSize)})`,
-                    error: jsonCompactStringifyError,
-                    disabled: Boolean(jsonCompactStringifyError),
-                    action: () => copyText(JSON.stringify(data))
-                });
-            }
-
-            host.view.render(popupEl, {
-                view: 'menu',
-                onClick(item) {
-                    valueActionsPopup.hide();
-                    item.action();
-                },
-                item: [
-                    'html:text',
-                    {
-                        view: 'block',
-                        when: 'notes',
-                        className: 'notes',
-                        content: 'html:notes'
-                    },
-                    {
-                        view: 'block',
-                        when: 'error',
-                        className: 'error',
-                        content: 'text:error'
-                    }
-                ]
-            }, actions);
-        }
-    });
-    const signaturePopup = new host.view.Popup({
-        hoverPin: 'popup-hover',
-        hoverTriggers: '.view-struct .show-signature',
-        render: function(popupEl, triggerEl) {
-            const el = triggerEl.parentNode;
-            const data = elementData.get(el);
-
-            host.view.render(popupEl, {
-                view: 'signature',
-                expanded: 2,
-                path: buildPathForElement(el)
-            }, data);
-        }
-    });
-
-    const clickHandler = ({ target }) => {
-        let action = 'expand';
-        let cursor = target.closest(`
-            .view-struct.struct-expand,
-            .view-struct .struct-expand-value,
-            .view-struct .struct-action-button
-        `);
-
-        if (!cursor) {
-            return;
-        }
-
-        if (cursor.dataset.action) {
-            action = cursor.dataset.action;
-        }
-
-        switch (action) {
-            case 'expand':
-                if (cursor.classList.contains('struct-expand')) {
-                    // expand root element
-                    cursor = cursor.lastChild;
-                }
-
-                // expand value
-                expandValue(cursor, 0);
-                scheduleApplyAnnotations();
-                cursor.parentNode.classList.add('struct-expanded-value');
-
-                if (structViewRoots.has(cursor.parentNode)) {
-                    cursor.parentNode.classList.remove('struct-expand');
-                }
-                break;
-
-            case 'collapse':
-                cursor = cursor.parentNode;
-                collapseValue(cursor);
-                scheduleApplyAnnotations();
-                cursor.parentNode.classList.remove('struct-expanded-value');
-                cursor.classList.remove('view-as-table');
-
-                if (structViewRoots.has(cursor.parentNode)) {
-                    cursor.parentNode.classList.add('struct-expand');
-                }
-                break;
-
-            case 'show-signature':
-                signaturePopup.show(cursor);
-                break;
-
-            case 'value-actions':
-                valueActionsPopup.show(cursor);
-                break;
-
-            case 'toggle-sort-keys':
-                expandValue(cursor.parentNode, 0, cursor.parentNode.classList.toggle('sort-keys'));
-                scheduleApplyAnnotations();
-                break;
-
-            case 'toggle-string-mode':
-                cursor = cursor.parentNode;
-
-                const stringTextNode = cursor.querySelector('.string-text').firstChild;
-
-                stringTextNode.nodeValue = cursor.classList.toggle('string-value-as-text')
-                    ? JSON.parse(`"${stringTextNode.nodeValue}"`)
-                    : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
-                break;
-
-            case 'toggle-view-as-table':
-                cursor = cursor.parentNode;
-
-                const asTable = cursor.classList.toggle('view-as-table');
-
-                if (asTable) {
-                    renderTable(cursor);
-                } else {
-                    const tableEl = cursor.querySelector(':scope > .view-table');
-
-                    if (tableEl) {
-                        tableEl.remove();
-                    }
-                }
-                break;
-        }
-    };
+    const valueActionsPopup = createValueActionsPopup(host, elementData, buildPathForElement);
+    const signaturePopup = createSignaturePopup(host, elementData, buildPathForElement);
+    const clickHandler = createClickHandler(
+        expandValue,
+        collapseValue,
+        scheduleApplyAnnotations,
+        renderTable,
+        structViewRoots,
+        valueActionsPopup,
+        signaturePopup
+    );
 
     // single event handler for all `struct` view instances
     host.addHostElEventListener('click', clickHandler, false);
