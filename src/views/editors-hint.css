@@ -81,3 +81,7 @@
 .discovery-view-editor-hint.type-method::before {
     content: 'M';
 }
+.discovery-view-editor-hint.type-assertion::before {
+    content: 'A';
+}
+
