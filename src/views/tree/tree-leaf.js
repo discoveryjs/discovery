@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import { createElement } from '../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 
 export default function(host) {
     const elementToData = new WeakMap();

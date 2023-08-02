@@ -1,6 +1,6 @@
 /* eslint-env browser */
 import { Slugger } from 'marked';
-import { createElement } from '../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import usage from './headers.usage.js';
 
 export default function(host) {

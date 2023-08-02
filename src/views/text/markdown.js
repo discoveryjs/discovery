@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import { marked } from 'marked';
 import usage from './markdown.usage.js';
-import { escapeHtml } from '../core/utils/html.js';
+import { escapeHtml } from '../../core/utils/html.js';
 
 class CustomRenderer extends marked.Renderer {
     heading(text, level, raw, slugger) {

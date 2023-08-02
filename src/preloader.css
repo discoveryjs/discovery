@@ -1,4 +1,4 @@
-@import './views/progress.css';
+@import './views/controls/progress.css';
 
 :host {
     /* all: initial; */

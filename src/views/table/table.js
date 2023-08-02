@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import usage from './table.usage.js';
 
-import { createElement } from '../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 const hasOwnProperty = Object.hasOwnProperty;
 
 function configFromName(name) {

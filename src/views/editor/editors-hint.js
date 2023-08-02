@@ -6,8 +6,8 @@
 /* eslint-env browser */
 
 import CodeMirror from 'codemirror';
-import { getOffsetParent, getBoundingRect, getOverflowParent } from '../core/utils/layout.js';
-import { passiveCaptureOptions } from '../core/utils/dom.js';
+import { getOffsetParent, getBoundingRect, getOverflowParent } from '../../core/utils/layout.js';
+import { passiveCaptureOptions } from '../../core/utils/dom.js';
 
 const POPUP_CLASS = 'discovery-view-editor-hints-popup';
 const HINT_CLASS = 'discovery-view-editor-hint';

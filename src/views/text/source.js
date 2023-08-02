@@ -5,10 +5,10 @@ import CodeMirror from 'codemirror';
 import 'codemirror/mode/javascript/javascript.js';
 import 'codemirror/mode/css/css.js';
 import 'codemirror/mode/xml/xml.js';
-import { equal } from '../core/utils/compare.js';
+import { equal } from '../../core/utils/compare.js';
+import { createElement } from '../../core/utils/dom.js';
+import copyText from '../../core/utils/copy-text.js';
 import usage from './source.usage.js';
-import { createElement } from '../core/utils/dom.js';
-import copyText from '../core/utils/copy-text.js';
 
 const defaultMaxSourceSizeToHighlight = 250 * 1024;
 CodeMirror.modeToMime = {

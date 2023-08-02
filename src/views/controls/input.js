@@ -1,8 +1,7 @@
 /* eslint-env browser */
+import safeFilterRx from '../../core/utils/safe-filter-rx.js';
+import debounceFn from '../../core/utils/debounce.js';
 import usage from './input.usage.js';
-
-import safeFilterRx from '../core/utils/safe-filter-rx.js';
-import debounceFn from '../core/utils/debounce.js';
 
 export default function(host) {
     const factories = {

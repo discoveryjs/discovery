@@ -1,6 +1,6 @@
 /* eslint-env browser */
+import { createElement } from '../../core/utils/dom.js';
 import usage from './checkbox.usage.js';
-import { createElement } from '../core/utils/dom.js';
 
 export default function(host) {
     function renderContent(contentEl, content, data, context, name, inputEl) {

@@ -1,7 +1,7 @@
 /* eslint-env browser */
-import { getOffsetParent, getBoundingRect, getViewportRect } from '../core/utils/layout.js';
-import { passiveCaptureOptions } from '../core/utils/dom.js';
-import { pointerXY } from '../core/utils/pointer.js';
+import { getOffsetParent, getBoundingRect, getViewportRect } from '../../core/utils/layout.js';
+import { passiveCaptureOptions } from '../../core/utils/dom.js';
+import { pointerXY } from '../../core/utils/pointer.js';
 
 const openedPopups = [];
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];

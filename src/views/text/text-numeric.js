@@ -1,4 +1,4 @@
-import { numDelim } from '../core/utils/html.js';
+import { numDelim } from '../../core/utils/html.js';
 import usage from './text-numeric.usage.js';
 
 export default function(host) {

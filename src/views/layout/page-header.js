@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import { createElement } from '../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import usage from './page-header.usage.js';
 
 export default function(host) {

@@ -1,8 +1,8 @@
 /* eslint-env browser */
 
-import { createElement } from '../core/utils/dom.js';
-import { escapeHtml } from '../core/utils/html.js';
-import Emitter from '../core/emitter.js';
+import { createElement } from '../../core/utils/dom.js';
+import { escapeHtml } from '../../core/utils/html.js';
+import Emitter from '../../core/emitter.js';
 import CodeMirror from 'codemirror';
 import modeQuery from './editor-mode-query.js';
 import modeView from './editor-mode-view.js';

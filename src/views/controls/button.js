@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import usage from './button.usage.js';
-import { createElement } from '../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 
 export default function(host) {
     function render(el, config, data, context) {
