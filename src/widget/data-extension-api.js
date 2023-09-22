@@ -15,9 +15,11 @@ export function createDataExtensionApi(host) {
         resolveValueLinks,
         addValueAnnotation,
         addQueryHelpers(helpers) {
-            joraSetup = jora.setup(queryCustomMethods = {
-                ...queryCustomMethods,
-                ...helpers
+            joraSetup = jora.setup({
+                methods: queryCustomMethods = {
+                    ...queryCustomMethods,
+                    ...helpers
+                }
             });
         },
         query(query, ...args) {
@@ -35,7 +37,7 @@ export function createDataExtensionApi(host) {
             ? () => callAction(actionName, ...args)
             : undefined
     };
-    let joraSetup = jora.setup(queryCustomMethods);
+    let joraSetup = jora.setup({ methods: queryCustomMethods });
 
     return Object.assign(host => Object.assign(host, {
         objectMarkers,
