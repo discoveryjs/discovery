@@ -5,7 +5,6 @@ import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import { createElement } from '../core/utils/dom.js';
-import { escapeHtml } from '../core/utils/html.js';
 import Progressbar from '../core/utils/progressbar.js';
 import * as navButtons from '../nav/buttons.js';
 import {
@@ -105,6 +104,7 @@ export default class App extends Widget {
                                 view: 'h3',
                                 content: [
                                     'badge:"Error"',
+                                    { view: 'text', when: 'stage', data: '`[${stage}] `' },
                                     'text:errorText'
                                 ]
                             },
@@ -112,8 +112,9 @@ export default class App extends Widget {
                         ]
                     }
                 ], {
-                    errorText: escapeHtml(error.message || String(error)),
-                    errorStack: error.stack ? escapeHtml(error.stack).replace(/^Error:\s*(\S+Error:)/, '$1') : ''
+                    stage: progressbar?.lastStage,
+                    errorText: error.message || String(error),
+                    errorStack: (error.stack || '').replace(/^Error:\s*(\S+Error:)/, '$1')
                 }, {
                     actions: this.action.actionMap
                 }).then(() => {
