@@ -1,4 +1,7 @@
 {
+    "ignorePatterns": [
+        "src/tmp/*"
+    ],
     "env": {
         "node": true,
         "mocha": true,
