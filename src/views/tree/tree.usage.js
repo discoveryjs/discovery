@@ -33,24 +33,26 @@ export default {
     examples: [
         {
             title: 'Expanded tree',
+            highlightProps: ['expanded'],
             demo: {
                 view: 'tree',
                 item: 'text:text',
-                expanded: 999,
-                data: {
-                    text: 'Root',
-                    children: [
-                        { text: 'Child' },
-                        { text: 'Another child', children: [
-                            { text: 'Lvl 2 child' },
-                            { text: 'Lvl 2 child' }
-                        ] }
-                    ]
-                }
+                expanded: 999
+            },
+            demoData: {
+                text: 'Root',
+                children: [
+                    { text: 'Child' },
+                    { text: 'Another child', children: [
+                        { text: 'Lvl 2 child' },
+                        { text: 'Lvl 2 child' }
+                    ] }
+                ]
             }
         },
         {
             title: 'With empty text',
+            highlightProps: ['emptyText'],
             demo: {
                 view: 'tree',
                 emptyText: 'This tree is empty',
@@ -59,29 +61,31 @@ export default {
         },
         {
             title: 'With toggle handler',
+            highlightProps: ['onToggle'],
             demo: {
                 view: 'tree',
                 item: 'text:text',
-                onToggle: onToggle,
-                data: {
-                    text: 'Root',
-                    children: [
-                        { text: 'Child' },
-                        { text: 'Another child', children: [
-                            { text: 'Lvl 2 child' },
-                            { text: 'Lvl 2 child' }
-                        ] }
-                    ]
-                }
+                onToggle: onToggle
+            },
+            demoData: {
+                text: 'Root',
+                children: [
+                    { text: 'Child' },
+                    { text: 'Another child', children: [
+                        { text: 'Lvl 2 child' },
+                        { text: 'Lvl 2 child' }
+                    ] }
+                ]
             }
         },
         {
             title: 'limitLines',
+            highlightProps: ['limitLines'],
+            demoData: createTree([5, 3, 3]),
             demo: {
                 view: 'tree',
                 item: 'text:title',
-                limitLines: 7,
-                data: createTree([5, 3, 3])
+                limitLines: 7
             }
         }
     ]
