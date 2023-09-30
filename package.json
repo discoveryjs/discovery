@@ -38,11 +38,11 @@
         "marked": "^4.3.0"
     },
     "devDependencies": {
-        "@discoveryjs/cli": "^2.5.1",
-        "cypress": "^9.5.4",
-        "esbuild": "~0.14.49",
-        "eslint": "^8.19.0",
-        "eslint-plugin-cypress": "^2.12.1"
+        "@discoveryjs/cli": "^2.6.0",
+        "cypress": "^13.3.0",
+        "esbuild": "~0.19.4",
+        "eslint": "^8.50.0",
+        "eslint-plugin-cypress": "^2.15.1"
     },
     "files": [
         "dist",
