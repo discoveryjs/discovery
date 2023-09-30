@@ -116,16 +116,16 @@ export default class Widget extends Emitter {
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
-        if (defaultPage) {
-            this.page.define(this.defaultPageId, defaultPage);
-        }
-
         this.apply(createDataExtensionApi(this));
         this.apply(views);
         this.apply(pages);
 
         if (extensions) {
             this.apply(extensions);
+        }
+
+        if (defaultPage) {
+            this.page.define(this.defaultPageId, defaultPage);
         }
 
         if (useInspector) {

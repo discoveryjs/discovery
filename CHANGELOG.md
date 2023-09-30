@@ -1,3 +1,7 @@
+## next
+
+- Fixed `defaultPage` option to have no effect
+
 ## 1.0.0-beta.78 (21-09-2023)
 
 - Bumped jora to [1.0.0-beta.8](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.8): assertions and dozens of new methods
