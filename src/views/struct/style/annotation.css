@@ -30,8 +30,11 @@
 .view-struct .value-annotation.before + .value {
     margin-left: 4px;
 }
-.view-struct .value + .value-annotation.after {
-    margin-left: 2ex;
+.view-struct .value-annotations {
+    margin-left: 6px;
+}
+.view-struct .value + .value-annotations {
+    margin-left: 1.5ex;
 }
 
 .view-struct .value-annotation.style-default {

@@ -97,6 +97,10 @@ export default function(host) {
 
         el.classList.add('struct-expand-value');
         el.innerHTML = value2html(data, false, options);
+
+        if (el.annotationsEl) {
+            el.parentNode.append(el.annotationsEl);
+        }
     }
 
     function expandValue(el, autoExpandLimit, sort) {
@@ -110,22 +114,23 @@ export default function(host) {
             // string
             const valueEl = stringValueProto.cloneNode(true);
             const stringValueEl = valueEl.lastChild.previousSibling;
+            const sizeEl = stringValueEl.previousSibling;
             const text = JSON.stringify(data);
 
             appendText(stringValueEl.firstChild, text.slice(1, -1));
-            stringValueEl.previousSibling.innerHTML = `length: ${numDelim(text.length)} chars`;
+            sizeEl.innerHTML = `length: ${numDelim(text.length)} chars`;
 
-            el.innerHTML = '';
-            el.appendChild(valueEl);
+            el.replaceChildren(valueEl);
+            moveAnnotationsEl(el, sizeEl);
         } else if (Array.isArray(data)) {
             // array
             const context = elementContext.get(el);
             const options = elementOptions.get(el);
 
-            el.innerHTML = '';
-            el.appendChild(arrayValueProto.cloneNode(true));
+            el.replaceChildren(arrayValueProto.cloneNode(true));
 
             renderValueSize(el, data, 'elements');
+            moveAnnotationsEl(el, el.lastElementChild);
             renderEntries(el, el.lastChild, data, (entryEl, value, index) => {
                 renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
                     parent: context,
@@ -140,10 +145,10 @@ export default function(host) {
             const options = elementOptions.get(el);
             const entries = Object.entries(data);
 
-            el.innerHTML = '';
-            el.appendChild(objectValueProto.cloneNode(true));
+            el.replaceChildren(objectValueProto.cloneNode(true));
 
             renderValueSize(el, entries, 'entries');
+            moveAnnotationsEl(el, el.lastElementChild);
             renderSorting(el, entries, sort);
             renderEntries(el, el.lastChild, entries, (entryEl, [key, value], index) => {
                 renderObjectKey(entryEl, key, options.maxPropertyLength);
@@ -236,6 +241,12 @@ export default function(host) {
         }
 
         return path;
+    }
+
+    function moveAnnotationsEl(valueEl, relEl) {
+        if (valueEl.annotationsEl) {
+            relEl.after(valueEl.annotationsEl);
+        }
     }
 
     function applyAnnotations(el, value, options, context) {

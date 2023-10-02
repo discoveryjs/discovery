@@ -54,7 +54,19 @@ export default function renderAnnotations(annotations) {
         if (place === 'before') {
             el.before(annotationEl);
         } else {
-            el.parentNode.append(annotationEl);
+            const parentEl = el.parentNode;
+
+            if (!el.annotationsEl) {
+                el.annotationsEl = createElement('span', 'value-annotations');
+                if (parentEl.classList.contains('struct-expanded-value')) {
+                    el.querySelector(':scope > .value-size, :scope > .string-length')
+                        .after(el.annotationsEl);
+                } else {
+                    parentEl.append(el.annotationsEl);
+                }
+            }
+
+            el.annotationsEl.append(annotationEl);
         }
     }
 
