@@ -1,12 +1,12 @@
 .view-struct .struct-action-button {
-    vertical-align: middle;
+    vertical-align: top;
     margin-left: 2px;
-    padding: 1px 4px;
+    padding: 2px 5px;
     color: rgba(170, 170, 170, 0.4);
     background-color: rgba(195, 195, 195, 0.05);
     border: 1px solid rgba(141, 141, 141, 0.15);
     border-radius: 3px;
-    font-size: 8px;
+    font-size: 9px;
     cursor: pointer;
 }
 .discovery-root-darkmode .view-struct .struct-action-button {

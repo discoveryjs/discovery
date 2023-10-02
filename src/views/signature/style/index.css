@@ -7,7 +7,7 @@
     padding: 7px 32px 7px 8px;
     overflow: auto;
     font-family: var(--discovery-monospace-font-family);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 18px;
     background: rgba(205, 205, 205, 0.1);
     color: var(--discovery-fmt-color);

@@ -40,9 +40,9 @@
 .view-struct .string-length {
     padding-left: 6px;
     color: rgba(153, 153, 153, 0.5);
-    font-size: 9px;
-    line-height: 11px;
-    vertical-align: text-bottom;
+    font-size: 11px;
+    line-height: 14px;
+    vertical-align: text-top;
 }
 .view-struct .value-size:hover,
 .view-struct .string-length:hover {

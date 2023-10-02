@@ -1,7 +1,8 @@
 .view-signature [data-action] {
+    vertical-align: top;
     margin-left: 2px;
-    padding: 1px 4px;
-    font-size: 8px;
+    padding: 2px 5px;
+    font-size: 9px;
     color: rgba(170, 170, 170, 0.4);
     background: rgba(195, 195, 195, 0.05);
     border: 1px solid rgba(141, 141, 141, 0.15);

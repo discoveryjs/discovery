@@ -1,6 +1,8 @@
 ## next
 
 - Fixed `defaultPage` option to have no effect
+- Uniformed font and size for monospace views
+- Enlarged action buttons in `struct` and `structure` views
 
 ## 1.0.0-beta.78 (21-09-2023)
 

@@ -5,7 +5,7 @@
 .discovery-editor .CodeMirror {
     height: auto;
     overflow-y: hidden !important;
-    padding: 4px 8px;
+    padding: 2px 8px;
     margin-bottom: 5px;
     font-family: var(--discovery-monospace-font-family);
     font-size: 12px;
@@ -28,6 +28,10 @@
     height: auto;
     overflow-y: hidden !important;
     cursor: text;
+}
+
+.discovery-editor .CodeMirror .CodeMirror-line {
+    padding: 0;
 }
 
 .discovery-editor .CodeMirror-cursor {
