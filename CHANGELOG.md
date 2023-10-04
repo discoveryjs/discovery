@@ -4,6 +4,7 @@
 - Uniformed font and size for monospace views
 - Enlarged action buttons in `struct` and `structure` views
 - Changed rendering of after-annotations to render in a prelude when a value is expanded
+- Fixed editor to not render text until gets focus
 
 ## 1.0.0-beta.78 (21-09-2023)
 

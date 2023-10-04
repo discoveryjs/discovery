@@ -2,6 +2,7 @@
 
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
+import { ContentRect } from '../../core/utils/size.js';
 import Emitter from '../../core/emitter.js';
 import CodeMirror from 'codemirror';
 import modeQuery from './editor-mode-query.js';
@@ -85,6 +86,10 @@ class Editor extends Emitter {
         }
 
         this.cm = cm;
+
+        const rect = new ContentRect();
+        rect.subscribe(() => cm.refresh());
+        rect.observe(cm.display.wrapper);
     }
 
     getValue() {
@@ -93,8 +98,8 @@ class Editor extends Emitter {
 
     setValue(value) {
         // call refresh() method to update sizes and content
-        // use a Promise as zero timeout, like a setImmediate()
-        Promise.resolve().then(() => this.cm.refresh());
+        // use a microtask to call as soon as possible after current code frame
+        requestAnimationFrame(() => this.cm.refresh());
 
         if (typeof value === 'string' && this.getValue() !== value) {
             this.cm.setValue(value || '');
