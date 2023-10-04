@@ -4,6 +4,10 @@
     list-style: none;
 }
 
+.view-comma-list > .view-list-item > * {
+    margin-right: 0;
+}
+
 .view-comma-list > .view-list-item::after {
     content: ', ';
     white-space: pre;
