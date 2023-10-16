@@ -615,6 +615,10 @@ export default class ViewRenderer extends Dict {
         container.appendChild(moreButton);
     }
 
+    attachTooltip(el, config, data, context) {
+        attachTooltip(this.host, el, config, data, context);
+    }
+
     adoptFragment(fragment, probe) {
         const info = fragmentEls.get(probe);
 
