@@ -11,7 +11,7 @@ import * as pages from '../pages/index.js';
 import { createElement } from '../core/utils/dom.js';
 import injectStyles from '../core/utils/inject-styles.js';
 import inspector from '../extensions/inspector.js';
-import { equal } from '../core/utils/compare.js';
+import { deepEqual } from '../core/utils/compare.js';
 import { DarkModeController } from '../core/darkmode.js';
 import { WidgetNavigation } from '../nav/index.js';
 import { createDataExtensionApi } from './data-extension-api.js';
@@ -624,7 +624,7 @@ export default class Widget extends Emitter {
 
         if (this.pageId !== pageId ||
             this.pageRef !== pageRef ||
-            !equal(this.pageParams, pageParams)) {
+            !deepEqual(this.pageParams, pageParams)) {
 
             this.pageId = pageId;
             this.pageRef = pageRef;

@@ -5,6 +5,7 @@
 - Enlarged action buttons in `struct` and `structure` views
 - Changed rendering of after-annotations to render in a prelude when a value is expanded
 - Fixed editor to not render text until gets focus
+- Modified `Widget` to utilize deep comparison for page params, ensuring more accurate detection of changes
 
 ## 1.0.0-beta.78 (21-09-2023)
 
