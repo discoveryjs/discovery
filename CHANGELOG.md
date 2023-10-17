@@ -5,6 +5,7 @@
 - Uniformed font and size for monospace views
 - Enlarged action buttons in `struct` and `structure` views
 - Changed rendering of after-annotations to render in a prelude when a value is expanded
+- Changed default rendering of arrays in a table cell to display number of array elements instead of `[…]`
 - Fixed editor to not render text until gets focus
 - Fixed suggestion popup positioning in query editor in some cases
 - Modified `Widget` to utilize deep comparison for page params, ensuring more accurate detection of changes

@@ -7,8 +7,8 @@ const hasOwnProperty = Object.hasOwnProperty;
 
 function defaultCellRender(el, data, isDataObject) {
     if (Array.isArray(data)) {
-        el.classList.add('complex');
-        el.textContent = data.length ? '[…]' : '[]';
+        el.classList.add('number');
+        el.textContent = data.length || '';
         return;
     }
 
@@ -52,7 +52,7 @@ export default function(host) {
         let { content, details, colSpan, scalarAsStruct } = config;
         const isDataObject =
             data !== null &&
-            typeof data === 'object' &&
+            (Array.isArray(data) ? data.length > 0 : typeof data === 'object') &&
             data instanceof RegExp === false;
 
         if (typeof colSpan === 'number' && colSpan > 1) {
