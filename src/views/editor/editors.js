@@ -138,6 +138,10 @@ class QueryEditor extends Editor {
                 })
             };
         } });
+
+        this.inputPanelEl = createElement('div', 'discovery-editor__input-panel');
+        this.outputPanelEl = createElement('div', 'discovery-editor__output-panel');
+        this.el.append(this.inputPanelEl, this.outputPanelEl);
     }
     setValue(value, data, context) {
         this.queryData = data;

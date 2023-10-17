@@ -4,11 +4,11 @@ function ensureString(value, fallback) {
     return typeof value === 'string' ? value : fallback || '';
 }
 
-export const decodedSpecialParams = ['query', 'view', 'title', 'dzen', 'noedit'];
-export const encodedSpecialParams = ['q', 'v', 'title', 'dzen', 'noedit'];
+export const decodedSpecialParams = ['query', 'graph', 'view', 'title', 'dzen', 'noedit'];
+export const encodedSpecialParams = ['q', 'graph', 'v', 'title', 'dzen', 'noedit'];
 
 export function encodeParams(params) {
-    const { query, view, title, dzen, noedit, ...extra } = typeof params === 'string' ? { query: params } : params;
+    const { query, graph, view, title, dzen, noedit, ...extra } = typeof params === 'string' ? { query: params } : params;
     const pairs = [];
 
     if (dzen) {
@@ -25,6 +25,10 @@ export function encodeParams(params) {
 
     if (query) {
         pairs.push(['q', base64.encode(query)]);
+    }
+
+    if (graph) {
+        pairs.push(['graph', base64.encode(JSON.stringify(graph))]);
     }
 
     if (typeof view === 'string') {
@@ -48,6 +52,7 @@ export function decodeParams(pairs) {
     const decodedParams = {
         title: params.title || '',
         query: base64.decode(ensureString(params.q, '')),
+        graph: JSON.parse(base64.decode(ensureString(params.graph, '')) || 'null'),
         view: 'v' in params ? base64.decode(ensureString(params.v, '')) : undefined,
         dzen: 'dzen' in params,
         noedit: 'noedit' in params

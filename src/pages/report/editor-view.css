@@ -1,6 +1,6 @@
 .page-report > .report-editor .view-editor-form {
     margin:
-        0
+        12px
         calc(-1 * var(--discovery-page-padding-right))
         12px
         calc(-1 * var(--discovery-page-padding-left));

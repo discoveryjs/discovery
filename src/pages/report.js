@@ -45,6 +45,7 @@ export default function(host) {
     }
 
     let refs = null;
+    let lastRequest = null;
 
     //
     // Page
@@ -65,18 +66,23 @@ export default function(host) {
         header.render(data, context);
 
         // perform query
-        const queryResult = queryEditor.perform(data, context);
+        const request = lastRequest = {};
+        queryEditor.perform(data, context).then(queryResult => {
+            if (lastRequest !== request) {
+                return;
+            }
 
-        if (queryResult.error) {
-            viewEditor.el.hidden = true;
-            reportContentEl.hidden = true;
-            return;
-        }
+            if (queryResult.error) {
+                viewEditor.el.hidden = true;
+                reportContentEl.hidden = true;
+                return;
+            }
 
-        viewEditor.el.hidden = false;
-        reportContentEl.hidden = false;
+            viewEditor.el.hidden = false;
+            reportContentEl.hidden = false;
 
-        viewEditor.render(queryResult.data, context, reportContentEl);
+            viewEditor.render(queryResult.computed, /* queryResult.context */ context, reportContentEl);
+        });
     }, {
         reuseEl: true,
         init(el) {

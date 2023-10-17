@@ -1,5 +1,6 @@
 ## next
 
+- Reworked report page to support query graph and other improvements
 - Fixed `defaultPage` option to have no effect
 - Uniformed font and size for monospace views
 - Enlarged action buttons in `struct` and `structure` views
