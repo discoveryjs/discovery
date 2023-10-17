@@ -208,7 +208,7 @@ class Widget {
         this.selectedHint = data.selectedHint || 0;
 
         hintsEl.style.visibility = 'hidden';
-        hintsElClassNames.forEach(className => hintsEl.classList.add(className));
+        hintsEl.classList.add(...hintsElClassNames);
         containerEl.appendChild(hintsEl);
 
         this.items = data.list.map((cur, idx) => {
@@ -348,8 +348,9 @@ class Widget {
 
         if (availBottom < height && availTop > availBottom) {
             // up
-            hintsEl.style.top = `${pos.top - 1 - Math.min(height, availTop - PAGE_OFFSET) - CURSOR_OFFSET}px`;
-            hintsEl.style.maxHeight = `${availTop - CURSOR_OFFSET - PAGE_OFFSET}px`;
+            const h = Math.min(height, availTop - PAGE_OFFSET - CURSOR_OFFSET);
+            hintsEl.style.top = `${pos.top - 1 - h - PAGE_OFFSET}px`;
+            hintsEl.style.maxHeight = `${h}px`;
         } else {
             // down
             hintsEl.style.top = `${pos.bottom + CURSOR_OFFSET}px`;

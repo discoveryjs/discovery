@@ -1,6 +1,7 @@
 .discovery-view-editor-hints-popup {
     position: absolute;
     z-index: 1000;
+    box-sizing: border-box;
     overflow: hidden;
     overflow-y: auto;
     list-style: none;
