@@ -32,8 +32,8 @@ function isElementNullOrInDocument(element) {
 function hideIfEventOutside(event) {
     openedPopups.slice().forEach(popup => popup.hideIfEventOutside(event));
 }
-function hideIfTriggerElementNotInDocument() {
-    openedPopups.slice().forEach(popup => popup.hideIfTriggerElementNotInDocument());
+function hideOnTriggerHasLeftDocument() {
+    openedPopups.slice().forEach(popup => popup.hideOnTriggerHasLeftDocument());
 }
 function hideOnResize(event) {
     openedPopups.slice().forEach(popup => popup.hideOnResize(event));
@@ -59,7 +59,7 @@ export default function(host) {
                     const targetRelatedPopup = findTargetRelatedPopup(instance, target);
                     const triggerEl = targetRelatedPopup
                         ? targetRelatedPopup.el
-                        : target.closest(instance.options.hoverTriggers);
+                        : target.closest(instance.hoverTriggers);
 
                     if (triggerEl) {
                         instance.hideTimer = clearTimeout(instance.hideTimer);
@@ -106,10 +106,10 @@ export default function(host) {
             host.addHostElEventListener('click', (event) => {
                 clearTimeout(hideAllPopups);
                 hideIfEventOutside(event);
-                setTimeout(hideIfTriggerElementNotInDocument, 50);
+                setTimeout(hideOnTriggerHasLeftDocument, 50);
 
                 for (const instance of hoverTriggerInstances) {
-                    if (instance.options.hoverPin === 'trigger-click') {
+                    if (instance.hoverPin === 'trigger-click') {
                         if (instance.lastHoverTriggerEl && instance.lastTriggerEl.contains(event.target)) {
                             instance.lastHoverTriggerEl = null;
                             instance.hoverPinned = true;
@@ -125,7 +125,7 @@ export default function(host) {
 
     pointerXY.subscribe(() => {
         for (const popup of openedPopups) {
-            if (popup.options.position === 'pointer' && !popup.hoverPinned && !popup.frozen) {
+            if (popup.position === 'pointer' && !popup.hoverPinned && !popup.frozen) {
                 popup.updatePosition();
             }
         }
@@ -139,7 +139,7 @@ export default function(host) {
 
     host.view.Popup = class Popup {
         constructor(options) {
-            this.options = {
+            options = {
                 ...defaultOptions,
                 ...options
             };
@@ -154,19 +154,25 @@ export default function(host) {
             this.lastHoverTriggerEl = null;
             this.hoverPinned = false;
             this.frozen = false;
+            this.render = options.render;
+            this.position = options.position;
+            this.hoverTriggers = options.hoverTriggers;
+            this.hoverPin = options.hoverPin;
+            this.hideIfEventOutsideDisabled = !options.hideIfEventOutside;
+            this.hideOnResizeDisabled = !options.hideOnResize;
 
-            if (this.options.className) {
-                this.el.classList.add(this.options.className);
+            if (options.className) {
+                this.el.classList.add(options.className);
             }
 
-            if (!hoverPinModes.includes(this.options.hoverPin)) {
-                host.log('warn', `Bad value for \`Popup#options.hoverPin\` (should be ${hoverPinModes.join(', ')}):`, this.options.hoverPin);
-                this.options.hoverPin = false;
+            if (!hoverPinModes.includes(options.hoverPin)) {
+                host.log('warn', `Bad value for \`Popup#options.hoverPin\` (should be ${hoverPinModes.join(', ')}):`, options.hoverPin);
+                this.hoverPin = false;
             }
 
-            if (this.options.hoverTriggers) {
+            if (this.hoverTriggers) {
                 this.el.classList.add('show-on-hover');
-                this.el.dataset.pinMode = this.options.hoverPin || 'none';
+                this.el.dataset.pinMode = this.hoverPin || 'none';
 
                 hoverTriggerInstances.push(this);
                 addHostElHoverListeners();
@@ -189,7 +195,7 @@ export default function(host) {
             }
         }
 
-        show(triggerEl, render = this.options.render) {
+        show(triggerEl, render = this.render) {
             const hostEl = host.dom.container;
 
             this.hideTimer = clearTimeout(this.hideTimer);
@@ -226,7 +232,7 @@ export default function(host) {
         }
 
         updatePosition() {
-            if (!this.visible || (this.options.position !== 'pointer' && !this.lastTriggerEl)) {
+            if (!this.visible || (this.position !== 'pointer' && !this.lastTriggerEl)) {
                 return;
             }
 
@@ -235,7 +241,7 @@ export default function(host) {
             const viewport = getViewportRect(window, offsetParent);
             const { x: pointerX, y: pointerY } = pointerXY.value;
             const pointerOffset = 3;
-            const box = this.options.position !== 'pointer'
+            const box = this.position !== 'pointer'
                 ? getBoundingRect(this.lastTriggerEl, hostEl)
                 : {
                     left: parseInt(pointerX) + pointerOffset,
@@ -313,7 +319,8 @@ export default function(host) {
         }
 
         hideIfEventOutside({ target }) {
-            if (!this.options.hideIfEventOutside || inspectorLockedInstances.has(this)) {
+            // the feature is disabled or inspect mode is enabled (i.e. inspecting views)
+            if (this.hideIfEventOutsideDisabled || inspectorLockedInstances.has(this)) {
                 return;
             }
 
@@ -331,7 +338,7 @@ export default function(host) {
             this.hide();
         }
 
-        hideIfTriggerElementNotInDocument() {
+        hideOnTriggerHasLeftDocument() {
             if (!isElementNullOrInDocument(this.lastHoverTriggerEl) ||
                 !isElementNullOrInDocument(this.lastTriggerEl)) {
                 this.hide();
@@ -339,7 +346,7 @@ export default function(host) {
         }
 
         hideOnResize() {
-            if (!this.options.hideOnResize || inspectorLockedInstances.has(this)) {
+            if (this.hideOnResizeDisabled || inspectorLockedInstances.has(this)) {
                 return;
             }
 

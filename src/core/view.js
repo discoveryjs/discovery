@@ -269,7 +269,7 @@ function createTooltip(host) {
                 }
             }
 
-            popup.options.position = position;
+            popup.position = position;
 
             if (config) {
                 return host.view.render(el, config, data, context);
