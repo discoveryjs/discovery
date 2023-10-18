@@ -60,15 +60,15 @@ function showDelayToMs(value, triggerEl) {
 function stopDelayedShow(popup) {
     clearTimeout(popup.showDelayTimer);
     popup.showDelayTimer = null;
+    popup.showDelayArgs = null;
     delayedToShowPopups.delete(popup);
-    popup.showDelayTriggerEl = null;
 }
 
-function startDelayedShow(popup, triggerEl) {
+function startDelayedShow(popup, triggerEl, render) {
     clearTimeout(popup.showDelayTimer);
-    popup.showDelayTimer = setTimeout(() => popup.show(triggerEl), showDelayToMs(popup.showDelay, triggerEl));
+    popup.showDelayTimer = setTimeout(() => popup.show(triggerEl, render, true), showDelayToMs(popup.showDelay, triggerEl));
+    popup.showDelayArgs = [triggerEl, render];
     delayedToShowPopups.add(popup);
-    popup.showDelayTriggerEl = triggerEl;
 }
 
 export default function(host) {
@@ -106,7 +106,7 @@ export default function(host) {
                             if (!targetRelatedPopup) {
                                 instance.hoverPinned = false;
                                 instance.el.classList.remove('pinned');
-                                instance.delayedShow(triggerEl);
+                                instance.show(triggerEl);
                             }
                         }
                     }
@@ -163,7 +163,7 @@ export default function(host) {
             }
         }
         for (const popup of delayedToShowPopups) {
-            startDelayedShow(popup, popup.showDelayTriggerEl);
+            startDelayedShow(popup, ...popup.showDelayArgs);
         }
     });
 
@@ -184,7 +184,7 @@ export default function(host) {
             this.el.classList.add('discovery-view-popup');
 
             this.showDelayTimer = null;
-            this.showDelayTriggerEl = null;
+            this.showDelayArgs = null;
             this.showDelay = options.showDelay;
 
             this.hideTimer = null;
@@ -235,10 +235,16 @@ export default function(host) {
             }
         }
 
-        show(triggerEl, render = this.render) {
-            const hostEl = host.dom.container;
+        show(triggerEl, render = this.render, noDelay) {
+            if (!this.visible && !noDelay && showDelayToMs(this.showDelay, triggerEl)) {
+                startDelayedShow(this, triggerEl, render);
+                return;
+            }
 
             stopDelayedShow(this);
+
+            const hostEl = host.dom.container;
+
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
             this.el.classList.toggle('inspect', host.inspectMode.value);
@@ -270,16 +276,6 @@ export default function(host) {
 
             // always append since it can pop up by z-index
             hostEl.appendChild(this.el);
-        }
-
-        delayedShow(triggerEl) {
-            const showDelay = showDelayToMs(this.showDelay, triggerEl);
-
-            if (!showDelay || this.visible) {
-                this.show(triggerEl);
-            }
-
-            startDelayedShow(this, triggerEl);
         }
 
         updatePosition() {
