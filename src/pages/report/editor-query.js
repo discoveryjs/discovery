@@ -37,7 +37,7 @@ function svg(tagName, attributes) {
     return el;
 }
 
-function buildQueryGraph(el, graph, queryGraphEls, host) {
+function buildQueryGraph(el, graph, host) {
     function createBox() {
         return el.appendChild(createElement('div', 'query-graph-box'));
     }
@@ -64,7 +64,6 @@ function buildQueryGraph(el, graph, queryGraphEls, host) {
             }`
         }));
 
-        queryGraphEls.set(node, nodeEl);
         host.view.attachTooltip(nodeEl, {
             className: 'query-graph-tooltip',
             content: isTarget ? 'badge:"Current query"' : {
@@ -167,12 +166,12 @@ export default function(host, updateParams) {
     let expandQueryResults = false;
     let expandQueryResultData = NaN;
     let currentQuery;
-    let lastGraph = null;
-    let lastContext = undefined;
+    let currentView;
+    let currentGraph = null;
+    let currentContext;
     let errorMarker = null;
     let scheduledCompute = null;
     let computationCache = [];
-    let queryGraphEls = null;
     const defaultGraph = {} || {
         current: [],
         children: [
@@ -235,10 +234,12 @@ export default function(host, updateParams) {
                 }
 
                 last.query = currentQuery;
+                last.view = currentView;
                 nextGraph.current.push(last.children.push({}) - 1);
 
                 return {
                     query: '',
+                    view: undefined,
                     graph: nextGraph
                 };
             });
@@ -246,10 +247,12 @@ export default function(host, updateParams) {
         { view: 'button', className: 'stash', tooltip: hintTooltip('Stash current query and create a new empty query for current parent'), onClick() {
             mutateGraph(({ nextGraph, last, preLast }) => {
                 last.query = currentQuery;
+                last.view = currentView;
                 nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
 
                 return {
                     query: '',
+                    view: undefined,
                     graph: nextGraph
                 };
             });
@@ -257,6 +260,7 @@ export default function(host, updateParams) {
         { view: 'button', className: 'clone', tooltip: hintTooltip('Clone current query'), onClick() {
             mutateGraph(({ nextGraph, last, preLast }) => {
                 last.query = currentQuery;
+                last.view = currentView;
                 nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
 
                 return {
@@ -306,7 +310,7 @@ export default function(host, updateParams) {
         view: 'button-primary',
         content: 'text:"Process"',
         onClick: () => {
-            computationCache = computationCache.slice(0, lastGraph.current.length - 1);
+            computationCache = computationCache.slice(0, currentGraph.current.length - 1);
             updateParams({
                 query: queryEditor.getValue()
             }, true);
@@ -332,19 +336,23 @@ export default function(host, updateParams) {
     });
     queryGraphEl.addEventListener('click', (e) => {
         const path = e.target.dataset.path;
-        if (typeof path === 'string' && path !== lastGraph.current.join(' ')) {
+        if (typeof path === 'string' && path !== currentGraph.current.join(' ')) {
             mutateGraph(({ nextGraph, last }) => {
                 const nextPath = path.split(' ').map(Number);
                 const nextGraphPath = getPathInGraph(nextGraph, nextPath);
                 const nextTarget = nextGraphPath[nextGraphPath.length - 1];
 
-                const nextQuery = nextTarget.query || '';
+                const nextQuery = nextTarget.query;
+                const nextView = nextTarget.view;
                 nextTarget.query = undefined;
+                nextTarget.view = undefined;
                 last.query = currentQuery;
+                last.view = currentView;
                 nextGraph.current = nextPath;
 
                 return {
                     query: nextQuery,
+                    view: nextView,
                     graph: nextGraph
                 };
             });
@@ -352,7 +360,7 @@ export default function(host, updateParams) {
     });
 
     function mutateGraph(fn) {
-        const nextGraph = JSON.parse(JSON.stringify(lastGraph));
+        const nextGraph = JSON.parse(JSON.stringify(currentGraph));
         const currentPath = getPathInGraph(nextGraph, nextGraph.current);
         const last = currentPath[currentPath.length - 1];
         const preLast = currentPath[currentPath.length - 2];
@@ -570,7 +578,7 @@ export default function(host, updateParams) {
             graphNodeEl.dataset.state = computation.state;
         }
 
-        if (computationCache[lastGraph.current.length - 1] === computation) {
+        if (computationCache[currentGraph.current.length - 1] === computation) {
             syncInputData(computation);
             syncOutputData(computation);
         }
@@ -586,7 +594,7 @@ export default function(host, updateParams) {
         let computeError = false;
 
         if (first) {
-            for (let i = computeIndex; i < lastGraph.current.length; i++) {
+            for (let i = computeIndex; i < currentGraph.current.length; i++) {
                 const computation = computationCache[i];
                 if (computation.state !== 'computing') {
                     syncComputeState(computation);
@@ -594,9 +602,9 @@ export default function(host, updateParams) {
             }
         }
 
-        for (let i = computeIndex; i < lastGraph.current.length; i++) {
+        for (let i = computeIndex; i < currentGraph.current.length; i++) {
             const computation = computationCache[i];
-            const isTarget = i === lastGraph.current.length - 1;
+            const isTarget = i === currentGraph.current.length - 1;
 
             if (computation.state === 'awaiting') {
                 computation.state = 'computing';
@@ -658,16 +666,16 @@ export default function(host, updateParams) {
     }
 
     function makeComputationPlan(computeData, computeContext) {
-        const graphPath = getPathInGraph(lastGraph, lastGraph.current).slice(1);
+        const graphPath = getPathInGraph(currentGraph, currentGraph.current).slice(1);
         let firstComputation = -1;
         let computeError = null;
 
-        for (let i = 0; i < lastGraph.current.length; i++) {
+        for (let i = 0; i < currentGraph.current.length; i++) {
             const graphNode = graphPath[i];
             const cache = computationCache[i] || {};
-            const isTarget = i === lastGraph.current.length - 1;
+            const isTarget = i === currentGraph.current.length - 1;
             const computeQuery = isTarget ? currentQuery : graphNode.query;
-            const computePath = lastGraph.current.slice(0, i + 1);
+            const computePath = currentGraph.current.slice(0, i + 1);
 
             if (firstComputation === -1 &&
                 cache.query === computeQuery &&
@@ -681,7 +689,7 @@ export default function(host, updateParams) {
 
             const computation = computationCache[i] = {
                 state: 'awaiting',
-                path: lastGraph.current.slice(0, i + 1),
+                path: currentGraph.current.slice(0, i + 1),
                 query: computeQuery,
                 data: undefined,
                 context: undefined,
@@ -705,33 +713,32 @@ export default function(host, updateParams) {
         }
 
         return firstComputation !== -1
-            ? computationCache.slice(firstComputation, lastGraph.current.length)
+            ? computationCache.slice(firstComputation, currentGraph.current.length)
             : [];
     }
 
     return {
         el: queryEditorFormEl,
         perform(data, context) {
-            const queryContext = contextWithoutEditorParams(context, lastContext);
-            let pageQuery = context.params.query;
-            let pageGraph = { ...context.params.graph || defaultGraph };
+            const queryContext = contextWithoutEditorParams(context, currentContext);
+            const pageQuery = context.params.query;
+            const pageView = context.params.view;
+            const pageGraph = { ...context.params.graph || defaultGraph };
 
             normalizeGraph(pageGraph);
 
-            queryGraphEls = new WeakMap();
             queryGraphEl.innerHTML = '';
-            buildQueryGraph(queryGraphEl, pageGraph, queryGraphEls, host);
+            buildQueryGraph(queryGraphEl, pageGraph, host);
 
             queryPathEl.innerHTML = '';
-            const currentPath = getPathInGraph(pageGraph, pageGraph.current);
-            for (let i = 1; i < currentPath.length - 1; i++) {
-                const cursor = currentPath[i];
-                queryPathEl.append(createElement('div', 'query', cursor.query || ''));
+            for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(0, -1)) {
+                queryPathEl.append(createElement('div', 'query', node.query || ''));
             }
 
-            lastGraph = pageGraph;
-            lastContext = queryContext;
+            currentGraph = pageGraph;
+            currentContext = queryContext;
             currentQuery = pageQuery;
+            currentView = pageView;
 
             // perform queries
             makeComputationPlan(data, queryContext);

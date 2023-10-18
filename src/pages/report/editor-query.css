@@ -40,9 +40,9 @@
     /* box-shadow: 0 0 0 1px var(--discovery-background-color), 0 0 0 3px var(--color); */
     border-radius: 50%;
     clip-path: inset(0px 0px 50% 50%);
-    animation: foo .65s forwards infinite linear;
+    animation: report-graph-computing .65s forwards infinite linear;
 }
-@keyframes foo {
+@keyframes report-graph-computing {
     to { rotate: 360deg }
 }
 .page-report > .report-editor .query-graph .query-graph-node[data-state="successful"] {
@@ -92,8 +92,12 @@
     margin: 0 !important;
     border: none;
     border-radius: 0px;
+    background-color: #c0c0c02d;
     background-repeat: no-repeat;
     background-position: center;
+}
+.query-graph-actions .view-button:hover {
+    background-color: #a5a5a54d;
 }
 .query-graph-actions .view-button.clone {
     background-image: url('./img/clone.svg');
@@ -112,7 +116,6 @@
     background-size: 13px 13px;
 }
 .discovery-buildin-view-tooltip.hint-tooltip {
-    translate: -5px -47px;
     font-size: 12px;
     padding: 1px 6px;
 }
