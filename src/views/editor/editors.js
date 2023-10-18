@@ -144,9 +144,18 @@ class QueryEditor extends Editor {
         this.el.append(this.inputPanelEl, this.outputPanelEl);
     }
     setValue(value, data, context) {
+        const valueChanged = typeof value === 'string' && this.getValue() !== value;
+        const dataChanged = this.queryData !== data || this.queryContext !== context;
+
         this.queryData = data;
         this.queryContext = context;
         super.setValue(value);
+
+        if (dataChanged && !valueChanged) {
+            if (this.cm.state.completionEnabled && this.cm.state.focused) {
+                this.cm.showHint();
+            }
+        }
     }
 }
 

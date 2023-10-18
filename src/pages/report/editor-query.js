@@ -229,68 +229,59 @@ export default function(host, updateParams) {
     });
     host.view.render(queryGraphButtonsEl, [
         { view: 'button', className: 'subquery', tooltip: hintTooltip('Create a new query for a result of current one'), onClick() {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
-            const last = nextGraphPath[nextGraphPath.length - 1];
+            mutateGraph(({ nextGraph, last }) => {
+                if (!Array.isArray(last.children)) {
+                    last.children = [];
+                }
 
-            if (!Array.isArray(last.children)) {
-                last.children = [];
-            }
+                last.query = currentQuery;
+                nextGraph.current.push(last.children.push({}) - 1);
 
-            last.query = currentQuery;
-            nextGraph.current.push(last.children.push({}) - 1);
-
-            updateParams({
-                query: '',
-                graph: nextGraph
+                return {
+                    query: '',
+                    graph: nextGraph
+                };
             });
         } },
         { view: 'button', className: 'stash', tooltip: hintTooltip('Stash current query and create a new empty query for current parent'), onClick() {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
-            const last = nextGraphPath[nextGraphPath.length - 1];
-            const preLast = nextGraphPath[nextGraphPath.length - 2];
+            mutateGraph(({ nextGraph, last, preLast }) => {
+                last.query = currentQuery;
+                nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
 
-            last.query = currentQuery;
-            nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
-
-            updateParams({
-                query: '',
-                graph: nextGraph
+                return {
+                    query: '',
+                    graph: nextGraph
+                };
             });
         } },
         { view: 'button', className: 'clone', tooltip: hintTooltip('Clone current query'), onClick() {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
-            const last = nextGraphPath[nextGraphPath.length - 1];
-            const preLast = nextGraphPath[nextGraphPath.length - 2];
+            mutateGraph(({ nextGraph, last, preLast }) => {
+                last.query = currentQuery;
+                nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
 
-            last.query = currentQuery;
-            nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
-
-            updateParams({
-                graph: nextGraph
+                return {
+                    graph: nextGraph
+                };
             });
         } },
         { view: 'button', className: 'delete', tooltip: hintTooltip('Delete current query and all the descendants'), onClick() {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
-            const last = nextGraphPath[nextGraphPath.length - 1];
-            const preLast = nextGraphPath[nextGraphPath.length - 2];
-            const index = preLast.children.indexOf(last);
+            mutateGraph(({ nextGraph, last, preLast }) => {
+                const index = preLast.children.indexOf(last);
 
-            preLast.children.splice(index, 1);
-            if (preLast.children.length === 0) {
-                preLast.children = undefined;
-            }
-            nextGraph.current.pop();
-            if (nextGraph.current.length === 0) {
-                nextGraph.current.push(Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1)));
-            }
+                preLast.children.splice(index, 1);
+                if (preLast.children.length === 0) {
+                    preLast.children = undefined;
+                }
 
-            updateParams({
-                query: preLast.query,
-                graph: nextGraph
+                nextGraph.current.pop();
+                if (nextGraph.current.length === 0) {
+                    nextGraph.current.push(Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1)));
+                }
+
+                return {
+                    query: preLast.query,
+                    graph: nextGraph
+                };
             });
         } }
     ]);
@@ -327,54 +318,53 @@ export default function(host, updateParams) {
         const idx = [...queryPathEl.children].indexOf(e.target.closest('.query-path > *'));
 
         if (idx !== -1) {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const currentPath = getPathInGraph(nextGraph, nextGraph.current);
+            mutateGraph(({ nextGraph, currentPath, last }) => {
+                last.query = currentQuery;
 
-            currentPath[currentPath.length - 1].query = currentQuery;
-            nextGraph.current = nextGraph.current.slice(0, idx + 1);
+                nextGraph.current = nextGraph.current.slice(0, idx + 1);
 
-            updateParams({
-                query: currentPath[idx + 1].query,
-                graph: nextGraph
+                updateParams({
+                    query: currentPath[idx + 1].query,
+                    graph: nextGraph
+                });
             });
         }
     });
     queryGraphEl.addEventListener('click', (e) => {
         const path = e.target.dataset.path;
         if (typeof path === 'string' && path !== lastGraph.current.join(' ')) {
-            const prevPath = lastGraph.current;
-            const nextPath = path.split(' ').map(x => parseInt(x, 10));
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
+            mutateGraph(({ nextGraph, last }) => {
+                const nextPath = path.split(' ').map(Number);
+                const nextGraphPath = getPathInGraph(nextGraph, nextPath);
+                const nextTarget = nextGraphPath[nextGraphPath.length - 1];
 
-            const prevGraphPath = getPathInGraph(nextGraph, prevPath);
-            const nextGraphPath = getPathInGraph(nextGraph, nextPath);
-            const prevGraphPathTarget = prevGraphPath[prevGraphPath.length - 1];
-            const nextGraphPathTarget = nextGraphPath[nextGraphPath.length - 1];
-            // console.log({
-            //     prevPath,
-            //     nextPath,
-            //     prevGraphPath,
-            //     nextGraphPath,
-            //     prev: prevGraphPathTarget,
-            //     next: nextGraphPathTarget
-            // });
+                const nextQuery = nextTarget.query || '';
+                nextTarget.query = undefined;
+                last.query = currentQuery;
+                nextGraph.current = nextPath;
 
-            const nextQuery = nextGraphPathTarget.query || '';
-            prevGraphPathTarget.query = currentQuery;
-            nextGraphPathTarget.query = undefined;
-            nextGraph.current = nextPath;
-
-            // console.log(JSON.stringify({
-            //     query: nextQuery,
-            //     graph: nextGraph
-            // }, null, 4));
-
-            updateParams({
-                query: nextQuery,
-                graph: nextGraph
+                return {
+                    query: nextQuery,
+                    graph: nextGraph
+                };
             });
         }
     });
+
+    function mutateGraph(fn) {
+        const nextGraph = JSON.parse(JSON.stringify(lastGraph));
+        const currentPath = getPathInGraph(nextGraph, nextGraph.current);
+        const last = currentPath[currentPath.length - 1];
+        const preLast = currentPath[currentPath.length - 2];
+
+        const params = fn({ nextGraph, currentPath, last, preLast });
+
+        updateParams(params);
+        setTimeout(() => {
+            queryEditor.focus();
+            queryEditor.cm.setCursor(queryEditor.cm.lineCount(), 0);
+        }, 0);
+    }
 
     function scheduleCompute(fn) {
         const id = setTimeout(fn, 16);
@@ -435,8 +425,7 @@ export default function(host, updateParams) {
                     host.view.render(
                         queryEditorInputDetailsEl,
                         [
-                            { view: 'struct', expanded: 1 },
-                            { view: 'signature' }
+                            { view: 'struct', expanded: 1 }
                         ],
                         expandQueryInputData
                     );
@@ -481,22 +470,22 @@ export default function(host, updateParams) {
 
         switch (computation.state) {
             case 'canceled': {
+                queryEditor.setValue(computation.query);
                 renderOutputExpander(computation, 'Result', 'Not available');
                 break;
             }
             case 'awaiting': {
+                queryEditor.setValue(computation.query);
                 renderOutputExpander(computation, 'Avaiting...');
                 break;
             }
             case 'computing': {
+                queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, 'Computing...');
                 break;
             }
             case 'successful': {
-                // update suggestions
                 queryEditor.setValue(computation.query, computation.data, computation.context);
-
-                // update computed
                 renderOutputExpander(computation, 'Result', [
                     valueDescriptor(computation.computed),
                     ` in ${parseInt(computation.duration, 10)}ms`
@@ -525,7 +514,10 @@ export default function(host, updateParams) {
                         );
                 }
 
-                renderOutputExpander(computation, 'Error', error.message.replace(/^Parse error.+/s, 'Parse error ...'));
+                queryEditor.setValue(computation.query, computation.data, computation.context);
+                renderOutputExpander(computation, 'Error', [
+                    error.message.replace(/^Parse error.+/s, 'Parse error ...')
+                ]);
 
                 break;
             }
@@ -739,9 +731,6 @@ export default function(host, updateParams) {
 
             lastGraph = pageGraph;
             lastContext = queryContext;
-
-            // update editor
-            queryEditor.setValue(pageQuery);
             currentQuery = pageQuery;
 
             // perform queries

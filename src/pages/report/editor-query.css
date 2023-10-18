@@ -243,6 +243,8 @@
 }
 .page-report > .report-editor .query-editor > .discovery-editor .query-input-details {
     grid-area: details;
+    max-height: max(30vh, 150px);
+    overflow: auto;
 }
 .page-report > .report-editor .query-editor > .discovery-editor .query-input-details > .view-struct {
     margin: 0;
