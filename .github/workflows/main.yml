@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Cypress run
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
           start: npm run cypress:server
           wait-on: 'http://localhost:8124'
