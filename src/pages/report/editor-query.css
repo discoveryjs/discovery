@@ -86,12 +86,35 @@
     gap: 1px;
 }
 .query-graph-actions .view-button {
-    padding: 3px 8px 5px;
+    padding: 3px 10px 5px;
     font-size: 12px;
     line-height: 14px;
     margin: 0 !important;
     border: none;
     border-radius: 0px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.query-graph-actions .view-button.clone {
+    background-image: url('./img/clone.svg');
+    background-size: 18px 18px;
+}
+.query-graph-actions .view-button.stash {
+    background-image: url('./img/stash.svg');
+    background-size: 18px 18px;
+}
+.query-graph-actions .view-button.subquery {
+    background-image: url('./img/subquery.svg');
+    background-size: 20px 20px;
+}
+.query-graph-actions .view-button.delete {
+    background-image: url('./img/delete.svg');
+    background-size: 13px 13px;
+}
+.discovery-buildin-view-tooltip.hint-tooltip {
+    translate: -5px -47px;
+    font-size: 12px;
+    padding: 1px 6px;
 }
 
 .query-graph-tooltip {
@@ -113,7 +136,7 @@
     opacity: .35;
 }
 .page-report > .report-editor .query-path .query {
-    background: #333;
+    background: #eee;
     border: solid #888;
     border-width: 1px 1px 0 1px;
     padding: 2px 8px;
@@ -126,6 +149,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+}
+.discovery-root-darkmode .page-report > .report-editor .query-path .query {
+    background: #333;
 }
 .page-report > .report-editor .query-path .query:last-child {
     padding-bottom: 7px;
@@ -134,7 +161,9 @@
     content: '<empty query>';
 }
 .page-report > .report-editor .query-path .query:hover {
-    cursor: pointer;
+    background: #ccc;
+}
+.discovery-root-darkmode .page-report > .report-editor .query-path .query:hover {
     background: #444;
 }
 .page-report > .report-editor .query-editor {

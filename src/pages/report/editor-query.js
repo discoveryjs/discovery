@@ -221,35 +221,14 @@ export default function(host, updateParams) {
     );
 
     // FIXME: temporary until full migration on discovery render
+    const hintTooltip = (text) => ({
+        position: 'trigger',
+        className: 'hint-tooltip',
+        showDelay: true,
+        content: { view: 'context', data: { text }, content: 'text:text' }
+    });
     host.view.render(queryGraphButtonsEl, [
-        { view: 'button', content: 'text:"Fork"', onClick() {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
-            const last = nextGraphPath[nextGraphPath.length - 1];
-            const preLast = nextGraphPath[nextGraphPath.length - 2];
-
-            last.query = currentQuery;
-            nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
-
-            updateParams({
-                graph: nextGraph
-            });
-        } },
-        { view: 'button', content: 'text:"Stash"', onClick() {
-            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
-            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
-            const last = nextGraphPath[nextGraphPath.length - 1];
-            const preLast = nextGraphPath[nextGraphPath.length - 2];
-
-            last.query = currentQuery;
-            nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
-
-            updateParams({
-                query: '',
-                graph: nextGraph
-            });
-        } },
-        { view: 'button', content: 'text:"Subquery"', onClick() {
+        { view: 'button', className: 'subquery', tooltip: hintTooltip('Create a new query for a result of current one'), onClick() {
             const nextGraph = JSON.parse(JSON.stringify(lastGraph));
             const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
             const last = nextGraphPath[nextGraphPath.length - 1];
@@ -266,17 +245,48 @@ export default function(host, updateParams) {
                 graph: nextGraph
             });
         } },
-        { view: 'button', content: 'text:"Delete"', onClick() {
+        { view: 'button', className: 'stash', tooltip: hintTooltip('Stash current query and create a new empty query for current parent'), onClick() {
             const nextGraph = JSON.parse(JSON.stringify(lastGraph));
             const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
             const last = nextGraphPath[nextGraphPath.length - 1];
             const preLast = nextGraphPath[nextGraphPath.length - 2];
 
-            preLast.children.splice(preLast.children.indexOf(last), 1);
+            last.query = currentQuery;
+            nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
+
+            updateParams({
+                query: '',
+                graph: nextGraph
+            });
+        } },
+        { view: 'button', className: 'clone', tooltip: hintTooltip('Clone current query'), onClick() {
+            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
+            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
+            const last = nextGraphPath[nextGraphPath.length - 1];
+            const preLast = nextGraphPath[nextGraphPath.length - 2];
+
+            last.query = currentQuery;
+            nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
+
+            updateParams({
+                graph: nextGraph
+            });
+        } },
+        { view: 'button', className: 'delete', tooltip: hintTooltip('Delete current query and all the descendants'), onClick() {
+            const nextGraph = JSON.parse(JSON.stringify(lastGraph));
+            const nextGraphPath = getPathInGraph(nextGraph, nextGraph.current);
+            const last = nextGraphPath[nextGraphPath.length - 1];
+            const preLast = nextGraphPath[nextGraphPath.length - 2];
+            const index = preLast.children.indexOf(last);
+
+            preLast.children.splice(index, 1);
             if (preLast.children.length === 0) {
                 preLast.children = undefined;
             }
             nextGraph.current.pop();
+            if (nextGraph.current.length === 0) {
+                nextGraph.current.push(Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1)));
+            }
 
             updateParams({
                 query: preLast.query,
@@ -422,7 +432,14 @@ export default function(host, updateParams) {
                     queryEditorInputDetailsEl.textContent = 'Not available because one of ancestor queries failed';
                 } else {
                     queryEditorInputDetailsEl.innerHTML = '';
-                    host.view.render(queryEditorInputDetailsEl, { view: 'struct', expand: 1 }, expandQueryInputData);
+                    host.view.render(
+                        queryEditorInputDetailsEl,
+                        [
+                            { view: 'struct', expanded: 1 },
+                            { view: 'signature' }
+                        ],
+                        expandQueryInputData
+                    );
                 }
             }
         } else {
@@ -562,7 +579,6 @@ export default function(host, updateParams) {
         }
 
         if (computationCache[lastGraph.current.length - 1] === computation) {
-            console.log({ ...computation });
             syncInputData(computation);
             syncOutputData(computation);
         }
