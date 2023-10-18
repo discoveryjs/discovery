@@ -3,14 +3,14 @@ const typeOrder = ['variable', 'property', 'value', 'method'];
 const sortByType = (a, b) =>
     typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
 const suggestionValueFilter = pattern => {
-    pattern = pattern.toLowerCase();
+    const patternLowerCased = pattern.toLowerCase();
 
     return value =>
         value !== pattern &&
         // 2022-04-08
         // v8: includes() is 20-30% slower than indexOf() !== -1
         // Firefox & Safari approximate the same
-        (typeof value === 'string' ? value : String(value)).toLowerCase().indexOf(pattern) !== -1;
+        (typeof value === 'string' ? value : String(value)).toLowerCase().indexOf(patternLowerCased) !== -1;
 };
 
 function stringifyValue(value, text) {

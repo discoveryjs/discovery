@@ -12,6 +12,7 @@
 - Modified `Widget` to utilize deep comparison for page params, ensuring more accurate detection of changes
 - Added `Widget#view.attachTooltip(el, config, data, context)` method
 - Removed `Popup#options` in favor of properties
+- Fixed query editor to not suggest a variant which exactly equals to current text
 
 ## 1.0.0-beta.78 (21-09-2023)
 
