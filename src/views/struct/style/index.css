@@ -52,3 +52,24 @@
 .discovery-view-popup.view-struct-actions-popup .num-delim {
     padding-left: 3px;
 }
+
+.discovery-view-popup.view-struct-signature-popup.computing {
+    padding: 8px;
+    line-height: 1px;
+}
+.discovery-view-popup.view-struct-signature-popup.computing::before {
+    --color: #f6f61cb5;
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--color);
+    border-radius: 50%;
+    clip-path: inset(0px 0px 50% 50%);
+    animation: view-struct-signature-computing .65s forwards infinite linear;
+    animation-delay: 200ms;
+}
+@keyframes view-struct-signature-computing {
+    to { rotate: 360deg }
+}

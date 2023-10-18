@@ -14,6 +14,7 @@
 - Added `Widget#view.attachTooltip(el, config, data, context)` method
 - Removed `Popup#options` in favor of properties
 - Fixed query editor to not suggest a variant which exactly equals to current text
+- Improved UX for signature popup displaying in `struct` view
 
 ## 1.0.0-beta.78 (21-09-2023)
 
