@@ -107,6 +107,7 @@ A canonical form for a toolup setup is an object with fields (all are optional):
 {
     className: 'string',
     position: 'trigger', // 'trigger' or 'pointer' (default)
+    showDelay: false, // true (300ms), false (0ms), a number or a function which takes a triggerEl and returns showDelay value
     content: 'a view setup'
 }
 \`\`\`

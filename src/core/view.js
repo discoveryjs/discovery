@@ -240,13 +240,22 @@ function attachTooltip(host, el, config, data, context) {
         host.view.tooltip = createTooltip(host);
     }
 }
-
+function isPopupConfig(value) {
+    return value && !Array.isArray(value) && typeof value !== 'string' && typeof value !== 'function' && !value.view;
+}
 function createTooltip(host) {
     let classNames = null;
     const popup = new host.view.Popup({
         className: 'discovery-buildin-view-tooltip',
         hoverTriggers: '.discovery-view-has-tooltip',
         position: 'pointer',
+        showDelay(triggerEl) {
+            let [config] = tooltipEls.get(triggerEl) || [];
+
+            if (isPopupConfig(config)) {
+                return config.showDelay;
+            }
+        },
         render(el, triggerEl) {
             let [config, data, context] = tooltipEls.get(triggerEl) || [];
             let position = 'pointer';
@@ -256,17 +265,15 @@ function createTooltip(host) {
                 classNames = null;
             }
 
-            if (config) {
-                if (!Array.isArray(config) && typeof config !== 'string' && typeof config !== 'function' && !config.view) {
-                    classNames = computeClassName(host, config.className, data, context);
+            if (isPopupConfig(config)) {
+                classNames = computeClassName(host, config.className, data, context);
 
-                    if (classNames !== null) {
-                        el.classList.add(...classNames);
-                    }
-
-                    position = config.position === 'trigger' ? 'trigger' : 'pointer';
-                    config = config.content;
+                if (classNames !== null) {
+                    el.classList.add(...classNames);
                 }
+
+                position = config.position === 'trigger' ? 'trigger' : 'pointer';
+                config = config.content;
             }
 
             popup.position = position;

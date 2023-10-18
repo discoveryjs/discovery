@@ -4,9 +4,12 @@ import { passiveCaptureOptions } from '../../core/utils/dom.js';
 import { pointerXY } from '../../core/utils/pointer.js';
 
 const openedPopups = [];
+const delayedToShowPopups = new Set();
 const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
+const defaultShowDelay = 300;
 const defaultOptions = {
     position: 'trigger',
+    showDelay: false, // false = 0, true = defaultShowDelay
     hoverTriggers: null,
     hoverPin: false,
     hideIfEventOutside: true,
@@ -37,6 +40,35 @@ function hideOnTriggerHasLeftDocument() {
 }
 function hideOnResize(event) {
     openedPopups.slice().forEach(popup => popup.hideOnResize(event));
+}
+
+function showDelayToMs(value, triggerEl) {
+    if (typeof value === 'function') {
+        value = value(triggerEl);
+    }
+
+    if (typeof value === 'number') {
+        return isFinite(value) ? value : 0;
+    }
+
+    if (typeof value === 'boolean') {
+        return value ? defaultShowDelay : 0;
+    }
+
+    return 0;
+}
+function stopDelayedShow(popup) {
+    clearTimeout(popup.showDelayTimer);
+    popup.showDelayTimer = null;
+    delayedToShowPopups.delete(popup);
+    popup.showDelayTriggerEl = null;
+}
+
+function startDelayedShow(popup, triggerEl) {
+    clearTimeout(popup.showDelayTimer);
+    popup.showDelayTimer = setTimeout(() => popup.show(triggerEl), showDelayToMs(popup.showDelay, triggerEl));
+    delayedToShowPopups.add(popup);
+    popup.showDelayTriggerEl = triggerEl;
 }
 
 export default function(host) {
@@ -74,7 +106,7 @@ export default function(host) {
                             if (!targetRelatedPopup) {
                                 instance.hoverPinned = false;
                                 instance.el.classList.remove('pinned');
-                                instance.show(triggerEl);
+                                instance.delayedShow(triggerEl);
                             }
                         }
                     }
@@ -83,6 +115,7 @@ export default function(host) {
 
             host.addHostElEventListener('mouseleave', ({ target }) => {
                 for (const instance of hoverTriggerInstances) {
+                    stopDelayedShow(instance);
                     if (instance.lastHoverTriggerEl === target) {
                         instance.lastHoverTriggerEl = null;
                         instance.hideTimer = setTimeout(instance.hide, 100);
@@ -129,6 +162,9 @@ export default function(host) {
                 popup.updatePosition();
             }
         }
+        for (const popup of delayedToShowPopups) {
+            startDelayedShow(popup, popup.showDelayTriggerEl);
+        }
     });
 
     host.inspectMode.subscribe(
@@ -147,8 +183,12 @@ export default function(host) {
             this.el = document.createElement('div');
             this.el.classList.add('discovery-view-popup');
 
-            this.hide = this.hide.bind(this);
+            this.showDelayTimer = null;
+            this.showDelayTriggerEl = null;
+            this.showDelay = options.showDelay;
+
             this.hideTimer = null;
+            this.hide = this.hide.bind(this);
 
             this.lastTriggerEl = null;
             this.lastHoverTriggerEl = null;
@@ -198,6 +238,7 @@ export default function(host) {
         show(triggerEl, render = this.render) {
             const hostEl = host.dom.container;
 
+            stopDelayedShow(this);
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
             this.el.classList.toggle('inspect', host.inspectMode.value);
@@ -229,6 +270,16 @@ export default function(host) {
 
             // always append since it can pop up by z-index
             hostEl.appendChild(this.el);
+        }
+
+        delayedShow(triggerEl) {
+            const showDelay = showDelayToMs(this.showDelay, triggerEl);
+
+            if (!showDelay || this.visible) {
+                this.show(triggerEl);
+            }
+
+            startDelayedShow(this, triggerEl);
         }
 
         updatePosition() {
@@ -355,6 +406,7 @@ export default function(host) {
 
         destroy() {
             inspectorLockedInstances.delete(this);
+            stopDelayedShow(this);
 
             const popupIndex = hoverTriggerInstances.indexOf(this);
             if (popupIndex !== -1) {
