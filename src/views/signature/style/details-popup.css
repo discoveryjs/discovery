@@ -130,6 +130,9 @@
 .discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct {
     overflow: hidden;
 }
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct.struct-expanded-value {
+    overflow-x: auto;
+}
 .discovery-view-popup.signature-details .struct-list > .view-list-item > .count {
     position: absolute;
     top: 7px;
