@@ -56,6 +56,10 @@
 .discovery-view-popup.view-struct-signature-popup.computing {
     padding: 8px;
     line-height: 1px;
+    animation: view-struct-signature-computing .5s forwards linear;
+}
+@keyframes view-struct-signature-computing {
+    from { opacity: 0; }
 }
 .discovery-view-popup.view-struct-signature-popup.computing::before {
     --color: #f6f61cb5;
@@ -67,9 +71,8 @@
     border: 2px solid var(--color);
     border-radius: 50%;
     clip-path: inset(0px 0px 50% 50%);
-    animation: view-struct-signature-computing .65s forwards infinite linear;
-    animation-delay: 200ms;
+    animation: view-struct-signature-computing-spinner .65s forwards infinite linear;
 }
-@keyframes view-struct-signature-computing {
+@keyframes view-struct-signature-computing-spinner {
     to { rotate: 360deg }
 }
