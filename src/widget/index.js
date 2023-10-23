@@ -156,7 +156,8 @@ export default class Widget extends Emitter {
             if (collapsed) {
                 this.logger.groupCollapsed(`${logPrefix} ${message || args?.[0]}`);
 
-                for (const entry of typeof collapsed === 'function' ? collapsed() : collapsed) {
+                const entries = typeof collapsed === 'function' ? collapsed() : collapsed;
+                for (const entry of Array.isArray(entries) ? entries : [entries]) {
                     this.logger[method](...Array.isArray(entry) ? entry : [entry]);
                 }
 
