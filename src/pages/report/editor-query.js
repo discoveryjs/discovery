@@ -731,7 +731,7 @@ export default function(host, updateParams) {
             buildQueryGraph(queryGraphEl, pageGraph, host);
 
             queryPathEl.innerHTML = '';
-            for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(0, -1)) {
+            for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(1, -1)) {
                 queryPathEl.append(createElement('div', 'query', node.query || ''));
             }
 
