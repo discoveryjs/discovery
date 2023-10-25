@@ -271,6 +271,7 @@ export default function(host, updateParams) {
         { view: 'button', className: 'delete', tooltip: hintTooltip('Delete current query and all the descendants'), onClick() {
             mutateGraph(({ nextGraph, last, preLast }) => {
                 const index = preLast.children.indexOf(last);
+                let nextQuery = preLast.query;
 
                 preLast.children.splice(index, 1);
                 if (preLast.children.length === 0) {
@@ -279,11 +280,13 @@ export default function(host, updateParams) {
 
                 nextGraph.current.pop();
                 if (nextGraph.current.length === 0) {
-                    nextGraph.current.push(Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1)));
+                    const targetIndex = Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1));
+                    nextGraph.current.push(targetIndex);
+                    nextQuery = nextGraph.children?.[targetIndex]?.query;
                 }
 
                 return {
-                    query: preLast.query,
+                    query: nextQuery,
                     graph: nextGraph
                 };
             });
