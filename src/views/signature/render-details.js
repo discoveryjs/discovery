@@ -336,7 +336,7 @@ export function renderTypeDetails(el, data, host) {
                     name: 'filter',
                     content: {
                         view: 'menu',
-                        data: 'values.[no #.filter or value~=#.filter].sort(<value>)',
+                        data: 'values.[no #.filter or value~=#.filter].sort(=>value)',
                         item: [
                             {
                                 view: 'block',
