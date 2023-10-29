@@ -527,7 +527,7 @@ export default function(host, updateParams) {
 
                 queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, 'Error', [
-                    error.message.replace(/^Parse error.+/s, 'Parse error ...')
+                    error.message.split(/\n/)[0].replace(/^(Parse error|Bad input).+/s, 'Parse error')
                 ]);
 
                 break;
