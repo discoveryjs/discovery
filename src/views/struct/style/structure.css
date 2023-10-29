@@ -14,7 +14,7 @@
     vertical-align: top;
 }
 .view-struct .keyword {
-    color: var(--discovery-fmt-keyword-color);
+    color: var(--discovery-fmt-atom-color);
 }
 .view-struct .value > .number {
     color: var(--discovery-fmt-number-color);

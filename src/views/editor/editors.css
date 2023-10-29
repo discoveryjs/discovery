@@ -73,6 +73,9 @@
 .discovery-editor .CodeMirror .cm-number {
     color: var(--discovery-fmt-number-color);
 }
+.discovery-editor .CodeMirror .cm-type {
+    color: #a7994b; /* var(--discovery-fmt-type-color); */
+}
 .discovery-editor .CodeMirror .cm-node,
 .discovery-editor .CodeMirror .cm-tag {
     color: #9c3328;
