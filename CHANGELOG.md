@@ -1,26 +1,26 @@
-## next
+## 1.0.0-beta.79 (29-10-2023)
 
-- Bumped jora to [1.0.0-beta.9](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.9)
 - Reworked report page to support query graph and other improvements
-- Added a 3-second delay for enabling view inspect mode when the "inspect" button is clicked with the Cmd (⌘) or Ctrl key (useful for tooltips, context menus etc.)
-- Added separate colors for keywords and assertions in a query editor
-- Added `Popup#showDelay` option to control the behavior of popup appearance. The option specifies the delay in milliseconds after the pointer stops moving over a trigger before the popup is displayed. By default, there is no delay. When set to true, the default delay of 300 milliseconds is applied. If a positive number is provided, it is used as the delay, while other values are treated as 0, resulting in an immediate show.
-- Added third parameter for `Popup#show()` method, when set to a truthy value it specifies to bypass show delay if any
-- Added "Copy report as page hash" button
-- Fixed "Copy report permalink" button being always disabled
-- Fixed `defaultPage` option to have no effect
 - Uniformed font and size for monospace views
 - Enlarged action buttons in `struct` and `structure` views
+- Improved UX for signature popup displaying in `struct` view
 - Changed rendering of after-annotations to render in a prelude when a value is expanded
 - Changed default rendering of arrays in a table cell to display number of array elements instead of `[…]`
+- Added separate colors for keywords and assertions in a query editor
+- Added a 3-second delay for enabling view inspect mode when the "inspect" button is clicked with the Cmd (⌘) or Ctrl key (useful for tooltips, context menus etc.)
+- Added `Widget#view.attachTooltip(el, config, data, context)` method
+- Added `Popup#showDelay` option to control the behavior of popup appearance. The option specifies the delay in milliseconds after the pointer stops moving over a trigger before the popup is displayed. By default, there is no delay. When set to true, the default delay of 300 milliseconds is applied. If a positive number is provided, it is used as the delay, while other values are treated as 0, resulting in an immediate show.
+- Added third parameter for `Popup#show()` method, when set to a truthy value it specifies to bypass show delay if any
+- Removed `Popup#options` in favor of properties
 - Fixed editor to not render text until gets focus
 - Fixed suggestion popup positioning in query editor in some cases
 - Modified `Widget` to utilize deep comparison for page params, ensuring more accurate detection of changes
-- Added `Widget#view.attachTooltip(el, config, data, context)` method
-- Removed `Popup#options` in favor of properties
 - Fixed query editor to not suggest a variant which exactly equals to current text
 - Fixed `Widget#log()` method where it would crash when attempting to output a single collapsed error
-- Improved UX for signature popup displaying in `struct` view
+- Added "Copy report as page hash" button
+- Fixed "Copy report permalink" button being always disabled
+- Fixed `defaultPage` option to have no effect
+- Bumped jora to [1.0.0-beta.9](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.9)
 
 ## 1.0.0-beta.78 (21-09-2023)
 
