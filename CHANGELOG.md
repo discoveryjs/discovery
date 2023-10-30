@@ -6,8 +6,9 @@
 - Added separate colors for keywords and assertions in a query editor
 - Added `Popup#showDelay` option to control the behavior of popup appearance. The option specifies the delay in milliseconds after the pointer stops moving over a trigger before the popup is displayed. By default, there is no delay. When set to true, the default delay of 300 milliseconds is applied. If a positive number is provided, it is used as the delay, while other values are treated as 0, resulting in an immediate show.
 - Added third parameter for `Popup#show()` method, when set to a truthy value it specifies to bypass show delay if any
+- Added "Copy report as page hash" button
+- Fixed "Copy report permalink" button being always disabled
 - Fixed `defaultPage` option to have no effect
-- Fixed the "Copy report permalink" button being always disabled
 - Uniformed font and size for monospace views
 - Enlarged action buttons in `struct` and `structure` views
 - Changed rendering of after-annotations to render in a prelude when a value is expanded

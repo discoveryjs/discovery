@@ -53,6 +53,10 @@ export default function(host, updateParams) {
                     action: async () => copyText(await host.action.call('permalink', host.pageHash))
                 },
                 {
+                    text: 'Copy report as page hash',
+                    action: () => copyText(host.pageHash)
+                },
+                {
                     text: 'Copy report as JSON',
                     action: () => copyText(exportReportAsJson(host.pageParams))
                 }
@@ -77,7 +81,7 @@ export default function(host, updateParams) {
         }),
         createElement('button', {
             class: 'share',
-            title: 'Share ...',
+            title: 'Sharing',
             onclick: ({ target }) => {
                 target.blur();
                 shareOptionsPopup.show(target);
