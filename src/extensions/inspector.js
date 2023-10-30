@@ -278,7 +278,7 @@ export default (host) => {
                                         data => data.value.view && data.value.view.skipped ? 'skipped' : false
                                     ],
                                     content: [
-                                        'text:value | viewRoot.name or view.config.view | $ + "" = $ ? $ : "ƒn"' // FIXME: `$ + "" = $` is a hack to check value is a string
+                                        'text:value | viewRoot.name or view.config.view | is string ?: "ƒn"'
                                         // {
                                         //     view: 'list',
                                         //     when: false, // postponed for future releases

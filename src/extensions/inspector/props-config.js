@@ -12,7 +12,7 @@ export const propsConfigView = {
         {
             view: 'block',
             className: 'content-section render',
-            when: 'config | view + "" != view',
+            when: 'config.view is not string',
             content: 'source:{ content: config.view + "", syntax: "js" }'
         },
         {

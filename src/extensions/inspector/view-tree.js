@@ -84,7 +84,7 @@ export function viewTree(el, { selectTreeViewLeaf, detailsSidebarLeafExpanded })
                                 data => data.view?.skipped ? 'skipped' : false,
                                 'selected'
                             ],
-                            content: 'text:view.config.view or "#root" | $ + "" = $ ? $ : "ƒn"', // FIXME: `$ + "" = $` is a hack to check value is a string
+                            content: 'text:view.config.view or "#root" | is string ?: "ƒn"',
                             postRender(el_) {
                                 requestAnimationFrame(() => {
                                     el.querySelector('.sidebar').scrollTop = viewTreeScrollTopBeforeSelect;
@@ -100,7 +100,7 @@ export function viewTree(el, { selectTreeViewLeaf, detailsSidebarLeafExpanded })
                         {
                             view: 'link',
                             className: data => data.view?.skipped ? 'skipped' : false,
-                            data: '{ text: view.config.view or "#root" | $ + "" = $ ? $ : "ƒn", href: false, view, self: $ }', // FIXME: `$ + "" = $` is a hack to check value is a string
+                            data: '{ text: view.config.view or "#root" | is string ?: "ƒn", href: false, view, self: $ }',
                             onClick(_, data) {
                                 viewTreeScrollTopBeforeSelect = el.querySelector('.sidebar')?.scrollTop || 0;
                                 selectTreeViewLeaf(data.self);
