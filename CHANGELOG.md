@@ -2,6 +2,7 @@
 
 - Bumped jora to [1.0.0-beta.9](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.9)
 - Reworked report page to support query graph and other improvements
+- Added a 3-second delay for enabling view inspect mode when the "inspect" button is clicked with the Cmd (⌘) or Ctrl key (useful for tooltips, context menus etc.)
 - Added separate colors for keywords and assertions in a query editor
 - Added `Popup#showDelay` option to control the behavior of popup appearance. The option specifies the delay in milliseconds after the pointer stops moving over a trigger before the popup is displayed. By default, there is no delay. When set to true, the default delay of 300 milliseconds is applied. If a positive number is provided, it is used as the delay, while other values are treated as 0, resulting in an immediate show.
 - Added third parameter for `Popup#show()` method, when set to a truthy value it specifies to bypass show delay if any

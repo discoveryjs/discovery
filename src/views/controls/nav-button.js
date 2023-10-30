@@ -13,7 +13,7 @@ export default function(host) {
         if (host.query(disabled, data, context)) {
             el.classList.add('disabled');
         } else if (typeof onClick === 'function') {
-            el.addEventListener('click', () => onClick(el, data, context));
+            el.addEventListener('click', (event) => onClick(el, data, context, event));
             el.classList.add('onclick');
         } else if (href) {
             el.href = href;

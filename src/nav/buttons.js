@@ -64,11 +64,43 @@ export function darkmodeToggle(host) {
 }
 
 export function inspect(host) {
+    const suspendSeconds = 3;
+    let suspendInspectTimer = null;
+    let suspendInspectSeconds = 0;
+
     host.nav.append({
         name: 'inspect',
-        onClick: () => host.inspectMode.set(!host.inspectMode.value),
-        postRender(el) {
-            el.title = 'Enable view inspection';
+        tooltip: {
+            position: 'trigger',
+            showDelay: true,
+            content: 'md:"**Enable view inspection**<br>To suspend enabling inspect mode by ' + suspendSeconds + ' seconds,<br>click the button with Cmd (⌘) or Ctrl-key"'
+        },
+        onClick: (el, data, context, event) => {
+            if (!host.inspectMode.value && (event.metaKey || event.ctrlKey)) {
+                if (suspendInspectTimer === null) {
+                    suspendInspectSeconds = 0;
+                    suspendInspectTimer = setTimeout(function tick() {
+                        suspendInspectSeconds--;
+                        if (suspendInspectSeconds === 0) {
+                            suspendInspectTimer = null;
+                            delete el.dataset.suspendSeconds;
+                            host.inspectMode.set(true);
+                        } else {
+                            suspendInspectTimer = setTimeout(tick, 1000);
+                            el.dataset.suspendSeconds = suspendInspectSeconds;
+                        }
+                    }, 1000);
+                }
+
+                suspendInspectSeconds += suspendSeconds;
+                el.dataset.suspendSeconds = suspendInspectSeconds;
+            } else if (suspendInspectTimer !== null) {
+                clearTimeout(suspendInspectTimer);
+                suspendInspectTimer = null;
+                delete el.dataset.suspendSeconds;
+            } else {
+                host.inspectMode.set(!host.inspectMode.value);
+            }
         }
     });
 }

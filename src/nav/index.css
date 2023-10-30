@@ -51,6 +51,17 @@
     margin: 1px -7px 0;
     opacity: .85;
 }
+.discovery-nav .view-nav-button[data-name="inspect"][data-suspend-seconds]::before {
+    visibility: hidden;
+}
+.discovery-nav .view-nav-button[data-name="inspect"][data-suspend-seconds]::after {
+    content: attr(data-suspend-seconds);
+    display: inline-block;
+    position: absolute;
+    margin-left: -14px;
+    width: 24px;
+    text-align: center;
+}
 
 .discovery-nav-popup > .toggle-menu-item {
     padding: 4px 4px 4px 12px;
