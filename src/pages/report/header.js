@@ -49,7 +49,7 @@ export default function(host, updateParams) {
             data: [
                 {
                     text: 'Copy report permalink',
-                    disabled: 'no #.actions.permalink',
+                    disabled: !host.action.has('permalink'),
                     action: async () => copyText(await host.action.call('permalink', host.pageHash))
                 },
                 {
