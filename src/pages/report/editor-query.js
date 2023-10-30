@@ -419,6 +419,9 @@ export default function(host, updateParams) {
     }
 
     function syncExpandInputData(computation) {
+        queryEditor.inputPanelEl.classList.toggle('details-expanded', expandQueryInput);
+        queryEditorInputEl.dataset.details = expandQueryInput;
+
         if (expandQueryInput) {
             const newData = computation.state !== 'awaiting' && computation.state !== 'canceled'
                 ? computation[expandQueryInput]
