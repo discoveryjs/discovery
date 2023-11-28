@@ -1,3 +1,7 @@
+## next
+
+- Fixed the highlighting of Jora assertions when the assertion is the same as a literal keyword
+
 ## 1.0.0-beta.79 (29-10-2023)
 
 - Reworked report page to support query graph and other improvements

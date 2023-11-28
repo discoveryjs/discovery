@@ -33,40 +33,40 @@ export default function(config) {
             const str = stream.string.slice(stream.start, stream.pos);
 
             if (stream.string[stream.start - 1] !== '.') {
-                if (state.isContext) {
-                    if (token === 'variable' && (state.isContextParen === 0 && str !== 'not')) {
+                if (state.isAssertionContext) {
+                    if ((token === 'variable' || token === 'atom') && (state.isAssertionParen === 0 && str !== 'not')) {
                         return 'type';
                     }
 
                     if (str === '(') {
-                        state.isContextParen++;
+                        state.isAssertionParen++;
                     } else if (str === ')') {
-                        if (state.isContextParen > 0) {
-                            state.isContextParen--;
+                        if (state.isAssertionParen > 0) {
+                            state.isAssertionParen--;
                         }
-                        if (state.isContextParen === 0) {
-                            state.isContext = false;
+                        if (state.isAssertionParen === 0) {
+                            state.isAssertionContext = false;
                         }
                     }
                 }
 
                 if (keywords.has(str)) {
                     if (str === 'is') {
-                        state.isContext = true;
-                        state.isContextParen = 0;
+                        state.isAssertionContext = true;
+                        state.isAssertionParen = 0;
                     }
 
                     return 'keyword';
                 }
             }
 
-            if (state.isContext) {
-                if (token === 'variable') {
+            if (state.isAssertionContext) {
+                if (token === 'variable' || token === 'atom') {
                     return 'type';
                 }
 
-                if (state.isContextParen === 0 && (token || /\S/.test(str))) {
-                    state.isContext = false;
+                if (state.isAssertionParen === 0 && (token || /\S/.test(str))) {
+                    state.isAssertionContext = false;
                 }
             }
 
