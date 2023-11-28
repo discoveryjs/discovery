@@ -72,7 +72,7 @@ const dataTransitionsList = {
                 view: 'switch',
                 content: [
                     {
-                        when: '$isString: #.isString; transition | $isString() or $ = undefined',
+                        when: 'transition is (string or undefined)',
                         content: {
                             view: 'context',
                             data(data) {

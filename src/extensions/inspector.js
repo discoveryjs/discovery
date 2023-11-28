@@ -255,13 +255,6 @@ export default (host) => {
                 })],
                 content: {
                     view: 'context',
-                    data(data, context) {
-                        // hack to change context, to extend queries with additional methods,
-                        // but avoid polution of user's setup with custom methods
-                        context.isString = value => typeof value === 'string';
-
-                        return data;
-                    },
                     modifiers: {
                         view: 'block',
                         className: 'toolbar',
