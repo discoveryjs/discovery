@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import Widget from '../widget/index.js';
+import { Widget } from './widget.js';
 import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
@@ -17,7 +17,7 @@ import {
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
 
-export default class App extends Widget {
+export class App extends Widget {
     constructor(options = {}) {
         const extensions = options.extensions ? [options.extensions] : [];
 

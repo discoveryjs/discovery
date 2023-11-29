@@ -1,6 +1,5 @@
 import { version } from './version.js';
-import Widget from './widget/index.js';
-import App from './app/index.js';
+import { Widget, App } from './main/index.js';
 import * as views from './views/index.js';
 import * as pages from './pages/index.js';
 import inspector from './extensions/inspector.js';

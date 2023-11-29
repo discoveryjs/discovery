@@ -51,7 +51,7 @@ function getPageMethod(host, pageId, name, fallback) {
         : fallback;
 }
 
-export default class Widget extends Emitter {
+export class Widget extends Emitter {
     constructor(options = {}) {
         super();
 
