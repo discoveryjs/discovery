@@ -75,7 +75,7 @@
     color: var(--discovery-fmt-number-color);
 }
 .discovery-editor .CodeMirror .cm-type {
-    color: #a7994b; /* var(--discovery-fmt-type-color); */
+    color: var(--discovery-fmt-type-color);
 }
 .discovery-editor .CodeMirror .cm-node,
 .discovery-editor .CodeMirror .cm-tag {
@@ -86,6 +86,8 @@
     color: var(--discovery-fmt-string-color);
 }
 .discovery-editor .CodeMirror .cm-variable,
+.discovery-editor .CodeMirror .cm-variable-2,
+.discovery-editor .CodeMirror .cm-def,
 .discovery-editor .CodeMirror .cm-qualifier {
     color: var(--discovery-fmt-variable-color);
 }
