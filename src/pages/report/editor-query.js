@@ -544,7 +544,7 @@ export default function(host, updateParams) {
         queryEditor.outputPanelEl.classList.toggle('details-expanded', expandQueryResults);
 
         if (expandQueryResults) {
-            const newData = computation.state !== 'awaiting' && computation.state !== 'canceled'
+            const newData = computation.state !== 'awaiting' && computation.state !== 'canceled' && computation.state !== 'computing'
                 ? computation.error || computation.computed
                 : NaN;
 
