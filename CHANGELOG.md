@@ -1,9 +1,10 @@
-## next
+## 1.0.0-beta.80 (21-01-2024)
 
 - Fixed the highlighting of Jora assertions when the assertion is the same as a literal keyword
 - Fixed updating of an expanded query output in query editor
 - Fixed the issue with displaying popups using `showDelay` when the pointer moves over nested trigger elements before coming to a stop
 - Improved view inspecting of popups
+- Bumped jora to [1.0.0-beta.10](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.10)
 
 ## 1.0.0-beta.79 (29-10-2023)
 
