@@ -59,7 +59,7 @@ export function viewTree(el, { selectTreeViewLeaf, detailsSidebarLeafExpanded })
         limitLines: false,
         itemConfig: {
             collapsible: '=not viewRoot',
-            expanded: leaf => detailsSidebarLeafExpanded.has(leaf),
+            expanded: leaf => leaf.viewRoot || detailsSidebarLeafExpanded.has(leaf),
             onToggle: (state, _, leaf) => state
                 ? detailsSidebarLeafExpanded.add(leaf)
                 : detailsSidebarLeafExpanded.delete(leaf)

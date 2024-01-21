@@ -3,6 +3,7 @@
 - Fixed the highlighting of Jora assertions when the assertion is the same as a literal keyword
 - Fixed updating of an expanded query output in query editor
 - Fixed the issue with displaying popups using `showDelay` when the pointer moves over nested trigger elements before coming to a stop
+- Improved view inspecting of popups
 
 ## 1.0.0-beta.79 (29-10-2023)
 

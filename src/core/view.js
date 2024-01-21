@@ -45,18 +45,18 @@ function collectViewTree(node, parent, ignoreNodes) {
         }
     }
 
-    if (viewEls.has(node)) {
-        parent.children.push(parent = {
-            node,
-            parent,
-            view: viewEls.get(node),
-            children: []
-        });
-    } else if (rootViewEls.has(node)) {
+    if (rootViewEls.has(node)) {
         parent.children.push(parent = {
             node,
             parent,
             viewRoot: rootViewEls.get(node),
+            children: []
+        });
+    } else if (viewEls.has(node)) {
+        parent.children.push(parent = {
+            node,
+            parent,
+            view: viewEls.get(node),
             children: []
         });
     }

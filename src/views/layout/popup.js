@@ -158,7 +158,7 @@ export default function(host) {
 
     pointerXY.subscribe(() => {
         for (const popup of openedPopups) {
-            if (popup.position === 'pointer' && !popup.hoverPinned && !popup.frozen) {
+            if (popup.position === 'pointer' && !popup.hoverPinned && !popup.frozen && !inspectorLockedInstances.has(popup)) {
                 popup.updatePosition();
             }
         }
@@ -242,6 +242,8 @@ export default function(host) {
             }
 
             stopDelayedShow(this);
+            inspectorLockedInstances.delete(this);
+            host.view.setViewRoot(this.el, 'popup', { config: render });
 
             const hostEl = host.dom.container;
 

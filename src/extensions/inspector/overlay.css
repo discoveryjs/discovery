@@ -33,7 +33,7 @@
     transition: background-color 15ms 25ms;
     box-sizing: border-box;
 }
-.discovery-view-inspector-overlay .overlay.view-root {
+.discovery-view-inspector-overlay .overlay.view-root:not([data-inspectable]) {
     pointer-events: none;
 }
 .discovery-view-inspector-overlay .overlay:not(.view-root) {

@@ -657,6 +657,7 @@ export class Widget extends Emitter {
         );
 
         this.view.setViewRoot(pageEl, 'Page: ' + this.pageId, {
+            inspectable: false,
             config,
             data,
             context

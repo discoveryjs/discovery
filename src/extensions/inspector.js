@@ -90,10 +90,18 @@ export default (host) => {
 
                 if (overlay === null) {
                     overlay = {
-                        el: parentEl.appendChild(document.createElement('div')),
+                        el: parentEl.appendChild(createElement('div', leaf.viewRoot ? 'overlay view-root' : 'overlay')),
                         box: null
                     };
-                    overlay.el.className = leaf.viewRoot ? 'overlay view-root' : 'overlay';
+
+                    if (leaf.node.nodeType === 1) {
+                        overlay.el.style.zIndex = getComputedStyle(leaf.node).zIndex;
+                    }
+
+                    if (leaf.viewRoot && leaf.viewRoot.inspectable !== false) {
+                        overlay.el.dataset.inspectable = true;
+                    }
+
                     overlayByViewNode.set(leaf.node, overlay);
                     viewByEl.set(overlay.el, leaf);
                 } else {
