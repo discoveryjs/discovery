@@ -115,8 +115,8 @@ export default function(host) {
 
             host.addHostElEventListener('mouseleave', ({ target }) => {
                 for (const instance of hoverTriggerInstances) {
-                    stopDelayedShow(instance);
                     if (instance.lastHoverTriggerEl === target) {
+                        stopDelayedShow(instance);
                         instance.lastHoverTriggerEl = null;
                         instance.hideTimer = setTimeout(instance.hide, 100);
                     }
