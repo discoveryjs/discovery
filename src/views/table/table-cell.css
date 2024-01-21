@@ -51,7 +51,7 @@
 .view-table-cell.details-expanded:hover {
     background-color: rgba(180, 180, 180, 0.2);
 }
-.view-table-cell.details-expanded::before {
+.view-table-cell.details.details-expanded::before {
     transform: rotate(0deg);
     opacity: 1;
 }
