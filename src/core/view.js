@@ -6,8 +6,6 @@ const STUB_OBJECT = Object.freeze({});
 const { hasOwnProperty } = Object;
 const tooltipEls = new WeakMap();
 const rootViewEls = new WeakMap();
-const viewEls = new WeakMap();      // FIXME: should be isolated by ViewRenderer instance
-const fragmentEls = new WeakMap();  // FIXME: should be isolated by ViewRenderer instance
 const configTransitions = new WeakMap();
 const configOnlyProps = new Set([
     'view',
@@ -23,13 +21,13 @@ function regConfigTransition(res, from) {
     return res;
 }
 
-function collectViewTree(node, parent, ignoreNodes) {
+function collectViewTree(viewRenderer, node, parent, ignoreNodes) {
     if (ignoreNodes.has(node)) {
         return;
     }
 
-    if (fragmentEls.has(node)) {
-        for (const info of fragmentEls.get(node)) {
+    if (viewRenderer.fragmentEls.has(node)) {
+        for (const info of viewRenderer.fragmentEls.get(node)) {
             const child = parent.children.find(child => child.view === info);
 
             if (child) {
@@ -52,18 +50,18 @@ function collectViewTree(node, parent, ignoreNodes) {
             viewRoot: rootViewEls.get(node),
             children: []
         });
-    } else if (viewEls.has(node)) {
+    } else if (viewRenderer.viewEls.has(node)) {
         parent.children.push(parent = {
             node,
             parent,
-            view: viewEls.get(node),
+            view: viewRenderer.viewEls.get(node),
             children: []
         });
     }
 
     if (node.nodeType === 1) {
         for (let child = node.firstChild; child; child = child.nextSibling) {
-            collectViewTree(child, parent, ignoreNodes);
+            collectViewTree(viewRenderer, child, parent, ignoreNodes);
         }
     }
 }
@@ -96,16 +94,16 @@ function createDefaultRenderErrorView(view) {
     };
 }
 
-function condition(type, host, config, queryData, context, inputData, inputDataIndex, placeholder) {
+function condition(type, viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder) {
     if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
         return true;
     }
 
-    if (host.queryBool(config[type] === true ? '' : config[type], queryData, context)) {
+    if (viewRenderer.host.queryBool(config[type] === true ? '' : config[type], queryData, context)) {
         return true;
     }
 
-    viewEls.set(placeholder, {
+    viewRenderer.viewEls.set(placeholder, {
         skipped: type,
         config,
         inputData,
@@ -113,6 +111,7 @@ function condition(type, host, config, queryData, context, inputData, inputDataI
         data: queryData,
         context
     });
+
     return false;
 }
 
@@ -144,7 +143,7 @@ function computeClassName(host, className, data, context) {
     return null;
 }
 
-function renderDom(host, renderer, placeholder, config, props, data, context, inputData, inputDataIndex) {
+function renderDom(viewRenderer, renderer, placeholder, config, props, data, context, inputData, inputDataIndex) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
@@ -167,14 +166,14 @@ function renderDom(host, renderer, placeholder, config, props, data, context, in
             };
 
             if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
-                viewEls.set(el, info);
+                viewRenderer.viewEls.set(el, info);
 
                 if (renderer.name) {
                     el.classList.add(`view-${renderer.name}`);
                 }
 
                 if (config.className) {
-                    const classNames = computeClassName(host, config.className, data, context);
+                    const classNames = computeClassName(viewRenderer.host, config.className, data, context);
 
                     if (classNames !== null) {
                         el.classList.add(...classNames);
@@ -182,14 +181,14 @@ function renderDom(host, renderer, placeholder, config, props, data, context, in
                 }
 
                 if (props.tooltip) {
-                    attachTooltip(host, el, props.tooltip, data, context);
+                    attachTooltip(viewRenderer.host, el, props.tooltip, data, context);
                 }
             } else {
                 for (let child of el.childNodes) {
-                    if (fragmentEls.has(child)) {
-                        fragmentEls.get(child).unshift(info);
+                    if (viewRenderer.fragmentEls.has(child)) {
+                        viewRenderer.fragmentEls.get(child).unshift(info);
                     } else {
-                        fragmentEls.set(child, [info]);
+                        viewRenderer.fragmentEls.set(child, [info]);
                     }
                 }
             }
@@ -371,7 +370,7 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
 
     const placeholder = container.appendChild(document.createComment(''));
 
-    if (condition('when', viewRenderer.host, config, queryData, context, inputData, inputDataIndex, placeholder)) {
+    if (condition('when', viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder)) {
         // immediately append a view insert point (a placeholder)
         const getData = 'data' in config
             ? Promise.resolve(viewRenderer.host.query(config.data, queryData, context))
@@ -380,9 +379,9 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
         // resolve data and render a view when ready
         return getData
             .then(outputData =>
-                condition('whenData', viewRenderer.host, config, outputData, context, inputData, inputDataIndex, placeholder)
+                condition('whenData', viewRenderer, config, outputData, context, inputData, inputDataIndex, placeholder)
                     ? renderDom(
-                        viewRenderer.host,
+                        viewRenderer,
                         renderer,
                         placeholder,
                         config,
@@ -395,7 +394,7 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
                     : null // placeholder.remove()
             )
             .catch(e => {
-                renderDom(viewRenderer.host, viewRenderer.defaultRenderErrorRenderer, placeholder, STUB_OBJECT, {
+                renderDom(viewRenderer, viewRenderer.defaultRenderErrorRenderer, placeholder, STUB_OBJECT, {
                     type: 'render',
                     reason: String(e),
                     config
@@ -413,6 +412,8 @@ export default class ViewRenderer extends Dict {
 
         this.host = host;
         this.defaultRenderErrorRenderer = createDefaultRenderErrorView(this);
+        this.viewEls = new WeakMap();
+        this.fragmentEls = new WeakMap();
     }
 
     define(name, render, options) {
@@ -627,11 +628,11 @@ export default class ViewRenderer extends Dict {
     }
 
     adoptFragment(fragment, probe) {
-        const info = fragmentEls.get(probe);
+        const info = this.fragmentEls.get(probe);
 
         if (info) {
             for (const node of fragment.childNodes) {
-                fragmentEls.set(node, info);
+                this.fragmentEls.set(node, info);
             }
         }
     }
@@ -647,7 +648,7 @@ export default class ViewRenderer extends Dict {
         const ignoreNodes = new Set(ignore || []);
         const result = [];
 
-        collectViewTree(this.host.dom.container, { parent: null, children: result }, ignoreNodes);
+        collectViewTree(this, this.host.dom.container, { parent: null, children: result }, ignoreNodes);
 
         return result;
     }
@@ -663,8 +664,8 @@ export default class ViewRenderer extends Dict {
         let cursor = el;
 
         while (cursor !== root) {
-            if (viewEls.has(cursor)) {
-                stack.push(viewEls.get(cursor));
+            if (this.viewEls.has(cursor)) {
+                stack.push(this.viewEls.get(cursor));
             }
 
             cursor = cursor.parentNode;
