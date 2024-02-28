@@ -31,6 +31,7 @@ function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) 
 }
 
 class Editor extends Emitter {
+    static CodeMirror = CodeMirror;
     constructor({ hint, mode }) {
         super();
 
