@@ -45,6 +45,11 @@ function isValueExpandable(value, options) {
     // object-like values
     if (typeof value === 'object' && value !== null) {
         switch (toString.call(value)) {
+            // set
+            case '[object Set]': {
+                return value.size > 0;
+            }
+
             // array
             case '[object Array]':
             case '[object Int8Array]':

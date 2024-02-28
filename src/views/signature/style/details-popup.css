@@ -145,20 +145,28 @@
     opacity: .9;
 }
 
-.discovery-view-popup.signature-details .array-types {
+.discovery-view-popup.signature-details .array-types,
+.discovery-view-popup.signature-details .set-types {
     padding: 8px 0 8px 12px;
     margin-top: 4px;
     border-left: 2px solid rgba(-45, 112, 178, 0.8);
 }
-.discovery-view-popup.signature-details .array-types::before {
-    content: 'Array value types';
+.discovery-view-popup.signature-details .array-types::before,
+.discovery-view-popup.signature-details .set-types::before {
     display: inline-block;
+    vertical-align: top;
     position: relative;
-    top: -12px;
+    top: -8px;
     left: -12px;
     padding: 2px 4px;
     color: white;
     font-size: 10px;
     line-height: 12px;
     background: rgba(-45, 112, 178, 0.8);
+}
+.discovery-view-popup.signature-details .array-types::before {
+    content: 'Array value types';
+}
+.discovery-view-popup.signature-details .set-types::before {
+    content: 'Set value types';
 }

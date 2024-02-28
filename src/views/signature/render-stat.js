@@ -124,6 +124,13 @@ export function renderStat(el, stat, elementToData, path = [], offset = '') {
                     el.appendChild(createText(']'));
 
                     break;
+
+                case 'set':
+                    el.appendChild(createText('Set('));
+                    renderStat(el, stat[type].map, elementToData, path, offset);
+                    el.appendChild(createText(')'));
+
+                    break;
             }
         });
 }

@@ -53,6 +53,20 @@ export default function value2html(value, compact, options) {
             // NOTE: constructor check and instanceof doesn't work here,
             // since a value may come from any runtime
             switch (toString.call(value)) {
+                case '[object Set]': {
+                    const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.size
+                        ? value.size
+                        : options.limitCollapsed;
+                    const iterator = value.values();
+                    const content = Array.from({ length: limitCollapsed }, () => value2html(iterator.next().value, true, options));
+
+                    if (value.size > limitCollapsed) {
+                        content.push(`${more(value.size - limitCollapsed)} `);
+                    }
+
+                    return `[${content.join(', ')}]`;
+                }
+
                 case '[object Array]':
                 case '[object Int8Array]':
                 case '[object Uint8Array]':

@@ -22,5 +22,6 @@ export const typeOrder = [
     'symbol',
     'function',
     'array',
+    'set',
     'object'
 ];

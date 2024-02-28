@@ -234,7 +234,7 @@ export function renderTypeDetails(el, data, host) {
                 count,
                 distinct: stat.size,
                 duplicated,
-                values: data.name === 'object' || data.name === 'array'
+                values: data.name === 'object' || data.name === 'array' || data.name === 'set'
                     ? values.sort((a, b) => b.count - a.count)
                     : values.sort((a, b) => b.count - a.count || (a.value > b.value) || -(a.value < b.value))
             };
@@ -267,6 +267,7 @@ export function renderTypeDetails(el, data, host) {
         if (output.values.length > 1 &&
             output.duplicated &&
             data.name !== 'object' &&  // exclude object and array since we can't presentate those values in legend in short at the moment
+            data.name !== 'set' &&
             data.name !== 'array') {
             const segments = [];
             const maxSegmentsCount = output.values.length === 10 ? 10 : Math.min(9, output.values.length);
@@ -379,10 +380,10 @@ export function renderTypeDetails(el, data, host) {
             });
         }
 
-        if (data.name === 'array' && Object.keys(stat.map).length) {
+        if ((data.name === 'array' || data.name === 'set') && Object.keys(stat.map).length) {
             renderSections.push({
                 view: 'block',
-                className: 'array-types',
+                className: data.name === 'array' ? 'array-types' : 'set-types',
                 content: (el) => renderTypeStat(el, stat, host)
             });
         }

@@ -112,6 +112,10 @@ export default function(host) {
             data = data ? [data] : [];
         }
 
+        if (data instanceof Set) {
+            data = [...data];
+        }
+
         const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
         const headerCells = [];
         const bodyEl = el.appendChild(createElement('tbody'));

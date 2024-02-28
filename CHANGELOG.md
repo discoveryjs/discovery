@@ -1,6 +1,6 @@
 ## next
 
-- Added basic support for `TypedArray`s in `struct`, `signature` and `table` views
+- Added basic support for `TypedArray`s and `Set` values in `struct`, `signature` and `table` views
 
 ## 1.0.0-beta.80 (21-01-2024)
 

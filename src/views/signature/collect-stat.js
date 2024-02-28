@@ -36,7 +36,7 @@ export function collectStat(value, expanded, stat = Object.create(null)) {
     const type = value === null
         ? 'null'
         : isArrayLike(value)
-            ? 'array'
+            ? (value instanceof Set ? 'set' : 'array')
             : typeof value;
 
     switch (type) {
@@ -80,6 +80,22 @@ export function collectStat(value, expanded, stat = Object.create(null)) {
 
             for (let i = 0; i < value.length; i++) {
                 collectStat(value[i], expanded, stat.array.map);
+            }
+
+            break;
+
+        case 'set':
+            if ('set' in stat === false) {
+                stat.set = new Map();
+                stat.set.count++;
+                stat.set.map = Object.create(null);
+            }
+
+            stat.set.count++;
+            stat.set.set(value, (stat.set.get(value) || 0) + 1);
+
+            for (const val of value) {
+                collectStat(val, expanded, stat.set.map);
             }
 
             break;

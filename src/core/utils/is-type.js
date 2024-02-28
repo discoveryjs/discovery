@@ -3,6 +3,7 @@ export function isArrayLike(value) {
         switch (toString.call(value)) {
             // array
             case '[object Array]':
+            case '[object Set]':
             case '[object Int8Array]':
             case '[object Uint8Array]':
             case '[object Uint8ClampedArray]':
