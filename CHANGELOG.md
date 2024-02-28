@@ -1,6 +1,7 @@
 ## next
 
 - Added basic support for `TypedArray`s and `Set` values in `struct`, `signature` and `table` views
+- Modified the badge view to enable passing all options via config, in addition to data
 - Fixed displaying supported syntaxes in view's showcase for `source` view
 - Exposed used CodeMirror for extension purposes via a static property `CodeMirror` of `QueryEditor` and `ViewEditor`, e.g. `discovery.view.QueryEditor.CodeMirror.defineMode('my-mode', ...)`
 

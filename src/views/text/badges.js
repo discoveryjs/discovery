@@ -13,25 +13,38 @@ function maybeFix(el, type, value) {
 }
 
 export default function(host) {
+    const prepareProps = host.queryFn(`{
+        color,
+        textColor,
+        darkColor,
+        darkTextColor,
+        text: is (string or number or boolean) ?: text,
+        content: #.content,
+        href,
+        external,
+        prefix,
+        postfix,
+        hint
+    } | entries().({
+        key,
+        value: #[key] != undefined ? #[key] : value
+    }).fromEntries()`);
+
     function render(el, config, data, context) {
-        const { content } = config;
-        let {
+        const {
             color,
             textColor,
             darkColor,
             darkTextColor,
             text,
+            content,
             href,
             external,
             prefix,
             postfix,
             hint
-        } = data || {};
+        } = prepareProps(data, config);
         let render;
-
-        if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
-            text = data;
-        }
 
         if (color) {
             el.style.setProperty('--discovery-view-badge-color', color);
