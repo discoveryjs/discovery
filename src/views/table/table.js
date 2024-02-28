@@ -100,11 +100,10 @@ function getOrder(host, data, sorting) {
     return -order;
 }
 
-function isScalar(value) {
-    return value === null || typeof value !== 'object' || value instanceof RegExp;
-}
-
 export default function(host) {
+    const isScalarAssertion = 'is (null or not object or regexp)';
+    const isScalar = host.queryFn(isScalarAssertion);
+
     host.view.define('table', function(el, config, data, context) {
         let { cols, rowConfig, limit } = config;
         let renderRowConfig;
@@ -135,7 +134,7 @@ export default function(host) {
                 bodyEl,
                 renderRowConfig,
                 orderedData,
-                { ...context, isScalar, cols },
+                { ...context, cols },
                 0,
                 host.view.listLimit(limit, 25),
                 moreButtonsEl
@@ -183,7 +182,7 @@ export default function(host) {
                     view: 'table-cell',
                     sorting: '$ ascN',
                     scalarAsStruct: true,
-                    colSpan: '=$isScalar:#.isScalar;$isScalar() ? #.cols.size() : 1'
+                    colSpan: `=${isScalarAssertion} ? #.cols.size() : 1`
                 });
             }
 
@@ -245,7 +244,7 @@ export default function(host) {
         moreButtonsEl.colSpan = cols.length;
         renderRowConfig = this.composeConfig({
             view: 'table-row',
-            cols: '=$isScalar:#.isScalar;$isScalar() ? [#.cols[]] : #.cols'
+            cols: `=${isScalarAssertion} ? [#.cols[]] : #.cols`
         }, rowConfig);
 
         return render(data);
