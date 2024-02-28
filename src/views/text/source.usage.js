@@ -1,5 +1,66 @@
+import CodeMirror from 'codemirror';
+import { equal } from '../../core/utils/compare.js';
+
 const codeExample = 'let name = "world";\n\nconsole.log(`Hello, ${name}!`);';
 const lineNum = new Function('return num => num + 5')();
+
+function getSupported() {
+    const modes = new Set();
+    const mimeMode = new Map();
+    const resolveMode = ref => {
+        const mode = CodeMirror.resolveMode(ref);
+        const key = [...mimeMode.keys()].find(key => equal(key, mode));
+
+        if (key) {
+            return key;
+        }
+
+        mimeMode.set(mode, {
+            name: new Set(),
+            mime: new Set()
+        });
+
+        return mode;
+    };
+
+    for (const [alias, mime] of Object.entries(CodeMirror.modeToMime)) {
+        const mode = mimeMode.get(resolveMode(mime));
+
+        mode.mime.add(mime);
+        mode.name.add(alias);
+        modes.add(alias);
+    }
+
+    for (const [mime, alias] of Object.entries(CodeMirror.mimeModes)) {
+        const mode = mimeMode.get(resolveMode(mime));
+
+        mode.mime.add(mime);
+        if (typeof alias === 'string') {
+            mode.name.add(alias);
+            modes.add(alias);
+        }
+    }
+
+    for (const [alias] of Object.entries(CodeMirror.modes)) {
+        if (!modes.has(alias)) {
+            const mode = CodeMirror.modes[alias];
+
+            if (!mimeMode.has(mode)) {
+                mimeMode.set(mode, {
+                    name: new Set(),
+                    mime: []
+                });
+            }
+
+            mimeMode.get(mode).name.add(alias);
+        }
+    }
+
+    return [...mimeMode.values()].map(syntax => ({
+        name: [...syntax.name],
+        mime: [...syntax.mime]
+    }));
+}
 
 export default {
     demo: {
@@ -14,7 +75,7 @@ export default {
                 'html:"<br>"',
                 {
                     view: 'table',
-                    data: '#.options.syntaxes',
+                    data: getSupported,
                     cols: {
                         name: { content: 'comma-list:name' },
                         mime: { content: 'comma-list:mime' }

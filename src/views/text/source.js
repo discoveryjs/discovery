@@ -5,7 +5,6 @@ import CodeMirror from 'codemirror';
 import 'codemirror/mode/javascript/javascript.js';
 import 'codemirror/mode/css/css.js';
 import 'codemirror/mode/xml/xml.js';
-import { equal } from '../../core/utils/compare.js';
 import { createElement } from '../../core/utils/dom.js';
 import copyText from '../../core/utils/copy-text.js';
 import usage from './source.usage.js';
@@ -21,64 +20,6 @@ CodeMirror.modeToMime = {
     scss: 'text/x-scss',
     less: 'text/x-less'
 };
-
-function getSupported() {
-    const modes = new Set();
-    const mimeMode = new Map();
-    const resolveMode = ref => {
-        const mode = CodeMirror.resolveMode(ref);
-        const key = [...mimeMode.keys()].find(key => equal(key, mode));
-
-        if (key) {
-            return key;
-        }
-
-        mimeMode.set(mode, {
-            name: new Set(),
-            mime: new Set()
-        });
-
-        return mode;
-    };
-
-    for (const [alias, mime] of Object.entries(CodeMirror.modeToMime)) {
-        const mode = mimeMode.get(resolveMode(mime));
-
-        mode.mime.add(mime);
-        mode.name.add(alias);
-        modes.add(alias);
-    }
-
-    for (const [mime, alias] of Object.entries(CodeMirror.mimeModes)) {
-        const mode = mimeMode.get(resolveMode(mime));
-
-        mode.mime.add(mime);
-        if (typeof alias === 'string') {
-            mode.name.add(alias);
-            modes.add(alias);
-        }
-    }
-
-    for (const [alias] of Object.entries(CodeMirror.modes)) {
-        if (!modes.has(alias)) {
-            const mode = CodeMirror.modes[alias];
-
-            if (!mimeMode.has(mode)) {
-                mimeMode.set(mode, {
-                    name: new Set(),
-                    mime: []
-                });
-            }
-
-            mimeMode.get(mode).name.add(alias);
-        }
-    }
-
-    return [...mimeMode.values()].map(syntax => ({
-        name: [...syntax.name],
-        mime: [...syntax.mime]
-    }));
-}
 
 function codeMirrorHighlight(modespec, host) {
     const mode = CodeMirror.getMode(CodeMirror.defaults, {
@@ -265,9 +206,6 @@ export default function(host) {
         }
     }, {
         usage,
-        tag: 'pre',
-        get syntaxes() {
-            return getSupported();
-        }
+        tag: 'pre'
     });
 }
