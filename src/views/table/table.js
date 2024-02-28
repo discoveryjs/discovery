@@ -1,7 +1,9 @@
 /* eslint-env browser */
 import usage from './table.usage.js';
 
+import { isArrayLike } from '../../core/utils/is-type.js';
 import { createElement } from '../../core/utils/dom.js';
+
 const hasOwnProperty = Object.hasOwnProperty;
 
 function configFromName(name) {
@@ -107,7 +109,7 @@ export default function(host) {
         let { cols, rowConfig, limit } = config;
         let renderRowConfig;
 
-        if (!Array.isArray(data)) {
+        if (!isArrayLike(data)) {
             data = data ? [data] : [];
         }
 

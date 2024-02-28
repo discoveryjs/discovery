@@ -1,6 +1,7 @@
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
+const toString = Object.prototype.toString;
 
 function token(type, str) {
     return `<span class="${type}">${str}</span>`;
@@ -52,9 +53,20 @@ export default function value2html(value, compact, options) {
             // NOTE: constructor check and instanceof doesn't work here,
             // since a value may come from any runtime
             switch (toString.call(value)) {
-                case '[object Array]': {
-                    const limitCollapsed = options.limitCollapsed === false ? value.length : options.limitCollapsed;
-                    const content = value.slice(0, limitCollapsed).map(val => value2html(val, true, options));
+                case '[object Array]':
+                case '[object Int8Array]':
+                case '[object Uint8Array]':
+                case '[object Uint8ClampedArray]':
+                case '[object Int16Array]':
+                case '[object Uint16Array]':
+                case '[object Int32Array]':
+                case '[object Uint32Array]':
+                case '[object Float32Array]':
+                case '[object Float64Array]':
+                case '[object BigInt64Array]':
+                case '[object BigUint64Arra]': {
+                    const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.length ? value.length : options.limitCollapsed;
+                    const content = Array.from({ length: limitCollapsed }, (_, index) => value2html(value[index], true, options));
 
                     if (value.length > limitCollapsed) {
                         content.push(`${more(value.length - limitCollapsed)} `);

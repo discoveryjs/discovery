@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import { numDelim } from '../../core/utils/html.js';
+import { isArrayLike } from '../../core/utils/is-type.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
 import value2html from './value-to-html.js';
@@ -36,21 +37,37 @@ function intOption(value, defaultValue) {
 }
 
 function isValueExpandable(value, options) {
-    // array
-    if (Array.isArray(value)) {
-        return value.length > 0;
-    }
-
     // string
-    if (typeof value === 'string' && (value.length > options.maxStringLength || /[\r\n\f\t]/.test(value))) {
-        return true;
+    if (typeof value === 'string') {
+        return value.length > options.maxStringLength || /[\r\n\f\t]/.test(value);
     }
 
-    // plain object
-    if (value && toString.call(value) === '[object Object]') {
-        for (const key in value) {
-            if (hasOwnProperty.call(value, key)) {
-                return true;
+    // object-like values
+    if (typeof value === 'object' && value !== null) {
+        switch (toString.call(value)) {
+            // array
+            case '[object Array]':
+            case '[object Int8Array]':
+            case '[object Uint8Array]':
+            case '[object Uint8ClampedArray]':
+            case '[object Int16Array]':
+            case '[object Uint16Array]':
+            case '[object Int32Array]':
+            case '[object Uint32Array]':
+            case '[object Float32Array]':
+            case '[object Float64Array]':
+            case '[object BigInt64Array]':
+            case '[object BigUint64Arra]': {
+                return value.length > 0;
+            }
+
+            // plain object
+            case '[object Object]': {
+                for (const key in value) {
+                    if (hasOwnProperty.call(value, key)) {
+                        return true;
+                    }
+                }
             }
         }
     }
@@ -62,10 +79,10 @@ function appendText(el, text) {
     el.appendChild(document.createTextNode(text));
 }
 
-function renderValueSize(el, entries, unit) {
-    if (entries.length > 1) {
+function renderValueSize(el, size, unit) {
+    if (size > 1) {
         el.lastElementChild
-            .innerHTML = numDelim(entries.length) + ' ' + unit;
+            .innerHTML = numDelim(size) + ' ' + unit;
     }
 }
 
@@ -122,16 +139,17 @@ export default function(host) {
 
             el.replaceChildren(valueEl);
             moveAnnotationsEl(el, sizeEl);
-        } else if (Array.isArray(data)) {
+        } else if (isArrayLike(data)) {
             // array
             const context = elementContext.get(el);
             const options = elementOptions.get(el);
+            const size = typeof data.size === 'number' ? data.size : data.length;
 
             el.replaceChildren(arrayValueProto.cloneNode(true));
 
-            renderValueSize(el, data, 'elements');
+            renderValueSize(el, size, 'elements');
             moveAnnotationsEl(el, el.lastElementChild);
-            renderEntries(el, el.lastChild, data, (entryEl, value, index) => {
+            renderEntries(el, el.lastChild, data.values(), size, (entryEl, value, index) => {
                 renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
                     parent: context,
                     host: data,
@@ -147,10 +165,10 @@ export default function(host) {
 
             el.replaceChildren(objectValueProto.cloneNode(true));
 
-            renderValueSize(el, entries, 'entries');
+            renderValueSize(el, entries.length, 'entries');
             moveAnnotationsEl(el, el.lastElementChild);
             renderSorting(el, entries, sort);
-            renderEntries(el, el.lastChild, entries, (entryEl, [key, value], index) => {
+            renderEntries(el, el.lastChild, entries.values(), entries.length, (entryEl, [key, value], index) => {
                 renderObjectKey(entryEl, key, options.maxPropertyLength);
                 renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
                     parent: context,
@@ -187,43 +205,48 @@ export default function(host) {
         container.appendChild(valueEl);
     }
 
-    function renderEntries(container, beforeEl, entries, renderEntryContent, offset = 0, limit = defaultExpandedItemsLimit) {
-        const lastIndex = entries.length - offset - 1;
-        const buffer = document.createDocumentFragment();
-
+    function renderEntries(container, beforeEl, entries, entriesCount, renderEntryContent, offset = 0, limit = defaultExpandedItemsLimit) {
         if (limit === false) {
-            limit = entries.length;
+            limit = Infinity;
         }
 
-        entries
-            .slice(offset, offset + limit)
-            .forEach((entry, index) => {
-                const el = entryProtoEl.cloneNode(true);
+        const buffer = document.createDocumentFragment();
+        const lastIndex = entriesCount - 1;
+        let rendered = 0;
 
-                renderEntryContent(el, entry, offset + index);
-                if (index !== lastIndex) {
-                    appendText(el, ',');
-                }
+        for (; rendered < limit; rendered++, offset++) {
+            const { done, value: entry } = entries.next();
 
-                buffer.appendChild(el);
-            });
+            if (done) {
+                break;
+            }
+
+            const el = entryProtoEl.cloneNode(true);
+
+            renderEntryContent(el, entry, offset);
+            if (offset !== lastIndex) {
+                appendText(el, ',');
+            }
+
+            buffer.appendChild(el);
+        }
 
         container.insertBefore(buffer, beforeEl);
 
         host.view.maybeMoreButtons(
             container,
             beforeEl,
-            entries.length,
-            offset + limit,
+            entriesCount,
+            offset,
             limit,
-            (offset, limit) => renderEntries(container, beforeEl, entries, renderEntryContent, offset, limit)
+            (offset, limit) => renderEntries(container, beforeEl, entries, entriesCount, renderEntryContent, offset, limit)
         );
     }
 
     function renderTable(el) {
         let data = elementData.get(el);
 
-        if (!Array.isArray(data)) {
+        if (!isArrayLike(data)) {
             data = Object.entries(data).map(([key, value]) => ({ '[key]': key, '[value]': value }));
         }
 

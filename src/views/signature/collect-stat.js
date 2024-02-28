@@ -1,3 +1,5 @@
+import { isArrayLike } from '../../core/utils/is-type.js';
+
 export function collectObjectMap(value, expanded, objectStat) {
     for (let key in value) {
         if (!hasOwnProperty.call(value, key)) {
@@ -33,7 +35,7 @@ export function collectObjectMap(value, expanded, objectStat) {
 export function collectStat(value, expanded, stat = Object.create(null)) {
     const type = value === null
         ? 'null'
-        : Array.isArray(value)
+        : isArrayLike(value)
             ? 'array'
             : typeof value;
 

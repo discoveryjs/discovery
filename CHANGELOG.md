@@ -1,3 +1,7 @@
+## next
+
+- Added basic support for `TypedArray`s in `struct`, `signature` and `table` views
+
 ## 1.0.0-beta.80 (21-01-2024)
 
 - Fixed the highlighting of Jora assertions when the assertion is the same as a literal keyword
