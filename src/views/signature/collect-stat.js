@@ -1,4 +1,4 @@
-import { isArrayLike } from '../../core/utils/is-type.js';
+import { isArray, isSet } from '../../core/utils/is-type.js';
 
 export function collectObjectMap(value, expanded, objectStat) {
     for (let key in value) {
@@ -35,9 +35,11 @@ export function collectObjectMap(value, expanded, objectStat) {
 export function collectStat(value, expanded, stat = Object.create(null)) {
     const type = value === null
         ? 'null'
-        : isArrayLike(value)
-            ? (value instanceof Set ? 'set' : 'array')
-            : typeof value;
+        : isArray(value)
+            ? 'array'
+            : isSet(value)
+                ? 'set'
+                : typeof value;
 
     switch (type) {
         default:

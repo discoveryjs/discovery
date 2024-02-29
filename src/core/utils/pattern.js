@@ -1,17 +1,19 @@
-const { toString } = Object.prototype;
-const matchWithRx = (str, pattern, lastIndex) => {
+import { isRegExp } from './is-type.js';
+
+function matchWithRx(str, pattern, lastIndex) {
     const offset = str.slice(lastIndex).search(pattern);
 
     return offset !== -1 ? { offset: lastIndex + offset, length: RegExp.lastMatch.length } : null;
 };
-const matchWithString = (str, pattern, lastIndex) => {
+
+function matchWithString(str, pattern, lastIndex) {
     const offset = str.indexOf(pattern, lastIndex);
 
     return offset !== -1 ? { offset, length: pattern.length } : null;
 };
 
 export function has(text, pattern, ignoreCase) {
-    if (toString.call(pattern) === '[object RegExp]') {
+    if (isRegExp(pattern)) {
         return ignoreCase && !pattern.ignoreCase
             ? new RegExp(pattern, pattern.flags + 'i').test(text)
             : pattern.test(text);
@@ -27,7 +29,7 @@ export function has(text, pattern, ignoreCase) {
 }
 
 export function matchAll(text, pattern, onText, onMatch, ignoreCase) {
-    const next = toString.call(pattern) === '[object RegExp]'
+    const next = isRegExp(pattern)
         ? matchWithRx
         : typeof pattern === 'string'
             ? matchWithString

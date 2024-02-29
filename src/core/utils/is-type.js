@@ -1,24 +1,13 @@
-export function isArrayLike(value) {
-    if (typeof value === 'object' && value !== null) {
-        switch (toString.call(value)) {
-            // array
-            case '[object Array]':
-            case '[object Set]':
-            case '[object Int8Array]':
-            case '[object Uint8Array]':
-            case '[object Uint8ClampedArray]':
-            case '[object Int16Array]':
-            case '[object Uint16Array]':
-            case '[object Int32Array]':
-            case '[object Uint32Array]':
-            case '[object Float32Array]':
-            case '[object Float64Array]':
-            case '[object BigInt64Array]':
-            case '[object BigUint64Arra]': {
-                return true;
-            }
-        }
-    }
+const { toString } = Object.prototype;
 
-    return false;
+export function isArray(value) {
+    return Array.isArray(value) || ArrayBuffer.isView(value);
+}
+
+export function isSet(value) {
+    return toString.call(value) === '[object Set]';
+}
+
+export function isRegExp(value) {
+    return toString.call(value) === '[object RegExp]';
 }

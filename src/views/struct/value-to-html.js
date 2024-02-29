@@ -1,4 +1,5 @@
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
+import { isArray } from '../../core/utils/is-type.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 const toString = Object.prototype.toString;
@@ -50,8 +51,17 @@ export default function value2html(value, compact, options) {
                 return token('keyword', 'null');
             }
 
-            // NOTE: constructor check and instanceof doesn't work here,
-            // since a value may come from any runtime
+            if (isArray(value)) {
+                const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.length ? value.length : options.limitCollapsed;
+                const content = Array.from({ length: limitCollapsed }, (_, index) => value2html(value[index], true, options));
+
+                if (value.length > limitCollapsed) {
+                    content.push(`${more(value.length - limitCollapsed)} `);
+                }
+
+                return `[${content.join(', ')}]`;
+            }
+
             switch (toString.call(value)) {
                 case '[object Set]': {
                     const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.size
@@ -62,28 +72,6 @@ export default function value2html(value, compact, options) {
 
                     if (value.size > limitCollapsed) {
                         content.push(`${more(value.size - limitCollapsed)} `);
-                    }
-
-                    return `[${content.join(', ')}]`;
-                }
-
-                case '[object Array]':
-                case '[object Int8Array]':
-                case '[object Uint8Array]':
-                case '[object Uint8ClampedArray]':
-                case '[object Int16Array]':
-                case '[object Uint16Array]':
-                case '[object Int32Array]':
-                case '[object Uint32Array]':
-                case '[object Float32Array]':
-                case '[object Float64Array]':
-                case '[object BigInt64Array]':
-                case '[object BigUint64Arra]': {
-                    const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.length ? value.length : options.limitCollapsed;
-                    const content = Array.from({ length: limitCollapsed }, (_, index) => value2html(value[index], true, options));
-
-                    if (value.length > limitCollapsed) {
-                        content.push(`${more(value.length - limitCollapsed)} `);
                     }
 
                     return `[${content.join(', ')}]`;

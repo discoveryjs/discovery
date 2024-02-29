@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import { numDelim } from '../../core/utils/html.js';
-import { isArrayLike } from '../../core/utils/is-type.js';
+import { isArray, isSet } from '../../core/utils/is-type.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
 import value2html from './value-to-html.js';
@@ -42,28 +42,17 @@ function isValueExpandable(value, options) {
         return value.length > options.maxStringLength || /[\r\n\f\t]/.test(value);
     }
 
+    // arrays
+    if (isArray(value)) {
+        return value.length > 0;
+    }
+
     // object-like values
     if (typeof value === 'object' && value !== null) {
         switch (toString.call(value)) {
             // set
             case '[object Set]': {
                 return value.size > 0;
-            }
-
-            // array
-            case '[object Array]':
-            case '[object Int8Array]':
-            case '[object Uint8Array]':
-            case '[object Uint8ClampedArray]':
-            case '[object Int16Array]':
-            case '[object Uint16Array]':
-            case '[object Int32Array]':
-            case '[object Uint32Array]':
-            case '[object Float32Array]':
-            case '[object Float64Array]':
-            case '[object BigInt64Array]':
-            case '[object BigUint64Arra]': {
-                return value.length > 0;
             }
 
             // plain object
@@ -144,7 +133,7 @@ export default function(host) {
 
             el.replaceChildren(valueEl);
             moveAnnotationsEl(el, sizeEl);
-        } else if (isArrayLike(data)) {
+        } else if (isArray(data) || isSet(data)) {
             // array
             const context = elementContext.get(el);
             const options = elementOptions.get(el);
@@ -251,7 +240,7 @@ export default function(host) {
     function renderTable(el) {
         let data = elementData.get(el);
 
-        if (!isArrayLike(data)) {
+        if (!isArray(data) && !isSet(data)) {
             data = Object.entries(data).map(([key, value]) => ({ '[key]': key, '[value]': value }));
         }
 
