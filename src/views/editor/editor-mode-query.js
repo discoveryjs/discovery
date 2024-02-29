@@ -61,7 +61,7 @@ export default function(config) {
             }
 
             if (state.isAssertionContext) {
-                if (token === 'variable' || token === 'atom') {
+                if (token === 'variable' || token === 'atom' || token === 'def' || str === 'function') {
                     return 'type';
                 }
 
