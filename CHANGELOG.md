@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.81 (06-03-2024)
 
 - Added basic support for `TypedArray`s and `Set` values in `struct`, `signature` and `table` views
 - Added `'only'` value for `darkmode` option of `Widget` & `App`, which forces to use dark mode with no option for a user to switch to light mode
