@@ -20,7 +20,7 @@
     color: var(--discovery-fmt-number-color);
 }
 .view-struct .value > .number .num-delim {
-    padding-left: 3px;
+    padding-left: 2px;
 }
 .view-struct .value > .string,
 .view-struct .value > .string a {
