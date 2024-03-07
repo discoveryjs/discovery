@@ -4,6 +4,7 @@
 - Added `'only'` value for `darkmode` option of `Widget` & `App`, which forces to use dark mode with no option for a user to switch to light mode
 - Added `scalarCol` option for `table` view to display the row value as the first cell
 - Added a thousandth delimiter for text in annotations in `struct` view
+- Removed an annotation of scalar values by object markers in `struct` view by default. To enable it, the `annotateScalars: true` option must be set explicitly on object marker definition
 - Modified the badge view to enable passing all options via config, in addition to data
 - Fixed the highlighting of Jora assertions
 - Fixed displaying supported syntaxes in view's showcase for `source` view

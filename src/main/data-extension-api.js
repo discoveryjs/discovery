@@ -52,6 +52,7 @@ export function createDataExtensionApi(host) {
     //
 
     function defineObjectMarker(name, options) {
+        const annotateScalars = Boolean(options?.annotateScalars);
         const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 
         if (!lookup) {
@@ -76,32 +77,22 @@ export function createDataExtensionApi(host) {
                     };
                 }
             });
-
-            addValueAnnotation((value, context) => {
-                const marker = lookup(value);
-
-                if (marker && marker.object !== context.host) {
-                    return {
-                        place: 'before',
-                        style: 'badge',
-                        text: page,
-                        href: marker.href
-                    };
-                }
-            });
-        } else {
-            addValueAnnotation((value, context) => {
-                const marker = lookup(value);
-
-                if (marker && marker.object !== context.host) {
-                    return {
-                        place: 'before',
-                        style: 'badge',
-                        text: name
-                    };
-                }
-            });
         }
+
+        addValueAnnotation((value, context) => {
+            const marker = annotateScalars || (typeof value === 'object' && value !== null)
+                ? lookup(value)
+                : null;
+
+            if (marker !== null && marker.object !== context.host) {
+                return {
+                    place: 'before',
+                    style: 'badge',
+                    text: name,
+                    href: marker.href
+                };
+            }
+        });
 
         return mark;
     }
