@@ -1,4 +1,5 @@
 import { createElement } from '../../core/utils/dom.js';
+import { numDelim } from '../../core/utils/html.js';
 
 const styles = ['none', 'default', 'badge'];
 
@@ -35,7 +36,15 @@ export default function renderAnnotations(annotations) {
             class: elClassName,
             href,
             target: external ? '_blank' : undefined
-        }, hasText ? [text] : undefined);
+        });
+
+        if (hasText) {
+            if (/\d{4}/.test(text)) {
+                annotationEl.innerHTML = numDelim(text);
+            } else {
+                annotationEl.append(text);
+            }
+        }
 
         if (icon) {
             annotationEl.classList.add('icon');

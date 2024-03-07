@@ -1,3 +1,10 @@
+.view-struct .value-annotations {
+    margin-left: 6px;
+}
+.view-struct .value + .value-annotations {
+    margin-left: 1.5ex;
+}
+
 .view-struct .value-annotation {
     display: inline-block;
     vertical-align: middle;
@@ -33,12 +40,6 @@
 .view-struct .value-annotation.before + .value {
     margin-left: 2px;
 }
-.view-struct .value-annotations {
-    margin-left: 6px;
-}
-.view-struct .value + .value-annotations {
-    margin-left: 1.5ex;
-}
 
 .view-struct .value-annotation.style-none,
 .view-struct .value-annotation.style-default {
@@ -72,4 +73,8 @@
     color: #89a0bd;
     text-decoration: underline;
     text-decoration-color: #89a0bd88;
+}
+
+.view-struct .value-annotation .num-delim {
+    padding-left: 2px;
 }
