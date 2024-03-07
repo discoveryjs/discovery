@@ -29,7 +29,7 @@ export function darkmodeToggle(host) {
         view: 'block',
         className: ['toggle-menu-item', 'dark-mode-switcher'],
         name: 'dark-mode',
-        when: '#.widget | darkmode.mode != "disabled"',
+        when: '#.widget | darkmode.mode not in ["disabled", "only"]',
         postRender: (el, opts, data, { widget, hide }) => {
             let selfValue;
 

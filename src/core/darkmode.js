@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import { localStorageEntry } from './utils/persistent.js';
 
-const validValues = new Set([true, false, 'auto', 'disabled']);
+const validValues = new Set([true, false, 'auto', 'disabled', 'only']);
 const instances = new Set();
 const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
 const persistentStorage = localStorageEntry('discoveryjs:darkmode');
@@ -29,7 +29,7 @@ function applyLocalStorageValue(value) {
     if (persistentStorageValue !== newValue) {
         persistentStorageValue = newValue;
         for (const instance of instances) {
-            if (instance.persistent && instance.mode !== 'disabled') {
+            if (instance.persistent && instance.mode !== 'disabled' && instance.mode !== 'only') {
                 instance.set(newValue !== null ? newValue : 'auto');
             }
         }
@@ -42,12 +42,12 @@ persistentStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
 function resolveInitValue(value, persistent) {
-    if (value === 'off' || value === 'disable') {
+    if (value === 'off' || value === 'disable' || !validValues.has(value)) {
         value = 'disabled';
     }
 
     // use value from a localStorage when persistent
-    if (value !== 'disabled' && persistent && persistentStorageValue !== null) {
+    if (value !== 'disabled' && value !== 'only' && persistent && persistentStorageValue !== null) {
         value = persistentStorageValue;
     }
 
@@ -59,7 +59,12 @@ function resolveSetValue(value) {
         value = 'disabled';
     }
 
-    return value === 'auto' ? prefersDarkModeMedia.matches : value === true;
+    switch (value) {
+        case 'only': return true;
+        case 'auto': return prefersDarkModeMedia.matches;
+        default:
+            return value === true;
+    }
 }
 
 export function resolveDarkmodeValue(value, persistent) {
@@ -71,6 +76,7 @@ export function resolveDarkmodeValue(value, persistent) {
 //             | mode     | value
 // =========== | ======== | ==============
 // 'disabled'  | disabled | false
+// 'only'      | only     | true
 // 'auto'      | auto     | [depends on prefers-color-scheme]
 // false       | manual   | false
 // true        | manual   | true
@@ -107,12 +113,16 @@ export class DarkModeController {
     }
 
     set(value, init) {
-        const oldValue = this.value;
-        const oldMode = this.mode;
+        const prevValue = this.value;
+        const prevMode = this.mode;
 
         if (!validValues.has(value)) {
-            console.warn('Bad value "' + value + '" for darkmode, fallback to "disabled"');
+            console.warn(`Bad value "${value}" for darkmode, ${init ? 'fallback to "disabled"' : 'ignored'}`);
             value = 'disabled';
+        }
+
+        if (!init && (prevMode === 'disabled' || value === 'disabled' || prevMode === 'only' || value === 'only')) {
+            return;
         }
 
         this.mode = typeof value === 'boolean' ? 'manual' : value;
@@ -123,7 +133,7 @@ export class DarkModeController {
                 this.persistent.set(this.mode === 'auto' ? 'auto' : this.value);
             }
 
-            if (this.value !== oldValue || this.mode !== oldMode) {
+            if (this.value !== prevValue || this.mode !== prevMode) {
                 this.handlers.forEach(({ fn }) => fn(this.value, this.mode));
             }
         }
