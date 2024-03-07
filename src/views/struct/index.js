@@ -238,13 +238,14 @@ export default function(host) {
     }
 
     function renderTable(el) {
+        const options = elementOptions.get(el);
         let data = elementData.get(el);
 
         if (!isArray(data) && !isSet(data)) {
             data = Object.entries(data).map(([key, value]) => ({ '[key]': key, '[value]': value }));
         }
 
-        host.view.render(el, 'table', data, {});
+        host.view.render(el, 'table', data, options.context);
         el.append(el.lastChild.previousSibling);
     }
 
