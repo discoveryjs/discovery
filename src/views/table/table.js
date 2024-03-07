@@ -105,7 +105,7 @@ export default function(host) {
     const isScalar = host.queryFn(isScalarAssertion);
 
     host.view.define('table', function(el, config, data, context) {
-        let { cols, rowConfig, limit } = config;
+        let { cols, rowConfig, limit, scalarCol = false } = config;
         let renderRowConfig;
 
         if (isSet(data)) {
@@ -158,7 +158,6 @@ export default function(host) {
         } else {
             const colNames = new Set();
             const colsMap = cols && typeof cols === 'object' ? cols : {};
-            let scalarCol = false;
 
             cols = [];
 
@@ -180,16 +179,6 @@ export default function(host) {
                 }
             }
 
-            if (scalarCol) {
-                cols.push({
-                    header: '[value]',
-                    view: 'table-cell',
-                    sorting: '$ ascN',
-                    scalarAsStruct: true,
-                    colSpan: `=${isScalarAssertion} ? #.cols.size() : 1`
-                });
-            }
-
             for (const name of colNames) {
                 cols.push(
                     hasOwnProperty.call(colsMap, name)
@@ -197,6 +186,16 @@ export default function(host) {
                         : configFromName(name)
                 );
             }
+        }
+
+        if (scalarCol) {
+            cols.unshift({
+                header: '[value]',
+                view: 'table-cell',
+                sorting: '$ ascN',
+                scalarAsStruct: true,
+                colSpan: `=${isScalarAssertion} ? #.cols.size() : 1`
+            });
         }
 
         cols = cols.filter(col =>
