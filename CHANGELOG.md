@@ -1,6 +1,7 @@
 ## next
 
 - Fixed `badge` view options when it receives an array as data
+- Fixed a sticky tooltip for "Enable view inspection" button on inspecting start
 
 ## 1.0.0-beta.81 (06-03-2024)
 

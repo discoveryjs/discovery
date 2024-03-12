@@ -99,6 +99,7 @@ export function inspect(host) {
                 suspendInspectTimer = null;
                 delete el.dataset.suspendSeconds;
             } else {
+                host.view.tooltip?.hide();
                 host.inspectMode.set(!host.inspectMode.value);
             }
         }
