@@ -13,7 +13,7 @@ function maybeFix(el, type, value) {
 }
 
 export default function(host) {
-    const prepareProps = host.queryFn(`{
+    const prepareProps = host.queryFn(`is not array? | {
         color,
         textColor,
         darkColor,

@@ -1,3 +1,7 @@
+## next
+
+- Fixed `badge` view options when it receives an array as data
+
 ## 1.0.0-beta.81 (06-03-2024)
 
 - Added basic support for `TypedArray`s and `Set` values in `struct`, `signature` and `table` views
