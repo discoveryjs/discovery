@@ -235,8 +235,8 @@ export default function(host) {
             }
         }
 
-        show(triggerEl, render = this.render, noDelay) {
-            if (!this.visible && !noDelay && showDelayToMs(this.showDelay, triggerEl)) {
+        show(triggerEl, render = this.render, showImmediately = false) {
+            if (!this.visible && !showImmediately && showDelayToMs(this.showDelay, triggerEl) > 0) {
                 startDelayedShow(this, triggerEl, render);
                 return;
             }
@@ -346,6 +346,7 @@ export default function(host) {
 
         hide() {
             this.hideTimer = clearTimeout(this.hideTimer);
+            stopDelayedShow(this);
 
             if (this.visible && !inspectorLockedInstances.has(this)) {
                 // hide related popups first

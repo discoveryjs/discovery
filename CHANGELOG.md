@@ -2,6 +2,7 @@
 
 - Fixed `badge` view options when it receives an array as data
 - Fixed a sticky tooltip for "Enable view inspection" button on inspecting start
+- Fixed the delayed popup display after calling the `hide()` method
 
 ## 1.0.0-beta.81 (06-03-2024)
 
