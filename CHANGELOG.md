@@ -1,5 +1,6 @@
 ## next
 
+- Added `positionMode` option for `popup` view. When set to "natural", the popup attempts to position itself at the bottom right side if dimensions allow, instead of positioning towards the larger available space by default (value "safe" for the option)
 - Fixed `badge` view options when it receives an array as data
 - Fixed a sticky tooltip for "Enable view inspection" button on inspecting start
 - Fixed the delayed popup display after calling the `hide()` method

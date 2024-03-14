@@ -9,9 +9,10 @@ const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
 const defaultShowDelay = 300;
 const defaultOptions = {
     position: 'trigger',
+    positionMode: 'safe', // 'safe' – choose side with more space, 'natural' – choose right/bottom when enough space
     showDelay: false, // false = 0, true = defaultShowDelay
-    hoverTriggers: null,
-    hoverPin: false,
+    hoverTriggers: null, // null or string (a list of css selectors)
+    hoverPin: false, // see hoverPinModes
     hideIfEventOutside: true,
     hideOnResize: true,
     render: undefined
@@ -69,6 +70,12 @@ function startDelayedShow(popup, triggerEl, render) {
     popup.showDelayTimer = setTimeout(() => popup.show(triggerEl, render, true), showDelayToMs(popup.showDelay, triggerEl));
     popup.showDelayArgs = [triggerEl, render];
     delayedToShowPopups.add(popup);
+}
+
+function appendIfNeeded(parent, child) {
+    if (parent.lastChild !== child) {
+        parent.appendChild(child);
+    }
 }
 
 export default function(host) {
@@ -196,6 +203,7 @@ export default function(host) {
             this.frozen = false;
             this.render = options.render;
             this.position = options.position;
+            this.positionMode = options.positionMode;
             this.hoverTriggers = options.hoverTriggers;
             this.hoverPin = options.hoverPin;
             this.hideIfEventOutsideDisabled = !options.hideIfEventOutside;
@@ -235,7 +243,7 @@ export default function(host) {
             }
         }
 
-        show(triggerEl, render = this.render, showImmediately = false) {
+        async show(triggerEl, render = this.render, showImmediately = false) {
             if (!this.visible && !showImmediately && showDelayToMs(this.showDelay, triggerEl) > 0) {
                 startDelayedShow(this, triggerEl, render);
                 return;
@@ -250,11 +258,6 @@ export default function(host) {
             this.hideTimer = clearTimeout(this.hideTimer);
             this.relatedPopups.forEach(related => related.hide());
             this.el.classList.toggle('inspect', host.inspectMode.value);
-
-            if (typeof render === 'function') {
-                this.el.innerHTML = '';
-                render(this.el, triggerEl, this.hide);
-            }
 
             if (this.lastTriggerEl) {
                 this.lastTriggerEl.classList.remove('discovery-view-popup-active');
@@ -274,10 +277,38 @@ export default function(host) {
                 }
             }
 
-            this.updatePosition();
+            if (typeof render === 'function') {
+                this.el.innerHTML = '';
+
+                // setup semaphore to avoid race conditions
+                const renderMarker = Symbol();
+                this.lastRenderMarker = renderMarker;
+
+                // enforce element insert popup's element and update its position
+                // if render doesn't finish until next frame
+                requestAnimationFrame(() => {
+                    if (this.lastRenderMarker === renderMarker) {
+                        appendIfNeeded(hostEl, this.el);
+                        this.updatePosition();
+                    }
+                });
+
+                // perform render itself
+                await render(this.el, triggerEl, this.hide);
+
+                // since render might be async, the popup state can be changed (e.g. hidden) when it's done,
+                // or another render took place
+                if (this.lastRenderMarker !== renderMarker) {
+                    return;
+                }
+
+                // cleanup semaphore
+                this.lastRenderMarker = null;
+            }
 
             // always append since it can pop up by z-index
-            hostEl.appendChild(this.el);
+            appendIfNeeded(hostEl, this.el);
+            this.updatePosition();
         }
 
         updatePosition() {
@@ -302,14 +333,33 @@ export default function(host) {
             const availHeightBottom = viewport.bottom - box.bottom - 3;
             const availWidthLeft = box.right - viewport.left - 3;
             const availWidthRight = viewport.right - box.left - 3;
+            let safeRight = availWidthRight >= availWidthLeft;
+            let safeBottom = availHeightBottom >= availHeightTop;
 
-            if (availHeightTop > availHeightBottom) {
+            if (!safeBottom) {
                 // show to top
                 this.el.style.maxHeight = availHeightTop + 'px';
                 this.el.style.top = 'auto';
                 this.el.style.bottom = (viewport.bottom - box.top) + 'px';
                 this.el.dataset.vTo = 'top';
-            } else {
+            }
+
+            if (!safeRight) {
+                // show to left
+                this.el.style.left = 'auto';
+                this.el.style.right = (viewport.right - box.right) + 'px';
+                this.el.style.maxWidth = availWidthLeft + 'px';
+                this.el.dataset.hTo = 'left';
+            }
+
+            if (this.positionMode === 'natural' && (!safeRight || !safeBottom)) {
+                const { height, width } = getBoundingRect(this.el);
+
+                safeBottom = height <= availHeightBottom;
+                safeRight = width <= availWidthRight;
+            }
+
+            if (safeBottom) {
                 // show to bottom
                 this.el.style.maxHeight = availHeightBottom + 'px';
                 this.el.style.top = (box.bottom - viewport.top) + 'px';
@@ -317,13 +367,7 @@ export default function(host) {
                 this.el.dataset.vTo = 'bottom';
             }
 
-            if (availWidthLeft > availWidthRight) {
-                // show to left
-                this.el.style.left = 'auto';
-                this.el.style.right = (viewport.right - box.right) + 'px';
-                this.el.style.maxWidth = availWidthLeft + 'px';
-                this.el.dataset.hTo = 'left';
-            } else {
+            if (safeRight) {
                 // show to right
                 this.el.style.left = (box.left - viewport.left) + 'px';
                 this.el.style.right = 'auto';
@@ -346,6 +390,7 @@ export default function(host) {
 
         hide() {
             this.hideTimer = clearTimeout(this.hideTimer);
+            this.lastRenderMarker = null;
             stopDelayedShow(this);
 
             if (this.visible && !inspectorLockedInstances.has(this)) {
