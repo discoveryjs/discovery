@@ -6,6 +6,7 @@ import debounce from './debounce.js';
 import * as dom from './dom.js';
 import * as html from './html.js';
 import injectStyles from './inject-styles.js';
+import * as types from './is-type.js';
 import * as json from './json.js';
 import * as layout from './layout.js';
 import * as dataLoad from './load-data.js';
@@ -26,6 +27,7 @@ export default {
     ...dom,
     ...html,
     injectStyles,
+    ...types,
     ...json,
     ...layout,
     pattern,
