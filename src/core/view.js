@@ -259,6 +259,8 @@ function createTooltip(host) {
             let [config, data, context] = tooltipEls.get(triggerEl) || [];
             let position = 'pointer';
             let positionMode = 'natural';
+            let pointerOffsetX = 3;
+            let pointerOffsetY = 3;
             let content = config;
 
             if (classNames !== null) {
@@ -275,11 +277,22 @@ function createTooltip(host) {
 
                 position = config.position || position;
                 positionMode = config.positionMode || positionMode;
+
+                if (Number.isFinite(config.pointerOffsetX)) {
+                    pointerOffsetX = config.pointerOffsetX;
+                }
+
+                if (Number.isFinite(config.pointerOffsetY)) {
+                    pointerOffsetY = config.pointerOffsetY;
+                }
+
                 content = config.content;
             }
 
             popup.position = position;
             popup.positionMode = positionMode;
+            popup.pointerOffsetX = pointerOffsetX;
+            popup.pointerOffsetY = pointerOffsetY;
 
             if (content) {
                 return host.view.render(el, content, data, context);

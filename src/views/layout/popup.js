@@ -10,6 +10,8 @@ const defaultShowDelay = 300;
 const defaultOptions = {
     position: 'trigger',
     positionMode: 'safe', // 'safe' – choose side with more space, 'natural' – choose right/bottom when enough space
+    pointerOffsetX: 3,
+    pointerOffsetY: 3,
     showDelay: false, // false = 0, true = defaultShowDelay
     hoverTriggers: null, // null or string (a list of css selectors)
     hoverPin: false, // see hoverPinModes
@@ -76,6 +78,10 @@ function appendIfNeeded(parent, child) {
     if (parent.lastChild !== child) {
         parent.appendChild(child);
     }
+}
+
+function ensureNumber(value, fallback = 0) {
+    return Number.isFinite(value) ? value : fallback;
 }
 
 export default function(host) {
@@ -204,6 +210,8 @@ export default function(host) {
             this.render = options.render;
             this.position = options.position;
             this.positionMode = options.positionMode;
+            this.pointerOffsetX = ensureNumber(options.pointerOffsetX);
+            this.pointerOffsetY = ensureNumber(options.pointerOffsetY);
             this.hoverTriggers = options.hoverTriggers;
             this.hoverPin = options.hoverPin;
             this.hideIfEventOutsideDisabled = !options.hideIfEventOutside;
@@ -322,8 +330,7 @@ export default function(host) {
             const offsetParent = getOffsetParent(hostEl.firstChild);
             const viewport = getViewportRect(window, offsetParent);
             const { x: pointerX, y: pointerY } = pointerXY.value;
-            const pointerOffsetX = 3;
-            const pointerOffsetY = 3;
+            const { pointerOffsetX, pointerOffsetY } = this;
             const box = !pointerPosition
                 ? getBoundingRect(this.lastTriggerEl, hostEl)
                 : {

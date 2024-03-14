@@ -105,6 +105,8 @@ A canonical form for a tooltip setup is an object with fields (all are optional,
     className: 'string',     // additional class names for tooltip's element
     position: 'pointer',     // 'trigger' or 'pointer'
     positionMode: 'natural', // 'safe' or 'natural'
+    pointerOffsetX: 3,       // tooltip offset from the pointer
+    pointerOffsetY: 3,       // tooltip offset from the pointer
     showDelay: true,         // true (300ms), false (0ms), a number, or a function which takes a triggerEl and returns showDelay value
     content: 'a view config' // view config for tooltip's content
 }

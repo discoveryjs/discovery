@@ -1,6 +1,7 @@
 ## next
 
 - Added `positionMode` option for `popup` view. When set to "natural", the popup attempts to position itself at the bottom right side if dimensions allow, instead of positioning towards the larger available space by default (value "safe" for the option)
+- Added `pointerOffsetX` and `pointerOffsetY` options for `popup` view and `view.tooltip`
 - Enabled `positionMode: natural` for tooltips by default, can be changed via tooltip options
 - Exposed type checking helpers `isArray()`, `isSet()` and `isRegExp()`
 - Fixed `badge` view options when it receives an array as data
