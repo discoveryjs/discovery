@@ -312,7 +312,9 @@ export default function(host) {
         }
 
         updatePosition() {
-            if (!this.visible || (this.position !== 'pointer' && !this.lastTriggerEl)) {
+            const pointerPosition = this.position === 'pointer';
+
+            if (!this.visible || (!pointerPosition && !this.lastTriggerEl)) {
                 return;
             }
 
@@ -320,19 +322,22 @@ export default function(host) {
             const offsetParent = getOffsetParent(hostEl.firstChild);
             const viewport = getViewportRect(window, offsetParent);
             const { x: pointerX, y: pointerY } = pointerXY.value;
-            const pointerOffset = 3;
-            const box = this.position !== 'pointer'
+            const pointerOffsetX = 3;
+            const pointerOffsetY = 3;
+            const box = !pointerPosition
                 ? getBoundingRect(this.lastTriggerEl, hostEl)
                 : {
-                    left: parseInt(pointerX) + pointerOffset,
-                    right: parseInt(pointerX) - pointerOffset,
-                    top: parseInt(pointerY) - pointerOffset,
-                    bottom: parseInt(pointerY) + pointerOffset
+                    left: parseInt(pointerX) - pointerOffsetX,
+                    right: parseInt(pointerX) + pointerOffsetX,
+                    top: parseInt(pointerY) - pointerOffsetY,
+                    bottom: parseInt(pointerY) + pointerOffsetY
                 };
+            const boxLeft = pointerPosition ? box.left : box.right;
+            const boxRight = pointerPosition ? box.right : box.left;
             const availHeightTop = box.top - viewport.top - 3;
             const availHeightBottom = viewport.bottom - box.bottom - 3;
-            const availWidthLeft = box.right - viewport.left - 3;
-            const availWidthRight = viewport.right - box.left - 3;
+            const availWidthLeft = boxLeft - viewport.left - 3;
+            const availWidthRight = viewport.right - boxRight - 3;
             let safeRight = availWidthRight >= availWidthLeft;
             let safeBottom = availHeightBottom >= availHeightTop;
 
@@ -347,7 +352,7 @@ export default function(host) {
             if (!safeRight) {
                 // show to left
                 this.el.style.left = 'auto';
-                this.el.style.right = (viewport.right - box.right) + 'px';
+                this.el.style.right = (viewport.right - boxLeft) + 'px';
                 this.el.style.maxWidth = availWidthLeft + 'px';
                 this.el.dataset.hTo = 'left';
             }
@@ -369,7 +374,7 @@ export default function(host) {
 
             if (safeRight) {
                 // show to right
-                this.el.style.left = (box.left - viewport.left) + 'px';
+                this.el.style.left = (boxRight - viewport.left) + 'px';
                 this.el.style.right = 'auto';
                 this.el.style.maxWidth = availWidthRight + 'px';
                 this.el.dataset.hTo = 'right';
