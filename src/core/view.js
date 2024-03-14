@@ -258,6 +258,8 @@ function createTooltip(host) {
         render(el, triggerEl) {
             let [config, data, context] = tooltipEls.get(triggerEl) || [];
             let position = 'pointer';
+            let positionMode = 'natural';
+            let content = config;
 
             if (classNames !== null) {
                 el.classList.remove(...classNames);
@@ -271,17 +273,19 @@ function createTooltip(host) {
                     el.classList.add(...classNames);
                 }
 
-                position = config.position === 'trigger' ? 'trigger' : 'pointer';
-                config = config.content;
+                position = config.position || position;
+                positionMode = config.positionMode || positionMode;
+                content = config.content;
             }
 
             popup.position = position;
+            popup.positionMode = positionMode;
 
-            if (config) {
-                return host.view.render(el, config, data, context);
+            if (content) {
+                return host.view.render(el, content, data, context);
             }
 
-            host.view.render(el, {
+            return host.view.render(el, {
                 view: host.view.defaultRenderErrorRenderer.render,
                 reason: 'Element marked as having a tooltip but related data is not found'
             });

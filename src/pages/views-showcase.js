@@ -98,14 +98,15 @@ An array with view definitions can be passed anywhere a view is accepted as a va
 
 ## Tooltip
 
-A canonical form for a tooltip setup is an object with fields (all are optional):
+A canonical form for a tooltip setup is an object with fields (all are optional, defaults provided below):
 
 \`\`\`js
 {
-    className: 'string',
-    position: 'trigger', // 'trigger' or 'pointer' (default)
-    showDelay: false, // true (300ms), false (0ms), a number, or a function which takes a triggerEl and returns showDelay value
-    content: 'a view setup'
+    className: 'string',     // additional class names for tooltip's element
+    position: 'pointer',     // 'trigger' or 'pointer'
+    positionMode: 'natural', // 'safe' or 'natural'
+    showDelay: true,         // true (300ms), false (0ms), a number, or a function which takes a triggerEl and returns showDelay value
+    content: 'a view config' // view config for tooltip's content
 }
 \`\`\`
 
