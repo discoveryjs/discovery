@@ -29,7 +29,7 @@ export class App extends Widget {
 
         if (options.mode !== 'modelfree') {
             extensions.push(navButtons.indexPage);
-            extensions.push(navButtons.reportPage);
+            extensions.push(navButtons.discoveryPage);
         }
 
         if (coalesceOption(options.upload, false)) {
@@ -175,9 +175,9 @@ export class App extends Widget {
     }
 
     loadDataFromEvent(event, options) {
-        if (this.options.mode === 'modelfree' && this.defaultPageId !== this.reportPageId) {
+        if (this.options.mode === 'modelfree' && this.defaultPageId !== this.discoveryPageId) {
             this._defaultPageId = this.defaultPageId;
-            this.defaultPageId = this.reportPageId;
+            this.defaultPageId = this.discoveryPageId;
             this.setPageHash(this.pageHash, true);
             this.cancelScheduledRender();
         }

@@ -31,7 +31,7 @@ const defaultViewPresets = [
 
 function createPresetTab(name, content, updateParams) {
     return createElement('div', {
-        class: 'report-editor-tab',
+        class: 'discovery-editor-tab',
         onclick: () => updateParams({
             view: content // JSON.stringify(content, null, 4)
         })
@@ -57,16 +57,16 @@ export default function(host, updateParams) {
     const viewEditorButtonsEl = createElement('div', 'buttons');
     const viewEditorFormEl = createElement('div', 'form view-editor-form', [
         createElement('div', 'view-editor-form-header', [
-            createElement('div', 'report-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
+            createElement('div', 'discovery-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
                 createElement('div', {
-                    class: 'report-editor-tab',
+                    class: 'discovery-editor-tab',
                     'data-mode': viewMode.toLowerCase(),
                     onclick: () => updateParams({
                         view: viewMode === 'Default' ? undefined : defaultViewSource
                     }, true)
                 }, viewMode)
             )),
-            /* availablePresetListEl = */createElement('div', 'report-editor-tabs presets', viewPresets.map(({ name, content }) =>
+            /* availablePresetListEl = */createElement('div', 'discovery-editor-tabs presets', viewPresets.map(({ name, content }) =>
                 createPresetTab(name, content, updateParams)
             )),
             createElement('div', 'view-editor-form-header-links', '<a href="#views-showcase" class="view-link">Views showcase</a>')
@@ -167,7 +167,7 @@ export default function(host, updateParams) {
 
     return {
         el: viewEditorFormEl,
-        render(data, context, reportContentEl) {
+        render(data, context, discoveryContentEl) {
             const viewContext = contextWithoutEditorParams(context, lastView.context);
             const viewMode = typeof context.params.view === 'string' ? 'custom' : 'default';
             let pageView = context.params.view;
@@ -188,14 +188,14 @@ export default function(host, updateParams) {
             }
 
             if (lastView.view !== pageView || lastView.data !== data || lastView.context !== viewContext) {
-                reportContentEl.innerHTML = '';
+                discoveryContentEl.innerHTML = '';
 
                 try {
                     view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
-                    host.view.render(reportContentEl, view, data, viewContext);
+                    host.view.render(discoveryContentEl, view, data, viewContext);
                 } catch (e) {
-                    host.view.render(reportContentEl, el => {
-                        el.className = 'report-error render-error';
+                    host.view.render(discoveryContentEl, el => {
+                        el.className = 'discovery-error render-error';
                         el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
                         host.log('error', e);
                     });

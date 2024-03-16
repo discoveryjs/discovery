@@ -1,4 +1,4 @@
-.page-report > .report-header {
+.page-discovery > .discovery-header {
     display: flex;
     flex-direction: row;
     line-height: 1.2;
@@ -11,23 +11,23 @@
     background-color: rgba(255, 255, 255, .92);
     transition: background-color .25s ease-in;
 }
-.discovery-root-darkmode .page-report > .report-header {
+.discovery-root-darkmode .page-discovery > .discovery-header {
     background-color: rgba(36, 36, 36, .92);
 }
-.page-report.page_overscrolled > .report-header {
+.page-discovery.page_overscrolled > .discovery-header {
     box-shadow: 0 0 3px rgba(0, 0, 0, .2);
     transition-property: background-color, box-shadow;
 }
-.discovery-root-darkmode .page-report.page_overscrolled > .report-header {
+.discovery-root-darkmode .page-discovery.page_overscrolled > .discovery-header {
     box-shadow: 0 0 3px rgba(0, 0, 0, .5);
 }
 @supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
-    .page-report > .report-header {
+    .page-discovery > .discovery-header {
         background-color: rgba(255, 255, 255, .8);
         -webkit-backdrop-filter: blur(5px);
         backdrop-filter: blur(5px);
     }
-    .discovery-root-darkmode .page-report > .report-header {
+    .discovery-root-darkmode .page-discovery > .discovery-header {
         background-color: rgba(36, 36, 36, .8);
     }
 }
@@ -36,19 +36,19 @@
 * Header text
 ********************************/
 
-.page-report > .report-header .report-header-text {
+.page-discovery > .discovery-header .discovery-header-text {
     flex: 1;
     position: relative;
     font-size: 220%;
 }
-.page-report > .report-header .report-header-text::before {
+.page-discovery > .discovery-header .discovery-header-text::before {
     content: attr(data-title);
     white-space: pre;
 }
-.page-report > .report-header .report-header-text:focus-within:before {
+.page-discovery > .discovery-header .discovery-header-text:focus-within:before {
     visibility: hidden;
 }
-.page-report > .report-header .report-header-text input {
+.page-discovery > .discovery-header .discovery-header-text input {
     font: inherit;
     color: inherit;
     position: absolute;
@@ -63,16 +63,16 @@
     background-color: transparent;
     transition: box-shadow .15s ease-out;
 }
-.page-report > .report-header .report-header-text input:hover,
-.page-report > .report-header .report-header-text input:focus {
+.page-discovery > .discovery-header .discovery-header-text input:hover,
+.page-discovery > .discovery-header .discovery-header-text input:focus {
     opacity: 1;
 }
-.page-report > .report-header .report-header-text input:focus {
+.page-discovery > .discovery-header .discovery-header-text input:focus {
     border-bottom-color: #0af;
     box-shadow: 0 3px 0 0 rgba(0, 170, 255, .2) !important;
     outline: 0;
 }
-.page-report > .report-header .report-header-text .timestamp {
+.page-discovery > .discovery-header .discovery-header-text .timestamp {
     display: block;
     font-size: 10px;
     color: rgba(153, 153, 153, 0.5);
@@ -83,7 +83,7 @@
 * Actions
 ********************************/
 
-.page-report > .report-actions {
+.page-discovery > .discovery-actions {
     position: sticky;
     top: 34px;
     transition: top .25s;
@@ -94,7 +94,7 @@
     margin-bottom: -61px;
     pointer-events: none;
 }
-.page-report > .report-actions button {
+.page-discovery > .discovery-actions button {
     width: 42px;
     height: 42px;
     background: center no-repeat;
@@ -107,27 +107,27 @@
     outline: none;
     pointer-events: auto;
 }
-.page-report > .report-actions button.discovery-view-popup-active,
-.page-report > .report-actions button:hover,
-.page-report > .report-actions button:focus {
+.page-discovery > .discovery-actions button.discovery-view-popup-active,
+.page-discovery > .discovery-actions button:hover,
+.page-discovery > .discovery-actions button:focus {
     background-color: rgba(0, 0, 0, .03125);
     opacity: 1;
 }
-.page-report > .report-actions button.toggle-fullscreen {
+.page-discovery > .discovery-actions button.toggle-fullscreen {
     background-image: url(./img/fullscreen-on.svg);
     background-size: 25px;
 }
-.page-report > .report-actions button.edit-mode {
+.page-discovery > .discovery-actions button.edit-mode {
     background-image: url(./img/edit.svg);
     background-size: 20px;
 }
-.page-report > .report-actions button.edit-mode:not(.disabled) {
+.page-discovery > .discovery-actions button.edit-mode:not(.disabled) {
     opacity: 1;
 }
-.page-report > .report-actions button.edit-mode.disabled {
+.page-discovery > .discovery-actions button.edit-mode.disabled {
     filter: grayscale();
 }
-.page-report > .report-actions button.share {
+.page-discovery > .discovery-actions button.share {
     background-image: url(./img/share.svg);
     background-size: 25px;
 }
@@ -136,9 +136,9 @@
 * Dzen mode
 ********************************/
 
-.discovery[data-dzen] .page-report > .report-actions {
+.discovery[data-dzen] .page-discovery > .discovery-actions {
     top: 20px;
 }
-.discovery[data-dzen] .page-report > .report-actions button.toggle-fullscreen {
+.discovery[data-dzen] .page-discovery > .discovery-actions button.toggle-fullscreen {
     background-image: url(./img/fullscreen-off.svg);
 }

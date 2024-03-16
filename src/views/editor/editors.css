@@ -2,7 +2,7 @@
 @import url('codemirror/theme/neo.css');
 @import url('./editors-hint.css');
 
-.discovery-editor {
+.discovery-view-editor {
     --editor-border-color: rgba(124, 124, 124, 0.65);
     display: flex;
     flex-direction: column;
@@ -11,18 +11,18 @@
     border-radius: 3px;
     background-color: var(--discovery-background-color);
 }
-.discovery-editor:focus-within {
+.discovery-view-editor:focus-within {
     --editor-border-color: rgba(0, 141, 255, 0.75);
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
 }
-.discovery-editor .discovery-editor__input-panel {
+.discovery-view-editor .discovery-view-editor__input-panel {
     order: 0;
 }
-.discovery-editor .discovery-editor__output-panel {
+.discovery-view-editor .discovery-view-editor__output-panel {
     order: 2;
 }
 
-.discovery-editor .CodeMirror {
+.discovery-view-editor .CodeMirror {
     order: 1;
     height: auto;
     overflow-y: hidden !important;
@@ -34,64 +34,64 @@
     transition: .25s ease-in;
     transition-property: background-color, color;
 }
-.discovery-root-darkmode .discovery-editor .CodeMirror {
+.discovery-root-darkmode .discovery-view-editor .CodeMirror {
     color: #d1c7c3;
 }
-.discovery-editor .CodeMirror-scroll {
+.discovery-view-editor .CodeMirror-scroll {
     min-height: 6.5em;
     height: auto;
     overflow-y: hidden !important;
     cursor: text;
 }
 
-.discovery-editor .CodeMirror .CodeMirror-line {
+.discovery-view-editor .CodeMirror .CodeMirror-line {
     padding: 0;
 }
 
-.discovery-editor .CodeMirror-cursor {
+.discovery-view-editor .CodeMirror-cursor {
     border-left: 1px solid var(--discovery-color, black);
     background: none;
 }
-.discovery-editor .CodeMirror-focused .CodeMirror-selected {
+.discovery-view-editor .CodeMirror-focused .CodeMirror-selected {
     background-color: rgba(0, 170, 255, 0.22);
 }
-.discovery-editor .CodeMirror-selected {
+.discovery-view-editor .CodeMirror-selected {
     background-color: rgba(126, 126, 126, 0.3);
 }
 
-.discovery-editor .CodeMirror .cm-comment {
+.discovery-view-editor .CodeMirror .cm-comment {
     color: var(--discovery-fmt-comment-color);
 }
-.discovery-editor .CodeMirror .cm-keyword {
+.discovery-view-editor .CodeMirror .cm-keyword {
     color: var(--discovery-fmt-keyword-color);
 }
-.discovery-editor .CodeMirror .cm-property {
+.discovery-view-editor .CodeMirror .cm-property {
     color: var(--discovery-fmt-property-color);
 }
-.discovery-editor .CodeMirror .cm-atom {
+.discovery-view-editor .CodeMirror .cm-atom {
     color: var(--discovery-fmt-atom-color);
 }
-.discovery-editor .CodeMirror .cm-number {
+.discovery-view-editor .CodeMirror .cm-number {
     color: var(--discovery-fmt-number-color);
 }
-.discovery-editor .CodeMirror .cm-type {
+.discovery-view-editor .CodeMirror .cm-type {
     color: var(--discovery-fmt-type-color);
 }
-.discovery-editor .CodeMirror .cm-node,
-.discovery-editor .CodeMirror .cm-tag {
+.discovery-view-editor .CodeMirror .cm-node,
+.discovery-view-editor .CodeMirror .cm-tag {
     color: #9c3328;
 }
-.discovery-editor .CodeMirror .cm-string,
-.discovery-editor .CodeMirror .cm-string-2 {
+.discovery-view-editor .CodeMirror .cm-string,
+.discovery-view-editor .CodeMirror .cm-string-2 {
     color: var(--discovery-fmt-string-color);
 }
-.discovery-editor .CodeMirror .cm-variable,
-.discovery-editor .CodeMirror .cm-variable-2,
-.discovery-editor .CodeMirror .cm-def,
-.discovery-editor .CodeMirror .cm-qualifier {
+.discovery-view-editor .CodeMirror .cm-variable,
+.discovery-view-editor .CodeMirror .cm-variable-2,
+.discovery-view-editor .CodeMirror .cm-def,
+.discovery-view-editor .CodeMirror .cm-qualifier {
     color: var(--discovery-fmt-variable-color);
 }
-.discovery-editor .CodeMirror .cm-discovery-view-name {
+.discovery-view-editor .CodeMirror .cm-discovery-view-name {
     background-color: var(--discovery-fmt-string-highlight-color);
     border-bottom: 1px dashed;
 }

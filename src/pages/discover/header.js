@@ -2,8 +2,16 @@
 import { createElement } from '../../core/utils/dom.js';
 import copyText from '../../core/utils/copy-text.js';
 
-function exportReportAsJson(pageParams) {
-    const quote = s => s.replace(/\\/g, '\\\\').replace(/\t/g, '\\t').replace(/\r/g, '\\r').replace(/\n/g, '\\n').replace(/'/g, '\\\'');
+function quote(str) {
+    return str
+        .replace(/\\/g, '\\\\')
+        .replace(/\t/g, '\\t')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n')
+        .replace(/'/g, '\\\'');
+}
+
+function exportStateAsJson(pageParams) {
     let { title, query, view } = pageParams;
     const res = { title, query, view };
 
@@ -48,17 +56,17 @@ export default function(host, updateParams) {
             view: 'menu',
             data: [
                 {
-                    text: 'Copy report permalink',
+                    text: 'Copy page permalink',
                     disabled: !host.action.has('permalink'),
                     action: async () => copyText(await host.action.call('permalink', host.pageHash))
                 },
                 {
-                    text: 'Copy report as page hash',
+                    text: 'Copy page hash',
                     action: () => copyText(host.pageHash)
                 },
                 {
-                    text: 'Copy report as JSON',
-                    action: () => copyText(exportReportAsJson(host.pageParams))
+                    text: 'Copy page as JSON',
+                    action: () => copyText(exportStateAsJson(host.pageParams))
                 }
             ],
             onClick(item) {
@@ -68,7 +76,7 @@ export default function(host, updateParams) {
         })
     });
 
-    const reportActions = createElement('div', 'report-actions', [
+    const actionsPanel = createElement('div', 'discovery-actions', [
         noeditToggleEl = createElement('button', {
             class: 'edit-mode discovery-hidden-in-dzen',
             title: 'Toggle edit mode',
@@ -102,11 +110,11 @@ export default function(host, updateParams) {
     const updateHeaderTitle = target => {
         target.parentNode.dataset.title = target.value || target.placeholder;
     };
-    const headerEl = createElement('div', 'report-header', [
-        createElement('div', { class: 'report-header-text', 'data-title': '\xA0' }, [
+    const headerEl = createElement('div', 'discovery-header', [
+        createElement('div', { class: 'discovery-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
                 class: 'discovery-hidden-in-dzen',
-                placeholder: 'Untitled report',
+                placeholder: 'Untitled discovery',
                 oninput: ({ target }) => {
                     updateHeaderTitle(target);
                 },
@@ -131,7 +139,7 @@ export default function(host, updateParams) {
 
     return {
         el: [
-            reportActions,
+            actionsPanel,
             headerEl
         ],
         render(data, context) {

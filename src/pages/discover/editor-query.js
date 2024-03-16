@@ -560,7 +560,7 @@ export default function(host, updateParams) {
                         break;
                     case 'failed':
                         queryEditorResultDetailsEl.innerHTML =
-                            '<div class="report-error query-error">' +
+                            '<div class="discovery-error query-error">' +
                             escapeHtml(computation.error.message) +
                             '</div>';
                         break;

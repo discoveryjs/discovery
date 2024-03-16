@@ -63,7 +63,8 @@ export class Widget extends Emitter {
             darkmodePersistent = false,
             defaultPage,
             defaultPageId,
-            reportPageId,
+            discoveryPageId,
+            reportToDiscoveryRedirect = true,
             extensions,
             inspector: useInspector = false
         } = this.options;
@@ -110,7 +111,8 @@ export class Widget extends Emitter {
         this.prepare = data => data;
 
         this.defaultPageId = defaultPageId || 'default';
-        this.reportPageId = reportPageId || 'report';
+        this.discoveryPageId = discoveryPageId || 'discovery';
+        this.reportToDiscoveryRedirect = Boolean(reportToDiscoveryRedirect); // TODO: to make bookmarks work, remove sometime in the future
         this.pageId = this.defaultPageId;
         this.pageRef = null;
         this.pageParams = {};
@@ -621,7 +623,12 @@ export class Widget extends Emitter {
     }
 
     setPageHash(hash, replace = false) {
-        const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
+        let { pageId, pageRef, pageParams } = this.decodePageHash(hash);
+
+        // TODO: remove sometime in the future
+        if (this.reportToDiscoveryRedirect && pageId === 'report') {
+            setTimeout(() => this.pageId === 'report' && this.setPage('discovery', this.pageRef, this.pageParams, true));
+        }
 
         if (this.pageId !== pageId ||
             this.pageRef !== pageRef ||

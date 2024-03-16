@@ -1,9 +1,9 @@
 /* eslint-env browser */
 import { createElement } from '../core/utils/dom.js';
-import { encodeParams, decodeParams } from './report/params.js';
-import createHeader from './report/header.js';
-import createQueryEditor from './report/editor-query.js';
-import createViewEditor from './report/editor-view.js';
+import { encodeParams, decodeParams } from './discover/params.js';
+import createHeader from './discover/header.js';
+import createQueryEditor from './discover/editor-query.js';
+import createViewEditor from './discover/editor-view.js';
 
 export default function(host) {
     function updateParams(delta, replace) {
@@ -23,23 +23,23 @@ export default function(host) {
         const viewEditor = createViewEditor(host, updateParams);
 
         // layout elements
-        const reportEditorEl = createElement('div', { class: 'report-editor discovery-hidden-in-dzen', hidden: true }, [
+        const discoverEditorEl = createElement('div', { class: 'discovery-editor discovery-hidden-in-dzen', hidden: true }, [
             queryEditor.el,
             viewEditor.el
         ]);
-        const reportContentEl = createElement('div', 'report-content');
+        const discoverContentEl = createElement('div', 'discovery-content');
         const layout = [
             ...header.el,
-            reportEditorEl,
-            reportContentEl
+            discoverEditorEl,
+            discoverContentEl
         ];
 
         return refs = {
             header,
             queryEditor,
             viewEditor,
-            reportEditorEl,
-            reportContentEl,
+            discoverEditorEl,
+            discoverContentEl,
             layout
         };
     }
@@ -50,19 +50,19 @@ export default function(host) {
     //
     // Page
     //
-    host.page.define('report', function(el, data, context) {
+    host.page.define('discovery', function(el, data, context) {
         const {
             header,
             queryEditor,
             viewEditor,
-            reportEditorEl,
-            reportContentEl
+            discoverEditorEl,
+            discoverContentEl
         } = get();
 
         // process noedit setting
-        reportEditorEl.hidden = context.params.noedit;
+        discoverEditorEl.hidden = context.params.noedit;
 
-        // update report title
+        // update page title
         header.render(data, context);
 
         // perform query
@@ -74,14 +74,14 @@ export default function(host) {
 
             if (queryResult.error) {
                 viewEditor.el.hidden = true;
-                reportContentEl.hidden = true;
+                discoverContentEl.hidden = true;
                 return;
             }
 
             viewEditor.el.hidden = false;
-            reportContentEl.hidden = false;
+            discoverContentEl.hidden = false;
 
-            viewEditor.render(queryResult.computed, /* queryResult.context */ context, reportContentEl);
+            viewEditor.render(queryResult.computed, /* queryResult.context */ context, discoverContentEl);
         });
     }, {
         reuseEl: true,

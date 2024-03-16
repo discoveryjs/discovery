@@ -2,13 +2,13 @@
 * Tabs
 ********************************/
 
-.page-report > .report-editor .report-editor-tabs {
+.page-discovery > .discovery-editor .discovery-editor-tabs {
     overflow: hidden;
     display: inline-block;
     vertical-align: top;
 }
-.page-report > .report-editor .data-query-result::before,
-.page-report > .report-editor .report-editor-tabs::before {
+.page-discovery > .discovery-editor .data-query-result::before,
+.page-discovery > .discovery-editor .discovery-editor-tabs::before {
     padding: 3px 4px;
     width: 40px;
     text-align: right;
@@ -16,7 +16,7 @@
     font-size: 11px;
     color: rgba(141, 141, 141, 0.75);
 }
-.page-report > .report-editor .report-editor-tab {
+.page-discovery > .discovery-editor .discovery-editor-tab {
     display: inline-block;
     margin: 0 1px 1px 0;
     padding: 2px 12px;
@@ -24,27 +24,27 @@
     font-size: 12px;
     cursor: pointer;
 }
-.page-report > .report-editor .report-editor-tab.active {
+.page-discovery > .discovery-editor .discovery-editor-tab.active {
     padding-bottom: 3px;
     margin-bottom: 0;
     background: rgba(108, 188, 241, 0.15);
     cursor: default;
 }
-.page-report > .report-editor .report-editor-tab:not(.active):hover {
+.page-discovery > .discovery-editor .discovery-editor-tab:not(.active):hover {
     background: rgba(187, 187, 187, 0.4);
 }
-.page-report > .report-editor .report-editor-tab:first-child {
+.page-discovery > .discovery-editor .discovery-editor-tab:first-child {
     border-top-left-radius: 4px;
 }
-.page-report > .report-editor .report-editor-tab.active:first-child {
+.page-discovery > .discovery-editor .discovery-editor-tab.active:first-child {
     border-bottom-left-radius: 4px;
     padding-bottom: 2px;
     margin-bottom: 1px;
 }
-.page-report > .report-editor .report-editor-tab:last-child {
+.page-discovery > .discovery-editor .discovery-editor-tab:last-child {
     border-top-right-radius: 4px;
 }
-.page-report > .report-editor .report-editor-tab:not(.active):last-child {
+.page-discovery > .discovery-editor .discovery-editor-tab:not(.active):last-child {
     border-bottom-right-radius: 4px;
 }
 
@@ -52,35 +52,35 @@
 * Editor
 ********************************/
 
-.page-report > .report-editor .editor-toolbar {
+.page-discovery > .discovery-editor .editor-toolbar {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
     align-items: baseline;
     gap: 10px;
 }
-.page-report > .report-editor .editor-toolbar label {
+.page-discovery > .discovery-editor .editor-toolbar label {
     padding: 4px;
     margin: 0 1ex;
     white-space: nowrap;
 }
-.page-report > .report-editor .editor-toolbar .syntax-hint {
+.page-discovery > .discovery-editor .editor-toolbar .syntax-hint {
     padding-left: 10px;
     flex: 1;
     color: rgba(141, 141, 141, 0.75);
     font-size: 12px;
     align-self: start;
 }
-.page-report > .report-editor .editor-toolbar .view-checkbox__label {
+.page-discovery > .discovery-editor .editor-toolbar .view-checkbox__label {
     margin-right: 0;
 }
 
-.page-report > .report-editor .discovery-editor-error {
+.page-discovery > .discovery-editor .discovery-editor-error {
     border-bottom: 1px solid rgba(255, 0, 0, .6);
     background: rgba(255, 215, 209, 0.3);
 }
 
-.page-report > .report-editor textarea {
+.page-discovery > .discovery-editor textarea {
     padding: 8px;
     width: 100%;
     box-sizing: border-box;
@@ -93,7 +93,7 @@
     box-shadow: inset 0 1px 1px rgba(142, 142, 142, .2);
     resize: vertical;
 }
-.page-report > .report-editor textarea:focus {
+.page-discovery > .discovery-editor textarea:focus {
     border-color: #0af;
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, .2), inset 0 1px 1px rgba(142, 142, 142, .2) !important;
     outline: 0;

@@ -1,4 +1,4 @@
-.page-report > .report-editor .view-editor-form {
+.page-discovery > .discovery-editor .view-editor-form {
     margin:
         12px
         calc(-1 * var(--discovery-page-padding-right))
@@ -6,33 +6,33 @@
         calc(-1 * var(--discovery-page-padding-left));
 }
 
-.page-report > .report-editor .view-editor-form-header {
+.page-discovery > .discovery-editor .view-editor-form-header {
     display: flex;
     flex-wrap: wrap-reverse;
     margin-right: var(--discovery-page-padding-right);
 }
-.page-report > .report-editor .view-editor-form-header-links {
+.page-discovery > .discovery-editor .view-editor-form-header-links {
     flex: 1;
     margin: 2px 0 0 10px;
     text-align: right;
     font-size: 12px;
 }
 
-.page-report > .report-editor .report-editor-tabs.view-mode::before {
+.page-discovery > .discovery-editor .discovery-editor-tabs.view-mode::before {
     display: inline-block;
     content: 'View:';
 }
-.page-report > .report-editor .report-editor-tabs.presets {
+.page-discovery > .discovery-editor .discovery-editor-tabs.presets {
     margin-left: 3ex;
 }
-.page-report > .report-editor .report-editor-tabs.presets::before {
+.page-discovery > .discovery-editor .discovery-editor-tabs.presets::before {
     content: 'View presets:'
 }
-.page-report > .report-editor .report-editor-tabs.presets .report-editor-tab:first-child {
+.page-discovery > .discovery-editor .discovery-editor-tabs.presets .discovery-editor-tab:first-child {
     border-bottom-left-radius: 4px;
 }
 
-.page-report > .report-editor .view-editor-form-content {
+.page-discovery > .discovery-editor .view-editor-form-content {
     padding:
         8px
         var(--discovery-page-padding-right)
@@ -41,7 +41,7 @@
     margin-bottom: 1px;
     background-color: rgba(108, 188, 241, 0.15)
 }
-.page-report > .report-editor .view-editor-form-content .formatting {
+.page-discovery > .discovery-editor .view-editor-form-content .formatting {
     position: absolute;
     left: 5px;
     width: 30px;
@@ -54,19 +54,19 @@
     border-color: rgba(21, 98, 148, 0.3);
 }
 
-.page-report > .report-editor .view-editor-form-content .view-expand {
+.page-discovery > .discovery-editor .view-editor-form-content .view-expand {
     width: 100%;
     margin-top: 5px;
 }
 
-.page-report > .report-editor .view-editor-form-content .view-expand .header {
+.page-discovery > .discovery-editor .view-editor-form-content .view-expand .header {
     background: none;
 }
-.page-report > .report-editor .view-editor-form-content .view-expand .header:hover {
+.page-discovery > .discovery-editor .view-editor-form-content .view-expand .header:hover {
     background: rgba(0, 0, 0, .05);
 }
 
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list {
+.page-discovery > .discovery-editor .view-editor-form-content .view-editor-view-list {
     display: none;
     padding: 15px 8px;
     font-size: 12px;
@@ -76,10 +76,10 @@
     column-gap: 20px;
     margin-right: -190px;
 }
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list.visible {
+.page-discovery > .discovery-editor .view-editor-form-content .view-editor-view-list.visible {
     display: block;
 }
-.page-report > .report-editor .view-editor-form-content .view-editor-view-list .item:not([href]) {
+.page-discovery > .discovery-editor .view-editor-form-content .view-editor-view-list .item:not([href]) {
     color: #888;
 }
 

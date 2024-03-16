@@ -6,11 +6,11 @@ export function indexPage(host) {
     });
 }
 
-export function reportPage(host) {
+export function discoveryPage(host) {
     host.nav.append({
-        name: 'report-page',
-        when: '#.widget | pageId != reportPageId',
-        data: '{ text: "Make report", href: pageLink(#.widget.reportPageId) }'
+        name: 'discovery-page',
+        when: '#.widget | pageId != discoveryPageId',
+        data: '{ text: "Discover", href: pageLink(#.widget.discoveryPageId) }'
     });
 }
 

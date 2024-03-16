@@ -1,5 +1,15 @@
 ## next
 
+- Rebranded the "report page" as the "discovery page"
+    - Changed text on button `Make report` → `Discover`
+    - Changed page slug `report` → `discovery`
+    - Added redirect for locations `#report...` → `#discovery...`, use `Widget.options.intoreportToDiscoveryRedirect` to disable it
+    - `Widget#reportPageId` → `Widget#discoveryPageId`, with default `discovery` instead of `report`
+    - `Widget.options.reportPageId` → `Widget.options.discoveryPageId`
+    - `navButtons.reportPage` → `navButtons.discoveryPage`, button's `name` changed into `discovery-page`
+    - CSS classes:
+        - `.report-*` → `.discovery-*`
+        - `.discovery-editor` → `.discovery-view-editor`
 - Added `positionMode` option for `popup` view. When set to "natural", the popup attempts to position itself at the bottom right side if dimensions allow, instead of positioning towards the larger available space by default (value "safe" for the option)
 - Added `pointerOffsetX` and `pointerOffsetY` options for `popup` view and `view.tooltip`
 - Enabled `positionMode: natural` for tooltips by default, can be changed via tooltip options
