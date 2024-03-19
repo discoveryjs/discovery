@@ -34,7 +34,7 @@ export default function renderAnnotations(annotations) {
 
         const annotationEl = createElement(href ? 'a' : 'span', {
             class: elClassName,
-            href,
+            href: typeof href === 'string' ? href : undefined,
             target: external ? '_blank' : undefined
         });
 
