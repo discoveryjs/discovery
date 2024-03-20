@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.82 (20-03-2024)
 
 - Rebranded the "report page" as the "discovery page"
     - Changed text on button `Make report` → `Discover`
