@@ -175,8 +175,22 @@ export default (host) => {
         selectedTreeViewLeaf = leaf || null;
 
         if (leaf) {
-            popup.show();
-            popup.freeze();
+            const { innerWidth, innerHeight } = window;
+            const { left, top, width, height } = popup.el.getBoundingClientRect();
+
+            // lock current popup's position
+            popup.el.style.top = `${top}px`;
+            popup.el.style.left = `${left}px`;
+            popup.el.style.right = `${innerWidth - (left + width)}px`;
+            popup.el.style.bottom = `${innerHeight - (top + height)}px`;
+            popup.frozen = true;
+
+            // use rAF to make a transition work
+            requestAnimationFrame(() => {
+                popup.show();
+                popup.freeze();
+            });
+
             delete cancelHintEl.dataset.alt;
         } else if (inspectByQuick) {
             host.inspectMode.set(false);
@@ -255,7 +269,7 @@ export default (host) => {
                 cursor = cursor.parent;
             }
 
-            host.view.render(el, {
+            return host.view.render(el, {
                 view: 'context',
                 modifiers: [viewTree(el, {
                     selectTreeViewLeaf,

@@ -4,10 +4,11 @@
     max-width: 650px !important;
     display: grid;
     grid-template-areas:
-        "toolbar toolbar"
-        "props-config data-context";
-    grid-template-columns: 4fr 6fr;
+        "sidebar toolbar toolbar"
+        "sidebar props-config data-context";
     grid-template-rows: auto 1fr;
+    grid-template-columns: 0px 4fr 6fr;
+
     gap: 1px;
     padding: 1px;
     border-radius: 2px;
@@ -34,14 +35,10 @@
     left: 20px !important;
     right: 20px !important;
     bottom: 20px !important;
-    height: calc(100vh - 52px); /* Safari scrolls popup content otherwise */
     max-height: none !important;
     max-width: none !important;
-    transition: .1s ease-in-out;
-    transition-property: top, left, right, bottom;
-    grid-template-areas:
-        "sidebar toolbar toolbar"
-        "sidebar props-config data-context";
+    transition: .125s ease;
+    transition-property: top, left, right, bottom, grid-template-rows, grid-template-columns;
     grid-template-rows: auto minmax(20%, 1fr);
     grid-template-columns: minmax(290px, 25%) 4fr 6fr;
 }

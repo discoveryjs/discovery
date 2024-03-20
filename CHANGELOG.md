@@ -19,6 +19,7 @@
 - Fixed a sticky tooltip for "Enable view inspection" button on inspecting start
 - Fixed the delayed popup display after calling the `hide()` method
 - Fixed positioning of popups with `position: pointer`
+- Fixed animation of the inspector's details popup when transitioning into full-screen mode
 
 ## 1.0.0-beta.81 (06-03-2024)
 

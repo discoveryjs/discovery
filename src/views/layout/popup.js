@@ -322,7 +322,7 @@ export default function(host) {
         updatePosition() {
             const pointerPosition = this.position === 'pointer';
 
-            if (!this.visible || (!pointerPosition && !this.lastTriggerEl)) {
+            if (!this.visible || (pointerPosition ? this.frozen : !this.lastTriggerEl)) {
                 return;
             }
 
