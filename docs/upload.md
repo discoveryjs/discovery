@@ -1,12 +1,12 @@
 # Upload data extension
 
-To enable upload data feature:
+To enable upload data feature with default settings:
 
 ```js
 import { App, Widget, upload, navButtons } from '@discoveryjs/discovery';
 
 // App
-const myapp = new App({ upload: true }); // or the same as for Widget
+const myapp = new App({ upload: true }); // or the same as for Widget via "extensions" option
 
 // Widget
 const myapp = new Widget({
@@ -50,12 +50,11 @@ Actions can be used via `#.actions`:
 
 To specify custom settings:
 
-
 ```js
 import { App, Widget, upload, navButtons } from '@discoveryjs/discovery';
 
 // App
-const myapp = new App({ upload: { /* options */ } }); // or the same as for Widget
+const myapp = new App({ upload: { /* options */ } }); // or the same as for Widget via "extensions" option
 
 // Widget
 const myapp = new Widget({
