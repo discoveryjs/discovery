@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.83 (03-04-2024)
 
 - Added `encodings` option for `App`, `Widget` (has no effect for now), preloader (via `loadDataOptions`) and [Loading Data API](./load-data.md) (see [Encodings](./docs/encodings.md))
 
