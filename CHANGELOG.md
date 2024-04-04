@@ -1,3 +1,7 @@
+## next
+
+- Added `encodings` option for `App`, `Widget` (has no effect for now), preloader (via `loadDataOptions`) and [Loading Data API](./load-data.md) (see [Encodings](./docs/encodings.md))
+
 ## 1.0.0-beta.82 (20-03-2024)
 
 - Rebranded the "report page" as the "discovery page"

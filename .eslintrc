@@ -1,6 +1,6 @@
 {
     "ignorePatterns": [
-        "src/tmp/*"
+        "src/core/encodings/jsonxl-snapshot9.js"
     ],
     "env": {
         "node": true,

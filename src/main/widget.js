@@ -1,21 +1,22 @@
 /* eslint-env browser */
 
-import Emitter from '../core/emitter.js';
-import ActionManager from '../core/action.js';
-import ViewRenderer from '../core/view.js';
-import PresetRenderer from '../core/preset.js';
-import PageRenderer from '../core/page.js';
-import Publisher from '../core/publisher.js';
-import * as views from '../views/index.js';
-import * as pages from '../pages/index.js';
+import jora from 'jora';
 import { createElement } from '../core/utils/dom.js';
 import injectStyles from '../core/utils/inject-styles.js';
-import inspector from '../extensions/inspector.js';
 import { deepEqual } from '../core/utils/compare.js';
+import { normalizeEncodings } from '../core/encodings/utils.js';
+import ActionManager from '../core/action.js';
 import { DarkModeController } from '../core/darkmode.js';
+import Emitter from '../core/emitter.js';
+import PageRenderer from '../core/page.js';
+import ViewRenderer from '../core/view.js';
+import PresetRenderer from '../core/preset.js';
+import Publisher from '../core/publisher.js';
+import inspector from '../extensions/inspector.js';
+import * as views from '../views/index.js';
+import * as pages from '../pages/index.js';
 import { WidgetNavigation } from '../nav/index.js';
 import { createDataExtensionApi } from './data-extension-api.js';
-import jora from 'jora';
 import { querySuggestions } from './query-suggestions.js';
 
 const lastSetDataPromise = new WeakMap();
@@ -106,6 +107,7 @@ export class Widget extends Emitter {
         renderScheduler.set(this, new Set());
 
         this.datasets = [];
+        this.encodings = normalizeEncodings(options.encodings);
         this.data = undefined;
         this.context = undefined;
         this.prepare = data => data;

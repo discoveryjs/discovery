@@ -1,7 +1,7 @@
-import parseChunked from '@discoveryjs/json-ext/src/parse-chunked';
 import Publisher from '../publisher.js';
 import { streamFromBlob } from './stream-from-blob.js';
-import { decode as decodeJsonxl } from '../../tmp/jsonxl-snapshot9.js';
+import { normalizeEncodings } from '../encodings/utils.js';
+import * as buildinEncodings from '../encodings/index.js';
 
 export const dataSource = {
     stream: loadDataFromStream,
@@ -93,12 +93,7 @@ function buildDataset(rawData, rawResource, rawMeta, { encoding, size }) {
     };
 }
 
-const JSONXL_MAGIC_NUMBER = [0x00, 0x00, 0x4a, 0x53, 0x4f, 0x4e, 0x58, 0x4c]; // \0\0JSONXL
-function isJsonxl(chunk) {
-    return JSONXL_MAGIC_NUMBER.every((code, idx) => code === chunk[idx]);
-}
-
-async function parseJsonxl(iterator) {
+async function consumeChunksAsSingleTypedArray(iterator) {
     const chunks = [];
     let totalLength = 0;
 
@@ -118,67 +113,72 @@ async function parseJsonxl(iterator) {
         offset += array.length;
     }
 
-    // Decode data
-    return decodeJsonxl(combinedChunks);
+    return combinedChunks;
 }
 
-export function dataFromStream(stream, totalSize, setProgress) {
+export function dataFromStream(stream, extraEncodings, totalSize, setProgress) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const reader = stream.getReader();
     const streamStartTime = Date.now();
-    let encoding = 'json';
+    const encodings = [
+        ...normalizeEncodings(extraEncodings),
+        buildinEncodings.jsonxl,
+        buildinEncodings.json
+    ];
+    let encoding = 'unknown';
     let size = 0;
 
-    return reader.read().then(firstChunk => {
-        const streamConsumer = async function*() {
-            try {
-                while (true) {
-                    const { done, value } = firstChunk || await reader.read();
+    const streamConsumer = async function*(firstChunk) {
+        while (true) {
+            const { value, done } = firstChunk || await reader.read();
 
-                    firstChunk = undefined;
+            firstChunk = undefined;
 
-                    if (done) {
-                        await setProgress({
-                            done: true,
-                            elapsed: Date.now() - streamStartTime,
-                            units: 'bytes',
-                            completed: size,
-                            total: totalSize
-                        });
-                        break;
-                    }
-
-                    for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
-                        const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
-                            ? value
-                            : value.slice(offset, offset + CHUNK_SIZE);
-
-                        size += chunk.length;
-                        yield chunk;
-
-                        await setProgress({
-                            done: false,
-                            elapsed: Date.now() - streamStartTime,
-                            units: 'bytes',
-                            completed: size,
-                            total: totalSize
-                        });
-                    }
-                }
-            } finally {
-                reader.releaseLock();
+            if (done) {
+                await setProgress({
+                    done: true,
+                    elapsed: Date.now() - streamStartTime,
+                    units: 'bytes',
+                    completed: size,
+                    total: totalSize
+                });
+                break;
             }
-        };
 
-        if (isJsonxl(firstChunk.value)) {
-            // parse binary format (JSONXL)
-            encoding = 'jsonxl/snapshot9';
-            return parseJsonxl(streamConsumer());
+            for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
+                const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
+                    ? value
+                    : value.slice(offset, offset + CHUNK_SIZE);
+
+                size += chunk.length;
+                yield chunk;
+
+                await setProgress({
+                    done: false,
+                    elapsed: Date.now() - streamStartTime,
+                    units: 'bytes',
+                    completed: size,
+                    total: totalSize
+                });
+            }
+        }
+    };
+
+    return reader.read().then(firstChunk => {
+        for (const { name, test, streaming, decode } of encodings) {
+            if (test(firstChunk.value, firstChunk.done)) {
+                encoding = name;
+
+                return streaming
+                    ? decode(streamConsumer(firstChunk))
+                    : consumeChunksAsSingleTypedArray(streamConsumer(firstChunk)).then(decode);
+            }
         }
 
-        // parse standard JSON
-        return parseChunked(streamConsumer);
-    }).then(data => ({ data, encoding, size }));
+        throw new Error('No matched encoding found for the payload');
+    })
+        .finally(() => reader.releaseLock())
+        .then(data => ({ data, encoding, size }));
 }
 
 async function loadDataFromStreamInternal(request, progress) {
@@ -199,9 +199,9 @@ async function loadDataFromStreamInternal(request, progress) {
 
         const responseStart = new Date();
         const payloadSize = rawResource?.size;
-        const { validateData } = options || {};
+        const { validateData, encodings } = options || {};
         const { data: rawData, encoding, size } = explicitData ? { data: explicitData } : await stage('receive', () =>
-            dataFromStream(stream, Number(payloadSize) || 0, state => progress.asyncSet({
+            dataFromStream(stream, encodings, Number(payloadSize) || 0, state => progress.asyncSet({
                 stage: 'receive',
                 progress: state
             }))

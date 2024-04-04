@@ -16,6 +16,12 @@ import {
 } from '../core/utils/load-data.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
+const mixinEncodings = (host, options) => ({
+    ...options,
+    encodings: Array.isArray(options?.encodings)
+        ? [...options.encodings, ...host.encodings]
+        : host.encodings
+});
 
 export class App extends Widget {
     constructor(options = {}) {
@@ -170,7 +176,7 @@ export class App extends Widget {
     loadDataFromStream(stream, options) {
         return this.trackLoadDataProgress(loadDataFromStream(
             stream,
-            typeof options === 'number' ? { size: options } : options
+            mixinEncodings(this, typeof options === 'number' ? { size: options } : options)
         ));
     }
 
@@ -182,15 +188,15 @@ export class App extends Widget {
             this.cancelScheduledRender();
         }
 
-        return this.trackLoadDataProgress(loadDataFromEvent(event, options));
+        return this.trackLoadDataProgress(loadDataFromEvent(event, mixinEncodings(this, options)));
     }
 
     loadDataFromFile(file, options) {
-        return this.trackLoadDataProgress(loadDataFromFile(file, options));
+        return this.trackLoadDataProgress(loadDataFromFile(file, mixinEncodings(this, options)));
     }
 
     loadDataFromUrl(url, options) {
-        return this.trackLoadDataProgress(loadDataFromUrl(url, options));
+        return this.trackLoadDataProgress(loadDataFromUrl(url, mixinEncodings(this, options)));
     }
 
     unloadData() {
