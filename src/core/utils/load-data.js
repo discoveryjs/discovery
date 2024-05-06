@@ -165,8 +165,14 @@ export function dataFromStream(stream, extraEncodings, totalSize, setProgress) {
     };
 
     return reader.read().then(firstChunk => {
+        const { value, done } = firstChunk;
+
+        if ((!value || value.length === 0) && done) {
+            throw new Error('Empty payload');
+        }
+
         for (const { name, test, streaming, decode } of encodings) {
-            if (test(firstChunk.value, firstChunk.done)) {
+            if (test(value, done)) {
                 encoding = name;
 
                 return streaming

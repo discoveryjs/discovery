@@ -1,3 +1,7 @@
+## next
+
+- Added handling of empty payload on data loading (raise an error "Empty payload")
+
 ## 1.0.0-beta.83 (03-04-2024)
 
 - Added `encodings` option for `App`, `Widget` (has no effect for now), preloader (via `loadDataOptions`) and [Loading Data API](./load-data.md) (see [Encodings](./docs/encodings.md))
