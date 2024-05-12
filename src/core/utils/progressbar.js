@@ -1,4 +1,4 @@
-import Publisher from '../publisher.js';
+import { Observer } from '../observer.js';
 import { createElement } from './dom.js';
 
 export const loadStages = {
@@ -87,7 +87,7 @@ export function decodeStageProgress(stage, progress) {
     };
 }
 
-export default class Progressbar extends Publisher {
+export default class Progressbar extends Observer {
     constructor({ onTiming, onFinish, delay, domReady }) {
         super({ stage: null, progress: null, error: null });
         this.finished = false;

@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
-import Publisher from './publisher.js';
+import { Observer } from './observer.js';
 import { createElement } from '../core/utils/dom.js';
 
 const CONFIG = Symbol('config');
@@ -21,7 +21,7 @@ export default class PageRenderer extends Dict {
         this.lastPage = null;
         this.lastPageId = null;
 
-        this.pageOverscrolled = new Publisher(false);
+        this.pageOverscrolled = new Observer(false);
         this.setPageOverscroll = () => {};
 
         if (typeof IntersectionObserver === 'function') {

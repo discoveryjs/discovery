@@ -11,7 +11,7 @@ import Emitter from '../core/emitter.js';
 import PageRenderer from '../core/page.js';
 import ViewRenderer from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
-import Publisher from '../core/publisher.js';
+import { Observer } from '../core/observer.js';
 import inspector from '../extensions/inspector.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
@@ -74,7 +74,7 @@ export class Widget extends Emitter {
         this.logLevel = logLevels.includes(logLevel) ? logLevel : 'perf';
 
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
-        this.inspectMode = new Publisher(false);
+        this.inspectMode = new Observer(false);
         this.initDom();
 
         this.action = new ActionManager();

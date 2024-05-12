@@ -1,8 +1,8 @@
-import Publisher from '../publisher.js';
+import { Observer } from '../observer.js';
 
 const resizeObserverSupported = typeof ResizeObserver === 'function';
 
-export class ContentRect extends Publisher {
+export class ContentRect extends Observer {
     constructor() {
         super();
         this.el = null;

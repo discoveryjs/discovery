@@ -1,5 +1,5 @@
 import Emitter from '../core/emitter.js';
-import Publisher from '../core/publisher.js';
+import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';
 import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
 import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
@@ -79,11 +79,11 @@ export function connectToEmbedApp(iframe, onPreinit, onConnect) {
             this.commandMap = new Map();
             this.requestDataLoadToken = undefined;
             this.requestDataLoader = undefined;
-            this.pageHash = new Publisher('');
-            this.pageId = new Publisher('');
-            this.pageRef = new Publisher('');
-            this.pageParams = new Publisher({});
-            this.darkmode = new Publisher({ mode: 'unknown', value: 'unknown' },
+            this.pageHash = new Observer('');
+            this.pageId = new Observer('');
+            this.pageRef = new Observer('');
+            this.pageParams = new Observer({});
+            this.darkmode = new Observer({ mode: 'unknown', value: 'unknown' },
                 (prev, next) => prev.mode !== next.mode || prev.value !== next.value
             );
 

@@ -1,4 +1,4 @@
-import Publisher from '../publisher.js';
+import { Observer } from '../observer.js';
 import { streamFromBlob } from './stream-from-blob.js';
 import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
@@ -253,7 +253,7 @@ async function loadDataFromStreamInternal(request, progress) {
 }
 
 export function createLoadDataState(request, extra) {
-    const state = new Publisher();
+    const state = new Observer();
 
     return {
         state,

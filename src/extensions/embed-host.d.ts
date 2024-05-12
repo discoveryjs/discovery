@@ -18,7 +18,7 @@ export class Emitter<EventMap extends EmitterEventMap> {
     emit<K extends keyof EventMap>(event: K, ...args: Parameters<EventMap[K]>): boolean;
 }
 
-export interface ReadonlyPublisher<T> {
+export interface ReadonlyObserver<T> {
     readonly value: T;
     subscribe(fn: (newValue: T, unsubscribe: () => void) => void): () => void;
 }
@@ -47,11 +47,11 @@ export type EmbedAppEvents = {
 export type DataSource = ReadableStream | Response | File | Blob | ArrayBuffer | string | Iterable<ArrayBuffer | string>;
 
 export interface EmbedAppPublicApi extends Emitter<EmbedAppEvents> {
-    pageHash: ReadonlyPublisher<string>;
-    pageId: ReadonlyPublisher<string>;
-    pageRef: ReadonlyPublisher<string>;
-    pageParams: ReadonlyPublisher<PageParams>;
-    darkmode: ReadonlyPublisher<{ mode: string; value: string }>;
+    pageHash: ReadonlyObserver<string>;
+    pageId: ReadonlyObserver<string>;
+    pageRef: ReadonlyObserver<string>;
+    pageParams: ReadonlyObserver<PageParams>;
+    darkmode: ReadonlyObserver<{ mode: string; value: string }>;
 
     nav: NavSection & {
         primary: NavSection;

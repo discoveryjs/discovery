@@ -1,7 +1,7 @@
 import { passiveCaptureOptions } from './dom.js';
-import Publisher from '../publisher.js';
+import { Observer } from '../observer.js';
 
-const lastPointerXYPublisher = new Publisher({ x: 0, y: 0 }, (newCoords, oldCoords) =>
+const lastPointerXYPublisher = new Observer({ x: 0, y: 0 }, (newCoords, oldCoords) =>
     newCoords.x !== oldCoords.x || newCoords.y !== oldCoords.y
 );
 
