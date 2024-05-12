@@ -2,6 +2,18 @@ import { Observer } from '../observer.js';
 import { streamFromBlob } from './stream-from-blob.js';
 import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
+import type {
+    Encoding,
+    LoadDataOptions,
+    LoadDataRequest,
+    LoadDataRequestResult,
+    LoadDataResourceMetadata,
+    LoadDataResourceSource,
+    LoadDataResult,
+    LoadDataSource,
+    LoadDataState,
+    SetProgressCallack
+} from './load-data.types.js';
 
 export const dataSource = {
     stream: loadDataFromStream,
@@ -11,11 +23,11 @@ export const dataSource = {
     push: loadDataFromPush
 };
 
-function isObject(value) {
+function isObject(value: unknown) {
     return value !== null && typeof value === 'object';
 }
 
-function isSameOrigin(url) {
+function isSameOrigin(url: string) {
     try {
         return new URL(url, location.origin).origin === location.origin;
     } catch (e) {
@@ -23,18 +35,18 @@ function isSameOrigin(url) {
     }
 }
 
-function defaultFetchOk(response) {
+function defaultFetchOk(response: Response) {
     return response.ok;
 }
 
-function defaultFetchContentEncodedSize(response) {
+function defaultFetchContentEncodedSize(response: Response) {
     return (
         response.headers.get('x-file-encoded-size') ||
         response.headers.get('content-length')
     );
 }
 
-function defaultFetchContentSize(response) {
+function defaultFetchContentSize(response: Response) {
     return (
         response.headers.get('x-file-size') ||
         (isSameOrigin(response.url) && !response.headers.get('content-encoding')
@@ -43,16 +55,17 @@ function defaultFetchContentSize(response) {
     );
 }
 
-function defaultFetchContentCreatedAt(response) {
+function defaultFetchContentCreatedAt(response: Response) {
     return (
         response.headers.get('x-file-created-at') ||
-        response.headers.get('last-modified')
+        response.headers.get('last-modified') ||
+        undefined
     );
 }
 
 // FIXME: That's a temporary solution to make data loading work with a data wrapper
 // used in old versions of @discoveryjs/cli
-function isDiscoveryCliLegacyDataWrapper(input) {
+function isDiscoveryCliLegacyDataWrapper(input: any) {
     const keys = input ? Object.keys(input) : [];
     const expectedKeys = ['name', 'createdAt', 'elapsedTime', 'data'];
 
@@ -63,7 +76,9 @@ function isDiscoveryCliLegacyDataWrapper(input) {
     return true;
 }
 
-function buildDataset(rawData, rawResource, rawMeta, { encoding, size }) {
+function buildDataset(rawData: any, rawResource, { encoding, size }) {
+    let rawMeta = null;
+
     if (isDiscoveryCliLegacyDataWrapper(rawData)) {
         const { data, ...rawDataMeta } = rawData;
 
@@ -93,8 +108,8 @@ function buildDataset(rawData, rawResource, rawMeta, { encoding, size }) {
     };
 }
 
-async function consumeChunksAsSingleTypedArray(iterator) {
-    const chunks = [];
+async function consumeChunksAsSingleTypedArray(iterator: AsyncIterableIterator<Uint8Array>) {
+    const chunks: Uint8Array[] = [];
     let totalLength = 0;
 
     // Consume chunks
@@ -116,7 +131,12 @@ async function consumeChunksAsSingleTypedArray(iterator) {
     return combinedChunks;
 }
 
-export function dataFromStream(stream, extraEncodings, totalSize, setProgress) {
+export async function dataFromStream(
+    stream: ReadableStream<Uint8Array>,
+    extraEncodings: Encoding[] | undefined,
+    totalSize: number | undefined,
+    setProgress: SetProgressCallack
+) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const reader = stream.getReader();
     const streamStartTime = Date.now();
@@ -164,31 +184,38 @@ export function dataFromStream(stream, extraEncodings, totalSize, setProgress) {
         }
     };
 
-    return reader.read().then(firstChunk => {
+    try {
+        const firstChunk = await reader.read();
         const { value, done } = firstChunk;
 
-        if ((!value || value.length === 0) && done) {
+        if (done) {
             throw new Error('Empty payload');
         }
 
         for (const { name, test, streaming, decode } of encodings) {
-            if (test(value, done)) {
+            if (test(value)) {
                 encoding = name;
 
-                return streaming
+                const decodeRequest = streaming
                     ? decode(streamConsumer(firstChunk))
                     : consumeChunksAsSingleTypedArray(streamConsumer(firstChunk)).then(decode);
+                const data = await decodeRequest;
+
+                return { data, encoding, size };
             }
         }
 
         throw new Error('No matched encoding found for the payload');
-    })
-        .finally(() => reader.releaseLock())
-        .then(data => ({ data, encoding, size }));
+    } finally {
+        reader.releaseLock();
+    }
 }
 
-async function loadDataFromStreamInternal(request, progress) {
-    const stage = async (stage, fn) => {
+async function loadDataFromStreamInternal(
+    request: LoadDataRequest,
+    progress: Observer<LoadDataState>
+): Promise<LoadDataResult> {
+    const stage = async <T>(stage: 'request' | 'receive', fn: () => T): Promise<T> => {
         await progress.asyncSet({ stage });
         return await fn();
     };
@@ -205,25 +232,18 @@ async function loadDataFromStreamInternal(request, progress) {
 
         const responseStart = new Date();
         const payloadSize = rawResource?.size;
-        const { validateData, encodings } = options || {};
-        const { data: rawData, encoding, size } = explicitData ? { data: explicitData } : await stage('receive', () =>
+        const { encodings } = options || {};
+        const { data: rawData, encoding = 'unknown', size = undefined } = explicitData ? { data: explicitData } : await stage('receive', () =>
             dataFromStream(stream, encodings, Number(payloadSize) || 0, state => progress.asyncSet({
                 stage: 'receive',
                 progress: state
             }))
         );
 
-        // FIXME: add 'validate' stage?
-        const validationStart = new Date();
-        if (typeof validateData === 'function') {
-            validateData(data);
-        }
-
-        const finishingStart = new Date();
         await progress.asyncSet({ stage: 'received' });
 
+        const { data, resource, meta } = buildDataset(rawData, rawResource, { size, encoding });
         const finishedTime = new Date();
-        const { data, resource, meta } = buildDataset(rawData, rawResource, null, { size, encoding });
 
         return {
             loadMethod: method,
@@ -231,18 +251,15 @@ async function loadDataFromStreamInternal(request, progress) {
             meta,
             data,
             timing: {
-                time: finishedTime - requestStart,
+                time: Number(finishedTime) - Number(requestStart),
                 start: requestStart,
                 end: finishedTime,
-                requestTime: responseStart - requestStart,
+                requestTime: Number(responseStart) - Number(requestStart),
                 requestStart,
                 requestEnd: responseStart,
-                responseTime: validationStart - responseStart,
+                responseTime: Number(finishedTime) - Number(responseStart),
                 responseStart,
-                responseEnd: validationStart,
-                validateTime: finishingStart - validationStart,
-                validationStart,
-                validationEnd: finishingStart
+                responseEnd: finishedTime
             }
         };
     } catch (error) {
@@ -252,19 +269,19 @@ async function loadDataFromStreamInternal(request, progress) {
     }
 }
 
-export function createLoadDataState(request, extra) {
-    const state = new Observer();
+export function createLoadDataState(request: LoadDataRequest, extra?: any) {
+    const state = new Observer<LoadDataState>({ stage: 'inited' });
 
     return {
         state,
         // encapsulate logic into separate function since it's async,
-        // but we need to return publisher for progress tracking purposes
+        // but we need to return observer for progress tracking purposes
         result: loadDataFromStreamInternal(request, state),
         ...extra
     };
 }
 
-export function loadDataFromStream(stream, options) {
+export function loadDataFromStream(stream: ReadableStream, options: LoadDataOptions) {
     return createLoadDataState(
         () => ({
             method: 'stream',
@@ -275,19 +292,17 @@ export function loadDataFromStream(stream, options) {
     );
 }
 
-export function loadDataFromFile(file, options) {
+export function loadDataFromFile(file: File, options: LoadDataOptions) {
     const resource = extractResourceMetadata(file);
 
     return createLoadDataState(
-        () => {
-            return {
-                method: 'file',
-                stream: streamFromBlob(file),
-                resource: options?.resource || resource, // options.resource takes precedence over an extracted resource
-                options
-            };
-        },
-        { title: 'Load data from file: ' + (resource.name || 'unknown') }
+        () => ({
+            method: 'file',
+            stream: streamFromBlob(file),
+            resource: options?.resource || resource, // options.resource takes precedence over an extracted resource
+            options
+        }),
+        { title: 'Load data from file: ' + (resource?.name || 'unknown') }
     );
 }
 
@@ -305,7 +320,7 @@ export function loadDataFromEvent(event, options) {
     return loadDataFromFile(file, options);
 }
 
-export function loadDataFromUrl(url, options) {
+export function loadDataFromUrl(url: string, options: LoadDataOptions) {
     options = options || {};
 
     return createLoadDataState(
@@ -313,7 +328,7 @@ export function loadDataFromUrl(url, options) {
             const response = await fetch(url, options.fetch);
             const resource = extractResourceMetadata(response, options);
 
-            if (resource) {
+            if (resource && response.body) {
                 return {
                     method: 'fetch',
                     stream: response.body,
@@ -323,7 +338,7 @@ export function loadDataFromUrl(url, options) {
             }
 
             const contentType = response.headers.get('content-type') || '';
-            let error = await response.text();
+            let error: any = await response.text();
 
             if (contentType.toLowerCase().startsWith('application/json')) {
                 try {
@@ -340,8 +355,8 @@ export function loadDataFromUrl(url, options) {
     );
 }
 
-export function loadDataFromPush(options) {
-    let controller;
+export function loadDataFromPush(options: LoadDataOptions) {
+    let controller: ReadableStreamDefaultController | null;
     const stream = new ReadableStream({
         start(controller_) {
             controller = controller_;
@@ -350,17 +365,16 @@ export function loadDataFromPush(options) {
             controller = null;
         }
     });
-    let resolveRequest;
-    let pushResource;
-    // let rejectRequest;
-    const request = new Promise((resolve) => {
-        resolveRequest = (resource) => resolve({
+
+    let resolveRequest: (resource?: LoadDataResourceMetadata) => void;
+    let pushResource: LoadDataResourceMetadata | null = null;
+    const request = new Promise<LoadDataRequestResult>((resolve) => {
+        resolveRequest = resource => resolve({
             method: 'push',
             stream,
-            resource: (pushResource = resource) || options.resource, // resource takes precedence over options.resource
+            resource: resource ? (pushResource = resource) : options.resource, // resource takes precedence over options.resource
             options
-        }) || (resolveRequest = () => {});
-        // rejectRequest = reject;
+        });
     });
 
     options = options || {};
@@ -368,23 +382,25 @@ export function loadDataFromPush(options) {
     return createLoadDataState(
         () => request,
         {
-            start(resource) {
+            start(resource: LoadDataResourceMetadata) {
                 resolveRequest(resource);
             },
-            push(chunk) {
+            push(chunk: Uint8Array) {
                 resolveRequest();
-                controller.enqueue(chunk);
+                controller?.enqueue(chunk);
             },
             // error(error) {
             //     rejectRequest(error);
             // },
-            finish(encodedSize) {
-                controller.close();
+            finish(encodedSize?: number) {
+                controller?.close();
                 controller = null;
 
-                if (isFinite(encodedSize) && pushResource) {
+                if (encodedSize !== undefined && isFinite(encodedSize) && pushResource !== null) {
                     pushResource.encodedSize = Number(encodedSize);
                 }
+
+                pushResource = null;
             }
         }
     );
@@ -409,12 +425,15 @@ export function syncLoaderWithProgressbar({ result, state }, progressbar) {
     );
 }
 
-export function extractResourceMetadata(source, options) {
+export function extractResourceMetadata(
+    source: LoadDataResourceSource,
+    options?: LoadDataOptions
+): LoadDataResourceMetadata | undefined {
     if (source instanceof Response) {
         const isResponseOk = options?.isResponseOk || defaultFetchOk;
         const getContentSize = options?.getContentSize || defaultFetchContentSize;
         const getContentEncodedSize = options?.getContentEncodedSize || defaultFetchContentEncodedSize;
-        const getContentCreatedAt = options?.getContentSize || defaultFetchContentCreatedAt;
+        const getContentCreatedAt = options?.getContentCreatedAt || defaultFetchContentCreatedAt;
 
         if (isResponseOk(source)) {
             return {
@@ -455,17 +474,29 @@ export function extractResourceMetadata(source, options) {
     }
 }
 
-function getGeneratorFromSource(source) {
-    if (typeof source === 'string' || DataView.isView(source)) {
+function getGeneratorFromSource(source: LoadDataSource) {
+    if (ArrayBuffer.isView(source)) {
         return function*() {
-            yield new TextEncoder().encode(source);
+            yield new Uint8Array((source as ArrayBufferView).buffer);
         };
+    }
+
+    if (typeof source === 'string') {
+        source = [source];
     }
 
     // allow arrays of strings only
     if (Array.isArray(source)) {
         if (source.some(elem => typeof elem !== 'string')) {
             return;
+        }
+
+        return function*() {
+            const encoder = new TextEncoder();
+
+            for (const str of (source as string[])) {
+                yield encoder.encode(str);
+            }
         }
     }
 
@@ -480,7 +511,7 @@ function getGeneratorFromSource(source) {
     }
 }
 
-export function getReadableStreamFromSource(source) {
+export function getReadableStreamFromSource(source: any) {
     if (source instanceof ReadableStream) {
         return source;
     }

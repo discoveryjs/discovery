@@ -1,4 +1,6 @@
-export function validateEncodingConfig(config) {
+import type { Encoding } from '../utils/load-data.types.js';
+
+export function validateEncodingConfig(config: any) {
     if (!config || typeof config !== 'object') {
         return 'value is not an object';
     }
@@ -20,24 +22,33 @@ export function validateEncodingConfig(config) {
     return false;
 }
 
-export function normalizeEncodingConfig(config) {
+export function normalizeEncodingConfig(config: any): Encoding {
     const error = validateEncodingConfig(config);
 
     if (error) {
         throw new Error(`Bad encoding config${config?.name ? ` "${config.name}"` : ''}: ${error}`);
     }
 
-    const { name, test, streaming, decode } = config;
+    const { name, test, streaming, decode } = config as Encoding;
 
-    return Object.freeze({
-        name: name || 'unknown',
-        test,
-        streaming: Boolean(streaming),
-        decode
-    });
+    return Object.freeze(
+        streaming
+        ? {
+            name: name || 'unknown',
+            test,
+            streaming: true,
+            decode
+        }
+        : {
+            name: name || 'unknown',
+            test,
+            streaming: false,
+            decode
+        }
+    );
 }
 
-export function normalizeEncodings(encodings) {
+export function normalizeEncodings(encodings?: any[]): Encoding[] {
     if (!encodings) {
         return [];
     }
