@@ -59,14 +59,14 @@ export type LoadDataRequestResult = {
     data?: any;
 }
 
-export type LoadDataResult = {
+export type Dataset = {
     loadMethod: LoadDataMethod;
-    resource: LoadDataResource;
+    resource: DatasetResource;
     meta: any;
     data: any;
-    timing: LoadDataTimings;
+    timing: DatasetTimings;
 };
-export type LoadDataResource = {
+export type DatasetResource = {
     type: string;
     name: string;
     encoding: string;
@@ -74,7 +74,7 @@ export type LoadDataResource = {
     encodedSize: number | null;
     createdAt: Date;
 };
-export type LoadDataTimings = {
+export type DatasetTimings = {
     time: number;
     start: Date;
     end: Date;

@@ -9,7 +9,7 @@ import type {
     LoadDataRequestResult,
     LoadDataResourceMetadata,
     LoadDataResourceSource,
-    LoadDataResult,
+    Dataset,
     LoadDataSource,
     LoadDataState,
     SetProgressCallack
@@ -214,7 +214,7 @@ export async function dataFromStream(
 async function loadDataFromStreamInternal(
     request: LoadDataRequest,
     progress: Observer<LoadDataState>
-): Promise<LoadDataResult> {
+): Promise<Dataset> {
     const stage = async <T>(stage: 'request' | 'receive', fn: () => T): Promise<T> => {
         await progress.asyncSet({ stage });
         return await fn();
