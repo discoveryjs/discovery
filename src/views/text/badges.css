@@ -23,9 +23,12 @@
 }
 
 .view-badge[href]:hover,
-.view-pill-badge[href]:hover {
+.view-badge.onclick:hover,
+.view-pill-badge[href]:hover,
+.view-pill-badge.onclick:hover {
     color: var(--discovery-color);
     background-image: linear-gradient(to top, rgba(0, 0, 0, .1), rgba(0, 0, 0, .1));
+    cursor: pointer;
 }
 
 .view-badge > .prefix {

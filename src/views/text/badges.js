@@ -22,6 +22,7 @@ export default function(host) {
         content: #.content,
         href,
         external,
+        onClick: #.onClick,
         prefix,
         postfix
     } | entries().({
@@ -39,6 +40,7 @@ export default function(host) {
             content,
             href,
             external,
+            onClick,
             prefix,
             postfix
         } = prepareProps(data, config);
@@ -65,7 +67,15 @@ export default function(host) {
         }
 
         if (external) {
-            el.target = '_blank';
+            el.setAttribute('target', '_blank');
+        }
+
+        if (typeof onClick === 'function') {
+            el.classList.add('onclick');
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                onClick(el, data, context);
+            });
         }
 
         maybeFix(el, 'prefix', prefix);
