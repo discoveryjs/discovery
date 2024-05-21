@@ -17,50 +17,49 @@ export default (view, group) => ({
                     '* `color` – default background color',
                     '* `textColor` – default text color',
                     '* `darkColor` – background color in dark mode',
-                    '* `textColor` – text color in dark mode'
+                    '* `darkTextColor` – text color in dark mode'
                 ].join('\n')
             },
             demo: {
                 view,
-                data: {
-                    text: 'Colored badge',
-                    color: 'rgba(237, 177, 9, 0.35)',
-                    textColor: 'orange',
-                    darkColor: '#ffff00',
-                    darkTextColor: 'black'
-                }
+                text: 'Colored badge',
+                color: 'rgba(237, 177, 9, 0.35)',
+                textColor: 'orange',
+                darkColor: '#ffff00',
+                darkTextColor: 'black'
             }
         },
         {
             title: 'As a link',
             demo: {
                 view,
-                data: {
-                    text: 'Link to something',
-                    href: '#',
-                    external: true
-                }
+                text: 'Link to something',
+                href: '#',
+                external: true
+            }
+        },
+        {
+            title: 'Using onClick handler',
+            demo: {
+                view,
+                text: 'Show "Hello world"',
+                onClick: Function('return () => alert("Hello world!")')()
             }
         },
         {
             title: 'Prefix and postfix',
             demo: {
                 view,
-                data: {
-                    prefix: 'prefix',
-                    text: 'link',
-                    postfix: 'postfix'
-                }
+                prefix: 'prefix',
+                text: 'link',
+                postfix: 'postfix'
             }
         },
         {
-            title: 'With a hint',
+            title: 'Complex content',
             demo: {
                 view,
-                data: {
-                    text: 'text',
-                    hint: 'hint'
-                }
+                content: ['text:"text "', 'link:{ href: "#example" }']
             }
         }
     ]
