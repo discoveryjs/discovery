@@ -27,7 +27,7 @@ export default function(host) {
             queryEditor.el,
             viewEditor.el
         ]);
-        const discoverContentEl = createElement('div', 'discovery-content');
+        const discoverContentEl = createElement('div', 'discovery-render-content');
         const layout = [
             ...header.el,
             discoverEditorEl,

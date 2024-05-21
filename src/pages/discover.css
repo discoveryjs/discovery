@@ -6,7 +6,7 @@
 .page-discovery {
     padding-top: 20px !important;
 }
-.discovery:not([data-dzen]) .page-discovery > .discovery-content {
+.discovery:not([data-dzen]) .page-discovery > .discovery-render-content {
     min-height: calc(100vh - 121px);
 }
 
@@ -15,7 +15,7 @@
 ********************************/
 
 .page-discovery > .discovery-editor .discovery-error,
-.page-discovery > .discovery-content > .discovery-error {
+.page-discovery > .discovery-render-content > .discovery-error {
     display: block;
     overflow: hidden;
     border-left: 3px solid rgba(255, 0, 0, 0.8);
@@ -28,7 +28,7 @@
     font-size: 11px;
 }
 .page-discovery > .discovery-editor .discovery-error::before,
-.page-discovery > .discovery-content > .discovery-error::before {
+.page-discovery > .discovery-render-content > .discovery-error::before {
     display: block;
     margin-bottom: .5em;
     font-size: 16px;
@@ -36,6 +36,6 @@
 .page-discovery > .discovery-editor .query-error::before {
     content: 'Query error';
 }
-.page-discovery > .discovery-content > .render-error::before {
+.page-discovery > .discovery-render-content > .render-error::before {
     content: 'Render error';
 }
