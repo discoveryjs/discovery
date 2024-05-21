@@ -23,8 +23,7 @@ export default function(host) {
         href,
         external,
         prefix,
-        postfix,
-        hint
+        postfix
     } | entries().({
         key,
         value: #[key] != undefined ? #[key] : value
@@ -41,8 +40,7 @@ export default function(host) {
             href,
             external,
             prefix,
-            postfix,
-            hint
+            postfix
         } = prepareProps(data, config);
         let render;
 
@@ -68,10 +66,6 @@ export default function(host) {
 
         if (external) {
             el.target = '_blank';
-        }
-
-        if (hint) {
-            el.title = hint;
         }
 
         maybeFix(el, 'prefix', prefix);

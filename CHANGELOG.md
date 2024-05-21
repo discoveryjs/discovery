@@ -1,6 +1,7 @@
 ## next
 
 - Added handling of empty payload on data loading (raise an error "Empty payload")
+- Removed `hint` option for `badge` and `pill-badge` views, use `tooltip` option instead
 
 ## 1.0.0-beta.83 (03-04-2024)
 
