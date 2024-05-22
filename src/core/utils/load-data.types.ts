@@ -1,3 +1,5 @@
+import type { Observer } from '../observer.js';
+
 export type Encoding =
     | {
         name: string;
@@ -12,17 +14,22 @@ export type Encoding =
         decode: (payload: Uint8Array) => any;
     };
 
-export type LoadDataState = 
+export type LoadDataState = {
+    state: Observer<LoadDataStage>;
+    result: Promise<Dataset>;
+}
+
+export type LoadDataStage = 
     | {
         stage: 'inited' | 'request' | 'receive' | 'received',
-        progress?: LoadDataStateProgress
+        progress?: LoadDataStageProgress
     }
     | {
         stage: 'error',
         error: Error
     };
-export type SetProgressCallack = (state: LoadDataStateProgress) => void;
-export type LoadDataStateProgress = {
+export type SetProgressCallack = (state: LoadDataStageProgress) => void;
+export type LoadDataStageProgress = {
     done: boolean;
     elapsed: number;
     units?: 'bytes';
@@ -40,11 +47,16 @@ export type LoadDataResourceMetadata = {
     encodedSize?: number;
     createdAt?: string | number;
 };
-export type LoadDataOptions = {
+export type LoadDataRequestOptions = {
     encodings?: Encoding[];
+}
+export type LoadDataBaseOptions = LoadDataRequestOptions & {
     resource?: LoadDataResourceMetadata;
-
+}
+export type LoadDataFetchOptions = LoadDataBaseOptions & ExtractResourceOptions & {
     fetch?: RequestInit;
+}
+export type ExtractResourceOptions = {
     isResponseOk?: (response: Response) => boolean;
     getContentSize?: (response: Response) => string | undefined;
     getContentEncodedSize?: (response: Response) => string | undefined;
@@ -55,7 +67,7 @@ export type LoadDataRequestResult = {
     method: LoadDataMethod;
     stream: ReadableStream<Uint8Array>;
     resource?: LoadDataResourceMetadata;
-    options: LoadDataOptions;
+    options: LoadDataRequestOptions;
     data?: any;
 }
 

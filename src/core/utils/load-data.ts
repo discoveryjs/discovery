@@ -4,15 +4,18 @@ import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
 import type {
     Encoding,
-    LoadDataOptions,
     LoadDataRequest,
     LoadDataRequestResult,
     LoadDataResourceMetadata,
     LoadDataResourceSource,
     Dataset,
     LoadDataSource,
+    LoadDataStage,
+    SetProgressCallack,
     LoadDataState,
-    SetProgressCallack
+    LoadDataBaseOptions,
+    LoadDataFetchOptions,
+    ExtractResourceOptions
 } from './load-data.types.js';
 
 export const dataSource = {
@@ -76,7 +79,7 @@ function isDiscoveryCliLegacyDataWrapper(input: any) {
     return true;
 }
 
-function buildDataset(rawData: any, rawResource, { encoding, size }) {
+function buildDataset(rawData: any, rawResource: any, { encoding, size }) {
     let rawMeta = null;
 
     if (isDiscoveryCliLegacyDataWrapper(rawData)) {
@@ -90,7 +93,7 @@ function buildDataset(rawData: any, rawResource, { encoding, size }) {
     const data = rawData;
     const meta = rawMeta || {};
     // eslint-disable-next-line no-unused-vars
-    const { type, name, encoding: ignore1, size: ignore2, encodedSize, createdAt, ...restResource } = rawResource;
+    const { type, name, encoding: ignore1, size: ignore2, encodedSize, createdAt, ...restResource } = rawResource || {};
     const resource = {
         type: type || 'unknown',
         name: name || 'unknown',
@@ -213,7 +216,7 @@ export async function dataFromStream(
 
 async function loadDataFromStreamInternal(
     request: LoadDataRequest,
-    progress: Observer<LoadDataState>
+    progress: Observer<LoadDataStage>
 ): Promise<Dataset> {
     const stage = async <T>(stage: 'request' | 'receive', fn: () => T): Promise<T> => {
         await progress.asyncSet({ stage });
@@ -269,8 +272,8 @@ async function loadDataFromStreamInternal(
     }
 }
 
-export function createLoadDataState(request: LoadDataRequest, extra?: any) {
-    const state = new Observer<LoadDataState>({ stage: 'inited' });
+export function createLoadDataState(request: LoadDataRequest, extra?: any): LoadDataState {
+    const state = new Observer<LoadDataStage>({ stage: 'inited' });
 
     return {
         state,
@@ -281,7 +284,7 @@ export function createLoadDataState(request: LoadDataRequest, extra?: any) {
     };
 }
 
-export function loadDataFromStream(stream: ReadableStream, options: LoadDataOptions) {
+export function loadDataFromStream(stream: ReadableStream, options: LoadDataBaseOptions) {
     return createLoadDataState(
         () => ({
             method: 'stream',
@@ -292,7 +295,7 @@ export function loadDataFromStream(stream: ReadableStream, options: LoadDataOpti
     );
 }
 
-export function loadDataFromFile(file: File, options: LoadDataOptions) {
+export function loadDataFromFile(file: File, options: LoadDataBaseOptions) {
     const resource = extractResourceMetadata(file);
 
     return createLoadDataState(
@@ -306,9 +309,9 @@ export function loadDataFromFile(file: File, options: LoadDataOptions) {
     );
 }
 
-export function loadDataFromEvent(event, options) {
-    const source = event.dataTransfer || event.target;
-    const file = source && source.files && source.files[0];
+export function loadDataFromEvent(event: DragEvent | InputEvent, options: LoadDataBaseOptions) {
+    const source = event.dataTransfer || (event.target as HTMLInputElement | null);
+    const file = source?.files?.[0];
 
     event.stopPropagation();
     event.preventDefault();
@@ -320,7 +323,7 @@ export function loadDataFromEvent(event, options) {
     return loadDataFromFile(file, options);
 }
 
-export function loadDataFromUrl(url: string, options: LoadDataOptions) {
+export function loadDataFromUrl(url: string, options: LoadDataFetchOptions) {
     options = options || {};
 
     return createLoadDataState(
@@ -355,7 +358,7 @@ export function loadDataFromUrl(url: string, options: LoadDataOptions) {
     );
 }
 
-export function loadDataFromPush(options: LoadDataOptions) {
+export function loadDataFromPush(options: LoadDataBaseOptions) {
     let controller: ReadableStreamDefaultController | null;
     const stream = new ReadableStream({
         start(controller_) {
@@ -406,12 +409,14 @@ export function loadDataFromPush(options: LoadDataOptions) {
     );
 }
 
-export function syncLoaderWithProgressbar({ result, state }, progressbar) {
+export function syncLoaderWithProgressbar({ result, state }: LoadDataState, progressbar) {
     return new Promise((resolve, reject) =>
-        state.subscribeSync(({ stage, progress, error }, unsubscribe) => {
-            if (error) {
+        state.subscribeSync((loadDataState, unsubscribe) => {
+            const { stage } = loadDataState;
+
+            if (stage === 'error') {
                 unsubscribe();
-                reject(error);
+                reject(loadDataState.error);
                 return;
             }
 
@@ -420,14 +425,14 @@ export function syncLoaderWithProgressbar({ result, state }, progressbar) {
                 resolve(result);
             }
 
-            return progressbar.setState({ stage, progress });
+            return progressbar.setState({ stage, progress: loadDataState.progress });
         })
     );
 }
 
 export function extractResourceMetadata(
     source: LoadDataResourceSource,
-    options?: LoadDataOptions
+    options?: ExtractResourceOptions
 ): LoadDataResourceMetadata | undefined {
     if (source instanceof Response) {
         const isResponseOk = options?.isResponseOk || defaultFetchOk;

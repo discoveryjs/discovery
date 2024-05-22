@@ -1,4 +1,4 @@
-type OnChangeCallback<T> = (value: T, unsubscribe?: () => void) => void | Promise<void>;
+type OnChangeCallback<T> = (value: T, unsubscribe: () => void) => void | Promise<void>;
 type Subscriber<T> = {
     callback: OnChangeCallback<T> | null;
     thisArg?: any;
@@ -28,7 +28,7 @@ export class Observer<T> {
         };
     }
 
-    subscribe(callback: OnChangeCallback<T>, thisArg: any) {
+    subscribe(callback: OnChangeCallback<T>, thisArg?: any) {
         this.subscriber = {
             callback,
             thisArg,
@@ -38,7 +38,7 @@ export class Observer<T> {
         return () => this.unsubscribe(callback, thisArg);
     }
 
-    subscribeSync(callback: OnChangeCallback<T>, thisArg: any) {
+    subscribeSync(callback: OnChangeCallback<T>, thisArg?: any) {
         const unsubscribe = this.subscribe(callback, thisArg);
 
         // sync
@@ -47,7 +47,7 @@ export class Observer<T> {
         return unsubscribe;
     }
 
-    unsubscribe(callback: OnChangeCallback<T>, thisArg: any) {
+    unsubscribe(callback: OnChangeCallback<T>, thisArg?: any) {
         let prev: this | Subscriber<T> = this;
         let cursor = this.subscriber;
 
