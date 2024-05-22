@@ -390,7 +390,7 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
     if (condition('when', viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder)) {
         // immediately append a view insert point (a placeholder)
         const getData = 'data' in config
-            ? Promise.resolve(viewRenderer.host.query(config.data, queryData, context))
+            ? Promise.resolve().then(() => viewRenderer.host.query(config.data, queryData, context))
             : Promise.resolve(queryData);
 
         // resolve data and render a view when ready

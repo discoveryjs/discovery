@@ -7,6 +7,7 @@
 - Removed fallback methods for obtaining a `ReadableStream` from a `Blob`
 - Changed `getReadableStreamFromSource()` util function to use a `Blob` to produce a `ReadableStream` from a value
 - Fixed resolving a value for main content for `badge` views
+- Fixed crashing the entire render tree on an exception in a `data` query; now, crashes are isolated to the affected view
 - Fixed discovery page main content styling
 
 ## 1.0.0-beta.83 (03-04-2024)
