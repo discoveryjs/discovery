@@ -5,6 +5,7 @@
 - Added `onClick` option for `badge` views
 - Fixed resolving a value for main content for `badge` views
 - Removed `hint` option for `badge` views, use `tooltip` option instead
+- Removed fallback methods for obtaining a `ReadableStream` from a `Blob`
 - Fixed discovery page main content styling
 
 ## 1.0.0-beta.83 (03-04-2024)

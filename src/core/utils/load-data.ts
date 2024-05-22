@@ -1,5 +1,4 @@
 import { Observer } from '../observer.js';
-import { streamFromBlob } from './stream-from-blob.js';
 import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
 import type {
@@ -301,7 +300,7 @@ export function loadDataFromFile(file: File, options: LoadDataBaseOptions) {
     return createLoadDataState(
         () => ({
             method: 'file',
-            stream: streamFromBlob(file),
+            stream: file.stream(),
             resource: options?.resource || resource, // options.resource takes precedence over an extracted resource
             options
         }),
@@ -526,7 +525,7 @@ export function getReadableStreamFromSource(source: any) {
     }
 
     if (source instanceof Blob) {
-        return streamFromBlob(source);
+        return source.stream();
     }
 
     return new ReadableStream({
