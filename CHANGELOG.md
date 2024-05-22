@@ -1,6 +1,7 @@
 ## next
 
 - Added handling of empty payload on data loading (raise an error "Empty payload")
+- Modified the link view to allow all options to be passed via config, in addition to data
 - Added `onClick` option for `badge` views
 - Fixed resolving a value for main content for `badge` views
 - Removed `hint` option for `badge` views, use `tooltip` option instead

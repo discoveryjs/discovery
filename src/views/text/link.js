@@ -2,19 +2,30 @@
 import usage from './link.usage.js';
 
 export default function(host) {
+    const prepareProps = host.queryFn(`is not array? | {
+        text: # has no 'content' ? is string ?: text,
+        content: #.content,
+        href,
+        external,
+        onClick: #.onClick
+    } | entries().({
+        key,
+        value: # has key ? #[key] : value
+    }).fromEntries() | {
+        $text; $href;
+        ...,
+        text: $text | is not undefined or no $href ?: $href,
+        href: $href | is not undefined or no $text ?: $text
+    }`);
+
     host.view.define('link', function(el, config, data, context) {
-        const { content, onClick } = config;
-        let { href, text, external } = data || {};
-
-        if (typeof data === 'string') {
-            href = text = data;
-        }
-
-        if (text === undefined && href) {
-            text = href;
-        } else if (href === undefined && text) {
-            href = text;
-        }
+        let {
+            text,
+            content,
+            href,
+            external,
+            onClick
+        } = prepareProps(data, config);
 
         if (href) {
             el.href = href;

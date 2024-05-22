@@ -35,6 +35,32 @@ export default (view, group) => ({
             ]
         },
         {
+            title: 'Using data as source of options',
+            beforeDemo: {
+                view: 'md',
+                source: [
+                    'The following properties are taken from the data when the appropriate options are not specified for a legacy reasons (is subject to remove in the future):',
+                    '- `color`',
+                    '- `textColor`',
+                    '- `darkColor`',
+                    '- `darkTextColor`',
+                    '- `text`',
+                    '- `href`',
+                    '- `external`',
+                    '- `prefix`',
+                    '- `postfix`'
+                ].join('\n')
+            },
+            highlightProps: ['data'],
+            demo: {
+                view,
+                data: {
+                    text: 'demo',
+                    href: '#example'
+                }
+            }
+        },
+        {
             title: 'Custom colors',
             beforeDemo: {
                 view: 'md',
@@ -57,6 +83,7 @@ export default (view, group) => ({
         },
         {
             title: 'As a link',
+            highlightProps: ['href', 'external'],
             demo: {
                 view,
                 text: 'Link to something',
@@ -66,6 +93,7 @@ export default (view, group) => ({
         },
         {
             title: 'Using onClick handler',
+            highlightProps: ['onClick'],
             demo: {
                 view,
                 text: 'Show "Hello world"',
@@ -74,6 +102,7 @@ export default (view, group) => ({
         },
         {
             title: 'Prefix and postfix',
+            highlightProps: ['prefix', 'postfix'],
             demo: {
                 view,
                 prefix: 'prefix',
@@ -83,6 +112,7 @@ export default (view, group) => ({
         },
         {
             title: 'Complex content',
+            highlightProps: ['content'],
             demo: {
                 view,
                 content: ['text:"text "', 'link:{ href: "#example" }']
