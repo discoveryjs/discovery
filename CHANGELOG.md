@@ -1,8 +1,9 @@
 ## next
 
 - Added handling of empty payload on data loading (raise an error "Empty payload")
-- Added `onClick` option for `badge` and `pill-badge` views
-- Removed `hint` option for `badge` and `pill-badge` views, use `tooltip` option instead
+- Added `onClick` option for `badge` views
+- Fixed resolving a value for main content for `badge` views
+- Removed `hint` option for `badge` views, use `tooltip` option instead
 - Fixed discovery page main content styling
 
 ## 1.0.0-beta.83 (03-04-2024)

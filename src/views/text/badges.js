@@ -18,7 +18,7 @@ export default function(host) {
         textColor,
         darkColor,
         darkTextColor,
-        text: is (string or number or boolean) ?: text,
+        text: # has no 'content' ? is (string or number or boolean) ?: text,
         content: #.content,
         href,
         external,
@@ -27,7 +27,7 @@ export default function(host) {
         postfix
     } | entries().({
         key,
-        value: #[key] != undefined ? #[key] : value
+        value: # has key ? #[key] : value
     }).fromEntries()`);
 
     function render(el, config, data, context) {

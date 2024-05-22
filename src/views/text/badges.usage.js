@@ -9,6 +9,32 @@ export default (view, group) => ({
             demo: group.map(name => `${name}:"${name}"`)
         },
         {
+            title: 'Displaying content',
+            beforeDemo: {
+                view: 'md',
+                source: [
+                    'There are several ways to specify the main content of a badge:',
+                    '- `content` option – allows to specify any renderable content and has the highest precedence',
+                    '- `text` option – used when `content` is omitted or falsy; it renders as plain text',
+                    '- When both `content` and `text` options are omitted, the `data` is used for content:',
+                    '  - If `data` is a string, a number, or a boolean value, it is used as the `text` value',
+                    '  - If `data` is an object, the value of `text` property of `data` coerced to a string is used',
+                    '  - Otherwise, render an undefined'
+                ].join('\n')
+            },
+            demo: [
+                { view, data: '"data"', text: 'text', content: 'text:"RENDER"' },
+                { view, data: '"data"', text: 'RENDER', content: '=undefined' },
+                { view, data: '"data"', content: '=undefined' },
+                { view, data: '"data"', text: 'RENDER' },
+                { view, data: '"data"', text: '=undefined' },
+                { view, data: '"RENDER"' },
+                { view, data: '{ text: "RENDER" }' },
+                { view, data: '{}' },
+                { view, data: [1, 2, 3] }
+            ]
+        },
+        {
             title: 'Custom colors',
             beforeDemo: {
                 view: 'md',
