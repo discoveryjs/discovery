@@ -8,7 +8,6 @@ import type {
     LoadDataResourceMetadata,
     LoadDataResourceSource,
     Dataset,
-    LoadDataSource,
     LoadDataStage,
     SetProgressCallack,
     LoadDataState,
@@ -25,7 +24,7 @@ export const dataSource = {
     push: loadDataFromPush
 };
 
-function isObject(value: unknown) {
+function isObject(value: unknown): value is Object {
     return value !== null && typeof value === 'object';
 }
 
@@ -478,41 +477,26 @@ export function extractResourceMetadata(
     }
 }
 
-function getGeneratorFromSource(source: LoadDataSource) {
-    if (ArrayBuffer.isView(source)) {
-        return function*() {
-            yield new Uint8Array((source as ArrayBufferView).buffer);
-        };
+export function convertToBlobIfPossible(source: any) {
+    let blobParts = source;
+
+    if (typeof blobParts === 'string' ||
+        ArrayBuffer.isView(blobParts) ||
+        blobParts instanceof ArrayBuffer ||
+        (blobParts &&
+            Symbol.iterator in blobParts === false &&
+            Symbol.asyncIterator in blobParts === false)
+    ) {
+        blobParts = [blobParts];
     }
 
-    if (typeof source === 'string') {
-        source = [source];
+    // when blobParts iterable then it suitable to be used as source for a Blob
+    if (blobParts && Symbol.iterator in blobParts) {
+        return new Blob(blobParts as BlobPart[]);
     }
-
-    // allow arrays of strings only
-    if (Array.isArray(source)) {
-        if (source.some(elem => typeof elem !== 'string')) {
-            return;
-        }
-
-        return function*() {
-            const encoder = new TextEncoder();
-
-            for (const str of (source as string[])) {
-                yield encoder.encode(str);
-            }
-        }
-    }
-
-    if (isObject(source)) {
-        if (Symbol.asyncIterator in source) {
-            return source[Symbol.asyncIterator];
-        }
-
-        if (Symbol.iterator in source) {
-            return source[Symbol.iterator];
-        }
-    }
+    
+    // source is not iterable
+    return source;
 }
 
 export function getReadableStreamFromSource(source: any) {
@@ -521,8 +505,14 @@ export function getReadableStreamFromSource(source: any) {
     }
 
     if (source instanceof Response) {
+        if (source.body === null) {
+            throw new Error('Response has no body');
+        }
+
         return source.body;
     }
+
+    source = convertToBlobIfPossible(source);
 
     if (source instanceof Blob) {
         return source.stream();
@@ -530,10 +520,12 @@ export function getReadableStreamFromSource(source: any) {
 
     return new ReadableStream({
         start() {
-            const generator = getGeneratorFromSource(source);
+            const generator = source
+                ? source[Symbol.asyncIterator]
+                : undefined;
 
             if (!generator) {
-                throw new Error('Bad value type (can\'t convert to a generator)');
+                throw new Error('Bad value type (can\'t convert to a stream)');
             }
 
             this.iterator = generator();

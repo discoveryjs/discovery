@@ -38,7 +38,6 @@ export type LoadDataStageProgress = {
 };
 
 export type LoadDataMethod = 'stream' | 'file' | 'fetch' | 'push';
-export type LoadDataSource = ArrayBufferView | string | string[] | Iterable<unknown> | AsyncIterable<unknown>;
 export type LoadDataResourceSource = Response | File | Blob | ArrayBufferView | string;
 export type LoadDataResourceMetadata = {
     type?: string;

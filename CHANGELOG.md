@@ -1,11 +1,12 @@
 ## next
 
 - Added handling of empty payload on data loading (raise an error "Empty payload")
-- Modified the link view to allow all options to be passed via config, in addition to data
+- Modified the `link` view to allow all options to be passed via config, in addition to data
 - Added `onClick` option for `badge` views
-- Fixed resolving a value for main content for `badge` views
 - Removed `hint` option for `badge` views, use `tooltip` option instead
 - Removed fallback methods for obtaining a `ReadableStream` from a `Blob`
+- Changed `getReadableStreamFromSource()` util function to use a `Blob` to produce a `ReadableStream` from a value
+- Fixed resolving a value for main content for `badge` views
 - Fixed discovery page main content styling
 
 ## 1.0.0-beta.83 (03-04-2024)
