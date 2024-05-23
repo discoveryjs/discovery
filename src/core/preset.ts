@@ -1,21 +1,30 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import type ViewRenderer from './view.js';
 
-export default class PresetRenderer extends Dict {
-    constructor(view) {
+export type Preset = {
+    name: string;
+    render(el: HTMLElement, config: any, data: any, context: any): any;
+    config: any;
+}
+
+export default class PresetRenderer extends Dict<Preset> {
+    #view: ViewRenderer;
+
+    constructor(view: ViewRenderer) {
         super();
 
-        this.view = view;
+        this.#view = view;
     }
 
-    define(name, config) {
+    define(name: string, config: any) {
         // FIXME: add check that config is serializable object
         config = JSON.parse(JSON.stringify(config));
 
-        super.define(name, Object.freeze({
+        return PresetRenderer.define<Preset>(this, name, Object.freeze({
             name,
-            render: (el, _, data, context) => this.view.render(el, config, data, context),
+            render: (el, _, data, context) => this.#view.render(el, config, data, context),
             config
         }));
     }

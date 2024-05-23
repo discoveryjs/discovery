@@ -1,9 +1,21 @@
-export default class Emitter {
+type EventMap = {
+    [key: string]: (...args: any[]) => void
+};
+type Listener<Callback> = {
+    callback: Callback | null,
+    next: Listener<Callback>
+};
+
+export default class Emitter<Events extends EventMap> {
+    listeners: {
+        [EventName in keyof Events]: Listener<Events[EventName]>
+    };
+
     constructor() {
         this.listeners = Object.create(null);
     }
 
-    on(event, callback) {
+    on<E extends keyof Events>(event: E, callback: Events[E]) {
         this.listeners[event] = {
             callback,
             next: this.listeners[event] || null
@@ -12,16 +24,16 @@ export default class Emitter {
         return this;
     }
 
-    once(event, callback) {
+    once<E extends keyof Events>(event: E, callback: Events[E]) {
         return this.on(event, function wrapper(...args) {
             callback.apply(this, args);
             this.off(event, wrapper);
-        });
+        } as Events[E]);
     }
 
-    off(event, callback) {
+    off<E extends keyof Events>(event: E, callback: Events[E]) {
         let cursor = this.listeners[event] || null;
-        let prev = null;
+        let prev: Listener<Events[E]> | null = null;
 
         // search for a callback and remove it
         while (cursor !== null) {
@@ -46,7 +58,7 @@ export default class Emitter {
         return this;
     }
 
-    emit(event, ...args) {
+    emit<E extends keyof Events>(event: E, ...args: Parameters<Events[E]>) {
         let cursor = this.listeners[event] || null;
         let hadListeners = false;
 

@@ -1,33 +1,119 @@
 /* eslint-env browser */
 
 import Dict from './dict.js';
+import type { Widget } from '../main/widget.js';
+import { Preset } from './preset.js';
+
+type RenderFunction = (el: HTMLElement | DocumentFragment, config: RenderProps, data?: any, context?: any) => Promise<any> | void;
+type ViewRenderFunction = (el: HTMLElement | DocumentFragment, config: RawViewConfig, data?: any, context?: any) => Promise<any> | void;
+type DefineViewConfig = ViewRenderFunction | RawViewConfig;
+type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
+type NormalizedViewConfig = Record<string, any>;
+type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
+type queryFn = (data: any, context: any) => any;
+type query = string | queryFn | boolean;
+
+type ConfigTransitionTreeNode = {
+    value: any;
+    deps: ConfigTransitionTreeNode[];
+}
+
+type RootViewInfo = {
+    name: string;
+    [key: string]: any;
+};
+
+type ViewTreeNode = {
+    parent: ViewTreeNode | null;
+    children: ViewTreeNode[];
+    node?: Node | null;
+    view?: ViewInfo;
+    viewRoot?: RootViewInfo;
+}
+
+interface ViewOptions {
+    tag?: string | false | null;
+}
+interface View {
+    name: string | false;
+    options: ViewOptions;
+    render: RenderFunction;
+}
+interface SingleViewConfig {
+    view: string | RenderFunction;
+    when?: query;
+    data?: query;
+    whenData?: query;
+    className?: string | ClassNameFn | (string | ClassNameFn)[];
+    tooltip?: TooltipConfig | RawViewConfig;
+    [key: string]: any;
+}
+type RenderPropsForbiddenKeys = 'view' | 'when' | 'data' | 'whenData' | 'postRender' | 'className' | 'tooltip';
+type RenderProps = {
+    [K in string]: K extends RenderPropsForbiddenKeys ? never : any
+}
+interface ViewInfo {
+    config: NormalizedViewConfig;
+    skipped?: 'when' | 'whenData';
+    props?: any,
+    inputData: any;
+    inputDataIndex?: number;
+    data: any;
+    context: any;
+};
+interface ErrorData {
+    type?: string;
+    config: any;
+    reason: string;
+}
+
+type TooltipConfig = {
+    showDelay?: boolean | number;
+    className?: any;
+    position?: 'pointer' | 'trigger';
+    positionMode?: 'safe' | 'natural';
+    pointerOffsetX?: number;
+    pointerOffsetY?: number;
+    content?: RawViewConfig;
+}
+type TooltipInfo = {
+    config: TooltipConfig | TooltipConfig['content'];
+    data: any;
+    context: any;
+}
 
 const STUB_OBJECT = Object.freeze({});
-const { hasOwnProperty } = Object;
-const tooltipEls = new WeakMap();
-const rootViewEls = new WeakMap();
-const configTransitions = new WeakMap();
+const tooltipEls = new WeakMap<HTMLElement, TooltipInfo>();
+const rootViewEls = new WeakMap<HTMLElement, RootViewInfo>();
+const configTransitions = new WeakMap<object, any>();
 const configOnlyProps = new Set([
     'view',
     'when',
     'data',
     'whenData',
     'postRender',
-    'className'
+    'className',
+    'tooltip'
 ]);
 
-function regConfigTransition(res, from) {
+function isDocumentFragment(value: HTMLElement | DocumentFragment): value is DocumentFragment {
+    return value.nodeType === Node.DOCUMENT_FRAGMENT_NODE;
+}
+
+function regConfigTransition<T extends object>(res: T, from: any): T {
     configTransitions.set(res, from);
     return res;
 }
 
-function collectViewTree(viewRenderer, node, parent, ignoreNodes) {
-    if (ignoreNodes.has(node)) {
+function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTreeNode, ignoreNodes) {
+    if (node === null || ignoreNodes.has(node)) {
         return;
     }
 
-    if (viewRenderer.fragmentEls.has(node)) {
-        for (const info of viewRenderer.fragmentEls.get(node)) {
+    const fragmentNodes = viewRenderer.fragmentEls.get(node as DocumentFragment);
+
+    if (fragmentNodes !== undefined) {
+        for (const info of fragmentNodes) {
             const child = parent.children.find(child => child.view === info);
 
             if (child) {
@@ -43,20 +129,26 @@ function collectViewTree(viewRenderer, node, parent, ignoreNodes) {
         }
     }
 
-    if (rootViewEls.has(node)) {
+    const rootViewInfo = rootViewEls.get(node as any);
+
+    if (rootViewInfo !== undefined) {
         parent.children.push(parent = {
             node,
             parent,
-            viewRoot: rootViewEls.get(node),
+            viewRoot: rootViewInfo,
             children: []
         });
-    } else if (viewRenderer.viewEls.has(node)) {
-        parent.children.push(parent = {
-            node,
-            parent,
-            view: viewRenderer.viewEls.get(node),
-            children: []
-        });
+    } else {
+        const viewInfo = viewRenderer.viewEls.get(node);
+
+        if (viewInfo !== undefined) {
+            parent.children.push(parent = {
+                node,
+                parent,
+                view: viewInfo,
+                children: []
+            });
+        }
     }
 
     if (node.nodeType === 1) {
@@ -66,11 +158,11 @@ function collectViewTree(viewRenderer, node, parent, ignoreNodes) {
     }
 }
 
-function createDefaultRenderErrorView(view) {
+function createDefaultRenderErrorView(view: ViewRenderer): View {
     return {
-        name: false,
+        name: 'config-error',
         options: STUB_OBJECT,
-        render(el, config) {
+        render(el: HTMLElement, config: ErrorData) {
             el.className = 'discovery-buildin-view-render-error';
             el.dataset.type = config.type;
             el.textContent = config.reason;
@@ -86,7 +178,7 @@ function createDefaultRenderErrorView(view) {
                         view.render(el, { view: 'struct', expanded: 1 }, config.config);
                     } else {
                         configEl.textContent = 'show config...';
-                        el.lastChild.remove();
+                        el.lastChild?.remove();
                     }
                 });
             }
@@ -94,8 +186,17 @@ function createDefaultRenderErrorView(view) {
     };
 }
 
-function condition(type, viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder) {
-    if (!hasOwnProperty.call(config, type) || config[type] === undefined) {
+function condition(
+    type: 'when' | 'whenData',
+    viewRenderer: ViewRenderer,
+    config,
+    queryData,
+    context,
+    inputData,
+    inputDataIndex,
+    placeholder
+) {
+    if (!Object.hasOwn(config, type) || config[type] === undefined) {
         return true;
     }
 
@@ -115,7 +216,7 @@ function condition(type, viewRenderer, config, queryData, context, inputData, in
     return false;
 }
 
-function computeClassName(host, className, data, context) {
+function computeClassName(host: Widget, className: any, data: any, context: any): string[] | null {
     let classNames = className;
 
     if (typeof classNames === 'string' && classNames.startsWith('=')) {
@@ -143,7 +244,17 @@ function computeClassName(host, className, data, context) {
     return null;
 }
 
-function renderDom(viewRenderer, renderer, placeholder, config, props, data, context, inputData, inputDataIndex) {
+function renderDom(
+    viewRenderer: ViewRenderer,
+    renderer: View,
+    placeholder: Comment,
+    config: NormalizedViewConfig,
+    props,
+    data?: any,
+    context?: any,
+    inputData?: any,
+    inputDataIndex?: number
+) {
     const { tag } = renderer.options;
     const el = tag === false || tag === null
         ? document.createDocumentFragment()
@@ -156,7 +267,7 @@ function renderDom(viewRenderer, renderer, placeholder, config, props, data, con
 
     return pipeline
         .then(function() {
-            const info = {
+            const info: ViewInfo = {
                 config,
                 props,
                 inputData,
@@ -165,7 +276,7 @@ function renderDom(viewRenderer, renderer, placeholder, config, props, data, con
                 context
             };
 
-            if (el.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+            if (!isDocumentFragment(el)) {
                 viewRenderer.viewEls.set(el, info);
 
                 if (renderer.name) {
@@ -185,8 +296,10 @@ function renderDom(viewRenderer, renderer, placeholder, config, props, data, con
                 }
             } else {
                 for (let child of el.childNodes) {
-                    if (viewRenderer.fragmentEls.has(child)) {
-                        viewRenderer.fragmentEls.get(child).unshift(info);
+                    const viewInfos = viewRenderer.fragmentEls.get(child);
+
+                    if (viewInfos !== undefined) {
+                        viewInfos.unshift(info);
                     } else {
                         viewRenderer.fragmentEls.set(child, [info]);
                     }
@@ -197,7 +310,7 @@ function renderDom(viewRenderer, renderer, placeholder, config, props, data, con
         });
 }
 
-function createRenderContext(viewRenderer, name) {
+function createRenderContext(viewRenderer: ViewRenderer, name: string) {
     return {
         name,
         // block() {
@@ -231,37 +344,46 @@ function createRenderContext(viewRenderer, name) {
     };
 }
 
-function attachTooltip(host, el, config, data, context) {
+function attachTooltip(host: Widget, el: HTMLElement, config: TooltipConfig | RawViewConfig, data: any, context: any) {
     el.classList.add('discovery-view-has-tooltip');
-    tooltipEls.set(el, [config, data, context]);
+    tooltipEls.set(el, { config, data, context });
 
-    if (!host.view.tooltip) {
+    if (host.view.tooltip === null) {
         host.view.tooltip = createTooltip(host);
     }
 }
-function isPopupConfig(value) {
-    return value && !Array.isArray(value) && typeof value !== 'string' && typeof value !== 'function' && !value.view;
+function isPopupConfig(value: any): value is TooltipConfig {
+    return (
+        Boolean(value) &&
+        !Array.isArray(value) &&
+        typeof value !== 'string' &&
+        typeof value !== 'function' &&
+        !value.view
+    );
 }
-function createTooltip(host) {
-    let classNames = null;
+function ensureNumber(value: unknown, fallback: number): number {
+    return Number.isFinite(value) ? Number(value) : fallback;
+}
+function createTooltip(host: Widget) {
+    let classNames: string[] | null = null;
     const popup = new host.view.Popup({
         className: 'discovery-buildin-view-tooltip',
         hoverTriggers: '.discovery-view-has-tooltip',
         position: 'pointer',
-        showDelay(triggerEl) {
-            let [config] = tooltipEls.get(triggerEl) || [];
+        showDelay(triggerEl: HTMLElement) {
+            let { config } = tooltipEls.get(triggerEl) || {};
 
             if (isPopupConfig(config)) {
                 return config.showDelay;
             }
         },
-        render(el, triggerEl) {
-            let [config, data, context] = tooltipEls.get(triggerEl) || [];
-            let position = 'pointer';
-            let positionMode = 'natural';
-            let pointerOffsetX = 3;
-            let pointerOffsetY = 3;
-            let content = config;
+        render(el: HTMLElement, triggerEl: HTMLElement) {
+            let { config, data, context } = tooltipEls.get(triggerEl) || {};
+            let position: TooltipConfig['position'] = 'pointer';
+            let positionMode: TooltipConfig['positionMode'] = 'natural';
+            let pointerOffsetX: TooltipConfig['pointerOffsetX'] = 3;
+            let pointerOffsetY: TooltipConfig['pointerOffsetY'] = 3;
+            let content: any = config;
 
             if (classNames !== null) {
                 el.classList.remove(...classNames);
@@ -277,14 +399,8 @@ function createTooltip(host) {
 
                 position = config.position || position;
                 positionMode = config.positionMode || positionMode;
-
-                if (Number.isFinite(config.pointerOffsetX)) {
-                    pointerOffsetX = config.pointerOffsetX;
-                }
-
-                if (Number.isFinite(config.pointerOffsetY)) {
-                    pointerOffsetY = config.pointerOffsetY;
-                }
+                pointerOffsetX = ensureNumber(config.pointerOffsetX, pointerOffsetX);
+                pointerOffsetY = ensureNumber(config.pointerOffsetY, pointerOffsetY);
 
                 content = config.content;
             }
@@ -308,7 +424,7 @@ function createTooltip(host) {
     return popup;
 }
 
-function render(viewRenderer, container, config, inputData, inputDataIndex, context) {
+function render(viewRenderer: ViewRenderer, container, config, inputData, inputDataIndex, context) {
     if (Array.isArray(config)) {
         return Promise.all(config.map(config =>
             render(viewRenderer, container, config, inputData, inputDataIndex, context)
@@ -318,7 +434,7 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
     const queryData = inputData && typeof inputDataIndex === 'number'
         ? inputData[inputDataIndex]
         : inputData;
-    let renderer = null;
+    let renderer: View | null = null;
 
     switch (typeof config.view) {
         case 'function':
@@ -361,11 +477,11 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
                     name: false,
                     options: { tag: false },
                     render: viewRenderer.host.preset.isDefined(presetName)
-                        ? viewRenderer.host.preset.get(presetName).render
+                        ? (viewRenderer.host.preset.get(presetName) as Preset).render
                         : () => {}
                 };
             } else {
-                renderer = viewRenderer.get(config.view);
+                renderer = viewRenderer.get(config.view) || null;
             }
             break;
     }
@@ -423,8 +539,21 @@ function render(viewRenderer, container, config, inputData, inputDataIndex, cont
     return Promise.resolve();
 }
 
-export default class ViewRenderer extends Dict {
-    constructor(host) {
+export default class ViewRenderer extends Dict<View> {
+    host: Widget;
+    defaultRenderErrorRenderer: View;
+    viewEls: WeakMap<Node, ViewInfo>;
+    fragmentEls: WeakMap<Node, ViewInfo[]>;
+    tooltip: ReturnType<typeof createTooltip> | null;
+    Popup = class { // FIXME: that a stub for a Popup, use view/Popup instead
+        position: TooltipConfig['position'];
+        positionMode: TooltipConfig['positionMode'];
+        pointerOffsetX: TooltipConfig['pointerOffsetX'];
+        pointerOffsetY: TooltipConfig['pointerOffsetY'];
+        constructor(config: any) {}
+    };
+
+    constructor(host: Widget) {
         super();
 
         this.host = host;
@@ -433,17 +562,17 @@ export default class ViewRenderer extends Dict {
         this.fragmentEls = new WeakMap();
     }
 
-    define(name, render, options) {
-        super.define(name, Object.freeze({
+    define(name: string, render: DefineViewConfig, options?: ViewOptions) {
+        return ViewRenderer.define<View>(this, name, Object.freeze({
             name,
             options: Object.freeze({ ...options }),
             render: typeof render === 'function'
                 ? render.bind(createRenderContext(this, name))
                 : (el, _, data, context) => this.render(el, render, data, context)
-        }));
+        } satisfies View));
     }
 
-    normalizeConfig(config) {
+    normalizeConfig(config: RawViewConfig): SingleViewConfig | SingleViewConfig[] | null {
         if (!config) {
             return null;
         }
@@ -491,8 +620,8 @@ export default class ViewRenderer extends Dict {
         return config;
     }
 
-    badConfig(config, error) {
-        const errorMsg = (error && error.message) || 'Unknown error';
+    badConfig(config: any, error: Error): SingleViewConfig {
+        const errorMsg = error?.message || 'Unknown error';
 
         this.host.log('error', errorMsg, { config, error });
 
@@ -504,7 +633,7 @@ export default class ViewRenderer extends Dict {
         };
     }
 
-    ensureValidConfig(config) {
+    ensureValidConfig(config: any): RawViewConfig {
         if (Array.isArray(config)) {
             return config.map(item => this.ensureValidConfig(item));
         }
@@ -516,7 +645,7 @@ export default class ViewRenderer extends Dict {
         return config;
     }
 
-    composeConfig(config, extension) {
+    composeConfig(config: any, extension: any): SingleViewConfig | SingleViewConfig[] {
         config = this.normalizeConfig(config);
         extension = this.normalizeConfig(extension);
 
@@ -530,7 +659,7 @@ export default class ViewRenderer extends Dict {
         return config || extension;
     }
 
-    propsFromConfig(config, data, context) {
+    propsFromConfig(config: NormalizedViewConfig, data: any, context: any) {
         const props = regConfigTransition({}, config);
 
         for (const [key, value] of Object.entries(config)) {
@@ -545,7 +674,13 @@ export default class ViewRenderer extends Dict {
         return props;
     }
 
-    render(container, config, data, context, dataIndex) {
+    render(
+        container: HTMLElement | DocumentFragment,
+        config: RawViewConfig,
+        data?: any,
+        context?: any,
+        dataIndex?: number
+    ) {
         return render(
             this,
             container,
@@ -568,7 +703,14 @@ export default class ViewRenderer extends Dict {
         return Math.max(parseInt(value, 10), 0) || defaultValue;
     }
 
-    renderList(container, itemConfig, data, context, offset = 0, limit = false, moreContainer) {
+    renderList(
+        container: HTMLElement,
+        itemConfig: RawViewConfig,
+        data: any[],
+        context: any,
+        offset = 0,
+        limit: number | false = false,
+        moreContainer: HTMLElement) {
         if (limit === false) {
             limit = data.length;
         }
@@ -599,9 +741,20 @@ export default class ViewRenderer extends Dict {
         return result;
     }
 
-    maybeMoreButtons(container, beforeEl, count, offset, limit, renderMore) {
+    maybeMoreButtons(
+        container: HTMLElement,
+        beforeEl: Node | null,
+        count: number,
+        offset: number,
+        limit: number,
+        renderMore: (offset: number, limit: number) => any
+    ) {
+        if (count <= offset) {
+            return null;
+        }
+
         const restCount = count - offset;
-        const buttons = restCount <= 0 ? null : document.createElement('span');
+        const buttons = document.createElement('span');
 
         if (restCount > limit) {
             this.renderMoreButton(
@@ -627,7 +780,7 @@ export default class ViewRenderer extends Dict {
         return buttons;
     }
 
-    renderMoreButton(container, caption, fn) {
+    renderMoreButton(container: HTMLElement, caption: string, fn: () => void) {
         const moreButton = document.createElement('button');
 
         moreButton.className = 'more-button';
@@ -640,11 +793,11 @@ export default class ViewRenderer extends Dict {
         container.appendChild(moreButton);
     }
 
-    attachTooltip(el, config, data, context) {
+    attachTooltip(el: HTMLElement, config: TooltipConfig | RawViewConfig, data: any, context: any) {
         attachTooltip(this.host, el, config, data, context);
     }
 
-    adoptFragment(fragment, probe) {
+    adoptFragment(fragment: DocumentFragment, probe: Node) {
         const info = this.fragmentEls.get(probe);
 
         if (info) {
@@ -654,35 +807,37 @@ export default class ViewRenderer extends Dict {
         }
     }
 
-    setViewRoot(node, name, props) {
+    setViewRoot(node: HTMLElement, name: string, props: Record<string, any>) {
         rootViewEls.set(node, {
             name,
             ...props
         });
     }
 
-    getViewTree(ignore) {
+    getViewTree(ignore: Node[]) {
         const ignoreNodes = new Set(ignore || []);
-        const result = [];
+        const result: ViewTreeNode[] = [];
 
-        collectViewTree(this, this.host.dom.container, { parent: null, children: result }, ignoreNodes);
+        collectViewTree(this, this.host.dom?.container || null, { parent: null, children: result }, ignoreNodes);
 
         return result;
     }
 
-    getViewStackTrace(el) {
-        const { container: root } = this.host.dom;
+    getViewStackTrace(el: Node) {
+        const { container: root } = this.host.dom as { container?: HTMLElement | null };
 
         if (!root || el instanceof Node === false || !root.contains(el)) {
             return null;
         }
 
-        const stack = [];
-        let cursor = el;
+        const stack: ViewInfo[] = [];
+        let cursor: Node | null = el;
 
-        while (cursor !== root) {
-            if (this.viewEls.has(cursor)) {
-                stack.push(this.viewEls.get(cursor));
+        while (cursor !== null && cursor !== root) {
+            const viewInfo = this.viewEls.get(cursor);
+
+            if (viewInfo !== undefined) {
+                stack.push(viewInfo);
             }
 
             cursor = cursor.parentNode;
@@ -695,7 +850,7 @@ export default class ViewRenderer extends Dict {
         return stack.reverse();
     }
 
-    getViewConfigTransitionTree(value) {
+    getViewConfigTransitionTree(value: any): ConfigTransitionTreeNode {
         let deps = configTransitions.get(value) || [];
 
         if (!Array.isArray(deps)) {

@@ -95,7 +95,7 @@ export class Widget extends Emitter {
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
-        this.page = new PageRenderer(this).on('define', (pageId) => {
+        this.page = new PageRenderer(this, this.view).on('define', (pageId) => {
             // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
             if (this.pageId === pageId && this.pageHash !== '#') {
                 const hash = this.pageHash;
