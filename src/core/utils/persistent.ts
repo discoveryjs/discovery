@@ -1,8 +1,31 @@
 import Emitter from '../emitter.js';
 
-function getStorage(type) {
+export type StorageType = 'localStorage' | 'sessionStorage';
+export type PersistentValue = string | null;
+export type PersistentKey = {
+    readonly value: PersistentValue,
+    get(): PersistentValue,
+    set(value: any): void;
+    delete(): void;
+    forceSync(): PersistentValue;
+    on(fn: (value: PersistentValue) => void, fire?: boolean): () => void;
+    off(fn: (value: PersistentValue) => void): void;
+};
+export type PersistentKeyEvents = {
+    change(value: PersistentValue): void;
+    foo(): void;
+}
+export type StorageMap = Map<string, PersistentKey> & {
+    storage: Storage | null;
+    getOrCreate: GetOrCreate;
+};
+export type GetOrCreate = ((key: string) => PersistentKey) & {
+    available: boolean;
+};
+
+function getStorage(type: StorageType): Storage | null {
     const key = '__storage_test__' + Math.random();
-    let storage;
+    let storage: Storage;
 
     try {
         storage = window[type];
@@ -35,41 +58,49 @@ function getStorage(type) {
     return storage;
 }
 
-function getStorageMap(type) {
-    const map = new Map();
-
-    map.storage = getStorage(type);
-    map.getOrCreate = key => map.get(key) || createPersistentKey(key, map);
-    map.getOrCreate.available = map.storage !== null;
+function getStorageMap(type: StorageType): StorageMap {
+    const storage = getStorage(type);
+    const map = Object.assign(new Map(), {
+        storage,
+        getOrCreate: Object.assign((key: string) => map.get(key) || createPersistentKey(key, map), {
+            available: storage !== null
+        })
+    });
 
     return map;
 }
 
+const sessionStorage = getStorageMap('sessionStorage');
+const localStorage = getStorageMap('localStorage');
 const storages = new Map([
-    ['session', getStorageMap('sessionStorage')],
-    ['local', getStorageMap('localStorage')]
+    ['session', sessionStorage],
+    ['local', localStorage]
 ]);
 
-export const sessionStorageEntry = storages.get('session').getOrCreate;
-export const localStorageEntry = storages.get('local').getOrCreate;
+export const sessionStorageEntry = sessionStorage.getOrCreate;
+export const localStorageEntry = localStorage.getOrCreate;
 
 addEventListener('storage', (e) => {
-    for (const [, map] of storages) {
-        if (map.storage === e.storageArea && map.has(e.key)) {
-            map.get(e.key).forceSync();
+    for (const [, map] of storages) {        
+        if (map.storage === e.storageArea) {
+            const persistentKey = map.get(e.key as string);
+
+            if (persistentKey) {
+                persistentKey.forceSync();
+            }
         }
     }
 });
 
-function createPersistentKey(key, map) {
-    let currentValue = null;
-    const emitter = new Emitter(); // TODO: Change for Publisher
-    const updateCurrentValue = (newValue = map.storage.getItem(key)) => {
+function createPersistentKey(key: string, map: StorageMap) {
+    let currentValue: PersistentValue = null;
+    const emitter = new Emitter<PersistentKeyEvents>(); // TODO: Change for Publisher
+    const updateCurrentValue = (newValue: PersistentValue = map.storage?.getItem(key) ?? null) => {
         if (currentValue !== newValue) {
             emitter.emit('change', currentValue = newValue);
         }
     };
-    const api = {
+    const api: PersistentKey = {
         get value() {
             return this.get();
         },
