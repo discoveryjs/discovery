@@ -1,6 +1,20 @@
 /* eslint-env browser */
 
-export function createElement(tag, attrs, children) {
+type EventHandler<Element, Event> = (this: Element, evt: Event) => void;
+type Attrs<TagName extends keyof HTMLElementTagNameMap> = {
+  [key in keyof HTMLElementEventMap as `on${key}`]?: EventHandler<
+    HTMLElementTagNameMap[TagName],
+    HTMLElementEventMap[key]
+  >;
+} & {
+  [key: string]: any | undefined; // TODO: replace "any" with "string"
+};
+
+export function createElement<TagName extends keyof HTMLElementTagNameMap>(
+    tag: TagName,
+    attrs: Attrs<TagName> | string | null,
+    children?: (Node | string)[] | string
+  ) {
     const el = document.createElement(tag);
 
     if (typeof attrs === 'string') {
@@ -10,23 +24,23 @@ export function createElement(tag, attrs, children) {
     }
 
     for (let attrName in attrs) {
-        if (hasOwnProperty.call(attrs, attrName)) {
-            if (attrs[attrName] === undefined) {
+        if (Object.hasOwn(attrs, attrName)) {
+            const value = attrs[attrName];
+
+            if (typeof value === "undefined") {
                 continue;
             }
 
-            if (attrName.startsWith('on')) {
-                el.addEventListener(attrName.substr(2), attrs[attrName]);
+            if (typeof value === "function") {
+                el.addEventListener(attrName.slice(2), value);
             } else {
-                el.setAttribute(attrName, attrs[attrName]);
+                el.setAttribute(attrName, value);
             }
         }
     }
 
     if (Array.isArray(children)) {
-        children.forEach(child =>
-            el.appendChild(child instanceof Node ? child : createText(child))
-        );
+        el.append(...children);
     } else if (typeof children === 'string') {
         el.innerHTML = children;
     }
@@ -34,11 +48,11 @@ export function createElement(tag, attrs, children) {
     return el;
 }
 
-export function createText(text) {
+export function createText(text: any) {
     return document.createTextNode(String(text));
 }
 
-export function createFragment(...children) {
+export function createFragment(...children: (Node | string)[]) {
     const fragment = document.createDocumentFragment();
 
     children.forEach(child =>
@@ -61,8 +75,9 @@ export const passiveSupported = (() => {
             }
         };
 
-        window.addEventListener('test', null, options);
-        window.removeEventListener('test', null, options);
+        const cb = () => {};
+        window.addEventListener('test-passive', cb, options);
+        window.removeEventListener('test-passive', cb);
     } catch (err) {}
 
     return passiveSupported;

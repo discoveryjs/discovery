@@ -1,4 +1,4 @@
-export function escapeHtml(str) {
+export function escapeHtml(str: string) {
     return str
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
@@ -6,7 +6,7 @@ export function escapeHtml(str) {
         .replace(/>/g, '&gt;');
 }
 
-export function numDelim(value, escape = true) {
+export function numDelim(value: any, escape = true) {
     const strValue = escape && typeof value !== 'number'
         ? escapeHtml(String(value))
         : String(value);

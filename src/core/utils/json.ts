@@ -1,10 +1,12 @@
 import jsonExt from '@discoveryjs/json-ext';
 
+type Replacer = (key: string, value: any) => void;
+
 export const {
     stringifyInfo: jsonStringifyInfo
 } = jsonExt;
 
-function prettyFn(fn, ws, property) {
+function prettyFn(fn: Function, ws: string, property: string) {
     const src = String(fn);
     const [prefix, name] = src.match(/^(?:\S+\s+)?(\S+)\(/) || [];
 
@@ -19,7 +21,7 @@ function prettyFn(fn, ws, property) {
     }
 
     const lines = src.split(/\n/);
-    const minOffset = lines[lines.length - 1].match(/^\s*/)[0].length;
+    const minOffset = lines[lines.length - 1].match(/^\s*/)?.[0].length || 0;
     const stripOffset = new RegExp('^\\s{0,' + minOffset + '}');
 
     return property + lines
@@ -27,7 +29,7 @@ function prettyFn(fn, ws, property) {
         .join('\n');
 }
 
-function restoreValue(value, ws, property) {
+function restoreValue(value: any, ws: string, property: string) {
     if (typeof value === 'function') {
         return prettyFn(value, ws, property);
     }
@@ -46,9 +48,9 @@ const specialValueTypes = new Set([
     '[object Date]'
 ]);
 
-export function jsonStringifyAsJavaScript(value, replacer, space = 4) {
-    const specials = [];
-    const jsReplacer = function(key, value) {
+export function jsonStringifyAsJavaScript(value: any, replacer: Replacer, space = 4) {
+    const specials: any[] = [];
+    const jsReplacer = function(key: string, value: any) {
         if (typeof value === 'string' && toString.call(this[key]) === '[object Date]') {
             value = this[key];
         }

@@ -2,39 +2,39 @@
 const { documentElement } = document;
 const standartsMode = document.compatMode === 'CSS1Compat';
 
-export function getOffsetParent(node) {
-    let offsetParent = node.offsetParent;
+export function getOffsetParent(node: HTMLElement) {
+    let offsetParent = node.offsetParent as HTMLElement;
 
     while (
         offsetParent !== null &&
         offsetParent !== documentElement &&
         getComputedStyle(offsetParent).position === 'static'
     ) {
-        offsetParent = offsetParent.offsetParent;
+        offsetParent = offsetParent.offsetParent as HTMLElement;
     }
 
     return offsetParent || documentElement;
 }
 
-export function getOverflowParent(node) {
-    let overflowParent = node.parentNode;
+export function getOverflowParent(node: HTMLElement) {
+    let overflowParent = node.parentNode as HTMLElement;
 
     while (
         overflowParent !== null &&
         overflowParent !== documentElement &&
         getComputedStyle(overflowParent).overflow === 'visible'
     ) {
-        overflowParent = overflowParent.parentNode;
+        overflowParent = overflowParent.parentNode as HTMLElement;
     }
 
     return overflowParent || documentElement;
 }
 
-export function getPageOffset(element) {
+export function getPageOffset(element: HTMLElement | null = null) {
     let top = 0;
     let left = 0;
 
-    if (element && element.getBoundingClientRect) {
+    if (typeof element?.getBoundingClientRect === 'function') {
         // offset relative to element
         const rect = element.getBoundingClientRect();
 
@@ -62,14 +62,17 @@ export function getPageOffset(element) {
     };
 }
 
-export function getBoundingRect(element, relElement) {
+export function getBoundingRect(
+    element: HTMLElement | Window,
+    relElement: HTMLElement | null
+) {
     const offset = getPageOffset(relElement);
     let top = 0;
     let left = 0;
     let right = 0;
     let bottom = 0;
 
-    if (element && element.getBoundingClientRect) {
+    if (element instanceof HTMLElement && typeof element?.getBoundingClientRect === 'function') {
         ({ top, left, right, bottom } = element.getBoundingClientRect());
     }
 
@@ -83,7 +86,10 @@ export function getBoundingRect(element, relElement) {
     };
 }
 
-export function getViewportRect(element, relElement) {
+export function getViewportRect(
+    element: HTMLElement | Window,
+    relElement: HTMLElement | null = null
+) {
     const topViewport = standartsMode ? document.documentElement : document.body;
     let { top, left } = element === topViewport && !relElement
         ? getPageOffset()
@@ -91,7 +97,7 @@ export function getViewportRect(element, relElement) {
     let width;
     let height;
 
-    if (!element || element === window) {
+    if (!element || element instanceof Window) {
         width = window.innerWidth || 0;
         height = window.innerHeight || 0;
     } else {

@@ -1,9 +1,20 @@
 import { createElement } from './dom.js';
 
-export default function injectStyles(el, styles) {
+export type InlineStyle = {
+    type: 'style' | 'inline';
+    content: string;
+    media?: string;
+};
+export type LinkStyle = {
+    type: 'link' | 'external';
+    href: string;
+    media?: string;
+};
+export type Style = string | InlineStyle | LinkStyle;
+
+export default async function injectStyles(el: HTMLElement, styles: Style[]) {
     const foucFix = createElement('style', null, ':host{display:none}');
-    const awaitingStyles = new Set();
-    let readyStyles = Promise.resolve();
+    const awaitingStyles = new Set<Promise<void>>();
 
     if (Array.isArray(styles)) {
         el.append(...styles.map(style => {
@@ -23,9 +34,9 @@ export default function injectStyles(el, styles) {
 
                 case 'link':
                 case 'external': {
-                    let resolveStyle;
-                    let rejectStyle;
-                    let state = new Promise((resolve, reject) => {
+                    let resolveStyle: () => void;
+                    let rejectStyle: (err?: any) => void;
+                    let state = new Promise<void>((resolve, reject) => {
                         resolveStyle = resolve;
                         rejectStyle = reject;
                     });
@@ -39,18 +50,10 @@ export default function injectStyles(el, styles) {
                         onerror(err) {
                             awaitingStyles.delete(state);
                             rejectStyle(err);
-
-                            if (!awaitingStyles.size) {
-                                foucFix.remove();
-                            }
                         },
                         onload() {
                             awaitingStyles.delete(state);
                             resolveStyle();
-
-                            if (!awaitingStyles.size) {
-                                foucFix.remove();
-                            }
                         }
                     });
 
@@ -58,15 +61,14 @@ export default function injectStyles(el, styles) {
                 }
 
                 default:
-                    throw new Error(`Unknown type "${style.type}" for a style descriptor`);
+                    throw new Error(`Unknown type "${(style as any).type}" for a style descriptor`);
             }
         }));
 
         if (awaitingStyles.size) {
-            readyStyles = Promise.all(awaitingStyles);
             el.append(foucFix);
+            await Promise.all(awaitingStyles);
+            foucFix.remove();
         }
     }
-
-    return readyStyles;
 }

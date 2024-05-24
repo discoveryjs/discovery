@@ -1,6 +1,13 @@
-import { resolveDarkmodeValue } from '../darkmode.js';
+import { InitValue, resolveDarkmodeValue } from '../darkmode.js';
 
-const styles = {
+type Styles = Record<string, string>;
+type SavedStyles = Record<string, [string, string]>;
+type Config = {
+    darkmode?: InitValue,
+    darkmodePersistent?: boolean;
+};
+
+const styles: Styles = {
     'font-family': 'Tahoma, Verdana, Arial, sans-serif',
     'font-size': '16px',
     'line-height': '1.6',
@@ -12,14 +19,14 @@ const styles = {
     'transition-duration': '.25s',
     'transition-timing-function': 'ease-in'
 };
-const darkmodeStyles = {
+const darkmodeStyles: Styles = {
     '--discovery-background-color': '#242424',
     '--discovery-color': '#cccccc'
 };
-const knowContainer = new WeakSet();
-const containerBeforeSetStyle = new WeakMap();
+const knowContainer = new WeakSet<HTMLElement>();
+const containerBeforeSetStyle = new WeakMap<HTMLElement, SavedStyles>();
 
-function saveContainerStyleProp(container, prop, styles) {
+function saveContainerStyleProp(container: HTMLElement, prop: string, styles: SavedStyles) {
     if (prop in styles === false) {
         styles[prop] = [
             container.style.getPropertyValue(prop),
@@ -28,7 +35,7 @@ function saveContainerStyleProp(container, prop, styles) {
     }
 }
 
-export function applyContainerStyles(container, config) {
+export function applyContainerStyles(container: HTMLElement, config: Config) {
     config = config || {};
 
     if (!containerBeforeSetStyle.has(container)) {
@@ -36,7 +43,7 @@ export function applyContainerStyles(container, config) {
     }
 
     const darkmode = resolveDarkmodeValue(config.darkmode, config.darkmodePersistent);
-    const containerStyles = containerBeforeSetStyle.get(container);
+    const containerStyles = containerBeforeSetStyle.get(container) ?? {};
 
     for (const [prop, value] of Object.entries(styles)) {
         if (knowContainer.has(container) || !/^transition/.test(prop)) {
@@ -60,15 +67,15 @@ export function applyContainerStyles(container, config) {
     return darkmode;
 }
 
-export function rollbackContainerStyles(container) {
+export function rollbackContainerStyles(container: HTMLElement) {
     if (containerBeforeSetStyle.has(container)) {
-        const containerStyles = containerBeforeSetStyle.get(container);
+        const containerStyles = containerBeforeSetStyle.get(container) ?? {};
 
         for (const [prop, value] of Object.entries(containerStyles)) {
             container.style.setProperty(prop, ...value);
         }
 
-        containerBeforeSetStyle.delete(containerBeforeSetStyle);
+        containerBeforeSetStyle.delete(container);
         knowContainer.delete(container);
     }
 }
