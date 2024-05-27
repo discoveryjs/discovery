@@ -560,6 +560,7 @@ export default class ViewRenderer extends Dict<View> {
         this.defaultRenderErrorRenderer = createDefaultRenderErrorView(this);
         this.viewEls = new WeakMap();
         this.fragmentEls = new WeakMap();
+        this.tooltip = null;
     }
 
     define(name: string, render: DefineViewConfig, options?: ViewOptions) {
