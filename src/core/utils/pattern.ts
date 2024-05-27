@@ -1,18 +1,18 @@
 import { isRegExp } from './is-type.js';
 
-function matchWithRx(str, pattern, lastIndex) {
+function matchWithRx(str: string, pattern: RegExp, lastIndex: number) {
     const offset = str.slice(lastIndex).search(pattern);
 
     return offset !== -1 ? { offset: lastIndex + offset, length: RegExp.lastMatch.length } : null;
 };
 
-function matchWithString(str, pattern, lastIndex) {
+function matchWithString(str: string, pattern: string, lastIndex: number) {
     const offset = str.indexOf(pattern, lastIndex);
 
     return offset !== -1 ? { offset, length: pattern.length } : null;
 };
 
-export function has(text, pattern, ignoreCase) {
+export function has(text: string, pattern: RegExp | string | null, ignoreCase = false) {
     if (isRegExp(pattern)) {
         return ignoreCase && !pattern.ignoreCase
             ? new RegExp(pattern, pattern.flags + 'i').test(text)
@@ -28,38 +28,30 @@ export function has(text, pattern, ignoreCase) {
     return false;
 }
 
-export function matchAll(text, pattern, onText, onMatch, ignoreCase) {
-    const next = isRegExp(pattern)
-        ? matchWithRx
-        : typeof pattern === 'string'
-            ? matchWithString
-            : null;
-
-    let matchText = String(text);
-
-    if (ignoreCase) {
-        switch (next) {
-            case matchWithRx:
-                if (!pattern.ignoreCase) {
-                    pattern = new RegExp(pattern, pattern.flags + 'i');
-                }
-                break;
-
-            case matchWithString:
-                matchText = matchText.toLowerCase();
-                pattern = pattern.toLowerCase();
-                break;
-        }
-    }
-
-    if (next === null) {
+export function matchAll(text: string, pattern: RegExp | string | null, onText, onMatch, ignoreCase = false) {
+    if (!isRegExp(pattern) && typeof pattern !== 'string') {
         onText(text);
         return;
     }
 
+    let matchText = String(text);
+
+    if (ignoreCase) {
+        if (typeof pattern === 'string') {
+            matchText = matchText.toLowerCase();
+            pattern = pattern.toLowerCase();
+        } else {
+            if (!pattern.ignoreCase) {
+                pattern = new RegExp(pattern, pattern.flags + 'i');
+            }
+        }
+    }
+
     let lastIndex = 0;
     do {
-        const match = next(matchText, pattern, lastIndex);
+        const match = typeof pattern === 'string'
+            ? matchWithString(matchText, pattern, lastIndex)
+            : matchWithRx(matchText, pattern, lastIndex);
 
         if (match === null || (match.length === 0 && match.offset === lastIndex)) {
             onText(lastIndex > 0 ? text.slice(lastIndex) : text);

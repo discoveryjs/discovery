@@ -1,9 +1,9 @@
 const hasOwn = Object.hasOwn || ((obj, key) => Object.prototype.hasOwnProperty.call(obj, key));
 
-export const deepEqual = (a, b) => equal(a, b, equal);
+export const deepEqual = (a: any, b: any) => equal(a, b, deepEqual);
 
-export function equal(a, b, compare = Object.is) {
-    if (a === b) {
+export function equal(a: any, b: any, compare = Object.is) {
+    if (Object.is(a, b)) {
         return true;
     }
 
@@ -13,7 +13,7 @@ export function equal(a, b, compare = Object.is) {
 
     for (const key in a) {
         if (hasOwn(a, key)) {
-            if (!hasOwn(b, key) || !compare(a[key], b[key], compare)) {
+            if (!hasOwn(b, key) || !compare(a[key], b[key])) {
                 return false;
             }
         }
