@@ -3,7 +3,7 @@ import usage from './link.usage.js';
 
 export default function(host) {
     const prepareProps = host.queryFn(`is not array? | {
-        text: # has no 'content' ? is string ?: text,
+        text: #.content is undefined ? is string ?: text,
         content: #.content,
         href,
         external,
