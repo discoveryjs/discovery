@@ -4,9 +4,19 @@
  * Adopted for Discovery.js project
  */
 
-function isObject(value) {
-    const type = typeof value;
-    return value != null && (type === 'object' || type === 'function');
+type Options = {
+    wait: number;
+    maxWait?: number;
+    leading?: boolean;
+}
+type DebounceMethods<R> = {
+    cancel(): void;
+    flush(): R;
+    pending(): boolean;
+}
+
+function isObject(value: unknown): value is Object | Function {
+    return value !== undefined && value !== null && (typeof value === 'object' || typeof value === 'function');
 }
 
 /**
@@ -70,40 +80,45 @@ function isObject(value) {
  * // Check for pending invocations.
  * const status = debounced.pending() ? "Pending..." : "Ready"
  */
-export default function debounce(func, options) {
+
+export default function debounce<
+    T extends (...args: A) => R,
+    A extends any[],
+    R extends any
+>(func: T, options?: Options | number): T & DebounceMethods<R> {
+    if (typeof func !== 'function') {
+        throw new TypeError('Expected a function');
+    }
+
     if (typeof options === 'number') {
         options = { wait: options };
     }
 
     if (!isObject(options)) {
-        return func;
+        let result: R;
+        return Object.assign(function(...args: A): R {
+            return result = func.apply(this, args);
+        } as T, {
+            cancel() {},
+            flush() { return result },
+            pending() { return false; }
+        });
     }
 
-    let { wait } = options;
+    const wait = Math.max(0, Number(options.wait) || 0);
+    const leading = Boolean(options.leading);
+    const maxing = 'maxWait' in options;
+    const maxWait = maxing ? Math.max(Number(options.maxWait) || 0, wait) : Infinity;
+    const trailing = 'trailing' in options ? Boolean(options.trailing) : true;
 
-    let lastArgs;
-    let lastThis;
-    let maxWait;
-    let result;
-    let timerId;
-    let lastCallTime;
-
+    let lastArgs: A | undefined;
+    let lastThis: any;
+    let result: R;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+    let lastCallTime: number | undefined;
     let lastInvokeTime = 0;
-    let leading = false;
-    let maxing = false;
-    let trailing = true;
 
-    if (typeof func !== 'function') {
-        throw new TypeError('Expected a function');
-    }
-
-    wait = Math.max(0, Number(wait) || 0);
-    leading = Boolean(options.leading);
-    maxing = 'maxWait' in options;
-    maxWait = maxing ? Math.max(Number(options.maxWait) || 0, wait) : maxWait;
-    trailing = 'trailing' in options ? Boolean(options.trailing) : trailing;
-
-    function invokeFunc(time) {
+    function invokeFunc(time: number) {
         const args = lastArgs;
         const thisArg = lastThis;
 
@@ -113,15 +128,15 @@ export default function debounce(func, options) {
         return result;
     }
 
-    function startTimer(pendingFunc, wait) {
+    function startTimer(pendingFunc: typeof timerExpired, wait: number) {
         return setTimeout(pendingFunc, wait);
     }
 
-    function cancelTimer(id) {
+    function cancelTimer(id: ReturnType<typeof setTimeout>) {
         clearTimeout(id);
     }
 
-    function leadingEdge(time) {
+    function leadingEdge(time: number) {
         // Reset any `maxWait` timer.
         lastInvokeTime = time;
         // Start the timer for the trailing edge.
@@ -130,37 +145,38 @@ export default function debounce(func, options) {
         return leading ? invokeFunc(time) : result;
     }
 
-    function remainingWait(time) {
+    function remainingWait(time: number, lastCallTime: number) {
         const timeSinceLastCall = time - lastCallTime;
         const timeSinceLastInvoke = time - lastInvokeTime;
         const timeWaiting = wait - timeSinceLastCall;
 
-        return maxing
-            ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
-            : timeWaiting;
+        return Math.min(timeWaiting, maxWait - timeSinceLastInvoke);
     }
 
-    function shouldInvoke(time) {
+    function shouldInvoke(time: number, lastCallTime: number) {
         const timeSinceLastCall = time - lastCallTime;
         const timeSinceLastInvoke = time - lastInvokeTime;
 
         // Either this is the first call, activity has stopped and we're at the
         // trailing edge, the system time has gone backwards and we're treating
         // it as the trailing edge, or we've hit the `maxWait` limit.
-        return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
-            (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
+        return (
+            timeSinceLastCall >= wait ||
+            timeSinceLastCall < 0 ||
+            timeSinceLastInvoke >= maxWait
+        );
     }
 
     function timerExpired() {
         const time = Date.now();
-        if (shouldInvoke(time)) {
+        if (lastCallTime === undefined || shouldInvoke(time, lastCallTime)) {
             return trailingEdge(time);
         }
         // Restart the timer.
-        timerId = startTimer(timerExpired, remainingWait(time));
+        timerId = startTimer(timerExpired, remainingWait(time, lastCallTime));
     }
 
-    function trailingEdge(time) {
+    function trailingEdge(time: number) {
         timerId = undefined;
 
         // Only invoke if we have `lastArgs` which means `func` has been
@@ -188,9 +204,9 @@ export default function debounce(func, options) {
         return timerId !== undefined;
     }
 
-    function debounced(...args) {
+    return Object.assign(function(...args: A) {
         const time = Date.now();
-        const isInvoking = shouldInvoke(time);
+        const isInvoking = lastCallTime === undefined || shouldInvoke(time, lastCallTime);
 
         lastArgs = args;
         lastThis = this;
@@ -206,15 +222,15 @@ export default function debounce(func, options) {
                 return invokeFunc(lastCallTime);
             }
         }
+
         if (timerId === undefined) {
             timerId = startTimer(timerExpired, wait);
         }
+
         return result;
-    }
-
-    debounced.cancel = cancel;
-    debounced.flush = flush;
-    debounced.pending = pending;
-
-    return debounced;
+    } as T, {
+        cancel,
+        flush,
+        pending
+    });
 }
