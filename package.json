@@ -12,6 +12,7 @@
     "jsdelivr": "dist/discovery.js",
     "scripts": {
         "lint": "eslint cypress models src",
+        "typecheck": "tsc --noEmit",
         "build": "npm run build:js && npm run build:css && npm run build:preloader && npm run build:embed-host",
         "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
@@ -42,7 +43,8 @@
         "cypress": "^13.3.0",
         "esbuild": "~0.19.4",
         "eslint": "^8.50.0",
-        "eslint-plugin-cypress": "^2.15.1"
+        "eslint-plugin-cypress": "^2.15.1",
+        "typescript": "^5.4.5"
     },
     "files": [
         "dist",
