@@ -1,42 +1,75 @@
 import { Observer } from '../observer.js';
 import { createElement } from './dom.js';
 
+export type Stage = keyof typeof loadStages;
+export type Timing = {
+    stage: Stage | 'error';
+    title: string;
+    duration: number;
+};
+export type OnTimingCallback = (timing: Timing) => void;
+export type OnFinishCallback = (timings: Timing[]) => void;
+export type ProgressbarOptions = {
+    onTiming: OnTimingCallback,
+    onFinish: OnFinishCallback,
+    delay?: number | true,
+    domReady?: Promise<any>
+};
+export type ProgressbarState = {
+    stage: Stage;
+    progress: {
+        done: boolean;
+        elapsed: number;
+        units?: 'bytes';
+        completed: number;
+        total: number;
+    } | null;
+    error: Error | null;
+};
+
 export const loadStages = {
+    created: {
+        value: 0,
+        duration: 0,
+        title: 'Init'
+    },
     request: {
-        value: 0.0,
+        value: 0,
+        duration: 0.1,
         title: 'Awaiting data'
     },
     receive: {
         value: 0.1,
+        duration: 0.8,
         title: 'Receiving data'
     },
     received: {
         value: 0.9,
+        duration: 0.025,
         title: 'Await app ready'
     },
     prepare: {
         value: 0.925,
+        duration: 0.050,
         title: 'Processing data (prepare)'
     },
     initui: {
         value: 0.975,
+        duration: 0.025,
         title: 'Rendering UI'
     },
     done: {
         value: 1.0,
+        duration: 0,
         title: 'Done!'
-    },
-    error: {
-        value: 1.0,
-        title: 'Error!'
     }
 };
 Object.values(loadStages).forEach((item, idx, array) => {
     item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
 });
 
-const int = value => value | 0;
-const ensureFunction = value => typeof value === 'function' ? value : () => {};
+const int = (value: number) => value | 0;
+const ensureFunction = (value: any): (() => void) => typeof value === 'function' ? value : () => undefined;
 const letRepaintIfNeeded = async () => {
     await new Promise(resolve => setTimeout(resolve, 1));
 
@@ -48,10 +81,10 @@ const letRepaintIfNeeded = async () => {
     }
 };
 
-export function decodeStageProgress(stage, progress) {
+export function decodeStageProgress(stage: Stage, progress) {
     const { value, title: stageTitle, duration } = loadStages[stage];
     let progressValue = 0;
-    let progressText = null;
+    let progressText: string | null = null;
 
     if (progress) {
         const {
@@ -87,9 +120,22 @@ export function decodeStageProgress(stage, progress) {
     };
 }
 
-export default class Progressbar extends Observer {
-    constructor({ onTiming, onFinish, delay, domReady }) {
-        super({ stage: null, progress: null, error: null });
+export default class Progressbar extends Observer<ProgressbarState> {
+    startTime: number | null;
+    finished: boolean;
+    awaitRepaint: number | null;
+    lastStage: Stage;
+    lastStageStart: number | null;
+    timings: Timing[];
+    onTiming: OnTimingCallback;
+    onFinish: OnFinishCallback;
+    appearanceDelay: number;
+    domReady: Promise<any>;
+    el: HTMLElement;
+
+    constructor({ onTiming, onFinish, delay, domReady }: ProgressbarOptions) {
+        super({ stage: 'created', progress: null, error: null });
+        this.startTime = null;
         this.finished = false;
         this.awaitRepaint = null;
         this.lastStage = 'created';
@@ -106,8 +152,8 @@ export default class Progressbar extends Observer {
         ]);
     }
 
-    recordTiming(stage, start, end = performance.now()) {
-        const entry = {
+    recordTiming(stage: Stage | 'error', start: number, end = performance.now()) {
+        const entry: Timing = {
             stage,
             title: loadStages[stage].title,
             duration: int(end - start)
@@ -122,8 +168,8 @@ export default class Progressbar extends Observer {
         this.onTiming(entry);
     }
 
-    async setState(state) {
-        const { stage, progress, error } = state;
+    async setState(state: Partial<ProgressbarState>) {
+        const { stage = this.lastStage, progress = null, error = null } = state;
 
         if (this.finished) {
             return;
@@ -139,7 +185,7 @@ export default class Progressbar extends Observer {
             return;
         }
 
-        this.set(state);
+        this.set({ stage, progress, error });
 
         const stageChanged = stage !== this.lastStage;
         const now = performance.now();
@@ -173,17 +219,21 @@ export default class Progressbar extends Observer {
         }
 
         const { title, progressValue } = decodeStageProgress(stage, progress);
+        const titleEl = this.el.querySelector('.title');
 
-        this.el.querySelector('.title').textContent = title;
-        this.el.style.setProperty('--progress', progressValue);
+        this.el.style.setProperty('--progress', String(progressValue));
 
-        if (stageChanged || (now - this.awaitRepaint > 65 && now - this.lastStageStart > 200)) {
+        if (titleEl !== null) {
+            titleEl.textContent = title;
+        }
+
+        if (stageChanged || (now - (this.awaitRepaint || 0) > 65 && now - (this.lastStageStart || 0) > 200)) {
             await letRepaintIfNeeded();
             this.awaitRepaint = performance.now();
         }
     }
 
-    finish(error) {
+    finish(error?: Error) {
         if (!this.finished) {
             this.finished = true;
 
@@ -194,9 +244,9 @@ export default class Progressbar extends Observer {
                 );
             }
 
-            this.recordTiming(error ? 'error' : 'done', this.startTime);
+            this.recordTiming(error ? 'error' : 'done', this.startTime || this.lastStageStart || performance.now());
             this.onFinish(this.timings);
-            this.set({ stage: 'done' });
+            this.set({ stage: 'done', progress: null, error: null });
         }
     }
 
