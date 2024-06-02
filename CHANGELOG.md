@@ -5,7 +5,7 @@
 - Added additional block into inspector popup to display normalized props when `view.options.props` is specified
 - Added `overrideProps(obj)` jora helper method which overrides object's values (current) with values from passed `obj` (`#.props` by default)
 - Modified the `link`, `text`, `text-numeric` and `text-match` views to allow all render props to be passed via config, in addition to data
-- Modified the `link` view to allow all render props to be passed via config, in addition to data
+- Tweaked the `source` view to display tabs as 4 spaces (`tab-size: 4`)
 - Added `onClick` option for `badge` views
 - Removed `hint` option for `badge` views, use `tooltip` option instead
 - Removed fallback methods for obtaining a `ReadableStream` from a `Blob`

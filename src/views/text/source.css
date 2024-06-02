@@ -12,6 +12,7 @@
     font-size: 12px;
     line-height: 1.6;
     white-space: normal;
+    tab-size: 4;
 }
 
 .view-source__prelude {
