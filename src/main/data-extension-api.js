@@ -28,6 +28,21 @@ export function createDataExtensionApi(host) {
     };
     let queryCustomMethods = {
         query: (...args) => host.query(...args),
+        overrideProps(current, props = this.context.props) {
+            if (!props) {
+                return current;
+            }
+
+            const result = { ...current };
+
+            for (const key of Object.keys(result)) {
+                if (Object.hasOwn(props, key)) {
+                    result[key] = props[key];
+                }
+            }
+
+            return result;
+        },
         pageLink: (pageRef, pageId, pageParams) =>
             host.encodePageHash(pageId, pageRef, pageParams),
         marker: lookupObjectMarker,

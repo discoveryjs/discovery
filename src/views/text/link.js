@@ -1,31 +1,28 @@
 /* eslint-env browser */
 import usage from './link.usage.js';
 
-export default function(host) {
-    const prepareProps = host.queryFn(`is not array? | {
-        text: #.content is undefined ? is string ?: text,
-        content: #.content,
-        href,
-        external,
-        onClick: #.onClick
-    } | entries().({
-        key,
-        value: # has key ? #[key] : value
-    }).fromEntries() | {
-        $text; $href;
-        ...,
-        text: $text | is not undefined or no $href ?: $href,
-        href: $href | is not undefined or no $text ?: $text
-    }`);
+const props = `is not array? | {
+    text: #.props.content is undefined ? is string ?: text,
+    content: undefined,
+    href,
+    external,
+    onClick: undefined
+} | overrideProps() | {
+    $text; $href;
+    ...,
+    text: $text | is not undefined or no $href ?: $href,
+    href: $href | is not undefined or no $text ?: $text
+}`;
 
-    host.view.define('link', function(el, config, data, context) {
+export default function(host) {
+    host.view.define('link', function(el, props, data, context) {
         let {
             text,
             content,
             href,
             external,
             onClick
-        } = prepareProps(data, config);
+        } = props;
 
         if (href) {
             el.href = href;
@@ -50,6 +47,7 @@ export default function(host) {
         }
     }, {
         tag: 'a',
+        props,
         usage
     });
 }

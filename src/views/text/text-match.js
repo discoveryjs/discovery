@@ -4,10 +4,19 @@ import { matchAll } from '../../core/utils/pattern.js';
 import usage from './text-match.usage.js';
 
 const matchWrapperEl = createElement('span', 'view-text-match');
+const props = `is not array? | {
+    text: #.props has no 'text' ? text,
+    match,
+    ignoreCase: ignoreCase or false
+} | overrideProps()`;
 
 export default function(host) {
-    host.view.define('text-match', function(el, config, data) {
-        const { text, match: pattern, ignoreCase = false } = data || {};
+    host.view.define('text-match', function(el, props) {
+        const {
+            text,
+            match: pattern,
+            ignoreCase
+        } = props;
 
         matchAll(
             String(text),
@@ -21,6 +30,7 @@ export default function(host) {
         );
     }, {
         tag: false,
+        props,
         usage
     });
 }

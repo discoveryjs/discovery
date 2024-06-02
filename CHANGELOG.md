@@ -1,7 +1,11 @@
 ## next
 
 - Added handling of empty payload on data loading (raise an error "Empty payload")
-- Modified the `link` view to allow all options to be passed via config, in addition to data
+- Added `props` options for a view definition, a function (or a string as a jora query) `(data, { props, context}) => any` which should return a normalized props
+- Added additional block into inspector popup to display normalized props when `view.options.props` is specified
+- Added `overrideProps(obj)` jora helper method which overrides object's values (current) with values from passed `obj` (`#.props` by default)
+- Modified the `link`, `text`, `text-numeric` and `text-match` views to allow all render props to be passed via config, in addition to data
+- Modified the `link` view to allow all render props to be passed via config, in addition to data
 - Added `onClick` option for `badge` views
 - Removed `hint` option for `badge` views, use `tooltip` option instead
 - Removed fallback methods for obtaining a `ReadableStream` from a `Blob`

@@ -4,8 +4,9 @@ import Dict from './dict.js';
 import type { Widget } from '../main/widget.js';
 import { Preset } from './preset.js';
 
-type RenderFunction = (el: HTMLElement | DocumentFragment, config: RenderProps, data?: any, context?: any) => Promise<any> | void;
-type ViewRenderFunction = (el: HTMLElement | DocumentFragment, config: RawViewConfig, data?: any, context?: any) => Promise<any> | void;
+type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
+type ViewRenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
+type ViewNormalizePropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
 type DefineViewConfig = ViewRenderFunction | RawViewConfig;
 type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
 type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
@@ -34,10 +35,17 @@ type ViewTreeNode = {
 interface ViewOptions {
     tag?: string | false | null;
     usage?: any;
+    props?: ViewNormalizePropsFunction | string
 }
+interface ViewNormalizedOptions {
+    tag?: string | null;
+    usage?: any;
+    props?: ViewNormalizePropsFunction
+}
+
 interface View {
     name: string | false;
-    options: ViewOptions;
+    options: ViewNormalizedOptions;
     render: RenderFunction;
 }
 interface SingleViewConfig {
@@ -53,6 +61,11 @@ type RenderPropsForbiddenKeys = 'view' | 'when' | 'data' | 'whenData' | 'postRen
 type RenderProps = {
     [K in string]: K extends RenderPropsForbiddenKeys ? never : any
 }
+type PropsTransition = {
+    props: any;
+    fn: ViewNormalizePropsFunction & { query?: string };
+};
+
 interface ViewInfo {
     config: NormalizedViewConfig;
     skipped?: 'when' | 'whenData';
@@ -88,6 +101,7 @@ const STUB_CONFIG: SingleViewConfig = Object.freeze({ view: '' });
 const tooltipEls = new WeakMap<HTMLElement, TooltipInfo>();
 const rootViewEls = new WeakMap<HTMLElement, RootViewInfo>();
 const configTransitions = new WeakMap<object, any>();
+const propsTransitions = new WeakMap<object, PropsTransition>();
 const configOnlyProps = new Set([
     'view',
     'when',
@@ -191,12 +205,12 @@ function createDefaultRenderErrorView(view: ViewRenderer): View {
 function condition(
     type: 'when' | 'whenData',
     viewRenderer: ViewRenderer,
-    config,
-    queryData,
-    context,
-    inputData,
-    inputDataIndex,
-    placeholder
+    config: SingleViewConfig,
+    queryData: any,
+    context: any,
+    inputData: any,
+    inputDataIndex: number | undefined,
+    placeholder: Comment
 ) {
     if (!Object.hasOwn(config, type) || config[type] === undefined) {
         return true;
@@ -258,7 +272,7 @@ async function renderDom(
     inputDataIndex?: number
 ) {
     const { tag } = renderer.options;
-    const el = tag === false || tag === null
+    const el = tag === null
         ? document.createDocumentFragment()
         : document.createElement(tag || 'div');
 
@@ -470,8 +484,8 @@ async function render(
 
                 renderer = {
                     name: false,
-                    options: { tag: false },
-                    render: (el, _, _data) => {
+                    options: { tag: null },
+                    render(el, _, _data) {
                         const _config = configQuery !== '' ? viewRenderer.host.query(configQuery, queryData, context) : _data;
                         const _context = viewRenderer.host.query(contextQuery, context, queryData);
                         // config only   -> _config=query(data) _data=data
@@ -491,7 +505,7 @@ async function render(
 
                 renderer = {
                     name: false,
-                    options: { tag: false },
+                    options: { tag: null },
                     render: viewRenderer.host.preset.isDefined(presetName)
                         ? (viewRenderer.host.preset.get(presetName) as Preset).render
                         : () => {}
@@ -570,9 +584,17 @@ export default class ViewRenderer extends Dict<View> {
     }
 
     define(name: string, render: DefineViewConfig, options?: ViewOptions) {
+        const { tag } = options || {};
+
         return ViewRenderer.define<View>(this, name, Object.freeze({
             name,
-            options: Object.freeze({ ...options }),
+            options: Object.freeze({
+                ...options,
+                tag: typeof tag === 'string' || tag === undefined ? tag : null,
+                props: typeof options?.props === 'string'
+                   ? this.host.queryFn(options.props)
+                   : options?.props
+            }),
             render: typeof render === 'function'
                 ? render.bind(createRenderContext(this, name))
                 : (el, _, data, context) => this.render(el, render, data, context)
@@ -666,8 +688,13 @@ export default class ViewRenderer extends Dict<View> {
         return config || extension;
     }
 
-    propsFromConfig(config: NormalizedViewConfig, data: any, context: any) {
-        const props = regConfigTransition({}, config);
+    propsFromConfig(
+        config: SingleViewConfig,
+        data: any,
+        context: any,
+        fn: ViewNormalizePropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
+    ) {
+        let props = {}; //regConfigTransition({}, config);
 
         for (const [key, value] of Object.entries(config)) {
             // Config only props are not available for view's render
@@ -675,6 +702,15 @@ export default class ViewRenderer extends Dict<View> {
                 props[key] = typeof value === 'string' && value.startsWith('=')
                     ? this.host.query(value.slice(1), data, context)
                     : value;
+            }
+        }
+
+        if (typeof fn === 'function') {
+            const normProps = fn(data, { props, context });
+
+            if (normProps !== null && typeof normProps === 'object' && normProps !== props) {
+                propsTransitions.set(normProps, { props, fn });
+                props = normProps;
             }
         }
 
@@ -867,6 +903,16 @@ export default class ViewRenderer extends Dict<View> {
         return {
             value,
             deps: deps.map(this.getViewConfigTransitionTree, this)
+        };
+    }
+
+    getViewPropsTransition(value: any): null | PropsTransition & { query: string | null } {
+        const transition = propsTransitions.get(value) || null;
+
+        return transition && {
+            props: transition.props,
+            fn: transition.fn,
+            query: transition.fn.query || null
         };
     }
 }

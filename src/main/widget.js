@@ -292,8 +292,11 @@ export class Widget extends Emitter {
             case 'function':
                 return query;
 
-            case 'string':
-                return this.queryFnFromString(query);
+            case 'string': {
+                const fn = this.queryFnFromString(query);
+                fn.query = query; // FIXME: jora should add it for all kinds of queries
+                return fn;
+            }
         }
     }
 

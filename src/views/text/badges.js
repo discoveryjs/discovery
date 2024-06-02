@@ -1,6 +1,20 @@
 /* eslint-env browser */
 import usage from './badges.usage.js';
 
+const props = `is not array? | {
+    color,
+    textColor,
+    darkColor,
+    darkTextColor,
+    text: #.props has no 'content' ? is (string or number or boolean) ?: text,
+    content: undefined,
+    href,
+    external,
+    onClick: undefined,
+    prefix,
+    postfix
+} | overrideProps()`;
+
 function maybeFix(el, type, value) {
     if (!value) {
         return;
@@ -13,24 +27,7 @@ function maybeFix(el, type, value) {
 }
 
 export default function(host) {
-    const prepareProps = host.queryFn(`is not array? | {
-        color,
-        textColor,
-        darkColor,
-        darkTextColor,
-        text: # has no 'content' ? is (string or number or boolean) ?: text,
-        content: #.content,
-        href,
-        external,
-        onClick: #.onClick,
-        prefix,
-        postfix
-    } | entries().({
-        key,
-        value: # has key ? #[key] : value
-    }).fromEntries()`);
-
-    function render(el, config, data, context) {
+    function render(el, props, data, context) {
         const {
             color,
             textColor,
@@ -43,7 +40,7 @@ export default function(host) {
             onClick,
             prefix,
             postfix
-        } = prepareProps(data, config);
+        } = props;
         let render;
 
         if (color) {
@@ -91,6 +88,6 @@ export default function(host) {
         return render;
     }
 
-    host.view.define('badge', render, { tag: 'a', usage });
-    host.view.define('pill-badge', render, { tag: 'a', usage });
+    host.view.define('badge', render, { tag: 'a', props, usage });
+    host.view.define('pill-badge', render, { tag: 'a', props, usage });
 }
