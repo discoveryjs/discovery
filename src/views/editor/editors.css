@@ -44,7 +44,8 @@
     cursor: text;
 }
 
-.discovery-view-editor .CodeMirror .CodeMirror-line {
+.discovery-view-editor .CodeMirror .CodeMirror-line,
+.discovery-view-editor .CodeMirror .CodeMirror-line-like {
     padding: 0;
 }
 
