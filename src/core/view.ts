@@ -306,8 +306,8 @@ async function renderDom(
             }
         }
 
-        if (props.tooltip) {
-            attachTooltip(viewRenderer.host, el, props.tooltip, data, context);
+        if (config.tooltip) {
+            attachTooltip(viewRenderer.host, el, config.tooltip, data, context);
         }
     } else {
         for (let child of el.childNodes) {
