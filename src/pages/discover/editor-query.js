@@ -3,11 +3,6 @@ import { escapeHtml } from '../../core/utils/html.js';
 import { getBoundingRect } from '../../core/utils/layout.js';
 import { contextWithoutEditorParams } from './params.js';
 
-// canceled
-// awaiting
-// computing
-// successful
-// failed
 
 function count(value, one, many) {
     return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
@@ -172,16 +167,7 @@ export default function(host, updateParams) {
     let errorMarker = null;
     let scheduledCompute = null;
     let computationCache = [];
-    const defaultGraph = {} || {
-        current: [],
-        children: [
-            { query: 'testSuites' },
-            { query: 'testCases', children: [
-                { query: 'size()', children: [{ id: 1 }, { id: 2 }] },
-                { query: '.[outcome="Failed"]', children: [{ id: 3 }] }
-            ] }
-        ]
-    };
+    const defaultGraph = {};
 
     let queryEditorLiveEditEl;
     const getQuerySuggestions = (query, offset, data, context) => host.querySuggestions(query, offset, data, context);
