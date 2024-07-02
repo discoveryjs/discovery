@@ -42,16 +42,16 @@ export function createValueActionsPopup(host, elementData, buildPathForElement) 
                 let formattedSize = 0;
 
                 try {
-                    const { minLength, circular } = jsonStringifyInfo(data);
+                    const { bytes, circular } = jsonStringifyInfo(data);
 
-                    compactSize = minLength;
+                    compactSize = bytes;
 
                     if (circular.length) {
                         jsonCompactStringifyError = 'Converting circular structure to JSON';
                     } else if (compactSize > maxAllowedSize) {
                         jsonCompactStringifyError = 'Resulting JSON is over 1 Gb';
                     } else {
-                        formattedSize = jsonStringifyInfo(data, null, 4).minLength;
+                        formattedSize = jsonStringifyInfo(data, null, 4).bytes;
                         if (formattedSize > maxAllowedSize) {
                             jsonFormattedStringifyError = 'Resulting JSON is over 1 Gb';
                         }

@@ -1,10 +1,6 @@
-import jsonExt from '@discoveryjs/json-ext';
+export { stringifyInfo as jsonStringifyInfo } from '@discoveryjs/json-ext';
 
 type Replacer = (key: string, value: any) => void;
-
-export const {
-    stringifyInfo: jsonStringifyInfo
-} = jsonExt;
 
 function prettyFn(fn: Function, ws: string, property: string) {
     const src = String(fn);
