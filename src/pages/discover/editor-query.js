@@ -510,13 +510,13 @@ export default function(host, updateParams) {
 
             case 'failed': {
                 const { error } = computation;
-                const loc = error.details && error.details.loc;
+                const range = error?.details?.loc?.range;
                 const doc = queryEditor.cm.doc;
 
-                if (loc) {
-                    const [start, end] = error.details.loc.range;
+                if (Array.isArray(range) && range.length === 2) {
+                    const [start, end] = range;
 
-                    errorMarker = error.details.token === 'EOF' || start === end || computation.query[start] === '\n'
+                    errorMarker = error.details?.token === 'EOF' || start === end || computation.query[start] === '\n'
                         ? doc.setBookmark(
                             doc.posFromIndex(start),
                             { widget: createElement('span', 'discovery-editor-error', ' ') }
