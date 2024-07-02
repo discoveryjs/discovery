@@ -25,7 +25,7 @@ export function normalizeSource(text) {
     }
 
     if (minOffset > 0) {
-        text = text.replace(new RegExp('^ {' + minOffset + '}', 'gm'), '$1');
+        text = text.replace(new RegExp('^ {' + minOffset + '}', 'gm'), '');
     }
 
     return text;
