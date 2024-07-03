@@ -12,8 +12,8 @@ export type PersistentKey = {
     off(fn: (value: PersistentValue) => void): void;
 };
 export type PersistentKeyEvents = {
-    change(value: PersistentValue): void;
-    foo(): void;
+    change: [value: PersistentValue];
+    foo: [];
 }
 export type StorageMap = Map<string, PersistentKey> & {
     storage: Storage | null;

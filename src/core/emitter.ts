@@ -1,21 +1,20 @@
-type EventMap = {
-    [key: string]: (...args: any[]) => void
-};
-type Listener<Callback> = {
-    callback: Callback | null,
-    next: Listener<Callback>
+export type EventMap = Record<string, unknown[]>;
+export type Callback<P extends unknown[]> = (...args: P) => void;
+export type Listener<P extends unknown[]> = {
+    callback: Callback<P> | null;
+    next: Listener<P> | null;
 };
 
 export default class Emitter<Events extends EventMap> {
     listeners: {
-        [EventName in keyof Events]: Listener<Events[EventName]>
+        [EventName in keyof Events]: Listener<Events[EventName]> | null;
     };
 
     constructor() {
         this.listeners = Object.create(null);
     }
 
-    on<E extends keyof Events>(event: E, callback: Events[E]) {
+    on<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
         this.listeners[event] = {
             callback,
             next: this.listeners[event] || null
@@ -24,14 +23,14 @@ export default class Emitter<Events extends EventMap> {
         return this;
     }
 
-    once<E extends keyof Events>(event: E, callback: Events[E]) {
+    once<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
         return this.on(event, function wrapper(...args) {
             callback.apply(this, args);
             this.off(event, wrapper);
-        } as Events[E]);
+        } as Callback<Events[E]>);
     }
 
-    off<E extends keyof Events>(event: E, callback: Events[E]) {
+    off<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
         let cursor = this.listeners[event] || null;
         let prev: Listener<Events[E]> | null = null;
 
@@ -58,7 +57,7 @@ export default class Emitter<Events extends EventMap> {
         return this;
     }
 
-    emit<E extends keyof Events>(event: E, ...args: Parameters<Events[E]>) {
+    emit<E extends keyof Events>(event: E, ...args: Events[E]) {
         let cursor = this.listeners[event] || null;
         let hadListeners = false;
 

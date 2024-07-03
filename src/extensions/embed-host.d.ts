@@ -1,21 +1,19 @@
-export type EmitterEventMap = {
-    [key: string]: (...args: any[]) => void
-};
-
-export type EmitterListener<Callback> = {
-    callback: Callback,
-    next: EmitterListener<Callback>
+export type EmitterEventMap = Record<string, unknown[]>;
+export type EmitterCallback<P extends unknown[]> = (...args: P) => void;
+export type EmitterListener<P extends unknown[]> = {
+    callback: EmitterCallback<P> | null;
+    next: EmitterListener<P> | null;
 };
 
 export class Emitter<EventMap extends EmitterEventMap> {
     protected listeners: {
-        [EventName in keyof EventMap]: EmitterListener<EventMap[EventName]>
+        [EventName in keyof EventMap]: EmitterListener<EventMap[EventName]> | null;
     };
 
-    on<K extends keyof EventMap>(event: K, callback: EventMap[K]): this;
-    once<K extends keyof EventMap>(event: K, callback: EventMap[K]): this;
-    off<K extends keyof EventMap>(event: K, callback: EventMap[K]): this;
-    emit<K extends keyof EventMap>(event: K, ...args: Parameters<EventMap[K]>): boolean;
+    on<K extends keyof EventMap>(event: K, callback: EmitterCallback<EventMap[K]>): this;
+    once<K extends keyof EventMap>(event: K, callback: EmitterCallback<EventMap[K]>): this;
+    off<K extends keyof EventMap>(event: K, callback: EmitterCallback<EventMap[K]>): this;
+    emit<K extends keyof EventMap>(event: K, ...args: EventMap[K]): boolean;
 }
 
 export interface ReadonlyObserver<T> {
@@ -37,11 +35,11 @@ export interface NavSection {
 }
 
 export type EmbedAppEvents = {
-    loadingStateChanged: (state: any) => void;
-    pageHashChanged: (hash: string, replace: boolean) => void;
-    darkmodeChanged: (value: string) => void;
-    unloadData: () => void;
-    data: () => void;
+    loadingStateChanged: [state: any];
+    pageHashChanged: [hash: string, replace: boolean];
+    darkmodeChanged: [value: string];
+    unloadData: [];
+    data: [];
 }
 
 export type DataSource = ReadableStream | Response | File | Blob | ArrayBuffer | string | Iterable<ArrayBuffer | string>;
@@ -72,7 +70,7 @@ export interface EmbedAppPublicApi extends Emitter<EmbedAppEvents> {
 }
 
 export type PreinitEmbedAppEvents = {
-    loadingStateChanged: (state: any) => void;
+    loadingStateChanged: [state: any];
 }
 
 export interface PreinitEmbedAppPublicApi extends Emitter<PreinitEmbedAppEvents> {

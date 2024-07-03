@@ -3,8 +3,8 @@
 import Emitter from './emitter.js';
 
 export default class Dictionary<V, K = string> extends Emitter<{
-    define(key: K, value: V): void;
-    revoke(key: K): void;
+    define: [key: K, value: V];
+    revoke: [key: K];
 }> {
     #entries: Map<K, V>;
     #allowRevoke: boolean;
