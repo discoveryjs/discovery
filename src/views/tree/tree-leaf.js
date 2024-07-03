@@ -2,6 +2,21 @@
 
 import { createElement } from '../../core/utils/dom.js';
 
+const props = `#.props | {
+    $items: children.query(@, #.context) | is array?;
+
+    itemConfig,
+    content is not undefined ?: 'text',
+    collapsible is not undefined ?: true,
+    onToggle,
+    expanded,
+    last,
+    hasChildren: hasChildren or $items.size() > 0,
+    children,
+    $items,
+    limit: limit | $ = false or is int ?: 25
+}`;
+
 export default function(host) {
     const elementToData = new WeakMap();
     const clickHandler = ({ target }) => {
@@ -24,12 +39,21 @@ export default function(host) {
     // single event handler for all `tree-leaf` view instances
     host.addHostElEventListener('click', clickHandler, false);
 
-    host.view.define('tree-leaf', async function(el, config, data, context) {
-        const { expanded, content = 'text', itemConfig, collapsible = true, last, hasChildren, children, limit, onToggle } = config;
+    host.view.define('tree-leaf', async function(el, props, data, context) {
+        const {
+            expanded,
+            hasChildren,
+            children,
+            items,
+            content,
+            itemConfig,
+            collapsible,
+            last,
+            limit,
+            onToggle
+        } = props;
         const toggleEl = el.appendChild(createElement('span', 'view-tree-leaf-toggle'));
         const contentEl = el.appendChild(createElement('span', 'view-tree-leaf-content'));
-        let childrenData = null;
-        let hasChildrenEl = hasChildren;
 
         if (last) {
             el.classList.add('last');
@@ -41,12 +65,7 @@ export default function(host) {
 
         await this.render(contentEl, content, data, context);
 
-        if (children) {
-            childrenData = host.query(children, data, context);
-            hasChildrenEl = Array.isArray(childrenData) && childrenData.length > 0;
-        }
-
-        if (hasChildrenEl) {
+        if (hasChildren) {
             const childrenEl = el.appendChild(createElement('ul', 'view-tree-leaf-children'));
             const state = { data, context, onToggle, render: null };
             const renderChildren = (data, expanded) => {
@@ -54,7 +73,7 @@ export default function(host) {
                     expanded--;
                 }
 
-                this.renderList(childrenEl, this.composeConfig({
+                return this.renderList(childrenEl, this.composeConfig({
                     view: 'tree-leaf',
                     expanded,
                     itemConfig,
@@ -70,21 +89,22 @@ export default function(host) {
             elementToData.set(toggleEl, state);
 
             if (typeof expanded === 'function' ? expanded(data, context) : expanded) {
-                if (childrenData) {
-                    await renderChildren(childrenData, expanded);
+                if (items) {
+                    await renderChildren(items, expanded);
                 }
             } else {
                 el.classList.add('collapsed');
 
-                if (childrenData) {
+                if (items) {
                     state.render = () => {
                         state.render = null;
-                        renderChildren(childrenData, expanded || 1);
+                        renderChildren(items, expanded || 1);
                     };
                 }
             }
         }
     }, {
-        tag: 'li'
+        tag: 'li',
+        props
     });
 }
