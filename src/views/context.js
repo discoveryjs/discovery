@@ -1,8 +1,46 @@
 /* eslint-env browser */
 import usage from './context.usage.js';
 
+const props = `
+#.props | {
+    modifiers is array ?: is truthy ? [$] : [],
+    content,
+    proxy.bool(),
+    onInit,
+    onChange
+}`;
+
 export default function(host) {
-    host.view.define('context', function(el, config, data, context) {
+    host.view.define('context', function(el, props, data, context) {
+        let localContext = context;
+        let contentStartMarker = null;
+        let contentEndMarker = null;
+        let lastRender = null;
+        let inited = false;
+        let { modifiers = [], content = [] } = props;
+        const { proxy, onInit, onChange } = props;
+
+        if (!Array.isArray(modifiers)) {
+            modifiers = [modifiers];
+        }
+
+        const renderModifiers = this.render(el, this.composeConfig(modifiers, {
+            onInit: updateContext,
+            onChange: updateContext
+        }), data, context);
+
+        contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
+        contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
+
+        if (proxy && (onInit || onChange)) {
+            content = this.composeConfig(content, { onInit, onChange });
+        }
+
+        return renderModifiers.then(() => {
+            inited = true;
+            return renderContent();
+        });
+
         function renderContent() {
             // clear old content
             let cursor = contentEndMarker.previousSibling;
@@ -24,7 +62,7 @@ export default function(host) {
         }
 
         function updateContext(value, name) {
-            if (name && (!hasOwnProperty.call(localContext, name) || localContext[name] !== value)) {
+            if (name && (!Object.hasOwn(localContext, name) || localContext[name] !== value)) {
                 localContext = {
                     ...localContext,
                     [name]: value
@@ -41,37 +79,9 @@ export default function(host) {
                 }
             }
         }
-
-        let localContext = context;
-        let contentStartMarker = null;
-        let contentEndMarker = null;
-        let lastRender = null;
-        let inited = false;
-        let { modifiers = [], content = [] } = config;
-        const { proxy, onInit, onChange } = config;
-
-        if (!Array.isArray(modifiers)) {
-            modifiers = [modifiers];
-        }
-
-        const renderModifiers = host.view.render(el, this.composeConfig(modifiers, {
-            onInit: updateContext,
-            onChange: updateContext
-        }), data, context);
-
-        contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
-        contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
-
-        if (proxy && (onInit || onChange)) {
-            content = this.composeConfig(content, { onInit, onChange });
-        }
-
-        return renderModifiers.then(() => {
-            inited = true;
-            return renderContent();
-        });
     }, {
         tag: false,
+        props,
         usage
     });
 }
