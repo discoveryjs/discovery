@@ -35,13 +35,13 @@
         "@discoveryjs/json-ext": "^0.6.0",
         "codemirror": "^5.65.2",
         "hitext": "^1.0.0-beta.1",
-        "jora": "1.0.0-beta.11",
+        "jora": "1.0.0-beta.12",
         "marked": "^4.3.0"
     },
     "devDependencies": {
-        "@discoveryjs/cli": "^2.6.0",
+        "@discoveryjs/cli": "^2.8.0",
         "cypress": "^13.3.0",
-        "esbuild": "~0.19.4",
+        "esbuild": "~0.23.0",
         "eslint": "^8.50.0",
         "eslint-plugin-cypress": "^2.15.1",
         "typescript": "^5.4.5"
