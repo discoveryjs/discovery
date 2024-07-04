@@ -12,7 +12,7 @@ export type LinkStyle = {
 };
 export type Style = string | InlineStyle | LinkStyle;
 
-export default async function injectStyles(el: HTMLElement, styles: Style[]) {
+export default async function injectStyles(el: HTMLElement | ShadowRoot, styles?: Style[]) {
     const foucFix = createElement('style', null, ':host{display:none}');
     const awaitingStyles = new Set<Promise<void>>();
 

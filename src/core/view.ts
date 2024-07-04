@@ -8,7 +8,7 @@ type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, d
 type ViewRenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
 type ViewNormalizePropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
 type DefineViewConfig = ViewRenderFunction | RawViewConfig;
-type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
+export type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
 type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
 type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
 type queryFn = (data: any, context: any) => any;

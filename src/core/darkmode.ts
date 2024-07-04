@@ -4,7 +4,7 @@ import { localStorageEntry, PersistentKey } from './utils/persistent.js';
 export type Value = true | false | 'auto' | 'disabled' | 'only';
 export type InitValue = Value | 'off' | 'disable';
 export type Mode = 'manual' | Extract<Value, string>;
-export type Handler = (value: Value, mode: Mode) => void;
+export type Handler = (value: boolean, mode: Mode) => void;
 
 const validValues = new Set<Value>([true, false, 'auto', 'disabled', 'only']);
 const instances = new Set<DarkModeController>();
@@ -43,7 +43,7 @@ applyLocalStorageValue(persistentStorage.value);
 persistentStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
-function resolveInitValue(value, persistent) {
+function resolveInitValue(value: InitValue, persistent: boolean) {
     if (value === 'off' || value === 'disable' || !validValues.has(value)) {
         value = 'disabled';
     }
@@ -56,7 +56,7 @@ function resolveInitValue(value, persistent) {
     return value;
 }
 
-function resolveSetValue(value) {
+function resolveSetValue(value: Value) {
     if (!validValues.has(value)) {
         value = 'disabled';
     }
@@ -86,7 +86,7 @@ export function resolveDarkmodeValue(value, persistent) {
 export class DarkModeController {
     persistent: PersistentKey | null;
     handlers: Array<{ fn: Handler }>;
-    value: Value;
+    value: boolean;
     mode: Mode;
 
     constructor(value: InitValue, persistent = false) {

@@ -5,6 +5,7 @@ import { Observer } from './observer.js';
 import { createElement } from './utils/dom.js';
 import type { Widget } from '../main/widget.js';
 import type ViewRenderer from './view.js';
+import type { RawViewConfig } from './view.js';
 
 export type PageOptions = {
     reuseEl?: boolean;
@@ -74,7 +75,7 @@ export default class PageRenderer extends Dict<Page> {
         }
     }
 
-    define(name: string, render: Page['render'], options: PageOptions) {
+    define(name: string, render: RawViewConfig | Page['render'], options?: PageOptions) {
         return PageRenderer.define(this, name, Object.freeze({
             name,
             render: typeof render === 'function'

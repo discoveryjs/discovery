@@ -12,7 +12,7 @@ type Attrs<TagName extends keyof HTMLElementTagNameMap> = {
 
 export function createElement<TagName extends keyof HTMLElementTagNameMap>(
     tag: TagName,
-    attrs: Attrs<TagName> | string | null,
+    attrs?: Attrs<TagName> | string | null,
     children?: (Node | string)[] | string
   ) {
     const el = document.createElement(tag);
