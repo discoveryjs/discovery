@@ -1,7 +1,9 @@
 /* eslint-env browser */
 
+import type { Model } from '../main/model.js';
 import Dict from './dict.js';
 
+export type LogCallback = Model['log'];
 export type GetterFunction = ((object: object) => any) & { getterFromString?: string };
 export type Getter = string | GetterFunction;
 export type LookupRefFunction = ((object: LookupValue) => LookupValue | null | undefined) & { getterFromString?: string };
@@ -31,29 +33,33 @@ export type ObjectMarkerDescriptor = {
     href: string | null;
 };
 export type ObjectMarker = {
+    name: string;
     page: string | null;
     mark(value: object): void;
-    lookup(value: unknown): ObjectMarkerDescriptor | null
+    lookup(value: unknown): ObjectMarkerDescriptor | null;
+    reset(): void;
 };
 
 let warnings = new Map<string, any[][]>();
 let groupWarningsTimer: ReturnType<typeof setTimeout> | null = null;
 
-function flushWarnings() {
+function flushWarnings(logger: LogCallback) {
     groupWarningsTimer = null;
 
     for (const [caption, messages] of warnings.entries()) {
-        console.groupCollapsed(`${caption} (${messages.length})`);
-        messages.forEach(item => console.warn(...item));
-        console.groupEnd();
+        logger({
+            level: 'warn',
+            message: `${caption} (${messages.length})`,
+            collapsed: messages
+        });
     }
 
     warnings.clear();
 }
 
-function groupWarning(caption: string, ...details: any[]) {
+function groupWarning(logger: LogCallback, caption: string, ...details: any[]) {
     if (groupWarningsTimer === null && warnings.size === 0) {
-        groupWarningsTimer = setTimeout(flushWarnings, 1);
+        groupWarningsTimer = setTimeout(() => flushWarnings(logger), 1);
     }
 
     const warningsGroup = warnings.get(caption);
@@ -115,7 +121,7 @@ function isLookupValue(value: unknown): value is LookupValue {
     return valueType === 'object' || valueType === 'number' || valueType === 'string';
 }
 
-function createObjectMarker(config: NormalizedObjectMarkerConfig): ObjectMarker {
+function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerConfig): ObjectMarker {
     const {
         name,
         indexRefs,
@@ -130,7 +136,7 @@ function createObjectMarker(config: NormalizedObjectMarkerConfig): ObjectMarker 
     }
 
     if (page && getRef === null) {
-        console.warn(`Option "ref" for "${name}" marker must be specified when "page" options is defined ("page" option ignored)`);
+        logger('warn', `Option "ref" for "${name}" marker must be specified when "page" options is defined ("page" option ignored)`);
     }
 
     if (indexRefs.length > 0) {
@@ -140,11 +146,17 @@ function createObjectMarker(config: NormalizedObjectMarkerConfig): ObjectMarker 
     const markedObjects = new Set<object>();
     const indexedRefs = new Map<LookupValue, object>();
     const markers = new Map<LookupValue, ObjectMarkerDescriptor>();
-    const weakRefs = new WeakMap<object, ObjectMarkerDescriptor>();
+    let weakRefs = new WeakMap<object, ObjectMarkerDescriptor>();
 
+    const reset = () => {
+        markedObjects.clear();
+        indexedRefs.clear();
+        markers.clear();
+        weakRefs = new WeakMap();
+    };
     const mark = (object: unknown) => {
         if (object === null || typeof object !== 'object') {
-            console.warn(`Invalid value used for "${name}" marker (should be an object)`);
+            logger('warn', `Invalid value used for "${name}" marker (should be an object)`);
             return;
         }
 
@@ -164,7 +176,7 @@ function createObjectMarker(config: NormalizedObjectMarkerConfig): ObjectMarker 
                 // if the ref value already exists, it must refer to the same object; otherwise, we're dealing with
                 // a collision of references, which leads to non-deterministic behavior.
                 if (indexedRefs.get(ref) !== object) {
-                    groupWarning(`The same reference value used for different objects for "${name}" marker`, `Reference value "${ref}"`, {
+                    groupWarning(logger, `The same reference value used for different objects for "${name}" marker`, `Reference value "${ref}"`, {
                         refGetter: indexRefGetter.getterFromString || indexRefGetter,
                         ref,
                         currentObject: indexedRefs.get(ref),
@@ -246,17 +258,32 @@ function createObjectMarker(config: NormalizedObjectMarkerConfig): ObjectMarker 
     };
 
     return {
+        name,
         page: getRef !== null ? page : null,
         mark,
-        lookup
+        lookup,
+        reset
     };
 }
 
 export default class ObjectMarkerManager extends Dict<ObjectMarker> {
+    #preventDefine = false;
+
+    constructor(private logger: LogCallback = () => {}) {
+        super();
+    }
+
+    lock() {
+        this.#preventDefine = true;
+    }
+
     define(name: string, config: ObjectMarkerConfig) {
+        if (this.#preventDefine) {
+            throw new Error('Object marker definition is not allowed after setup');
+        }
+
         if (this.isDefined(name)) {
-            console.error(`[Discovery] Object marker "${name}" is already defined, new definition ignored`);
-            return;
+            throw new Error(`Object marker "${name}" is already defined, new definition ignored`);
         }
 
         config = config || {};
@@ -268,7 +295,7 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker> {
         const getRef = configGetter(name, config, 'ref', null);
         const getTitle = configGetter(name, config, 'title', getRef || (() => null));
 
-        return ObjectMarkerManager.define(this, name, Object.freeze(createObjectMarker({
+        return ObjectMarkerManager.define(this, name, Object.freeze(createObjectMarker(this.logger, {
             name,
             indexRefs,
             lookupRefs,
@@ -276,6 +303,18 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker> {
             getRef,
             getTitle
         })));
+    }
+
+    reset() {
+        for (const { reset } of this.values) {
+            reset();
+        }
+    }
+
+    markerMap() {
+        return Object.fromEntries(
+            [...this.entries].map(([name, marker]) => [name, marker.mark])
+        );
     }
 
     // Returns first lookup match if marker is not specified
