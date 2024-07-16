@@ -1,18 +1,23 @@
 import { createElement } from '../core/utils/dom.js';
+import { Widget } from '../main/widget.js';
 
 // export an integration with default settings
 export default Object.assign(setup(), { setup });
+export type UploadOptions = Partial<{
+    accept: string | string[];
+    dragdrop: boolean;
+}>;
 
 const isExtension = (value) => /^\./.test(value);
 
-function setup(options) {
-    options = options || true;
+function setup(options?: UploadOptions) {
+    options = options || {};
 
-    return function(host) {
+    return function(host: Widget) {
+        const dragdrop = Boolean(options.dragdrop || options.dragdrop === undefined);
         const accept = options.accept
             ? String(options.accept)
             : 'application/json,application/jsonxl,.json,.jsonxl';
-        const dragdrop = Boolean(options.dragdrop || options.dragdrop === undefined);
         const acceptTokens = accept.split(',');
 
         // setup the drag&drop listeners for upload data if not disabled
@@ -52,7 +57,7 @@ function setup(options) {
                 createElement('input', {
                     type: 'file',
                     accept,
-                    onchange: event => host.loadDataFromEvent(event)
+                    onchange: (event: InputEvent) => host.loadDataFromEvent(event)
                 }).click();
             },
             {
