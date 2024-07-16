@@ -22,13 +22,13 @@ export type ProgressbarState = {
         elapsed: number;
         units?: 'bytes';
         completed: number;
-        total: number;
+        total?: number;
     } | null;
     error: Error | null;
 };
 
 export const loadStages = {
-    created: {
+    inited: {
         value: 0,
         duration: 0,
         title: 'Init'
@@ -81,7 +81,7 @@ const letRepaintIfNeeded = async () => {
     }
 };
 
-export function decodeStageProgress(stage: Stage, progress) {
+export function decodeStageProgress(stage: Stage, progress: ProgressbarState['progress']) {
     const { value, title: stageTitle, duration } = loadStages[stage];
     let progressValue = 0;
     let progressText: string | null = null;
@@ -104,7 +104,7 @@ export function decodeStageProgress(stage: Stage, progress) {
             progressValue = done ? 1.0 : 0.1 + Math.min(0.9, elapsed / 20000);
             progressText = units === 'bytes'
                 ? (completed / (1024 * 1024)).toFixed(1) + 'MB'
-                : completed;
+                : String(completed);
         }
     }
 
@@ -134,11 +134,11 @@ export default class Progressbar extends Observer<ProgressbarState> {
     el: HTMLElement;
 
     constructor({ onTiming, onFinish, delay, domReady }: ProgressbarOptions) {
-        super({ stage: 'created', progress: null, error: null });
+        super({ stage: 'inited', progress: null, error: null });
         this.startTime = null;
         this.finished = false;
         this.awaitRepaint = null;
-        this.lastStage = 'created';
+        this.lastStage = 'inited';
         this.lastStageStart = null;
         this.timings = [];
         this.onTiming = ensureFunction(onTiming);
@@ -190,7 +190,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
         const stageChanged = stage !== this.lastStage;
         const now = performance.now();
 
-        if (this.lastStage === 'created') {
+        if (this.lastStage === 'inited') {
             this.startTime = now;
             this.domReady.then(() => {
                 const appearanceDelay = Math.max(0, this.appearanceDelay - int(performance.now() - now));

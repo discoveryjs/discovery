@@ -1,6 +1,7 @@
 import { Observer } from '../observer.js';
 import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
+import type Progressbar from './progressbar.js';
 import type {
     Encoding,
     LoadDataRequest,
@@ -407,8 +408,8 @@ export function loadDataFromPush(options: LoadDataBaseOptions) {
     );
 }
 
-export function syncLoaderWithProgressbar({ result, state }: LoadDataState, progressbar) {
-    return new Promise((resolve, reject) =>
+export function syncLoaderWithProgressbar({ result, state }: LoadDataState, progressbar: Progressbar) {
+    return new Promise<Dataset>((resolve, reject) =>
         state.subscribeSync((loadDataState, unsubscribe) => {
             const { stage } = loadDataState;
 
