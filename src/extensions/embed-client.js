@@ -136,7 +136,7 @@ function setup(options) {
                     }
 
                     case 'setRouterPreventLocationUpdate': {
-                        host.routerPreventLocationUpdate = Boolean(payload);
+                        host.action.call('setPreventLocationUpdate', Boolean(payload));
                         break;
                     }
 
