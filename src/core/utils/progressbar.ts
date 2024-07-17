@@ -9,12 +9,12 @@ export type Timing = {
 };
 export type OnTimingCallback = (timing: Timing) => void;
 export type OnFinishCallback = (timings: Timing[]) => void;
-export type ProgressbarOptions = {
-    onTiming: OnTimingCallback,
-    onFinish: OnFinishCallback,
-    delay?: number | true,
-    domReady?: Promise<any>
-};
+export type ProgressbarOptions = Partial<{
+    onTiming: OnTimingCallback;
+    onFinish: OnFinishCallback;
+    delay: number | true;
+    domReady: Promise<any>;
+}>;
 export type ProgressbarState = {
     stage: Stage;
     progress: {

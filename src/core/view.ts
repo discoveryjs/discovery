@@ -48,7 +48,7 @@ interface View {
     options: ViewNormalizedOptions;
     render: RenderFunction;
 }
-interface SingleViewConfig {
+export interface SingleViewConfig {
     view: string | RenderFunction;
     when?: query;
     data?: query;
@@ -584,16 +584,16 @@ export default class ViewRenderer extends Dict<View> {
     }
 
     define(name: string, render: DefineViewConfig, options?: ViewOptions) {
-        const { tag } = options || {};
+        const { tag, props } = options || {};
 
         return ViewRenderer.define<View>(this, name, Object.freeze({
             name,
             options: Object.freeze({
                 ...options,
                 tag: typeof tag === 'string' || tag === undefined ? tag : null,
-                props: typeof options?.props === 'string'
-                   ? this.host.queryFn(options.props)
-                   : options?.props
+                props: typeof props === 'string'
+                   ? this.host.queryFn(props)
+                   : props
             }),
             render: typeof render === 'function'
                 ? render.bind(createRenderContext(this, name))
