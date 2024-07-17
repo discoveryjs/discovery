@@ -1,5 +1,8 @@
 ## next
 
+- Introduced the `Model` class as a base for `Widget` and `App`:
+    - Added a new `setup` option for configuring model-related aspects during initialization (immutable during the lifecycle), such as object markers, additional query methods, etc.
+    - Implements `loadDataFrom*` methods
 - Added handling of empty payload on data loading (raise an error "Empty payload")
 - Added `props` options for a view definition, a function (or a string as a jora query) `(data, { props, context}) => any` which should return a normalized props
 - Added additional block into inspector popup to display normalized props when `view.options.props` is specified

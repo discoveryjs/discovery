@@ -2,33 +2,42 @@
 
 import jora from 'jora';
 import { createElement } from '../core/utils/dom.js';
-import injectStyles from '../core/utils/inject-styles.js';
+import injectStyles, { Style } from '../core/utils/inject-styles.js';
 import { deepEqual } from '../core/utils/compare.js';
-import { normalizeEncodings } from '../core/encodings/utils.js';
-import ActionManager from '../core/action.js';
-import { DarkModeController } from '../core/darkmode.js';
-import Emitter from '../core/emitter.js';
+import { DarkModeController, InitValue } from '../core/darkmode.js';
 import PageRenderer from '../core/page.js';
-import ViewRenderer from '../core/view.js';
+import ViewRenderer, { SingleViewConfig } from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import { Observer } from '../core/observer.js';
 import inspector from '../extensions/inspector.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { WidgetNavigation } from '../nav/index.js';
-import { createDataExtensionApi } from './data-extension-api.js';
-import { querySuggestions } from './query-suggestions.js';
+import { Model, ModelEvents, ModelOptions, PageParams, PageRef, Query, SetDataOptions } from './model.js';
+import { Dataset } from '../core/utils/load-data.types.js';
+import Progressbar from '../core/utils/progressbar.js';
 
-const lastSetDataPromise = new WeakMap();
-const renderScheduler = new WeakMap();
-const logLevels = ['silent', 'error', 'warn', 'info', 'perf', 'debug'];
-const logPrefix = '[Discovery]';
-const noopLogger = new Proxy({}, { get: () => () => {} });
+export type RenderSubject = 'page' | 'sidebar';
+export type ValueAnnotation =
+    | ((value: unknown, context: ValueAnnotationContext) => any)
+    | { query: Query, [key: string]: any };
+export type ValueAnnotationContext = {
+    parent: ValueAnnotationContext | null;
+    host: any;
+    key: string | number;
+    index: number;
+};
+export type SetDataProgressOptions = Partial<{
+    dataset: Dataset;
+    progressbar: Progressbar;
+}>;
 
-const defaultEncodeParams = (params) => params;
-const defaultDecodeParams = (pairs) => Object.fromEntries(pairs);
+const renderScheduler = new WeakMap<Widget, Set<RenderSubject> & { timer?: Promise<void> | null }>();
 
-function setDatasetValue(el, key, value) {
+const defaultEncodeParams = (params: [string, unknown][]) => params;
+const defaultDecodeParams = (pairs: [string, unknown][]) => Object.fromEntries(pairs);
+
+function setDatasetValue(el: HTMLElement, key: string, value: any) {
     if (value) {
         el.dataset[key] = value;
     } else {
@@ -36,15 +45,15 @@ function setDatasetValue(el, key, value) {
     }
 }
 
-function getPageOption(host, pageId, name, fallback) {
-    const page = host.page.get(pageId);
+function getPageOption(host: Widget, pageId: string, name: string, fallback: any) {
+    const options = host.page.get(pageId)?.options;
 
-    return page && Object.hasOwnProperty.call(page.options, name)
-        ? page.options[name]
+    return options !== undefined && Object.hasOwn(options, name)
+        ? options[name]
         : fallback;
 }
 
-function getPageMethod(host, pageId, name, fallback) {
+function getPageMethod(host: Widget, pageId: string, name: string, fallback: any) {
     const method = getPageOption(host, pageId, name, fallback);
 
     return typeof method === 'function'
@@ -52,32 +61,85 @@ function getPageMethod(host, pageId, name, fallback) {
         : fallback;
 }
 
-export class Widget extends Emitter {
-    constructor(options = {}) {
-        super();
+export interface WidgetEvents extends ModelEvents {
+    startSetData: [subscribe: (...args: Parameters<Progressbar['subscribeSync']>) => void];
+    pageHashChange: [replace: boolean];
+}
+export interface WidgetOptions<T = Widget> extends ModelOptions<T> {
+    container: HTMLElement;
+    styles: Style[];
 
-        this.options = options || {};
+    compact: boolean;
+    darkmode: InitValue;
+    darkmodePersistent: boolean;
+
+    defaultPage: string;
+    defaultPageId: string;
+    discoveryPageId: string;
+    reportToDiscoveryRedirect: boolean;
+
+    inspector: boolean;
+}
+type WidgetOptionsBind = WidgetOptions; // to fix: Type parameter 'Options' has a circular default.
+
+export class Widget<
+    Options extends WidgetOptions = WidgetOptionsBind,
+    Events extends WidgetEvents = WidgetEvents
+> extends Model<Options, Events> {
+    darkmode: DarkModeController;
+    inspectMode: Observer<boolean>;
+
+    view: ViewRenderer;
+    nav: WidgetNavigation;
+    preset: PresetRenderer;
+    page: PageRenderer;
+
+    annotations: ValueAnnotation[];
+
+    defaultPageId: string;
+    discoveryPageId: string;
+    reportToDiscoveryRedirect: boolean; // TODO: to make bookmarks work, remove sometime in the future
+    pageId: string;
+    pageRef: PageRef;
+    pageParams: Record<string, any>;
+    pageHash: string;
+
+    dom: {
+        ready: Promise<void>;
+        wrapper: HTMLElement;
+        root: HTMLElement | ShadowRoot;
+        container: HTMLElement;
+        nav: HTMLElement;
+        sidebar: HTMLElement;
+        content: HTMLElement;
+        pageContent: HTMLElement;
+        detachDarkMode: null | (() => void);
+    };
+    queryExtensions: Record<string, Function>;
+
+    constructor(options: Partial<Options>) {
         const {
+            extensions,
             logLevel,
-            logger = console,
             darkmode = 'disabled',
             darkmodePersistent = false,
             defaultPage,
             defaultPageId,
             discoveryPageId,
             reportToDiscoveryRedirect = true,
-            extensions,
             inspector: useInspector = false
-        } = this.options;
+        } = options || {};
 
-        this.logger = logger || noopLogger;
-        this.logLevel = logLevels.includes(logLevel) ? logLevel : 'perf';
+        super({
+            ...options,
+            logLevel: logLevel || 'perf',
+            extensions: undefined
+        });
 
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
         this.inspectMode = new Observer(false);
         this.initDom();
 
-        this.action = new ActionManager();
         this.action
             .on('define', () => {
                 if (this.context) {
@@ -106,12 +168,6 @@ export class Widget extends Emitter {
         });
         renderScheduler.set(this, new Set());
 
-        this.datasets = [];
-        this.encodings = normalizeEncodings(options.encodings);
-        this.data = undefined;
-        this.context = undefined;
-        this.prepare = data => data;
-
         this.defaultPageId = defaultPageId || 'default';
         this.discoveryPageId = discoveryPageId || 'discovery';
         this.reportToDiscoveryRedirect = Boolean(reportToDiscoveryRedirect); // TODO: to make bookmarks work, remove sometime in the future
@@ -119,14 +175,11 @@ export class Widget extends Emitter {
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
+        this.annotations = [];
 
-        this.apply(createDataExtensionApi(this));
         this.apply(views);
         this.apply(pages);
-
-        if (extensions) {
-            this.apply(extensions);
-        }
+        this.apply(extensions);
 
         if (defaultPage) {
             this.page.define(this.defaultPageId, defaultPage);
@@ -136,108 +189,59 @@ export class Widget extends Emitter {
             this.apply(inspector);
         }
 
+        for (const { name, page, lookup } of this.objectMarkers.values) {
+            if (page && !this.page.isDefined(page)) {
+                this.log('error', `Page reference "${page}" in object marker "${name}" doesn't exist`);
+            }
+
+            this.annotations.push((value: unknown, context: ValueAnnotationContext) => {
+                const marker = //annotateScalars || 
+                    (value !== null && typeof value === 'object')
+                    ? lookup(value)
+                    : null;
+    
+                if (marker !== null && marker.object !== context.host) {
+                    return {
+                        place: 'before',
+                        style: 'badge',
+                        text: name,
+                        href: marker.href
+                    };
+                }
+            });
+        }
+
         this.nav.render(this.dom.nav, this.data, this.getRenderContext());
         this.setContainer(this.options.container);
-    }
-
-    apply(extensions) {
-        if (Array.isArray(extensions)) {
-            extensions.forEach(extension => this.apply(extension));
-        } else if (typeof extensions === 'function') {
-            extensions.call(null, this);
-        } else if (extensions) {
-            this.apply(Object.values(extensions));
-        }
-    }
-
-    log(levelOrOpts, ...args) {
-        const { level, lazy, message, collapsed } = levelOrOpts && typeof levelOrOpts === 'object' ? levelOrOpts : { level: levelOrOpts };
-        const levelIndex = logLevels.indexOf(level);
-
-        if (levelIndex > 0 && levelIndex <= logLevels.indexOf(this.logLevel)) {
-            const method = level === 'perf' ? 'log' : level;
-
-            if (collapsed) {
-                this.logger.groupCollapsed(`${logPrefix} ${message || args?.[0]}`);
-
-                const entries = typeof collapsed === 'function' ? collapsed() : collapsed;
-                for (const entry of Array.isArray(entries) ? entries : [entries]) {
-                    this.logger[method](...Array.isArray(entry) ? entry : [entry]);
-                }
-
-                this.logger.groupEnd();
-            } else {
-                this.logger[method](logPrefix, ...typeof lazy === 'function' ? lazy() : args);
-            }
-        } else if (levelIndex === -1) {
-            this.logger.error(`${logPrefix} Bad log level "${level}", supported: ${logLevels.slice(1).join(', ')}`);
-        }
     }
 
     //
     // Data
     //
 
-    setPrepare(fn) {
-        if (typeof fn !== 'function') {
-            throw new Error('An argument should be a function');
-        }
-
-        this.prepare = fn;
-    }
-
-    setData(data, context = {}, options) {
+    async setData(data: unknown, context: unknown, options?: SetDataOptions & { render?: boolean }) {
         options = options || {};
 
-        const startTime = Date.now();
-        const prepareExtension = createDataExtensionApi(this);
-        const checkIsNotPrevented = () => {
-            const lastPromise = lastSetDataPromise.get(this);
+        await super.setData(data, options);
 
-            // prevent race conditions, perform only if this promise is last one
-            if (lastPromise !== setDataPromise) {
-                throw new Error('Prevented by another setData()');
-            }
-        };
-        const setDataPromise = Promise.resolve()
-            .then(() => {
-                checkIsNotPrevented();
-
-                return this.prepare(data, prepareExtension.methods) || data;
-            })
-            .then((data) => {
-                checkIsNotPrevented();
-
-                this.datasets = [{ ...options.dataset, data }];
-                this.data = data;
-                this.context = context;
-                this.apply(prepareExtension);
-
-                this.emit('data');
-                this.log('perf', `Data prepared in ${Date.now() - startTime}ms`);
-            });
-
-        // mark as last setData promise
-        lastSetDataPromise.set(this, setDataPromise);
+        this.context = context || {};
 
         // run after data is prepared and set
         if ('render' in options === false || options.render) {
-            setDataPromise.then(() => {
-                this.scheduleRender('sidebar');
-                this.scheduleRender('page');
-            });
+            this.scheduleRender('sidebar');
+            this.scheduleRender('page');
         }
-
-        return setDataPromise;
     }
 
-    async setDataProgress(data, context, options) {
+    async setDataProgress(data: unknown, context: unknown, options?: SetDataProgressOptions) {
         const {
             dataset,
             progressbar
         } = options || {};
 
-        this.emit('startSetData', (...args) => progressbar?.subscribeSync(...args));
+        this.emit('startSetData', (...args: Parameters<Progressbar['subscribeSync']>) =>
+            progressbar?.subscribeSync(...args)
+        );
 
         // set new data & context
         await progressbar?.setState({ stage: 'prepare' });
@@ -252,72 +256,18 @@ export class Widget extends Emitter {
         this.scheduleRender('page');
         await Promise.all([
             this.dom.wrapper.parentNode ? this.dom.ready : true,
-            renderScheduler.get(this).timer
+            renderScheduler.get(this)?.timer
         ]);
 
         // finish progress
         await progressbar?.finish();
     }
 
-    unloadData() {
-        if (!this.hasDatasets()) {
-            return;
-        }
-
-        this.datasets = [];
-        this.data = undefined;
-        this.context = undefined;
-
-        this.scheduleRender('sidebar');
-        this.scheduleRender('page');
-
-        this.emit('unloadData');
-    }
-
-    hasDatasets() {
-        return this.datasets.length !== 0;
-    }
-
-    // The method is overriding by createDataExtensionApi().apply()
-    resolveValueLinks() {
-        return null;
-    }
-
     //
     // Data query
     //
 
-    queryFn(query) {
-        switch (typeof query) {
-            case 'function':
-                return query;
-
-            case 'string': {
-                const fn = this.queryFnFromString(query);
-                fn.query = query; // FIXME: jora should add it for all kinds of queries
-                return fn;
-            }
-        }
-    }
-
-    query(query, data, context) {
-        switch (typeof query) {
-            case 'function':
-                return query(data, context);
-
-            case 'string':
-                return this.queryFn(query)(data, context);
-
-            default:
-                return query;
-        }
-    }
-
-    queryBool(...args) {
-        return jora.buildin.bool(this.query(...args));
-    }
-
-    queryToConfig(view, query) {
+    queryToConfig(view: string, query: string): SingleViewConfig {
         const { ast } = jora.syntax.parse(query);
         const config = { view };
 
@@ -334,7 +284,7 @@ export class Widget extends Emitter {
                 throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object entry type "' + entry.type + '"');
             }
 
-            let key;
+            let key: string;
             let value = entry.value;
             switch (entry.key.type) {
                 case 'Literal':
@@ -380,28 +330,6 @@ export class Widget extends Emitter {
         return config;
     }
 
-    querySuggestions(query, offset, data, context) {
-        return querySuggestions(this, query, offset, data, context);
-    }
-
-    pathToQuery(path) {
-        return path.map((part, idx) =>
-            part === '*'
-                ? (idx === 0 ? 'values()' : '.values()')
-                : typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
-                    ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
-                    : (idx === 0 ? part : '.' + part)
-        ).join('');
-    }
-
-    getQueryEngineInfo() {
-        return {
-            name: 'jora',
-            version: jora.version,
-            link: 'https://discoveryjs.github.io/jora/#article:jora-syntax'
-        };
-    }
-
     //
     // UI
     //
@@ -411,25 +339,32 @@ export class Widget extends Emitter {
         const shadow = wrapper.attachShadow({ mode: 'open' });
         const readyStyles = injectStyles(shadow, this.options.styles);
         const container = shadow.appendChild(createElement('div'));
+        const pageContent = createElement('article');
+        const nav = createElement('div', 'discovery-nav discovery-hidden-in-dzen');
+        const sidebar = createElement('nav', 'discovery-sidebar discovery-hidden-in-dzen');
+        const content = createElement('main', 'discovery-content', [pageContent]);
 
-        this.dom = {};
-        this.dom.ready = Promise.all([readyStyles]);
-        this.dom.wrapper = wrapper;
-        this.dom.root = shadow;
-        this.dom.container = container;
+        this.dom = {
+            ready: readyStyles,
+            wrapper,
+            root: shadow,
+            container,
+            nav,
+            sidebar,
+            content,
+            pageContent,
+            detachDarkMode: this.darkmode.subscribe(
+                dark => container.classList.toggle('discovery-root-darkmode', dark),
+                true
+            )
+        };
 
         container.classList.add('discovery-root', 'discovery');
-        container.append(
-            this.dom.nav = createElement('div', 'discovery-nav discovery-hidden-in-dzen'),
-            this.dom.sidebar = createElement('nav', 'discovery-sidebar discovery-hidden-in-dzen'),
-            this.dom.content = createElement('main', 'discovery-content', [
-                this.dom.pageContent = createElement('article')
-            ])
-        );
+        container.append(nav, sidebar, content);
 
         // TODO: use Navigation API when it become mature and wildly supported (https://developer.chrome.com/docs/web-platform/navigation-api/)
         shadow.addEventListener('click', (event) => {
-            const linkEl = event.target.closest('a');
+            const linkEl = (event.target as HTMLElement)?.closest('a');
 
             // do nothing when there is no <a> in target's ancestors, or it's an external link
             if (!linkEl || linkEl.getAttribute('target')) {
@@ -448,18 +383,14 @@ export class Widget extends Emitter {
             }
         }, true);
 
-        this.dom.detachDarkMode = this.darkmode.subscribe(
-            dark => container.classList.toggle('discovery-root-darkmode', dark),
-            true
-        );
         this.dom.ready.then(() => {
             getComputedStyle(this.dom.wrapper).opacity; // trigger repaint
             this.dom.wrapper.classList.remove('init');
         });
     }
 
-    setContainer(container) {
-        if (container instanceof Node) {
+    setContainer(container?: HTMLElement) {
+        if (container instanceof HTMLElement) {
             container.append(this.dom.wrapper);
         } else {
             this.dom.wrapper.remove();
@@ -471,30 +402,39 @@ export class Widget extends Emitter {
             this.dom.detachDarkMode();
             this.dom.detachDarkMode = null;
         }
+
         this.dom.container.remove();
-        this.dom = null;
+        this.dom = null as any;
     }
 
-    addGlobalEventListener(eventName, handler, options) {
-        document.addEventListener(eventName, handler, options);
-        return () => document.removeEventListener(eventName, handler, options);
+    addGlobalEventListener<E extends keyof DocumentEventMap>(
+        type: E,
+        listener: (e: DocumentEventMap[E]) => void,
+        options?: boolean | AddEventListenerOptions
+    ) {
+        document.addEventListener(type, listener, options);
+        return () => document.removeEventListener(type, listener, options);
     }
 
-    addHostElEventListener(eventName, handler, options) {
+    addHostElEventListener<E extends keyof HTMLElementEventMap>(
+        type: E,
+        listener: (e: HTMLElementEventMap[E]) => void,
+        options?: boolean | AddEventListenerOptions
+    ) {
         const el = this.dom.container;
 
-        el.addEventListener(eventName, handler, options);
-        return () => el.removeEventListener(eventName, handler, options);
+        el.addEventListener(type, listener, options);
+        return () => el.removeEventListener(type, listener, options);
     }
 
     //
     // Render common
     //
 
-    scheduleRender(subject) {
+    scheduleRender(subject: RenderSubject) {
         const scheduledRenders = renderScheduler.get(this);
 
-        if (scheduledRenders.has(subject)) {
+        if (scheduledRenders === undefined || scheduledRenders?.has(subject)) {
             return;
         }
 
@@ -522,7 +462,7 @@ export class Widget extends Emitter {
         return scheduledRenders.timer;
     }
 
-    cancelScheduledRender(subject) {
+    cancelScheduledRender(subject?: RenderSubject) {
         const scheduledRenders = renderScheduler.get(this);
 
         if (scheduledRenders) {
@@ -552,7 +492,7 @@ export class Widget extends Emitter {
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        renderScheduler.get(this).delete('sidebar');
+        renderScheduler.get(this)?.delete('sidebar');
 
         if (this.hasDatasets() && this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
@@ -571,63 +511,46 @@ export class Widget extends Emitter {
     // Page
     //
 
-    encodePageHash(pageId, pageRef, pageParams) {
+    encodePageHash(pageId: string, pageRef: PageRef = null, pageParams?: PageParams) {
+        const encodedPageId = pageId || this.defaultPageId;
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
-        let encodedParams = encodeParams(pageParams || {});
+        let encodedParams: [string, any][] | string = encodeParams(pageParams || {});
 
-        if (encodedParams && typeof encodedParams !== 'string') {
-            if (!Array.isArray(encodedParams)) {
-                encodedParams = Object.entries(encodedParams);
-            }
-
-            encodedParams = encodedParams
-                .map(pair => pair.map(encodeURIComponent).join('='))
-                .join('&');
-        }
-
-        return `#${
-            pageId !== this.defaultPageId ? encodeURIComponent(pageId) : ''
-        }${
-            (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + encodeURIComponent(pageRef) : ''
-        }${
-            encodedParams ? '&' + encodedParams : ''
-        }`;
+        return super.encodePageHash(
+            encodedPageId !== this.defaultPageId ? encodedPageId : '',
+            pageRef,
+            encodedParams
+        );
     }
 
-    decodePageHash(hash) {
-        const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
-        const [pageId, pageRef] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
-        const decodeParams = getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams);
-        const pairs = hash.substr(delimIndex + 1).split('&').filter(Boolean).map(pair => {
-            const eqIndex = pair.indexOf('=');
-            return eqIndex !== -1
-                ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]
-                : [decodeURIComponent(pair), true];
-        });
+    decodePageHash(hash: string) {
+        const { pageId, pageRef, pageParams } = super.decodePageHash(hash);
+        const decodedPageId = pageId || this.defaultPageId;
+        const decodeParams = getPageMethod(this, decodedPageId, 'decodeParams', defaultDecodeParams);
 
         return {
-            pageId: pageId || this.defaultPageId,
+            pageId: decodedPageId,
             pageRef,
-            pageParams: decodeParams(pairs)
+            pageParams: decodeParams(pageParams)
         };
     }
 
-    setPage(pageId, pageRef, pageParams, replace = false) {
+    setPage(pageId: string, pageRef: PageRef = null, pageParams?: PageParams, replace = false) {
         return this.setPageHash(
             this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
             replace
         );
     }
 
-    setPageRef(pageRef, replace = false) {
+    setPageRef(pageRef: PageRef = null, replace = false) {
         return this.setPage(this.pageId, pageRef, this.pageParams, replace);
     }
 
-    setPageParams(pageParams, replace = false) {
+    setPageParams(pageParams: PageParams, replace = false) {
         return this.setPage(this.pageId, this.pageRef, pageParams, replace);
     }
 
-    setPageHash(hash, replace = false) {
+    setPageHash(hash: string, replace = false) {
         let { pageId, pageRef, pageParams } = this.decodePageHash(hash);
 
         // TODO: remove sometime in the future
@@ -657,7 +580,7 @@ export class Widget extends Emitter {
 
     renderPage() {
         // cancel scheduled renderPage
-        renderScheduler.get(this).delete('page');
+        renderScheduler.get(this)?.delete('page');
 
         const data = this.data;
         const context = this.getRenderContext();
@@ -684,10 +607,10 @@ export class Widget extends Emitter {
 
         renderState.then(() => {
             if (this.pageParams['!anchor']) {
-                const el = pageEl.querySelector('#' + CSS.escape('!anchor:' + this.pageParams['!anchor']));
+                const el: HTMLElement | null = pageEl.querySelector('#' + CSS.escape('!anchor:' + this.pageParams['!anchor']));
 
                 if (el) {
-                    const pageHeaderEl = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
+                    const pageHeaderEl: HTMLElement | null = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
 
                     el.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
                     el.scrollIntoView(true);

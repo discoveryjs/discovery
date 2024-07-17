@@ -1,30 +1,45 @@
 /* eslint-env browser */
 
-import { Widget } from './widget.js';
-import upload from '../extensions/upload.js';
+import { SetDataProgressOptions, Widget, WidgetEvents, WidgetOptions } from './widget.js';
+import upload, { UploadOptions } from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import { createElement } from '../core/utils/dom.js';
-import Progressbar from '../core/utils/progressbar.js';
+import Progressbar, { ProgressbarOptions, loadStages } from '../core/utils/progressbar.js';
 import * as navButtons from '../nav/buttons.js';
-import {
-    loadDataFromStream,
-    loadDataFromFile,
-    loadDataFromEvent,
-    loadDataFromUrl,
-    syncLoaderWithProgressbar
-} from '../core/utils/load-data.js';
+import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
+import { LoadDataBaseOptions, LoadDataState } from '../core/utils/load-data.types.js';
 
 const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
-const mixinEncodings = (host, options) => ({
-    ...options,
-    encodings: Array.isArray(options?.encodings)
-        ? [...options.encodings, ...host.encodings]
-        : host.encodings
-});
 
-export class App extends Widget {
-    constructor(options = {}) {
+export type AppLoadingState = 'init' | 'error' | 'success';
+export type AppLoadingStateOptions<T> =
+    T extends 'init' ? { progressbar: Progressbar } :
+    T extends 'error' ? { error: Error & { renderContent?: any }, progressbar: Progressbar } :
+    undefined;
+
+export interface AppEvents extends WidgetEvents {
+    startLoadData: [subscribe: Parameters<Progressbar['subscribe']>];
+}
+export interface AppOptions<T = Widget> extends WidgetOptions<T> {
+    mode: 'modelfree';
+    router: boolean;
+    upload: UploadOptions
+    embed: boolean;
+}
+type AppOptionsBind = AppOptions; // to fix: Type parameter 'Options' has a circular default.
+
+export class App<
+    Options extends AppOptions = AppOptionsBind,
+    Events extends AppEvents = AppEvents
+> extends Widget<Options, Events> {
+    mode: string | undefined;
+    _defaultPageId: string | undefined;
+    declare dom: Widget['dom'] & {
+        loadingOverlay: HTMLElement;
+    };
+
+    constructor(options: Partial<Options> = {}) {
         const extensions = options.extensions ? [options.extensions] : [];
 
         extensions.push(navButtons.darkmodeToggle);
@@ -62,20 +77,21 @@ export class App extends Widget {
         this.mode = this.options.mode;
     }
 
-    setLoadingState(state, { error, progressbar } = {}) {
+    setLoadingState<S extends AppLoadingState>(state: S, options?: AppLoadingStateOptions<S>) {
         const loadingOverlayEl = this.dom.loadingOverlay;
+        const { progressbar } = options || {};
 
         switch (state) {
             case 'init': {
                 loadingOverlayEl.classList.remove('error', 'done');
 
                 // if progressbar already has parent element -> do nothing
-                if (progressbar.el.parentNode) {
+                if (progressbar?.el.parentNode) {
                     return;
                 }
 
                 loadingOverlayEl.innerHTML = '';
-                loadingOverlayEl.append(progressbar.el);
+                loadingOverlayEl.append(progressbar?.el || '');
                 loadingOverlayEl.classList.add('init');
                 requestAnimationFrame(() => loadingOverlayEl.classList.remove('init'));
 
@@ -89,6 +105,8 @@ export class App extends Widget {
             }
 
             case 'error': {
+                const error = (options as AppLoadingStateOptions<'error'>)?.error;
+
                 loadingOverlayEl.classList.add('error');
                 loadingOverlayEl.innerHTML = '';
 
@@ -133,7 +151,7 @@ export class App extends Widget {
         }
     }
 
-    async setDataProgress(data, context, options) {
+    async setDataProgress(data: unknown, context: unknown, options?: SetDataProgressOptions) {
         const dataset = options?.dataset;
         const progressbar = options?.progressbar || this.progressbar({ title: 'Set data' });
 
@@ -146,7 +164,7 @@ export class App extends Widget {
         }
     }
 
-    progressbar(options) {
+    progressbar(options: ProgressbarOptions & { title?: string }) {
         return new Progressbar({
             delay: 200,
             domReady: this.dom.ready,
@@ -159,8 +177,8 @@ export class App extends Widget {
         });
     }
 
-    trackLoadDataProgress(loader) {
-        const progressbar = this.progressbar({ title: loader.title });
+    async trackLoadDataProgress(loader: LoadDataState) {
+        const progressbar = this.progressbar({ title: loadStages[loader.state.value.stage].title });
 
         this.setLoadingState('init', { progressbar });
         this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
@@ -170,17 +188,10 @@ export class App extends Widget {
             error => this.setLoadingState('error', { error, progressbar })
         );
 
-        return loader.result;
+        await loader.result;
     }
 
-    loadDataFromStream(stream, options) {
-        return this.trackLoadDataProgress(loadDataFromStream(
-            stream,
-            mixinEncodings(this, typeof options === 'number' ? { size: options } : options)
-        ));
-    }
-
-    loadDataFromEvent(event, options) {
+    loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {
         if (this.options.mode === 'modelfree' && this.defaultPageId !== this.discoveryPageId) {
             this._defaultPageId = this.defaultPageId;
             this.defaultPageId = this.discoveryPageId;
@@ -188,20 +199,12 @@ export class App extends Widget {
             this.cancelScheduledRender();
         }
 
-        return this.trackLoadDataProgress(loadDataFromEvent(event, mixinEncodings(this, options)));
-    }
-
-    loadDataFromFile(file, options) {
-        return this.trackLoadDataProgress(loadDataFromFile(file, mixinEncodings(this, options)));
-    }
-
-    loadDataFromUrl(url, options) {
-        return this.trackLoadDataProgress(loadDataFromUrl(url, mixinEncodings(this, options)));
+        return super.loadDataFromEvent(event, options);
     }
 
     unloadData() {
         if (this.hasDatasets() && this.options.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
-            this.defaultPageId = this._defaultPageId;
+            this.defaultPageId = this._defaultPageId as string;
             this.setPageHash(this.pageHash, true);
             this.cancelScheduledRender();
         }
