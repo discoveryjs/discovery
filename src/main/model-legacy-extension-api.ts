@@ -1,7 +1,7 @@
 import jora from 'jora';
 import ObjectMarker, { ObjectMarkerConfig } from '../core/object-marker.js';
-import { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, SetupQueryMethodsExtension } from './model.js';
-import { ValueAnnotationContext, Widget } from './widget.js';
+import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, SetupQueryMethodsExtension, PageRef, PageParams } from './model.js';
+import type { ValueAnnotationContext, Widget } from './widget.js';
 
 export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper {
     const objectMarkers = new ObjectMarker();
@@ -30,7 +30,8 @@ export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper 
     let queryCustomMethods = {
         query: host.query.bind(host),
         overrideProps,
-        pageLink: host.encodePageHash.bind(host),
+        pageLink: (pageRef: PageRef, pageId: string, pageParams: PageParams) =>
+            host.encodePageHash(pageId, pageRef, pageParams),
         marker: lookupObjectMarker,
         markerAll: lookupObjectMarkerAll,
         callAction,

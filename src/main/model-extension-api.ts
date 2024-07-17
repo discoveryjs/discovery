@@ -1,6 +1,6 @@
 import jora from 'jora';
-import type { Model, ModelOptions, PrepareContextApiWrapper, SetupMethods, SetupQueryMethodsExtension } from './model.js';
-import { ObjectMarkerConfig } from '../core/object-marker.js';
+import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetupMethods, SetupQueryMethodsExtension } from './model.js';
+import type { ObjectMarkerConfig } from '../core/object-marker.js';
 
 export function createExtensionApi(host: Model): PrepareContextApiWrapper {
     return {
@@ -31,7 +31,8 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
     let queryCustomMethods = {
         query: host.query.bind(host),
         overrideProps,
-        pageLink: host.encodePageHash.bind(host),
+        pageLink: (pageRef: PageRef, pageId: string, pageParams: PageParams) =>
+            host.encodePageHash(pageId, pageRef, pageParams),
         marker: objectMarkers.lookup.bind(objectMarkers),
         markerAll: objectMarkers.lookupAll.bind(objectMarkers),
         callAction,
