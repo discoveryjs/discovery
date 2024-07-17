@@ -3,7 +3,7 @@ import { createElement } from './dom.js';
 
 export type Stage = keyof typeof loadStages;
 export type Timing = {
-    stage: Stage | 'error';
+    stage: Stage;
     title: string;
     duration: number;
 };
@@ -62,6 +62,11 @@ export const loadStages = {
         value: 1.0,
         duration: 0,
         title: 'Done!'
+    },
+    error: {
+        value: 1.0,
+        duration: 0,
+        title: 'Error'
     }
 };
 Object.values(loadStages).forEach((item, idx, array) => {
@@ -152,7 +157,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
         ]);
     }
 
-    recordTiming(stage: Stage | 'error', start: number, end = performance.now()) {
+    recordTiming(stage: Stage, start: number, end = performance.now()) {
         const entry: Timing = {
             stage,
             title: loadStages[stage].title,

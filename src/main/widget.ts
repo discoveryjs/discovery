@@ -5,7 +5,7 @@ import { createElement } from '../core/utils/dom.js';
 import injectStyles, { Style } from '../core/utils/inject-styles.js';
 import { deepEqual } from '../core/utils/compare.js';
 import { DarkModeController, InitValue } from '../core/darkmode.js';
-import PageRenderer from '../core/page.js';
+import PageRenderer, { PageOptionName, PageOptions } from '../core/page.js';
 import ViewRenderer, { SingleViewConfig } from '../core/view.js';
 import PresetRenderer from '../core/preset.js';
 import { Observer } from '../core/observer.js';
@@ -45,7 +45,7 @@ function setDatasetValue(el: HTMLElement, key: string, value: any) {
     }
 }
 
-function getPageOption(host: Widget, pageId: string, name: string, fallback: any) {
+function getPageOption<K extends PageOptionName>(host: Widget, pageId: string, name: K, fallback: PageOptions[K]) {
     const options = host.page.get(pageId)?.options;
 
     return options !== undefined && Object.hasOwn(options, name)
@@ -53,7 +53,7 @@ function getPageOption(host: Widget, pageId: string, name: string, fallback: any
         : fallback;
 }
 
-function getPageMethod(host: Widget, pageId: string, name: string, fallback: any) {
+function getPageMethod<K extends PageOptionName>(host: Widget, pageId: string, name: K, fallback: PageOptions[K]) {
     const method = getPageOption(host, pageId, name, fallback);
 
     return typeof method === 'function'
@@ -269,7 +269,7 @@ export class Widget<
 
     queryToConfig(view: string, query: string): SingleViewConfig {
         const { ast } = jora.syntax.parse(query);
-        const config = { view };
+        const config: SingleViewConfig = { view };
 
         if (ast.type !== 'Block') {
             throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must be a "Block"');
@@ -524,14 +524,15 @@ export class Widget<
     }
 
     decodePageHash(hash: string) {
-        const { pageId, pageRef, pageParams } = super.decodePageHash(hash);
-        const decodedPageId = pageId || this.defaultPageId;
-        const decodeParams = getPageMethod(this, decodedPageId, 'decodeParams', defaultDecodeParams);
+        const { pageId, pageRef, pageParams } = super.decodePageHash(
+            hash,
+            pageId => getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams)
+        );
 
         return {
-            pageId: decodedPageId,
+            pageId: pageId || this.defaultPageId,
             pageRef,
-            pageParams: decodeParams(pageParams)
+            pageParams
         };
     }
 

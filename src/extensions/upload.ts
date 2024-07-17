@@ -8,7 +8,7 @@ export type UploadOptions = Partial<{
     dragdrop: boolean;
 }>;
 
-const isExtension = (value) => /^\./.test(value);
+const isExtension = (value: string) => /^\./.test(value);
 
 function setup(options?: UploadOptions) {
     options = options || {};

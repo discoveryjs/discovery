@@ -10,7 +10,7 @@ import * as navButtons from '../nav/buttons.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
 import { LoadDataBaseOptions, LoadDataState } from '../core/utils/load-data.types.js';
 
-const coalesceOption = (value, fallback) => value !== undefined ? value : fallback;
+const coalesceOption = (value: any, fallback: any) => value !== undefined ? value : fallback;
 
 export type AppLoadingState = 'init' | 'error' | 'success';
 export type AppLoadingStateOptions<T> =

@@ -31,8 +31,7 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
     let queryCustomMethods = {
         query: host.query.bind(host),
         overrideProps,
-        pageLink: (pageRef, pageId, pageParams) =>
-            host.encodePageHash(pageId, pageRef, pageParams),
+        pageLink: host.encodePageHash.bind(host),
         marker: objectMarkers.lookup.bind(objectMarkers),
         markerAll: objectMarkers.lookupAll.bind(objectMarkers),
         callAction,

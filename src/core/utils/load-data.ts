@@ -78,7 +78,7 @@ function isDiscoveryCliLegacyDataWrapper(input: any) {
     return true;
 }
 
-function buildDataset(rawData: any, rawResource: any, { encoding, size }) {
+function buildDataset(rawData: any, rawResource: any, { size, encoding }: { size?: number, encoding?: string }) {
     let rawMeta = null;
 
     if (isDiscoveryCliLegacyDataWrapper(rawData)) {
@@ -150,7 +150,7 @@ export async function dataFromStream(
     let encoding = 'unknown';
     let size = 0;
 
-    const streamConsumer = async function*(firstChunk) {
+    const streamConsumer = async function*(firstChunk?: ReadableStreamReadResult<Uint8Array>) {
         while (true) {
             const { value, done } = firstChunk || await reader.read();
 

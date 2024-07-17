@@ -3,19 +3,22 @@
 import Dict from './dict.js';
 import { Observer } from './observer.js';
 import { createElement } from './utils/dom.js';
-import type { Widget } from '../main/widget.js';
 import type ViewRenderer from './view.js';
 import type { RawViewConfig } from './view.js';
+import type { Widget, PageParams } from '../main/index.js';
 
+export type PageOptionName = keyof PageOptions;
 export type PageOptions = {
-    reuseEl?: boolean;
-    init?(newPageEl: HTMLElement): void;
-    keepScrollOffset?: boolean;
+    reuseEl: boolean;
+    init(newPageEl: HTMLElement): void;
+    keepScrollOffset: boolean;
+    encodeParams(params: PageParams): [string, any][] | string;
+    decodeParams(params: [string, string | boolean][]): Record<string, unknown>;
 };
 export type Page = {
     name: string;
     render(el: HTMLElement, data: any, context: any): any;
-    options?: PageOptions;
+    options?: Partial<PageOptions>;
     [CONFIG]?: any;
 };
 

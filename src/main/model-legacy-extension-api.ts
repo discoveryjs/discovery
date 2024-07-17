@@ -30,8 +30,7 @@ export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper 
     let queryCustomMethods = {
         query: host.query.bind(host),
         overrideProps,
-        pageLink: (pageRef, pageId, pageParams) =>
-            host.encodePageHash(pageId, pageRef, pageParams),
+        pageLink: host.encodePageHash.bind(host),
         marker: lookupObjectMarker,
         markerAll: lookupObjectMarkerAll,
         callAction,
@@ -105,7 +104,7 @@ export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper 
         return objectMarkers.lookup(value, type);
     }
 
-    function lookupObjectMarkerAll(value) {
+    function lookupObjectMarkerAll(value: unknown) {
         return objectMarkers.lookupAll(value);
     }
 

@@ -28,7 +28,13 @@ export function has(text: string, pattern: RegExp | string | null, ignoreCase = 
     return false;
 }
 
-export function matchAll(text: string, pattern: RegExp | string | null, onText, onMatch, ignoreCase = false) {
+export function matchAll(
+    text: string,
+    pattern: RegExp | string | null,
+    onText: (substring: string) => void,
+    onMatch: (substring: string) => void,
+    ignoreCase = false
+) {
     if (!isRegExp(pattern) && typeof pattern !== 'string') {
         onText(text);
         return;

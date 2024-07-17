@@ -5,7 +5,7 @@ import type ViewRenderer from './view.js';
 
 export type Preset = {
     name: string;
-    render(el: HTMLElement, config: any, data: any, context: any): any;
+    render(el: HTMLElement | DocumentFragment, config: any, data: any, context: any): any;
     config: any;
 }
 
@@ -29,7 +29,12 @@ export default class PresetRenderer extends Dict<Preset> {
         }));
     }
 
-    render(container, name, data, context) {
+    render(
+        container: HTMLElement | DocumentFragment,
+        name: string,
+        data?: any,
+        context?: any,
+    ) {
         let preset = this.get(name);
 
         if (!preset) {

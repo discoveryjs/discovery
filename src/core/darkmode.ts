@@ -43,7 +43,7 @@ applyLocalStorageValue(persistentStorage.value);
 persistentStorage.on(applyLocalStorageValue);
 prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
-function resolveInitValue(value: InitValue, persistent: boolean) {
+function resolveInitValue(value: InitValue, persistent: boolean): Value {
     if (value === 'off' || value === 'disable' || !validValues.has(value)) {
         value = 'disabled';
     }
@@ -69,7 +69,7 @@ function resolveSetValue(value: Value) {
     }
 }
 
-export function resolveDarkmodeValue(value, persistent) {
+export function resolveDarkmodeValue(value: InitValue = 'disabled', persistent = false) {
     return resolveSetValue(resolveInitValue(value, persistent));
 }
 

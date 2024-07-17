@@ -102,7 +102,7 @@ const tooltipEls = new WeakMap<HTMLElement, TooltipInfo>();
 const rootViewEls = new WeakMap<HTMLElement, RootViewInfo>();
 const configTransitions = new WeakMap<object, any>();
 const propsTransitions = new WeakMap<object, PropsTransition>();
-const configOnlyProps = new Set([
+const configOnlyProps = new Set<RenderPropsForbiddenKeys>([
     'view',
     'when',
     'data',
@@ -121,7 +121,7 @@ function regConfigTransition<T extends object>(res: T, from: any): T {
     return res;
 }
 
-function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTreeNode, ignoreNodes) {
+function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTreeNode, ignoreNodes: Set<Node>) {
     if (node === null || ignoreNodes.has(node)) {
         return;
     }
@@ -694,11 +694,11 @@ export default class ViewRenderer extends Dict<View> {
         context: any,
         fn: ViewNormalizePropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
     ) {
-        let props = {}; //regConfigTransition({}, config);
+        let props: Record<string, any> = {}; //regConfigTransition({}, config);
 
         for (const [key, value] of Object.entries(config)) {
             // Config only props are not available for view's render
-            if (!configOnlyProps.has(key)) {
+            if (!configOnlyProps.has(key as RenderPropsForbiddenKeys)) {
                 props[key] = typeof value === 'string' && value.startsWith('=')
                     ? this.host.query(value.slice(1), data, context)
                     : value;
@@ -734,7 +734,7 @@ export default class ViewRenderer extends Dict<View> {
         );
     }
 
-    listLimit(value, defaultValue) {
+    listLimit(value: any, defaultValue: number) {
         if (value === false) {
             return false;
         }

@@ -16,7 +16,7 @@ export type LogOptions = {
     message?: string;
     collapsed?: null | Iterable<any> | (() => Iterable<any>);
 };
-export type ConsoleMethods = 'error' | 'warn' | 'info' | 'debug' | 'groupCollapsed' | 'groupEnd';
+export type ConsoleMethods = 'log' | 'error' | 'warn' | 'info' | 'debug' | 'groupCollapsed' | 'groupEnd';
 export type ConsoleLike = {
     [key in ConsoleMethods]: (...args: any[]) => void;
 };
@@ -193,7 +193,7 @@ export class Model<
         } = typeof levelOrOpts === 'object' && levelOrOpts !== null ? levelOrOpts : { level: levelOrOpts };
         const levelIndex = logLevels.indexOf(level);
 
-        if (levelIndex > 0 && levelIndex <= logLevels.indexOf(this.logLevel)) {
+        if (levelIndex > 0 && level !== 'silent' && levelIndex <= logLevels.indexOf(this.logLevel)) {
             const method = level === 'perf' ? 'log' : level;
 
             if (collapsed) {
@@ -389,7 +389,7 @@ export class Model<
         }`;
     }
 
-    decodePageHash(hash: string) {
+    decodePageHash(hash: string, getDecodeParams = (pageId: string) => Object.fromEntries) {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
         const [pageId, pageRef] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
         const pairs: [string, string | boolean][] = hash.slice(delimIndex + 1).split('&').filter(Boolean).map(pair => {
@@ -402,7 +402,7 @@ export class Model<
         return {
             pageId,
             pageRef,
-            pageParams: pairs
+            pageParams: getDecodeParams(pageId)(pairs)
         };
     }
 

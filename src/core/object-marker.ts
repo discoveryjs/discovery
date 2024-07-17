@@ -78,7 +78,7 @@ function getter(name: string, getter: Getter, reference: string) {
 
         case 'string':
             return Object.assign(
-                (object: object) => object && Object.hasOwn(object, getter)
+                (object: any) => object && Object.hasOwn(object, getter)
                     ? object[getter]
                     : undefined,
                 { getterFromString: `object[${JSON.stringify(getter)}]` }

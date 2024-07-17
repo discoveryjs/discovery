@@ -8,7 +8,7 @@ type Action = {
 }
 
 export default class ActionManager extends Dict<Action> {
-    #actionMap: Map<string, Action['callback']>;
+    #actionMap: Readonly<Record<string, Action['callback']>>;
 
     constructor() {
         super(true);
