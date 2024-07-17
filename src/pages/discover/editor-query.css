@@ -104,9 +104,15 @@
     background-image: url('./img/clone.svg');
     background-size: 18px 18px;
 }
+.query-graph-actions.root .view-button.clone {
+    background-image: url('./img/clone-root.svg');
+}
 .query-graph-actions .view-button.stash {
     background-image: url('./img/stash.svg');
     background-size: 18px 18px;
+}
+.query-graph-actions.root .view-button.stash {
+    background-image: url('./img/stash-root.svg');
 }
 .query-graph-actions .view-button.subquery {
     background-image: url('./img/subquery.svg');

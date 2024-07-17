@@ -206,11 +206,11 @@ export default function(host, updateParams) {
     );
 
     // FIXME: temporary until full migration on discovery render
-    const hintTooltip = (text) => ({
+    const hintTooltip = (text, textRoot = text) => ({
         position: 'trigger',
         className: 'hint-tooltip',
         showDelay: true,
-        content: { view: 'context', data: { text }, content: 'text:text' }
+        content: { view: 'context', data: () => currentGraph.current.length < 2 ? textRoot : text, content: 'text' }
     });
     host.view.render(queryGraphButtonsEl, [
         { view: 'button', className: 'subquery', tooltip: hintTooltip('Create a new query for a result of current one'), onClick() {
@@ -230,7 +230,7 @@ export default function(host, updateParams) {
                 };
             });
         } },
-        { view: 'button', className: 'stash', tooltip: hintTooltip('Stash current query and create a new empty query for current parent'), onClick() {
+        { view: 'button', className: 'stash', tooltip: hintTooltip('Stash current query and create a new empty query for current parent', 'Stash current query and create a new empty query'), onClick() {
             mutateGraph(({ nextGraph, last, preLast }) => {
                 last.query = currentQuery;
                 last.view = currentView;
@@ -719,6 +719,7 @@ export default function(host, updateParams) {
 
             normalizeGraph(pageGraph);
 
+            queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
             queryGraphEl.innerHTML = '';
             buildQueryGraph(queryGraphEl, pageGraph, host);
 
