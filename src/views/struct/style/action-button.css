@@ -45,7 +45,7 @@
     }    
 }
 /* FIXME: temporary, until multiple popups support */
-.discovery-view-popup .view-struct .struct-action-button[data-action="show-signature"] {
+.discovery-view-popup:not(.discovery-inspect-details-popup) .view-struct .struct-action-button[data-action="show-signature"] {
     display: none;
 }
 .view-struct .view-as-table > .struct-action-button[data-action="toggle-sort-keys"] {
