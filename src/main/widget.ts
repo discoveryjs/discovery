@@ -18,9 +18,7 @@ import { Dataset } from '../core/utils/load-data.types.js';
 import Progressbar from '../core/utils/progressbar.js';
 
 export type RenderSubject = 'page' | 'sidebar';
-export type ValueAnnotation =
-    | ((value: unknown, context: ValueAnnotationContext) => any)
-    | { query: Query, [key: string]: any };
+export type ValueAnnotation = { query: Query, [key: string]: any };
 export type ValueAnnotationContext = {
     parent: ValueAnnotationContext | null;
     host: any;
@@ -194,19 +192,21 @@ export class Widget<
                 this.log('error', `Page reference "${page}" in object marker "${name}" doesn't exist`);
             }
 
-            this.annotations.push((value: unknown, context: ValueAnnotationContext) => {
-                const marker = //annotateScalars || 
-                    (value !== null && typeof value === 'object')
-                    ? lookup(value)
-                    : null;
-    
-                if (marker !== null && marker.object !== context.host) {
-                    return {
-                        place: 'before',
-                        style: 'badge',
-                        text: name,
-                        href: marker.href
-                    };
+            this.annotations.push({
+                query(value: unknown, context: ValueAnnotationContext) {
+                    const marker = //annotateScalars || 
+                        (value !== null && typeof value === 'object')
+                        ? lookup(value)
+                        : null;
+        
+                    if (marker !== null && marker.object !== context.host) {
+                        return {
+                            place: 'before',
+                            style: 'badge',
+                            text: name,
+                            href: marker.href
+                        };
+                    }
                 }
             });
         }
