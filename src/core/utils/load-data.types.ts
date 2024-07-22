@@ -5,7 +5,7 @@ export type Encoding =
         name: string;
         test: (chunk: Uint8Array) => boolean;
         streaming: true;
-        decode: (iterator: AsyncIterator<Uint8Array>) => Promise<any>;
+        decode: (iterator: AsyncIterableIterator<Uint8Array>) => Promise<any>;
     }
     | {
         name: string;
@@ -14,22 +14,20 @@ export type Encoding =
         decode: (payload: Uint8Array) => any;
     };
 
-export type LoadDataState = {
-    state: Observer<LoadDataStage>;
-    result: Promise<Dataset>;
+export type LoadDataResult = {
+    state: Observer<LoadDataState>;
+    dataset: Promise<Dataset>;
 }
-
-export type LoadDataStage = 
+export type LoadDataState =
     | {
         stage: 'inited' | 'request' | 'receive' | 'received',
-        progress?: LoadDataStageProgress
+        progress?: LoadDataStateProgress
     }
     | {
         stage: 'error',
         error: Error
     };
-export type SetProgressCallack = (state: LoadDataStageProgress) => void;
-export type LoadDataStageProgress = {
+export type LoadDataStateProgress = {
     done: boolean;
     elapsed: number;
     units?: 'bytes';

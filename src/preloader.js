@@ -38,7 +38,7 @@ export function preloader(options) {
             ? loadData(options.loadDataOptions)
             : loadData(options.data, options.loadDataOptions)
         : {
-            result: Promise.resolve()
+            dataset: Promise.resolve()
         };
 
     if (loading.push) {
@@ -64,7 +64,7 @@ export function preloader(options) {
     container.append(el);
 
     return Object.assign(
-        loading.result,
+        loading.dataset,
         { el, shadowRoot, progressbar, disposeEmbed }
     );
 }

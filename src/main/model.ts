@@ -4,7 +4,7 @@ import ActionManager from '../core/action.js';
 import { normalizeEncodings } from '../core/encodings/utils.js';
 import { createExtensionApi, setupModel } from './model-extension-api.js';
 import ObjectMarkerManager, { ObjectMarker, ObjectMarkerConfig, ObjectMarkerDescriptor } from '../core/object-marker.js';
-import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, LoadDataState } from '../core/utils/load-data.types.js';
+import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from '../core/utils/load-data.types.js';
 import { querySuggestions } from './query-suggestions.js';
 import { loadDataFromEvent, loadDataFromFile, loadDataFromStream, loadDataFromUrl } from '../core/utils/load-data.js';
 import { createLegacyExtensionApi } from './model-legacy-extension-api.js';
@@ -265,9 +265,9 @@ export class Model<
         return setDataPromise;
     }
 
-    async trackLoadDataProgress(loadDataState: LoadDataState) {
+    async trackLoadDataProgress(loadDataResult: LoadDataResult) {
         const startTime = Date.now();
-        const dataset = await loadDataState.result;
+        const dataset = await loadDataResult.dataset;
 
         this.log('perf', `Data loaded in ${Date.now() - startTime}ms`);
 

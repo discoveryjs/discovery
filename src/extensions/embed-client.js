@@ -52,7 +52,7 @@ function setup(options) {
         const trackDataLoading = (loadDataStatus) => {
             const result = typeof host.trackLoadDataProgress === 'function'
                 ? host.trackLoadDataProgress(loadDataStatus)
-                : loadDataStatus.result
+                : loadDataStatus.dataset
                     .then(dataset => host.setData(dataset.data, null, { dataset }));
 
             // do nothing

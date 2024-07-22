@@ -1,18 +1,18 @@
 ## next
-
 - Introduced the `Model` class as a base for `Widget` and `App`:
     - Added a new `setup` option for configuring model-related aspects during initialization (immutable during the lifecycle), such as object markers, additional query methods, etc.
-    - Implements `loadDataFrom*` methods
+    - Implements `loadDataFrom*` methods, so all the classes able to load data now
 - Added handling of empty payload on data loading (raise an error "Empty payload")
 - Added `props` options for a view definition, a function (or a string as a jora query) `(data, { props, context}) => any` which should return a normalized props
 - Added additional block into inspector popup to display normalized props when `view.options.props` is specified
 - Added `overrideProps(obj)` jora helper method which overrides object's values (current) with values from passed `obj` (`#.props` by default)
+- Changed `getReadableStreamFromSource()` util function to use a `Blob` to produce a `ReadableStream` from a value
+- Changed `loadDataFrom*()` functions to return `{ state, dataset }` object instead of `{ state, result }` (renamed `result` into `dataset`)
 - Modified the `link`, `text`, `text-numeric` and `text-match` views to allow all render props to be passed via config, in addition to data
 - Tweaked the `source` view to display tabs as 4 spaces (`tab-size: 4`)
 - Added `onClick` option for `badge` views
 - Removed `hint` option for `badge` views, use `tooltip` option instead
 - Removed fallback methods for obtaining a `ReadableStream` from a `Blob`
-- Changed `getReadableStreamFromSource()` util function to use a `Blob` to produce a `ReadableStream` from a value
 - Fixed resolving a value for main content for `badge` views
 - Fixed crashing the entire render tree on an exception in a `data` query; now, crashes are isolated to the affected view
 - Fixed discovery page main content styling

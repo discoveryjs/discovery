@@ -8,7 +8,7 @@ import { createElement } from '../core/utils/dom.js';
 import Progressbar, { ProgressbarOptions, loadStages } from '../core/utils/progressbar.js';
 import * as navButtons from '../nav/buttons.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
-import { LoadDataBaseOptions, LoadDataState } from '../core/utils/load-data.types.js';
+import { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.types.js';
 
 const coalesceOption = (value: any, fallback: any) => value !== undefined ? value : fallback;
 
@@ -177,18 +177,19 @@ export class App<
         });
     }
 
-    async trackLoadDataProgress(loader: LoadDataState) {
-        const progressbar = this.progressbar({ title: loadStages[loader.state.value.stage].title });
+    async trackLoadDataProgress(loadDataResult: LoadDataResult) {
+        const currentStage = loadDataResult.state.value.stage;
+        const progressbar = this.progressbar({ title: loadStages[currentStage].title });
 
         this.setLoadingState('init', { progressbar });
         this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
 
-        syncLoaderWithProgressbar(loader, progressbar).then(
+        syncLoaderWithProgressbar(loadDataResult, progressbar).then(
             (dataset) => this.setDataProgress(dataset.data, null, { dataset, progressbar }),
             error => this.setLoadingState('error', { error, progressbar })
         );
 
-        await loader.result;
+        await loadDataResult.dataset;
     }
 
     loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {

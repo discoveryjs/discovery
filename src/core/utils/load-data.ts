@@ -9,12 +9,12 @@ import type {
     LoadDataResourceMetadata,
     LoadDataResourceSource,
     Dataset,
-    LoadDataStage,
-    SetProgressCallack,
     LoadDataState,
+    LoadDataResult,
     LoadDataBaseOptions,
     LoadDataFetchOptions,
-    ExtractResourceOptions
+    ExtractResourceOptions,
+    LoadDataStateProgress
 } from './load-data.types.js';
 
 export const dataSource = {
@@ -137,7 +137,7 @@ export async function dataFromStream(
     stream: ReadableStream<Uint8Array>,
     extraEncodings: Encoding[] | undefined,
     totalSize: number | undefined,
-    setProgress: SetProgressCallack
+    setProgress: (state: LoadDataStateProgress) => Promise<boolean>
 ) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const reader = stream.getReader();
@@ -215,7 +215,7 @@ export async function dataFromStream(
 
 async function loadDataFromStreamInternal(
     request: LoadDataRequest,
-    progress: Observer<LoadDataStage>
+    progress: Observer<LoadDataState>
 ): Promise<Dataset> {
     const stage = async <T>(stage: 'request' | 'receive', fn: () => T): Promise<T> => {
         await progress.asyncSet({ stage });
@@ -271,14 +271,14 @@ async function loadDataFromStreamInternal(
     }
 }
 
-export function createLoadDataState(request: LoadDataRequest, extra?: any): LoadDataState {
-    const state = new Observer<LoadDataStage>({ stage: 'inited' });
+export function createLoadDataState(request: LoadDataRequest, extra?: any): LoadDataResult {
+    const state = new Observer<LoadDataState>({ stage: 'inited' });
 
     return {
         state,
         // encapsulate logic into separate function since it's async,
         // but we need to return observer for progress tracking purposes
-        result: loadDataFromStreamInternal(request, state),
+        dataset: loadDataFromStreamInternal(request, state),
         ...extra
     };
 }
@@ -408,7 +408,7 @@ export function loadDataFromPush(options: LoadDataBaseOptions) {
     );
 }
 
-export function syncLoaderWithProgressbar({ result, state }: LoadDataState, progressbar: Progressbar) {
+export function syncLoaderWithProgressbar({ dataset, state }: LoadDataResult, progressbar: Progressbar) {
     return new Promise<Dataset>((resolve, reject) =>
         state.subscribeSync((loadDataState, unsubscribe) => {
             const { stage } = loadDataState;
@@ -421,7 +421,7 @@ export function syncLoaderWithProgressbar({ result, state }: LoadDataState, prog
 
             if (stage === 'received') {
                 unsubscribe();
-                resolve(result);
+                resolve(dataset);
             }
 
             return progressbar.setState({ stage, progress: loadDataState.progress });
