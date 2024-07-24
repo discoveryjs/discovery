@@ -43,6 +43,7 @@ export type LoadDataResourceMetadata = {
     size?: number | null;
     encodedSize?: number;
     createdAt?: string | number;
+    [k: string]: unknown;
 };
 export type LoadDataRequestOptions = {
     encodings?: Encoding[];
@@ -64,23 +65,23 @@ export type LoadDataRequestResult = {
     method: LoadDataMethod;
     stream: ReadableStream<Uint8Array>;
     resource?: LoadDataResourceMetadata;
-    options: LoadDataRequestOptions;
+    options?: LoadDataRequestOptions;
     data?: any;
 }
 
 export type Dataset = {
     loadMethod: LoadDataMethod;
     resource: DatasetResource;
-    meta: any;
+    meta: Record<string, unknown>;
     data: any;
-    timing: DatasetTimings;
+    timings?: DatasetTimings;
 };
 export type DatasetResource = {
     type: string;
     name: string;
     encoding: string;
-    size: number;
-    encodedSize: number | null;
+    size?: number;
+    encodedSize?: number;
     createdAt: Date;
 };
 export type DatasetTimings = {

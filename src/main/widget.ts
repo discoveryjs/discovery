@@ -14,8 +14,8 @@ import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { WidgetNavigation } from '../nav/index.js';
 import { Model, ModelEvents, ModelOptions, PageParams, PageRef, Query, SetDataOptions } from './model.js';
-import { Dataset } from '../core/utils/load-data.types.js';
-import Progressbar from '../core/utils/progressbar.js';
+import type { Dataset } from '../core/utils/load-data.js';
+import type Progressbar from '../core/utils/progressbar.js';
 
 export type RenderSubject = 'page' | 'sidebar';
 export type ValueAnnotation = { query: Query, [key: string]: any };

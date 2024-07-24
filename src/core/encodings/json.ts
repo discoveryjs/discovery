@@ -1,5 +1,5 @@
 import { parseChunked } from '@discoveryjs/json-ext';
-import type { Encoding } from '../utils/load-data.types.js';
+import type { Encoding } from '../utils/load-data.js';
 
 export default Object.freeze({
     name: 'json',

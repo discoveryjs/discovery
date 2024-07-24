@@ -1,4 +1,4 @@
-import type { Encoding } from '../utils/load-data.types.js';
+import type { Encoding } from '../utils/load-data.js';
 
 export function validateEncodingConfig(config: any) {
     if (!config || typeof config !== 'object') {

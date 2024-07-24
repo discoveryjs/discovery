@@ -1,4 +1,4 @@
-import type { Encoding } from '../utils/load-data.types.js';
+import type { Encoding } from '../utils/load-data.js';
 import { decode } from './jsonxl-snapshot9.js';
 
 export const JSONXL_MAGIC_NUMBER = [0x00, 0x00, 0x4a, 0x53, 0x4f, 0x4e, 0x58, 0x4c]; // \0\0JSONXL

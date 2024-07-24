@@ -14,9 +14,11 @@ import type {
     LoadDataBaseOptions,
     LoadDataFetchOptions,
     ExtractResourceOptions,
-    LoadDataStateProgress
+    LoadDataStateProgress,
+    DatasetResource
 } from './load-data.types.js';
 
+export type * from './load-data.types.js';
 export const dataSource = {
     stream: loadDataFromStream,
     event: loadDataFromEvent,
@@ -24,10 +26,6 @@ export const dataSource = {
     url: loadDataFromUrl,
     push: loadDataFromPush
 };
-
-function isObject(value: unknown): value is Object {
-    return value !== null && typeof value === 'object';
-}
 
 function isSameOrigin(url: string) {
     try {
@@ -78,8 +76,12 @@ function isDiscoveryCliLegacyDataWrapper(input: any) {
     return true;
 }
 
-function buildDataset(rawData: any, rawResource: any, { size, encoding }: { size?: number, encoding?: string }) {
-    let rawMeta = null;
+function buildDataset(
+    rawData: any,
+    rawResource: LoadDataResourceMetadata | undefined,
+    { size, encoding }: { size?: number, encoding: string }
+) {
+    let rawMeta: Record<string, unknown> | null = null;
 
     if (isDiscoveryCliLegacyDataWrapper(rawData)) {
         const { data, ...rawDataMeta } = rawData;
@@ -93,14 +95,14 @@ function buildDataset(rawData: any, rawResource: any, { size, encoding }: { size
     const meta = rawMeta || {};
     // eslint-disable-next-line no-unused-vars
     const { type, name, encoding: ignore1, size: ignore2, encodedSize, createdAt, ...restResource } = rawResource || {};
-    const resource = {
+    const resource: DatasetResource = {
         type: type || 'unknown',
         name: name || 'unknown',
         encoding,
-        size,
-        ...encodedSize ? { encodedSize } : null,
-        createdAt: new Date(Date.parse(createdAt) || Date.now()),
-        ...restResource
+        ...Number.isFinite(size) ? { size } : null,
+        ...Number.isFinite(encodedSize) ? { encodedSize } : null,
+        createdAt: new Date((typeof createdAt === 'string' ? Date.parse(createdAt) : createdAt) || Date.now()),
+        ...(restResource as Omit<{ [key: string]: unknown }, keyof DatasetResource>)
     };
 
     return {
@@ -252,7 +254,7 @@ async function loadDataFromStreamInternal(
             resource,
             meta,
             data,
-            timing: {
+            timings: {
                 time: Number(finishedTime) - Number(requestStart),
                 start: requestStart,
                 end: finishedTime,
@@ -271,7 +273,7 @@ async function loadDataFromStreamInternal(
     }
 }
 
-export function createLoadDataState(request: LoadDataRequest, extra?: any): LoadDataResult {
+export function createLoadDataState<T extends Record<string, unknown>>(request: LoadDataRequest, extra?: T): LoadDataResult & T {
     const state = new Observer<LoadDataState>({ stage: 'inited' });
 
     return {
@@ -279,11 +281,11 @@ export function createLoadDataState(request: LoadDataRequest, extra?: any): Load
         // encapsulate logic into separate function since it's async,
         // but we need to return observer for progress tracking purposes
         dataset: loadDataFromStreamInternal(request, state),
-        ...extra
+        ...(extra as any)
     };
 }
 
-export function loadDataFromStream(stream: ReadableStream, options: LoadDataBaseOptions) {
+export function loadDataFromStream(stream: ReadableStream, options?: LoadDataBaseOptions) {
     return createLoadDataState(
         () => ({
             method: 'stream',
@@ -294,7 +296,7 @@ export function loadDataFromStream(stream: ReadableStream, options: LoadDataBase
     );
 }
 
-export function loadDataFromFile(file: File, options: LoadDataBaseOptions) {
+export function loadDataFromFile(file: File, options?: LoadDataBaseOptions) {
     const resource = extractResourceMetadata(file);
 
     return createLoadDataState(
@@ -308,7 +310,7 @@ export function loadDataFromFile(file: File, options: LoadDataBaseOptions) {
     );
 }
 
-export function loadDataFromEvent(event: DragEvent | InputEvent, options: LoadDataBaseOptions) {
+export function loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {
     const source = event.dataTransfer || (event.target as HTMLInputElement | null);
     const file = source?.files?.[0];
 
@@ -322,7 +324,7 @@ export function loadDataFromEvent(event: DragEvent | InputEvent, options: LoadDa
     return loadDataFromFile(file, options);
 }
 
-export function loadDataFromUrl(url: string, options: LoadDataFetchOptions) {
+export function loadDataFromUrl(url: string, options?: LoadDataFetchOptions) {
     options = options || {};
 
     return createLoadDataState(
@@ -357,7 +359,7 @@ export function loadDataFromUrl(url: string, options: LoadDataFetchOptions) {
     );
 }
 
-export function loadDataFromPush(options: LoadDataBaseOptions) {
+export function loadDataFromPush(options?: LoadDataBaseOptions) {
     let controller: ReadableStreamDefaultController | null;
     const stream = new ReadableStream({
         start(controller_) {
@@ -374,7 +376,7 @@ export function loadDataFromPush(options: LoadDataBaseOptions) {
         resolveRequest = resource => resolve({
             method: 'push',
             stream,
-            resource: resource ? (pushResource = resource) : options.resource, // resource takes precedence over options.resource
+            resource: resource ? (pushResource = resource) : options?.resource, // resource takes precedence over options.resource
             options
         });
     });

@@ -2,12 +2,12 @@ import jora from 'jora';
 import Emitter, { EventMap } from '../core/emitter.js';
 import ActionManager from '../core/action.js';
 import { normalizeEncodings } from '../core/encodings/utils.js';
-import { createExtensionApi, setupModel } from './model-extension-api.js';
 import ObjectMarkerManager, { ObjectMarker, ObjectMarkerConfig, ObjectMarkerDescriptor } from '../core/object-marker.js';
-import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from '../core/utils/load-data.types.js';
-import { querySuggestions } from './query-suggestions.js';
+import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from '../core/utils/load-data.js';
 import { loadDataFromEvent, loadDataFromFile, loadDataFromStream, loadDataFromUrl } from '../core/utils/load-data.js';
+import { createExtensionApi, setupModel } from './model-extension-api.js';
 import { createLegacyExtensionApi } from './model-legacy-extension-api.js';
+import { querySuggestions } from './query-suggestions.js';
 
 export type LogLevel = 'silent' | 'error' | 'warn' | 'info' | 'perf' | 'debug';
 export type LogOptions = {

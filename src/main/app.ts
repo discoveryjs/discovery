@@ -7,8 +7,7 @@ import router from '../extensions/router.js';
 import { createElement } from '../core/utils/dom.js';
 import Progressbar, { ProgressbarOptions, loadStages } from '../core/utils/progressbar.js';
 import * as navButtons from '../nav/buttons.js';
-import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
-import { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.types.js';
+import { syncLoaderWithProgressbar, LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
 
 const coalesceOption = (value: any, fallback: any) => value !== undefined ? value : fallback;
 
