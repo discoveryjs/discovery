@@ -4,21 +4,25 @@ Discovery.js allows the configuration of custom encodings in addition to the def
 
 - `name`: A unique string identifier for the encoding.
 - `test`: A function that receives the first chunk of the payload and a `done` flag (indicating whether more payload is expected or if it's complete) and returns a boolean to indicate if the encoding is applicable.
-- `streaming` (optional, defaults to `false`): Determines if the encoding supports streaming. If `true`, the `decode` function is passed an async iterator that yields `Uint8Array` instances; if `false`, `decode` receives the entire payload as a single `Uint8Array`.
-- `decode`: A function that decodes the payload into a JavaScript value. It accepts an async iterator or `Uint8Array`, depending on the `streaming` option.
+- `streaming` (optional, defaults to `false`): Determines if the encoding supports streaming processing.
+- `decode`: A function that decodes the payload into a JavaScript value. It accepts an async iterator if `streaming` is `true`, or `Uint8Array` otherwise.
 
 The TypeScript type definition for an encoding is as follows:
 
 ```ts
 type Encoding = {
     name: string;
-    test(chunk: Uint8Array, done: boolean): boolean;
-    streaming?: boolean;
-    decode(data: AsyncIterableIterator<Uint8Array> | Uint8Array): any;
-};
+    test(chunk: Uint8Array): boolean;
+} & ({
+    streaming: true;
+    decode(iterator: AsyncIterableIterator<Uint8Array>): Promise<any>;
+} | {
+    streaming: false;
+    decode(payload: Uint8Array): any;
+});
 ```
 
-Encodings can be set using the `encodings` option in both `App` and `Widget` configurations. However, it currently only affects the `App` instance, as only `App` has methods for loading data. The [Loading Data API](./load-data.md) applies the specified encodings to the data payload, and `App` integrates these encodings into its `load*` method calls if they are specified upon initialization.
+Encodings can be set using the `encodings` option in `Model`, `Widget` and `App` configurations. The [Loading Data API](./load-data.md) applies the specified encodings to the data payload, and `Model` (base class for `App` and `Widget`) integrates these encodings into its `loadData*` method calls if they are specified upon initialization.
 
 In addition to `App` and `Widget`, preloaders can pass the `encodings` configuration to a data loader if specified in `loadDataOptions`.
 

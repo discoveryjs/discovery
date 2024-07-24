@@ -1,18 +1,16 @@
 import type { Observer } from '../observer.js';
 
 export type Encoding =
-    | {
+    {
         name: string;
-        test: (chunk: Uint8Array) => boolean;
+        test(chunk: Uint8Array): boolean;
+    } & ({
         streaming: true;
-        decode: (iterator: AsyncIterableIterator<Uint8Array>) => Promise<any>;
-    }
-    | {
-        name: string;
-        test: (chunk: Uint8Array) => boolean;
+        decode(iterator: AsyncIterableIterator<Uint8Array>): Promise<any>;
+    } | {
         streaming: false;
-        decode: (payload: Uint8Array) => any;
-    };
+        decode(payload: Uint8Array): any;
+    });
 
 export type LoadDataResult = {
     state: Observer<LoadDataState>;
