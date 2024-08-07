@@ -2,7 +2,7 @@ import { InitValue, resolveDarkmodeValue } from '../darkmode.js';
 
 type Styles = Record<string, string>;
 type SavedStyles = Record<string, [string, string]>;
-type Config = {
+type ApplyContainerStylesOptions = {
     darkmode?: InitValue,
     darkmodePersistent?: boolean;
 };
@@ -35,14 +35,14 @@ function saveContainerStyleProp(container: HTMLElement, prop: string, styles: Sa
     }
 }
 
-export function applyContainerStyles(container: HTMLElement, config: Config) {
-    config = config || {};
+export function applyContainerStyles(container: HTMLElement, options: ApplyContainerStylesOptions) {
+    options = options || {};
 
     if (!containerBeforeSetStyle.has(container)) {
         containerBeforeSetStyle.set(container, Object.create(null));
     }
 
-    const darkmode = resolveDarkmodeValue(config.darkmode, config.darkmodePersistent);
+    const darkmode = resolveDarkmodeValue(options.darkmode, options.darkmodePersistent);
     const containerStyles = containerBeforeSetStyle.get(container) ?? {};
 
     for (const [prop, value] of Object.entries(styles)) {

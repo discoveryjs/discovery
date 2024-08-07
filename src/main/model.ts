@@ -115,11 +115,11 @@ export class Model<
 
     encodings: Encoding[];
     datasets: ModelDataset[];
-    #currentSetData: Symbol | undefined;
     data: any;
     context: any;
     prepare: PrepareFunction;
     #legacyPrepare: boolean;
+    #lastSetData: Symbol | undefined;
 
     constructor(options?: Partial<Options>) {
         super();
@@ -230,12 +230,12 @@ export class Model<
 
         // mark as last setData promise
         const setDataMarker = Symbol();
-        this.#currentSetData = setDataMarker;
+        this.#lastSetData = setDataMarker;
 
         const startTime = Date.now();
         const checkIsNotPrevented = () => {
             // prevent race conditions, perform only if this promise is last one
-            if (this.#currentSetData !== setDataMarker) {
+            if (this.#lastSetData !== setDataMarker) {
                 throw new Error('Prevented by another setData()');
             }
         };
