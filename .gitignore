@@ -2,3 +2,6 @@
 /node_modules/
 cypress/screenshots
 cypress/videos
+tmp/
+lib/
+build/

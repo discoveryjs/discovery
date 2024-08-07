@@ -7,22 +7,30 @@
     "repository": "discoveryjs/discovery",
     "keywords": [],
     "type": "module",
-    "main": "src/lib.js",
+    "main": "lib/lib.js",
     "unpkg": "dist/discovery.js",
     "jsdelivr": "dist/discovery.js",
+    "typings": "./lib/lib.d.ts",
+    "exports": {
+        "./dist/*": "./dist/*",
+        "./lib/*": "./lib/*",
+        "./src/*": "./lib/*",
+        "./package.json": "./package.json"
+    },
     "scripts": {
         "lint": "eslint cypress models src",
         "typecheck": "tsc --noEmit",
+        "emit:types": "tsc --emitDeclarationOnly",
         "build": "npm run build:js && npm run build:css && npm run build:preloader && npm run build:embed-host",
-        "build:js": "esbuild src/lib.js --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
+        "build:js": "esbuild src/lib.ts --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
         "build:embed-host": "esbuild src/extensions/embed-host.js --outfile=dist/discovery-embed-host.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:preloader": "npm run build:preloader:js && npm run build:preloader:css",
         "build:preloader:js": "esbuild src/preloader.js --outfile=dist/discovery-preloader.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:preloader:css": "esbuild src/preloader.css --outfile=dist/discovery-preloader.css --bundle --minify --loader:.svg=dataurl",
         "build-gh-pages": "discovery-build -o .gh-pages --clean",
-        "prepublishOnly": "node scripts/bake-version.cjs && npm run build",
-        "postpublish": "node scripts/bake-version.cjs --rollback",
+        "transpile": "node scripts/transpile.js",
+        "prepublishOnly": "npm run transpile && npm run build",
         "cypress": "npx cypress open",
         "cypress:server": "discovery -c ./cypress/fixtures/single-model/.discoveryrc.cjs -p 8124",
         "start": "discovery -c models/index.cjs",
@@ -40,6 +48,7 @@
     },
     "devDependencies": {
         "@discoveryjs/cli": "^2.8.0",
+        "@discoveryjs/scan-fs": "^4.0.0",
         "cypress": "^13.3.0",
         "esbuild": "~0.23.0",
         "eslint": "^8.50.0",
@@ -48,6 +57,6 @@
     },
     "files": [
         "dist",
-        "src"
+        "lib"
     ]
 }
