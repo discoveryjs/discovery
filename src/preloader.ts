@@ -1,20 +1,34 @@
 import Progressbar from './core/utils/progressbar.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
 import { applyContainerStyles } from './core/utils/container-styles.js';
-import injectStyles from './core/utils/inject-styles.js';
+import injectStyles, { Style } from './core/utils/inject-styles.js';
 import { randomId } from './core/utils/id.js';
+import type { InitValue } from './core/darkmode.js';
+import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from './core/utils/load-data.js';
 
-function createProgressbar(domReady, title) {
+type PushDataLoading = ReturnType<typeof dataSource['push']>;
+export type PreloaderOptions = {
+    dataSource: keyof typeof dataSource;
+    container: HTMLElement;
+    styles: Style[];
+    darkmode: InitValue;
+    darkmodePersistent: boolean;
+    embed: boolean;
+    progressbar: Progressbar;
+    loadDataOptions: LoadDataBaseOptions | LoadDataFetchOptions;
+    data: any;
+};
+
+function createProgressbar(domReady: Promise<void>) {
     return new Progressbar({
         delay: 300,
         domReady,
-        title,
         onTiming: ({ title, duration }) =>
             console.log(`[Discovery/preloader] ${title} – ${duration}ms`)
     });
 }
 
-export function preloader(options) {
+export function preloader(options: Partial<PreloaderOptions>) {
     options = options || {};
     const dataSourceType = options.dataSource;
 
@@ -32,29 +46,32 @@ export function preloader(options) {
         el.setAttribute('darkmode', '');
     }
 
-    const loadData = dataSource[dataSourceType || 'url'];
-    const loading = options.data
+    const optionsData = options.data;
+    const loading = optionsData
         ? dataSourceType === 'push'
-            ? loadData(options.loadDataOptions)
-            : loadData(options.data, options.loadDataOptions)
+            ? dataSource['push'](options.loadDataOptions)
+            : dataSource[dataSourceType || 'url'](options.data, options.loadDataOptions)
         : {
-            dataset: Promise.resolve()
+            dataset: Promise.resolve(),
+            state: undefined
         };
 
-    if (loading.push) {
-        window.discoveryLoader = {
-            start: loading.start,
-            push: loading.push,
-            finish(...args) {
-                delete window.discoveryLoader;
-                loading.finish(...args);
+    if (optionsData && dataSourceType === 'push') {
+        const { start, push, finish } = loading as PushDataLoading;
+
+        globalThis.discoveryLoader = {
+            start,
+            push,
+            finish(...args: Parameters<typeof finish>) {
+                delete globalThis.discoveryLoader;
+                finish(...args);
             }
         };
     }
 
     const domReady = injectStyles(shadowRoot, options.styles);
-    const progressbar = options.progressbar || createProgressbar(domReady, loading.title);
-    const disposeEmbed = options.embed ? initPreloadEmbedApi(loading) : () => {};
+    const progressbar = options.progressbar || createProgressbar(domReady);
+    const disposeEmbed = options.embed ? initPreloadEmbedApi(loading.state) : () => {};
 
     if (loading.state) {
         syncLoaderWithProgressbar(loading, progressbar).catch(() => {});
@@ -69,11 +86,11 @@ export function preloader(options) {
     );
 }
 
-function initPreloadEmbedApi(loading) {
+function initPreloadEmbedApi(loadingState?: LoadDataResult['state']) {
     const hostId = randomId();
     const parentWindow = window.parent;
-    const postponeMessages = [];
-    const sendMessage = (type, payload = null) => {
+    const postponeMessages: unknown[] = [];
+    const sendMessage = (type: string, payload: any = null) => {
         // console.log('[post-message]', type, payload);
         parentWindow.postMessage({
             from: 'discoveryjs-app',
@@ -84,7 +101,7 @@ function initPreloadEmbedApi(loading) {
     };
 
     const sendDestroyMessage = () => sendMessage('destroy');
-    const processIncomingMessage = (event) => {
+    const processIncomingMessage = (event: MessageEvent) => {
         const { id, type } = event.data || {};
 
         if (id === hostId) {
@@ -115,13 +132,15 @@ function initPreloadEmbedApi(loading) {
         }
     });
 
-    const unsubscribeLoading = loading.state
-        ? loading.state.subscribeSync(({ stage, progress, error }) => {
-            if (error || stage === 'received') {
+    const unsubscribeLoading = loadingState
+        ? loadingState.subscribeSync((loadDataState) => {
+            const { stage } = loadDataState;
+
+            if (stage === 'error' || stage === 'received') {
                 unsubscribeLoading();
             }
 
-            return sendMessage('loadingState', { stage, progress, error });
+            return sendMessage('loadingState', loadDataState);
         })
         : () => {};
 
