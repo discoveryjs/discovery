@@ -6,9 +6,18 @@ import esbuild from 'esbuild';
 
 const srcpath = resolvePath('../src');
 const dstpath = resolvePath('../lib');
+const detVersionFilename = path.join(dstpath, 'version.js');
+const { version } = JSON.parse(fs.readFileSync(resolvePath('../package.json')));
 
 function resolvePath(p) {
     return new URL(p, import.meta.url).pathname;
+}
+
+function replaceFileContent(filename, fn) {
+    fs.writeFileSync(
+        filename,
+        fn(fs.readFileSync(filename, 'utf8'))
+    );
 }
 
 export async function compile() {
@@ -31,9 +40,6 @@ export async function compile() {
             dstAbsPath = dstAbsPath.replace(/\.ts$/, '.js');
             await fs.promises.mkdir(path.dirname(dstAbsPath), { recursive: true });
             await fs.promises.writeFile(dstAbsPath, code);
-        } else if (path.basename(srcAbsPath) === 'version.js') {
-            await fs.promises.mkdir(path.dirname(dstAbsPath), { recursive: true });
-            await fs.promises.writeFile(dstAbsPath, `export const version = "${JSON.parse(fs.readFileSync(resolvePath('../package.json'))).version}";\n`);
         } else {
             await fs.promises.mkdir(path.dirname(dstAbsPath), { recursive: true });
             await fs.promises.copyFile(srcAbsPath, dstAbsPath);
@@ -46,6 +52,9 @@ export async function compile() {
             stdio: 'inherit'
         });
     } catch {}
+
+    replaceFileContent(detVersionFilename, content => content.replace('0.0.0-dev', version));
+    replaceFileContent(detVersionFilename.replace('.js', '.d.ts'), content => content.replace('0.0.0-dev', version));
 
     console.log(`Compiled in ${Date.now() - startTime} ms`);
 }
