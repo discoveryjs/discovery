@@ -3,7 +3,7 @@
         "src/**/*.ts"
     ],
     "compilerOptions": {
-        "lib": ["ES2022", "dom", "dom.iterable"],
+        "lib": ["ES2022", "DOM", "DOM.iterable"],
         "moduleResolution": "NodeNext",
         "module": "NodeNext",
         "target": "ES2022",

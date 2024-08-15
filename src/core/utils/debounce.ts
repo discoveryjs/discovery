@@ -15,8 +15,8 @@ type DebounceMethods<R> = {
     pending(): boolean;
 }
 
-function isObject(value: unknown): value is Object | Function {
-    return value !== undefined && value !== null && (typeof value === 'object' || typeof value === 'function');
+function isObject(value: unknown): value is object {
+    return value !== null && (typeof value === 'object' || typeof value === 'function');
 }
 
 /**
@@ -84,7 +84,7 @@ function isObject(value: unknown): value is Object | Function {
 export default function debounce<
     T extends (...args: A) => R,
     A extends any[],
-    R extends any
+    R
 >(func: T, options?: Options | number): T & DebounceMethods<R> {
     if (typeof func !== 'function') {
         throw new TypeError('Expected a function');
@@ -100,8 +100,12 @@ export default function debounce<
             return result = func.apply(this, args);
         } as T, {
             cancel() {},
-            flush() { return result },
-            pending() { return false; }
+            flush() {
+                return result;
+            },
+            pending() {
+                return false;
+            }
         });
     }
 

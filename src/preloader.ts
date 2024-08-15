@@ -49,7 +49,7 @@ export function preloader(options: Partial<PreloaderOptions>) {
     const optionsData = options.data;
     const loading = optionsData
         ? dataSourceType === 'push'
-            ? dataSource['push'](options.loadDataOptions)
+            ? dataSource.push(options.loadDataOptions)
             : dataSource[dataSourceType || 'url'](options.data, options.loadDataOptions)
         : {
             dataset: Promise.resolve(),

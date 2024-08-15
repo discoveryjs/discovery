@@ -42,6 +42,8 @@ export type QueryFunction = (data: unknown, context: unknown) => unknown;
 export type RawDataDataset = { data: any };
 export type ModelDataset = Dataset | RawDataDataset;
 
+export type GetDecodeParams = (pageId: string) => (entries: [string, any][]) => object;
+
 export interface SetDataOptions {
     dataset?: Dataset;
 }
@@ -119,7 +121,7 @@ export class Model<
     context: any;
     prepare: PrepareFunction;
     #legacyPrepare: boolean;
-    #lastSetData: Symbol | undefined;
+    #lastSetData: symbol | undefined;
 
     constructor(options?: Partial<Options>) {
         super();
@@ -160,7 +162,7 @@ export class Model<
             if (page) {
                 this.linkResolvers.push((value: unknown) => {
                     const marker = lookup(value);
-    
+
                     return marker && {
                         type: page,
                         text: marker.title,
@@ -318,7 +320,9 @@ export class Model<
         };
     }
 
-    queryFnFromString(query: string): QueryFunction {
+    // use method definition aside, since stub implementation doesn't use query parameter
+    queryFnFromString(query: string): QueryFunction;
+    queryFnFromString() {
         return noopQuery;
     }
 
@@ -389,7 +393,7 @@ export class Model<
         }`;
     }
 
-    decodePageHash(hash: string, getDecodeParams = (pageId: string) => Object.fromEntries) {
+    decodePageHash(hash: string, getDecodeParams: GetDecodeParams = () => Object.fromEntries) {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
         const [pageId, pageRef] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
         const pairs: [string, string | boolean][] = hash.slice(delimIndex + 1).split('&').filter(Boolean).map(pair => {

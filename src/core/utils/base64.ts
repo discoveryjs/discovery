@@ -24,7 +24,7 @@ export function encodeBytes(input: string | number[] | Uint8Array): Uint8Array {
     }
 
     // encode base64
-    let output = new Uint8Array(Math.ceil(input.length / 3) * 4);
+    const output = new Uint8Array(Math.ceil(input.length / 3) * 4);
     let outputIdx = 0;
     let buffer = 0;
     let bufferSize = 0;
@@ -69,14 +69,14 @@ export function decodeBase64Bytes(input: string): Uint8Array {
     }
 
     // decode
-    let output = new Uint8Array(3 * Math.ceil(inputSize / 4));
+    const output = new Uint8Array(3 * Math.ceil(inputSize / 4));
     let outputIndex = 0;
     let buffer = 0;
     let bufferSize = 0;
 
     for (let i = 0; i < inputSize; i++) {
         // read new 6 bits into buffer
-        buffer = (buffer << 6) | base64decodeMap[input.charCodeAt(i) & 0xff]
+        buffer = (buffer << 6) | base64decodeMap[input.charCodeAt(i) & 0xff];
         bufferSize += 6;
 
         // dump 8 bits from buffer into output

@@ -1,10 +1,12 @@
 {
     "ignorePatterns": [
-        "src/core/encodings/jsonxl-snapshot9.js"
+        "src/core/encodings/jsonxl-snapshot9.js",
+        "lib/**"
     ],
     "env": {
         "node": true,
         "mocha": true,
+        "browser": true,
         "es6": true,
         "cypress/globals": true
     },
@@ -15,19 +17,38 @@
         "ecmaVersion": 2022,
         "sourceType": "module"
     },
+    "parser": "@typescript-eslint/parser",
+    "extends": [
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
     "plugins": [
+        "@stylistic/eslint-plugin",
+        "@typescript-eslint",
         "cypress"
     ],
     "rules": {
-        "no-duplicate-case": 2,
-        "no-undef": 2,
-        "no-unused-vars": [
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-unused-vars": [
             2,
             {
                 "vars": "all",
                 "args": "after-used"
             }
         ],
+        "@stylistic/space-before-function-paren": [
+            2,
+            {
+                "anonymous": "ignore",
+                "named": "never"
+            }
+        ],
+
+        "no-duplicate-case": 2,
         "no-empty": [
             2,
             {
@@ -76,13 +97,6 @@
             }
         ],
         "no-spaced-func": 2,
-        "space-before-function-paren": [
-            2,
-            {
-                "anonymous": "ignore",
-                "named": "never"
-            }
-        ],
         "array-bracket-spacing": [
             2,
             "never"

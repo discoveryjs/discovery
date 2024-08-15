@@ -31,8 +31,7 @@ export function normalizeEncodingConfig(config: any): Encoding {
 
     const { name, test, streaming, decode } = config as Encoding;
 
-    return Object.freeze(
-        streaming
+    return Object.freeze(streaming
         ? {
             name: name || 'unknown',
             test,

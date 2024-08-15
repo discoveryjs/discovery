@@ -12,7 +12,7 @@ export class ContentRect extends Observer<DOMRectReadOnly | null> {
         this.el = null;
         this.observer = resizeObserverSupported
             ? new ResizeObserver(entries => {
-                for (let entry of entries) {
+                for (const entry of entries) {
                     this.set(entry.contentRect);
                 }
             })

@@ -30,7 +30,7 @@ export const dataSource = {
 function isSameOrigin(url: string) {
     try {
         return new URL(url, location.origin).origin === location.origin;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -93,7 +93,7 @@ function buildDataset(
 
     const data = rawData;
     const meta = rawMeta || {};
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { type, name, encoding: ignore1, size: ignore2, encodedSize, createdAt, ...restResource } = rawResource || {};
     const resource: DatasetResource = {
         type: type || 'unknown',
@@ -497,7 +497,7 @@ export function convertToBlobIfPossible(source: any) {
     if (blobParts && Symbol.iterator in blobParts) {
         return new Blob(blobParts as BlobPart[]);
     }
-    
+
     // source is not iterable
     return source;
 }

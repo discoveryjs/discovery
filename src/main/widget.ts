@@ -113,7 +113,7 @@ export class Widget<
         pageContent: HTMLElement;
         detachDarkMode: null | (() => void);
     };
-    queryExtensions: Record<string, Function>;
+    queryExtensions: Record<string, (...args: unknown[]) => any>;
 
     constructor(options: Partial<Options>) {
         const {
@@ -194,11 +194,11 @@ export class Widget<
 
             this.annotations.push({
                 query(value: unknown, context: ValueAnnotationContext) {
-                    const marker = //annotateScalars || 
+                    const marker = // annotateScalars ||
                         (value !== null && typeof value === 'object')
-                        ? lookup(value)
-                        : null;
-        
+                            ? lookup(value)
+                            : null;
+
                     if (marker !== null && marker.object !== context.host) {
                         return {
                             place: 'before',
@@ -514,7 +514,7 @@ export class Widget<
     encodePageHash(pageId: string, pageRef: PageRef = null, pageParams?: PageParams) {
         const encodedPageId = pageId || this.defaultPageId;
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
-        let encodedParams: [string, any][] | string = encodeParams(pageParams || {});
+        const encodedParams: [string, any][] | string = encodeParams(pageParams || {});
 
         return super.encodePageHash(
             encodedPageId !== this.defaultPageId ? encodedPageId : '',
@@ -552,7 +552,7 @@ export class Widget<
     }
 
     setPageHash(hash: string, replace = false) {
-        let { pageId, pageRef, pageParams } = this.decodePageHash(hash);
+        const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
 
         // TODO: remove sometime in the future
         if (this.reportToDiscoveryRedirect && pageId === 'report') {

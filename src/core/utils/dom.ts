@@ -14,7 +14,7 @@ export function createElement<TagName extends keyof HTMLElementTagNameMap>(
     tag: TagName,
     attrs?: Attrs<TagName> | string | null,
     children?: (Node | string)[] | string
-  ) {
+) {
     const el = document.createElement(tag);
 
     if (typeof attrs === 'string') {
@@ -23,15 +23,15 @@ export function createElement<TagName extends keyof HTMLElementTagNameMap>(
         };
     }
 
-    for (let attrName in attrs) {
+    for (const attrName in attrs) {
         if (Object.hasOwn(attrs, attrName)) {
             const value = attrs[attrName];
 
-            if (typeof value === "undefined") {
+            if (typeof value === 'undefined') {
                 continue;
             }
 
-            if (typeof value === "function") {
+            if (typeof value === 'function') {
                 el.addEventListener(attrName.slice(2), value);
             } else {
                 el.setAttribute(attrName, value);
@@ -78,7 +78,7 @@ export const passiveSupported = (() => {
         const cb = () => {};
         window.addEventListener('test-passive', cb, options);
         window.removeEventListener('test-passive', cb);
-    } catch (err) {}
+    } catch {}
 
     return passiveSupported;
 })();

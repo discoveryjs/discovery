@@ -81,6 +81,7 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
 
     function callAction(actionName: string, ...args: unknown[]) {
         const lastArg = args[args.length - 1];
+        // eslint-disable-next-line @typescript-eslint/ban-types
         let callback: Function | null = null;
 
         if (typeof lastArg === 'function') {

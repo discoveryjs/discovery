@@ -40,7 +40,7 @@ export type ObjectMarker = {
     reset(): void;
 };
 
-let warnings = new Map<string, any[][]>();
+const warnings = new Map<string, any[][]>();
 let groupWarningsTimer: ReturnType<typeof setTimeout> | null = null;
 
 function flushWarnings(logger: LogCallback) {
@@ -230,7 +230,7 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
         if (markersDescriptor !== undefined) {
             return markersDescriptor;
         }
-    
+
         // Create new descriptor
         const ref = getRef !== null ? getRef(resolvedObject) : null;
 
@@ -287,7 +287,7 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker> {
         }
 
         config = config || {};
-        
+
         const indexRefs = configArrayGetter(name, config, 'refs');
         const lookupRefs = configArrayGetter(name, config, 'lookupRefs');
         const configPage = config.page; // Otherwise TS doesn't infer page type right

@@ -2,7 +2,7 @@ export { stringifyInfo as jsonStringifyInfo } from '@discoveryjs/json-ext';
 
 type Replacer = (key: string, value: any) => void;
 
-function prettyFn(fn: Function, ws: string, property: string) {
+function prettyFn(fn: (...args: any[]) => any, ws: string, property: string) {
     const src = String(fn);
     const [prefix, name] = src.match(/^(?:\S+\s+)?(\S+)\(/) || [];
 

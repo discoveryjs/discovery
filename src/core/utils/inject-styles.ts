@@ -36,7 +36,7 @@ export default async function injectStyles(el: HTMLElement | ShadowRoot, styles?
                 case 'external': {
                     let resolveStyle: () => void;
                     let rejectStyle: (err?: any) => void;
-                    let state = new Promise<void>((resolve, reject) => {
+                    const state = new Promise<void>((resolve, reject) => {
                         resolveStyle = resolve;
                         rejectStyle = reject;
                     });

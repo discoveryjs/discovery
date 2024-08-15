@@ -3,7 +3,7 @@
 function buildRx(pattern: string, flags?: string) {
     try {
         return new RegExp('((?:' + pattern + ')+)', flags);
-    } catch (e) {}
+    } catch {}
 
     return new RegExp('((?:' + pattern.replace(/[\[\]\(\)\?\+\*\{\}\\]/g, '\\$&') + ')+)', flags);
 }

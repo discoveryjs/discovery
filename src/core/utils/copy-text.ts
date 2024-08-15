@@ -43,7 +43,7 @@ export default async function copyText(text: string) {
                 return navigator.clipboard.writeText(text);
             }
         }
-    } catch (_) {}
+    } catch {}
 
     execCommandFallback(text);
 }

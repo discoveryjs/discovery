@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import { Widget } from "../main/widget.js";
+import { Widget } from '../main/widget.js';
 
 export default function(host: Widget) {
     let preventLocationUpdate = false;

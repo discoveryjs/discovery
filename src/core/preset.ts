@@ -33,9 +33,9 @@ export default class PresetRenderer extends Dict<Preset> {
         container: HTMLElement | DocumentFragment,
         name: string,
         data?: any,
-        context?: any,
+        context?: any
     ) {
-        let preset = this.get(name);
+        const preset = this.get(name);
 
         if (!preset) {
             const errorMsg = 'Preset `' + name + '` is not found';

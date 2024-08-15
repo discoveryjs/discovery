@@ -24,7 +24,7 @@ function prettyThroughput(size, time) {
 function isSameOrigin(url) {
     try {
         return new URL(url, location.origin).origin === location.origin;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -191,7 +191,7 @@ discovery.page.define('default', [
                                     });
 
                                     await new Promise(resolve => setTimeout(resolve, 350));
-                                } catch (e) {
+                                } catch {
                                     progressEl.append(statEl);
                                 }
                             }

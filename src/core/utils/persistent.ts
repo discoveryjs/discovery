@@ -29,7 +29,7 @@ function getStorage(type: StorageType): Storage | null {
 
     try {
         storage = window[type];
-    } catch (e) {
+    } catch {
         return null;
     }
 
@@ -81,7 +81,7 @@ export const sessionStorageEntry = sessionStorage.getOrCreate;
 export const localStorageEntry = localStorage.getOrCreate;
 
 addEventListener('storage', (e) => {
-    for (const [, map] of storages) {        
+    for (const [, map] of storages) {
         if (map.storage === e.storageArea) {
             const persistentKey = map.get(e.key as string);
 

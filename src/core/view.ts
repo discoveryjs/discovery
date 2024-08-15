@@ -310,7 +310,7 @@ async function renderDom(
             attachTooltip(viewRenderer.host, el, config.tooltip, data, context);
         }
     } else {
-        for (let child of el.childNodes) {
+        for (const child of el.childNodes) {
             const viewInfos = viewRenderer.fragmentEls.get(child);
 
             if (viewInfos !== undefined) {
@@ -393,14 +393,14 @@ function createTooltip(host: Widget) {
         hoverTriggers: '.discovery-view-has-tooltip',
         position: 'pointer',
         showDelay(triggerEl: HTMLElement) {
-            let { config } = tooltipEls.get(triggerEl) || {};
+            const { config } = tooltipEls.get(triggerEl) || {};
 
             if (isPopupConfig(config)) {
                 return config.showDelay;
             }
         },
         render(el: HTMLElement, triggerEl: HTMLElement) {
-            let { config, data, context } = tooltipEls.get(triggerEl) || {};
+            const { config, data, context } = tooltipEls.get(triggerEl) || {};
             let position: TooltipConfig['position'] = 'pointer';
             let positionMode: TooltipConfig['positionMode'] = 'natural';
             let pointerOffsetX: TooltipConfig['pointerOffsetX'] = 3;
@@ -570,7 +570,9 @@ export default class ViewRenderer extends Dict<View> {
         positionMode: TooltipConfig['positionMode'];
         pointerOffsetX: TooltipConfig['pointerOffsetX'];
         pointerOffsetY: TooltipConfig['pointerOffsetY'];
-        constructor(config: any) {}
+        // use method definition aside, since stub implementation doesn't use config parameter
+        constructor(config: any);
+        constructor() {}
     };
 
     constructor(host: Widget) {
@@ -592,8 +594,8 @@ export default class ViewRenderer extends Dict<View> {
                 ...options,
                 tag: typeof tag === 'string' || tag === undefined ? tag : null,
                 props: typeof props === 'string'
-                   ? this.host.queryFn(props)
-                   : props
+                    ? this.host.queryFn(props)
+                    : props
             }),
             render: typeof render === 'function'
                 ? render.bind(createRenderContext(this, name))
@@ -694,7 +696,7 @@ export default class ViewRenderer extends Dict<View> {
         context: any,
         fn: ViewNormalizePropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
     ) {
-        let props: Record<string, any> = {}; //regConfigTransition({}, config);
+        let props: Record<string, any> = {}; // regConfigTransition({}, config);
 
         for (const [key, value] of Object.entries(config)) {
             // Config only props are not available for view's render
