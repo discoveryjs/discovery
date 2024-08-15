@@ -19,7 +19,7 @@ export class ContentRect extends Observer<DOMRectReadOnly | null> {
             : null;
     }
 
-    observe(el: HTMLElement) {
+    observe(el: HTMLElement | null) {
         if (this.observer === null) {
             this.el = null;
             return;

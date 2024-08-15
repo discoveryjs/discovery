@@ -9,7 +9,7 @@ type ViewRenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProp
 type ViewNormalizePropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
 type DefineViewConfig = ViewRenderFunction | RawViewConfig;
 export type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
-type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
+export type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
 type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
 type queryFn = (data: any, context: any) => any;
 type query = string | queryFn | boolean;
@@ -559,21 +559,32 @@ async function render(
     }
 }
 
+type PopupRender = ((el: HTMLElement) => any);
+type PopupShowArgs = [triggerEl: HTMLElement, render?: PopupRender, showImmediately?: boolean];
+export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup instead
+    el: HTMLElement;
+    position: TooltipConfig['position'];
+    positionMode: TooltipConfig['positionMode'];
+    pointerOffsetX: TooltipConfig['pointerOffsetX'];
+    pointerOffsetY: TooltipConfig['pointerOffsetY'];
+    // use method definition aside, since stub implementation doesn't use config parameter
+    constructor(config: any);
+    constructor() {}
+
+    toggle(...args: PopupShowArgs): Promise<void>;
+    async toggle() {}
+    show(...args: PopupShowArgs): Promise<void>;
+    async show() {}
+    hide() {}
+}
+
 export default class ViewRenderer extends Dict<View> {
     host: Widget;
     defaultRenderErrorRenderer: View;
     viewEls: WeakMap<Node, ViewInfo>;
     fragmentEls: WeakMap<Node, ViewInfo[]>;
     tooltip: ReturnType<typeof createTooltip> | null;
-    Popup = class { // FIXME: that a stub for a Popup, use view/Popup instead
-        position: TooltipConfig['position'];
-        positionMode: TooltipConfig['positionMode'];
-        pointerOffsetX: TooltipConfig['pointerOffsetX'];
-        pointerOffsetY: TooltipConfig['pointerOffsetY'];
-        // use method definition aside, since stub implementation doesn't use config parameter
-        constructor(config: any);
-        constructor() {}
-    };
+    Popup = ViewPopup;
 
     constructor(host: Widget) {
         super();
