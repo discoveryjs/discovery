@@ -1,6 +1,6 @@
 import jora from 'jora';
 import ObjectMarker, { ObjectMarkerConfig } from '../core/object-marker.js';
-import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, SetupQueryMethodsExtension, PageRef, PageParams } from './model.js';
+import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams } from './model.js';
 import type { ValueAnnotationContext, Widget } from './widget.js';
 
 export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper {
@@ -15,7 +15,7 @@ export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper 
         lookupObjectMarker,
         lookupObjectMarkerAll,
         addValueAnnotation,
-        addQueryHelpers(helpers: SetupQueryMethodsExtension) {
+        addQueryHelpers(helpers) {
             joraSetup = jora.setup({
                 methods: queryCustomMethods = {
                     ...queryCustomMethods,
@@ -57,7 +57,7 @@ export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper 
     // Helpers
     //
 
-    function defineObjectMarker(name: string, options: ObjectMarkerConfig & { annotateScalars?: boolean }) {
+    function defineObjectMarker<T>(name: string, options: ObjectMarkerConfig<T> & { annotateScalars?: boolean }) {
         const annotateScalars = Boolean(options?.annotateScalars);
         const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 

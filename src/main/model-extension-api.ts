@@ -1,5 +1,5 @@
 import jora from 'jora';
-import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetupMethods, SetupQueryMethodsExtension } from './model.js';
+import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetupMethods } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 
 export function createExtensionApi(host: Model): PrepareContextApiWrapper {
@@ -21,7 +21,7 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
     const methods: SetupMethods = {
         setPrepare: host.setPrepare.bind(host),
         defineObjectMarker,
-        addQueryHelpers(helpers: SetupQueryMethodsExtension) {
+        addQueryHelpers(helpers) {
             queryCustomMethods = {
                 ...queryCustomMethods,
                 ...helpers
@@ -53,7 +53,7 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
     // Helpers
     //
 
-    function defineObjectMarker(name: string, options: ObjectMarkerConfig) {
+    function defineObjectMarker<T>(name: string, options: ObjectMarkerConfig<T>) {
         const { mark, lookup } = objectMarkers.define(name, options);
 
         if (!lookup) {

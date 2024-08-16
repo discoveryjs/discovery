@@ -4,39 +4,39 @@ import type { Model } from '../main/model.js';
 import Dict from './dict.js';
 
 export type LogCallback = Model['log'];
-export type GetterFunction = ((object: object) => any) & { getterFromString?: string };
-export type Getter = string | GetterFunction;
-export type LookupRefFunction = ((object: LookupValue) => LookupValue | null | undefined) & { getterFromString?: string };
-export type LookupValue = object | string | number;
+export type GetterFunction<T> = ((object: T) => any) & { getterFromString?: string };
+export type Getter<T> = GetterFunction<T> | keyof T;
+export type LookupRefFunction<T> = ((object: LookupValue<T>) => LookupValue<T> | null | undefined) & { getterFromString?: string };
+export type LookupValue<T> = T | string | number;
 export type MarkerConfigGetterKeys = 'ref' | 'title';
 export type MarkerConfigArrayGetter = 'refs' | 'lookupRefs';
-export type ObjectMarkerConfig = {
-    refs?: Getter[];
-    lookupRefs?: LookupRefFunction[];
+export type ObjectMarkerConfig<T = object> = {
+    refs?: Getter<T>[];
+    lookupRefs?: LookupRefFunction<T>[];
     page?: string;
-    ref?: Getter;
-    title?: Getter;
+    ref?: Getter<T>;
+    title?: Getter<T>;
 };
-export type NormalizedObjectMarkerConfig = {
+export type NormalizedObjectMarkerConfig<T> = {
     name: string;
-    indexRefs: GetterFunction[];
-    lookupRefs: LookupRefFunction[];
+    indexRefs: GetterFunction<T>[];
+    lookupRefs: LookupRefFunction<T>[];
     page: string | null;
-    getRef: GetterFunction | null;
-    getTitle: GetterFunction;
+    getRef: GetterFunction<T> | null;
+    getTitle: GetterFunction<T>;
 };
-export type ObjectMarkerDescriptor = {
+export type ObjectMarkerDescriptor<T> = {
     type: string;
-    object: object;
+    object: T;
     ref: any;
     title: string;
     href: string | null;
 };
-export type ObjectMarker = {
+export type ObjectMarker<T> = {
     name: string;
     page: string | null;
-    mark(value: object): void;
-    lookup(value: unknown): ObjectMarkerDescriptor | null;
+    mark(value: T): void;
+    lookup(value: unknown): ObjectMarkerDescriptor<T> | null;
     reset(): void;
 };
 
@@ -71,7 +71,7 @@ function groupWarning(logger: LogCallback, caption: string, ...details: any[]) {
     }
 }
 
-function getter(name: string, getter: Getter, reference: string) {
+function getter<T = object>(name: string, getter: Getter<T>, reference: string) {
     switch (typeof getter) {
         case 'function':
             return getter;
@@ -89,12 +89,12 @@ function getter(name: string, getter: Getter, reference: string) {
     }
 }
 
-function configGetter<F extends GetterFunction | null>(
+function configGetter<F extends GetterFunction<T> | null, T>(
     name: string,
-    config: ObjectMarkerConfig,
+    config: ObjectMarkerConfig<T>,
     property: MarkerConfigGetterKeys,
     fallback: F
-): GetterFunction | F {
+): GetterFunction<T> | F {
     const value = config && Object.hasOwn(config, property) ? config[property] : undefined;
 
     if (value !== undefined) {
@@ -104,24 +104,24 @@ function configGetter<F extends GetterFunction | null>(
     return fallback;
 }
 
-function configArrayGetter(
+function configArrayGetter<T>(
     name: string,
-    config: ObjectMarkerConfig,
+    config: ObjectMarkerConfig<T>,
     property: MarkerConfigArrayGetter
 ) {
     const array = Array.isArray(config[property]) ? config[property] || [] : [];
 
     return array.map(key =>
-        getter(name, key, `"${property}" option`)
+        getter<T>(name, key, `"${property}" option`)
     );
 }
 
-function isLookupValue(value: unknown): value is LookupValue {
+function isLookupValue<T>(value: unknown): value is LookupValue<T> {
     const valueType = value === null ? 'null' : typeof value;
     return valueType === 'object' || valueType === 'number' || valueType === 'string';
 }
 
-function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerConfig): ObjectMarker {
+function createObjectMarker<T extends object>(logger: LogCallback, config: NormalizedObjectMarkerConfig<T>): ObjectMarker<T> {
     const {
         name,
         indexRefs,
@@ -143,10 +143,10 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
         lookupRefs.unshift(value => value);
     }
 
-    const markedObjects = new Set<object>();
-    const indexedRefs = new Map<LookupValue, object>();
-    const markers = new Map<LookupValue, ObjectMarkerDescriptor>();
-    let weakRefs = new WeakMap<object, ObjectMarkerDescriptor>();
+    const markedObjects = new Set<T>();
+    const indexedRefs = new Map<LookupValue<T>, T>();
+    const markers = new Map<LookupValue<T>, ObjectMarkerDescriptor<T>>();
+    let weakRefs = new WeakMap<T, ObjectMarkerDescriptor<T>>();
 
     const reset = () => {
         markedObjects.clear();
@@ -154,7 +154,7 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
         markers.clear();
         weakRefs = new WeakMap();
     };
-    const mark = (object: unknown) => {
+    const mark = (object: T) => {
         if (object === null || typeof object !== 'object') {
             logger('warn', `Invalid value used for "${name}" marker (should be an object)`);
             return;
@@ -165,7 +165,7 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
         for (const indexRefGetter of indexRefs) {
             const ref = indexRefGetter(object);
 
-            if (isLookupValue(ref)) {
+            if (isLookupValue<T>(ref)) {
                 // Registrate a new reference to the object
                 if (!indexedRefs.has(ref)) {
                     indexedRefs.set(ref, object);
@@ -186,9 +186,9 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
             }
         }
     };
-    const lookup = (value: unknown): ObjectMarkerDescriptor | null => {
+    const lookup = (value: unknown): ObjectMarkerDescriptor<T> | null => {
         // value is not lookup-able
-        if (!isLookupValue(value)) {
+        if (!isLookupValue<T>(value)) {
             return null;
         }
 
@@ -203,14 +203,14 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
         }
 
         // Try to resolve an object by a ref
-        let resolvedObject: object | null = null;
+        let resolvedObject: T | null = null;
 
         if (isObject && markedObjects.has(value)) {
             resolvedObject = value;
         } else {
             for (const getLookupRef of lookupRefs) {
                 const ref = getLookupRef(value);
-                const candidate = indexedRefs.get(ref as LookupValue); // enforce ref is LookupValue here, since map can take any value
+                const candidate = indexedRefs.get(ref as LookupValue<T>); // enforce ref is LookupValue here, since map can take any value
 
                 if (candidate !== undefined) {
                     resolvedObject = candidate;
@@ -234,7 +234,7 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
         // Create new descriptor
         const ref = getRef !== null ? getRef(resolvedObject) : null;
 
-        const newDescriptor = Object.freeze({
+        const newDescriptor: ObjectMarkerDescriptor<T> = Object.freeze({
             type: name,
             object: resolvedObject,
             ref,
@@ -266,7 +266,7 @@ function createObjectMarker(logger: LogCallback, config: NormalizedObjectMarkerC
     };
 }
 
-export default class ObjectMarkerManager extends Dict<ObjectMarker> {
+export default class ObjectMarkerManager extends Dict<ObjectMarker<object>> {
     #preventDefine = false;
 
     constructor(private logger: LogCallback = () => {}) {
@@ -277,7 +277,7 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker> {
         this.#preventDefine = true;
     }
 
-    define(name: string, config: ObjectMarkerConfig) {
+    define<T>(name: string, config: ObjectMarkerConfig<T>) {
         if (this.#preventDefine) {
             throw new Error('Object marker definition is not allowed after setup');
         }
@@ -336,7 +336,7 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker> {
 
     // Returns all lookup matches
     lookupAll(value: unknown) {
-        const markers: ObjectMarkerDescriptor[] = [];
+        const markers: ObjectMarkerDescriptor<object>[] = [];
 
         for (const { lookup } of this.values) {
             const marker = lookup(value);
