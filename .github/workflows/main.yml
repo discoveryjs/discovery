@@ -9,6 +9,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - run: npm run transpile
+
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
