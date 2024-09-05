@@ -1,4 +1,5 @@
-## next
+## 1.0.0-beta.84 (05-09-2024)
+
 - Introduced the `Model` class as a base for `Widget` and `App`:
     - Added a new `setup` option for configuring model-related aspects during initialization (immutable during the lifecycle), such as object markers, additional query methods, etc.
     - Implements `loadDataFrom*` methods, so all the classes able to load data now
