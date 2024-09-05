@@ -10,8 +10,9 @@
     "main": "lib/lib.js",
     "unpkg": "dist/discovery.js",
     "jsdelivr": "dist/discovery.js",
-    "typings": "./lib/lib.d.ts",
+    "types": "./lib/lib.d.ts",
     "exports": {
+        ".": "./lib/lib.js",
         "./dist/*": "./dist/*",
         "./lib/*": "./lib/*",
         "./src/*": "./lib/*",
