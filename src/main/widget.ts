@@ -17,7 +17,7 @@ import { Model, ModelEvents, ModelOptions, PageParams, PageRef, Query, SetDataOp
 import type { Dataset } from '../core/utils/load-data.js';
 import type Progressbar from '../core/utils/progressbar.js';
 
-export type RenderSubject = 'page' | 'sidebar';
+export type RenderSubject = typeof renderSubjects[number];
 export type ValueAnnotation = { query: Query, [key: string]: any };
 export type ValueAnnotationContext = {
     parent: ValueAnnotationContext | null;
@@ -31,6 +31,7 @@ export type SetDataProgressOptions = Partial<{
 }>;
 
 const renderScheduler = new WeakMap<Widget, Set<RenderSubject> & { timer?: Promise<void> | null }>();
+const renderSubjects = ['page', 'sidebar'] as const;
 
 const defaultEncodeParams = (params: [string, unknown][]) => params;
 const defaultDecodeParams = (pairs: [string, unknown][]) => Object.fromEntries(pairs);
@@ -141,14 +142,12 @@ export class Widget<
         this.action
             .on('define', () => {
                 if (this.context) {
-                    this.scheduleRender('sidebar');
-                    this.scheduleRender('page');
+                    this.scheduleRender();
                 }
             })
             .on('revoke', () => {
                 if (this.context) {
-                    this.scheduleRender('sidebar');
-                    this.scheduleRender('page');
+                    this.scheduleRender();
                 }
             });
 
@@ -228,8 +227,7 @@ export class Widget<
 
         // run after data is prepared and set
         if ('render' in options === false || options.render) {
-            this.scheduleRender('sidebar');
-            this.scheduleRender('page');
+            this.scheduleRender();
         }
     }
 
@@ -252,8 +250,7 @@ export class Widget<
 
         // await dom is ready and everything is rendered
         await progressbar?.setState({ stage: 'initui' });
-        this.scheduleRender('sidebar');
-        this.scheduleRender('page');
+        this.scheduleRender();
         await Promise.all([
             this.dom.wrapper.parentNode ? this.dom.ready : true,
             renderScheduler.get(this)?.timer
@@ -431,7 +428,14 @@ export class Widget<
     // Render common
     //
 
-    scheduleRender(subject: RenderSubject) {
+    scheduleRender(subject?: RenderSubject) {
+        if (subject === undefined) {
+            for (const subject of renderSubjects) {
+                this.scheduleRender(subject);
+            }
+            return;
+        }
+
         const scheduledRenders = renderScheduler.get(this);
 
         if (scheduledRenders === undefined || scheduledRenders?.has(subject)) {

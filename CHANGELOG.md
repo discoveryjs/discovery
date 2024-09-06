@@ -1,3 +1,7 @@
+## next
+
+- Changed `Widget#scheduleRender()` to schedule render for all subjects when no subject is specified (invoked without parameters)
+
 ## 1.0.0-beta.84 (05-09-2024)
 
 - Introduced the `Model` class as a base for `Widget` and `App`:
