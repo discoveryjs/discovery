@@ -1,6 +1,7 @@
 ## next
 
 - Changed `Widget#scheduleRender()` to schedule render for all subjects when no subject is specified (invoked without parameters)
+- Bumped jora to [1.0.0-beta.13](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.13)
 
 ## 1.0.0-beta.84 (05-09-2024)
 
@@ -21,7 +22,7 @@
 - Fixed resolving a value for main content for `badge` views
 - Fixed crashing the entire render tree on an exception in a `data` query; now, crashes are isolated to the affected view
 - Fixed discovery page main content styling
-- Bumped jora to [1.0.0-beta.12](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.10)
+- Bumped jora to [1.0.0-beta.12](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.12)
 
 ## 1.0.0-beta.83 (03-04-2024)
 
