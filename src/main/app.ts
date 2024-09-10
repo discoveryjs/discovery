@@ -184,7 +184,7 @@ export class App<
         this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
 
         syncLoaderWithProgressbar(loadDataResult, progressbar).then(
-            (dataset) => this.setDataProgress(dataset.data, null, { dataset, progressbar }),
+            dataset => this.setDataProgress(dataset.data, null, { dataset, progressbar }),
             error => this.setLoadingState('error', { error, progressbar })
         );
 

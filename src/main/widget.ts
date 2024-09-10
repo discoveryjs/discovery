@@ -31,7 +31,7 @@ export type SetDataProgressOptions = Partial<{
 }>;
 
 const renderScheduler = new WeakMap<Widget, Set<RenderSubject> & { timer?: Promise<void> | null }>();
-const renderSubjects = ['page', 'sidebar'] as const;
+const renderSubjects = ['sidebar', 'page'] as const;
 
 const defaultEncodeParams = (params: [string, unknown][]) => params;
 const defaultDecodeParams = (pairs: [string, unknown][]) => Object.fromEntries(pairs);
@@ -257,7 +257,7 @@ export class Widget<
         ]);
 
         // finish progress
-        await progressbar?.finish();
+        progressbar?.finish();
     }
 
     //

@@ -320,7 +320,8 @@ export class Model<
         };
     }
 
-    // use method definition aside, since stub implementation doesn't use query parameter
+    // This method is overrides on init by setupModel();
+    // used method definition aside to avoid lint errors, since stub implementation doesn't use query parameter
     queryFnFromString(query: string): QueryFunction;
     queryFnFromString() {
         return noopQuery;
