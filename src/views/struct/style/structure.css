@@ -2,8 +2,21 @@
     white-space: nowrap;
     padding-left: 4ch;
 }
+.view-struct .entry-line[data-index]::before {
+    content: attr(data-index);
+    position: absolute;
+    padding-left: 4px;
+    padding-bottom: 7px;
+    padding-top: 6.5px;
+    border-left: 1px solid rgba(187, 187, 187, 0.15);
+    border-color: color-mix(in srgb, color-mix(in srgb, var(--discovery-background-color), #cdcdcd 10%), #bbb 15%);
+    transform: translate(-24px, 18px) rotate(-90deg);
+    transform-origin: left top;
+    font-size: 11px;
+    line-height: 11px;
+    color: rgba(153, 153, 153, 0.6);
+}
 .view-struct .label {
-    float: left;
     margin-left: -4ch;
 }
 .view-struct .property {

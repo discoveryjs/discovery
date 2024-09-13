@@ -144,6 +144,10 @@ export default function(host) {
             renderValueSize(el, size, 'elements');
             moveAnnotationsEl(el, el.lastElementChild);
             renderEntries(el, el.lastChild, data.values(), size, (entryEl, value, index) => {
+                if (index > 0 && index % 10 === 9) {
+                    entryEl.dataset.index = index + 1;
+                }
+
                 renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
                     parent: context,
                     host: data,
@@ -163,6 +167,10 @@ export default function(host) {
             moveAnnotationsEl(el, el.lastElementChild);
             renderSorting(el, entries, sort);
             renderEntries(el, el.lastChild, entries.values(), entries.length, (entryEl, [key, value], index) => {
+                if (index > 0 && index % 10 === 9) {
+                    entryEl.dataset.index = index + 1;
+                }
+
                 renderObjectKey(entryEl, key, options.maxPropertyLength);
                 renderValue(entryEl, value, autoExpandLimit, options, Object.freeze({
                     parent: context,
