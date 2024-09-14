@@ -155,7 +155,7 @@ function getPathInGraph(graph, path) {
     return result;
 }
 
-export default function(host, updateParams) {
+export default function(host, updateHostParams) {
     let expandQueryInput = false;
     let expandQueryInputData = NaN;
     let expandQueryResults = false;
@@ -172,7 +172,7 @@ export default function(host, updateParams) {
     let queryEditorLiveEditEl;
     const getQuerySuggestions = (query, offset, data, context) => host.querySuggestions(query, offset, data, context);
     const queryEditor = new host.view.QueryEditor(getQuerySuggestions).on('change', value =>
-        queryEditorLiveEditEl.checked && updateParams({ query: value }, true)
+        queryEditorLiveEditEl.checked && updateHostParams({ query: value }, true)
     );
     const queryEngineInfo = host.getQueryEngineInfo();
     const queryGraphButtonsEl = createElement('div', 'query-graph-actions');
@@ -212,71 +212,94 @@ export default function(host, updateParams) {
         showDelay: true,
         content: { view: 'context', data: () => currentGraph.current.length < 2 ? textRoot : text, content: 'text' }
     });
+
+    function createSubquery(query = '') {
+        mutateGraph(({ nextGraph, last }) => {
+            if (!Array.isArray(last.children)) {
+                last.children = [];
+            }
+
+            last.query = currentQuery;
+            last.view = currentView;
+            nextGraph.current.push(last.children.push({}) - 1);
+
+            return {
+                query,
+                view: undefined,
+                graph: nextGraph
+            };
+        });
+    }
+
     host.view.render(queryGraphButtonsEl, [
-        { view: 'button', className: 'subquery', tooltip: hintTooltip('Create a new query for a result of current one'), onClick() {
-            mutateGraph(({ nextGraph, last }) => {
-                if (!Array.isArray(last.children)) {
-                    last.children = [];
-                }
+        {
+            view: 'button',
+            className: 'subquery',
+            tooltip: hintTooltip('Create a new query for a result of current one'),
+            onClick: createSubquery
+        },
+        {
+            view: 'button',
+            className: 'stash',
+            tooltip: hintTooltip('Stash current query and create a new empty query for current parent', 'Stash current query and create a new empty query'),
+            onClick() {
+                mutateGraph(({ nextGraph, last, preLast }) => {
+                    last.query = currentQuery;
+                    last.view = currentView;
+                    nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
 
-                last.query = currentQuery;
-                last.view = currentView;
-                nextGraph.current.push(last.children.push({}) - 1);
+                    return {
+                        query: '',
+                        view: undefined,
+                        graph: nextGraph
+                    };
+                });
+            }
+        },
+        {
+            view: 'button',
+            className: 'clone',
+            tooltip: hintTooltip('Clone current query'),
+            onClick() {
+                mutateGraph(({ nextGraph, last, preLast }) => {
+                    last.query = currentQuery;
+                    last.view = currentView;
+                    nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
 
-                return {
-                    query: '',
-                    view: undefined,
-                    graph: nextGraph
-                };
-            });
-        } },
-        { view: 'button', className: 'stash', tooltip: hintTooltip('Stash current query and create a new empty query for current parent', 'Stash current query and create a new empty query'), onClick() {
-            mutateGraph(({ nextGraph, last, preLast }) => {
-                last.query = currentQuery;
-                last.view = currentView;
-                nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
+                    return {
+                        graph: nextGraph
+                    };
+                });
+            }
+        },
+        {
+            view: 'button',
+            className: 'delete',
+            tooltip: hintTooltip('Delete current query and all the descendants'),
+            onClick() {
+                mutateGraph(({ nextGraph, last, preLast }) => {
+                    const index = preLast.children.indexOf(last);
+                    let nextQuery = preLast.query;
 
-                return {
-                    query: '',
-                    view: undefined,
-                    graph: nextGraph
-                };
-            });
-        } },
-        { view: 'button', className: 'clone', tooltip: hintTooltip('Clone current query'), onClick() {
-            mutateGraph(({ nextGraph, last, preLast }) => {
-                last.query = currentQuery;
-                last.view = currentView;
-                nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
+                    preLast.children.splice(index, 1);
+                    if (preLast.children.length === 0) {
+                        preLast.children = undefined;
+                    }
 
-                return {
-                    graph: nextGraph
-                };
-            });
-        } },
-        { view: 'button', className: 'delete', tooltip: hintTooltip('Delete current query and all the descendants'), onClick() {
-            mutateGraph(({ nextGraph, last, preLast }) => {
-                const index = preLast.children.indexOf(last);
-                let nextQuery = preLast.query;
+                    nextGraph.current.pop();
+                    if (nextGraph.current.length === 0) {
+                        const targetIndex = Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1));
+                        nextGraph.current.push(targetIndex);
+                        nextQuery = nextGraph.children?.[targetIndex]?.query;
+                    }
 
-                preLast.children.splice(index, 1);
-                if (preLast.children.length === 0) {
-                    preLast.children = undefined;
-                }
-
-                nextGraph.current.pop();
-                if (nextGraph.current.length === 0) {
-                    const targetIndex = Math.max(0, Math.min(index - 1, (nextGraph.children?.length || 0) - 1));
-                    nextGraph.current.push(targetIndex);
-                    nextQuery = nextGraph.children?.[targetIndex]?.query;
-                }
-
-                return {
-                    query: nextQuery,
-                    graph: nextGraph
-                };
-            });
-        } }
+                    return {
+                        query: nextQuery,
+                        graph: nextGraph
+                    };
+                });
+            }
+        }
     ]);
     queryEditorButtonsEl.append(
         createElement('label', 'view-checkbox', [
@@ -286,7 +309,7 @@ export default function(host, updateParams) {
                 checked: true,
                 onchange: (e) => {
                     if (e.target.checked) {
-                        updateParams({
+                        updateHostParams({
                             query: queryEditor.getValue()
                         }, true);
                     }
@@ -300,7 +323,7 @@ export default function(host, updateParams) {
         content: 'text:"Process"',
         onClick: () => {
             computationCache = computationCache.slice(0, currentGraph.current.length - 1);
-            updateParams({
+            updateHostParams({
                 query: queryEditor.getValue()
             }, true);
             host.scheduleRender('page'); // force render
@@ -316,7 +339,7 @@ export default function(host, updateParams) {
 
                 nextGraph.current = nextGraph.current.slice(0, idx + 1);
 
-                updateParams({
+                updateHostParams({
                     query: currentPath[idx + 1].query,
                     graph: nextGraph
                 });
@@ -348,6 +371,17 @@ export default function(host, updateParams) {
         }
     });
 
+    function updateParams(delta, autofocus = true, replace = true) {
+        updateHostParams(delta, replace);
+
+        if (autofocus) {
+            setTimeout(() => {
+                queryEditor.focus();
+                queryEditor.cm.setCursor(queryEditor.cm.lineCount(), 0);
+            }, 0);
+        }
+    }
+
     function mutateGraph(fn) {
         const nextGraph = JSON.parse(JSON.stringify(currentGraph));
         const currentPath = getPathInGraph(nextGraph, nextGraph.current);
@@ -356,11 +390,7 @@ export default function(host, updateParams) {
 
         const params = fn({ nextGraph, currentPath, last, preLast });
 
-        updateParams(params);
-        setTimeout(() => {
-            queryEditor.focus();
-            queryEditor.cm.setCursor(queryEditor.cm.lineCount(), 0);
-        }, 0);
+        updateParams(params, true);
     }
 
     function scheduleCompute(fn) {
@@ -711,6 +741,14 @@ export default function(host, updateParams) {
 
     return {
         el: queryEditorFormEl,
+        createSubquery,
+        appendToQuery(query) {
+            const newQuery = currentQuery.trimRight() !== ''
+                ? currentQuery.replace(/(\n[ \t]*)*$/, () => '\n| ' + query)
+                : query;
+
+            updateParams({ query: newQuery }, true, true);
+        },
         perform(data, context) {
             const queryContext = contextWithoutEditorParams(context, currentContext);
             const pageQuery = context.params.query;

@@ -3,6 +3,10 @@
 - Changed `Widget#scheduleRender()` to schedule render for all subjects when no subject is specified (invoked without parameters)
 - Bumped jora to [1.0.0-beta.13](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.13)
 - Added display of tens marks in `struct` view
+- Added new actions for expanded values in the `struct` view:
+  > These actions activate when certain actions are available in the context. First, if the `queryAcceptChanges` action exists and returns a truthy value for the `struct`'s data (root value), then specific actions like `querySubquery` and `queryAppend` are checked for existence. If they exist, the relevant actions are added to the actions menu. These actions should take a `path` and `struct` view data and make relevant changes to the query that the current `struct` view instance is based on. The `discovery` page provides such actions in the context, so any `struct` view that takes query editor output as its input data provides these actions.
+  - **"Create a subquery from the path"** – calls the `querySubquery` action from the context (i.e., `#.action.querySubquery`), which creates on the `discovery` page a new node in the query graph with the selected path.
+  - **"Append path to current query"** – calls the `queryAppend` action, which appends on the `discovery` page the selected path to the current query in the query editor.
 
 ## 1.0.0-beta.84 (05-09-2024)
 

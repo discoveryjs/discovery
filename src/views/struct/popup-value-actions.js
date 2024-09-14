@@ -10,10 +10,18 @@ function formatSize(size) {
     return ', ' + numDelim(size) + ' bytes';
 }
 
-export function createValueActionsPopup(host, elementData, buildPathForElement) {
+function findRootData(context) {
+    while (context.parent !== null) {
+        context = context.parent;
+    }
+
+    return context.host[''];
+}
+
+export function createValueActionsPopup(host, elementData, elementContext, buildPathForElement) {
     return new host.view.Popup({
         className: 'view-struct-actions-popup',
-        render: (popupEl, triggerEl, hide) => {
+        render(popupEl, triggerEl, hide) {
             const el = triggerEl.parentNode;
             const data = elementData.get(el);
             let actions = [];
@@ -76,6 +84,20 @@ export function createValueActionsPopup(host, elementData, buildPathForElement) 
                         notes: escapeHtml(path),
                         action: () => copyText(path)
                     });
+
+                    const context = elementContext.get(el);
+                    const rootData = findRootData(context);
+
+                    if (host.action.has('queryAcceptChanges') && host.action.call('queryAcceptChanges', rootData)) {
+                        host.action.has('querySubquery') && actions.push({
+                            text: 'Create a subquery from the path',
+                            action: () => host.action.call('querySubquery', path, rootData)
+                        });
+                        host.action.has('queryAppend') && actions.push({
+                            text: 'Append path to current query',
+                            action: () => host.action.call('queryAppend', path, rootData)
+                        });
+                    }
                 }
 
                 actions.push({

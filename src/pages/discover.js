@@ -44,8 +44,40 @@ export default function(host) {
         };
     }
 
+    function acceptChanges(data) {
+        return data === lastPerformData;
+    }
+
     let refs = null;
     let lastRequest = null;
+    let lastPerformData = NaN; // used NaN to mismatch with any value
+    let lastPageId = null;
+
+    host.on('pageHashChange', () => {
+        if (lastPageId !== host.pageId) {
+            if (host.pageId === host.discoveryPageId) {
+                // enter discovery page
+                host.action.define('queryAcceptChanges', acceptChanges);
+                host.action.define('querySubquery', (query, rootData) => {
+                    if (acceptChanges(rootData)) {
+                        get().queryEditor.createSubquery(query);
+                    }
+                });
+                host.action.define('queryAppend', (query, rootData) => {
+                    if (acceptChanges(rootData)) {
+                        get().queryEditor.appendToQuery(query);
+                    }
+                });
+            } else {
+                // leave discovery page
+                host.action.revoke('queryAcceptChanges');
+                host.action.revoke('querySubquery');
+                host.action.revoke('queryAppend');
+            }
+
+            lastPageId = host.pageId;
+        }
+    });
 
     //
     // Page
@@ -65,6 +97,9 @@ export default function(host) {
         // update page title
         header.render(data, context);
 
+        // set last perform data to mismatch with any value
+        lastPerformData = NaN;
+
         // perform query
         const request = lastRequest = {};
         queryEditor.perform(data, context).then(queryResult => {
@@ -78,10 +113,11 @@ export default function(host) {
                 return;
             }
 
+            lastPerformData = queryResult.computed;
             viewEditor.el.hidden = false;
             discoverContentEl.hidden = false;
 
-            viewEditor.render(queryResult.computed, /* queryResult.context */ context, discoverContentEl);
+            viewEditor.render(lastPerformData, /* queryResult.context */ context, discoverContentEl);
         });
     }, {
         reuseEl: true,
