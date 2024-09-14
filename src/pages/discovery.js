@@ -1,9 +1,9 @@
 /* eslint-env browser */
 import { createElement } from '../core/utils/dom.js';
-import { encodeParams, decodeParams } from './discover/params.js';
-import createHeader from './discover/header.js';
-import createQueryEditor from './discover/editor-query.js';
-import createViewEditor from './discover/editor-view.js';
+import { encodeParams, decodeParams } from './discovery/params.js';
+import createHeader from './discovery/header.js';
+import createQueryEditor from './discovery/editor-query.js';
+import createViewEditor from './discovery/editor-view.js';
 
 export default function(host) {
     function updateParams(delta, replace) {
