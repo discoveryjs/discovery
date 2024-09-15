@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.85 (15-09-2024)
 
 - Changed `Widget#scheduleRender()` to schedule render for all subjects when no subject is specified (invoked without parameters)
 - Bumped jora to [1.0.0-beta.13](https://github.com/discoveryjs/jora/releases/tag/v1.0.0-beta.13)
