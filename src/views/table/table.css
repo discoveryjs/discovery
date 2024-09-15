@@ -5,14 +5,20 @@
     border-spacing: 0;
 }
 
+.view-table > thead {
+    position: sticky;
+    top: 0px;
+    z-index: 1;
+}
 .view-table > thead th {
     padding: 2px 8px;
     font-weight: normal;
     text-align: left;
-    background: rgba(141, 141, 141, 0.15) no-repeat right 1px center;
+    background: #8d8d8d26 no-repeat right 1px center;
+    background-color: color-mix(in srgb, var(--discovery-background-color), 15% #8d8d8d);
     background-size: 16px;
     background-clip: padding-box;
-    border: 1px solid transparent;
+    border: solid var(--discovery-background-color);
     border-width: 1px 1px 1px 0;
 }
 .view-table > thead th:last-child {

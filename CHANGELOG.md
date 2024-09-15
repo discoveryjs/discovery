@@ -7,6 +7,16 @@
   > These actions activate when certain actions are available in the context. First, if the `queryAcceptChanges` action exists and returns a truthy value for the `struct`'s data (root value), then specific actions like `querySubquery` and `queryAppend` are checked for existence. If they exist, the relevant actions are added to the actions menu. These actions should take a `path` and `struct` view data and make relevant changes to the query that the current `struct` view instance is based on. The `discovery` page provides such actions in the context, so any `struct` view that takes query editor output as its input data provides these actions.
   - **"Create a subquery from the path"** – calls the `querySubquery` action from the context (i.e., `#.action.querySubquery`), which creates on the `discovery` page a new node in the query graph with the selected path.
   - **"Append path to current query"** – calls the `queryAppend` action, which appends on the `discovery` page the selected path to the current query in the query editor.
+- Changes for `table` view:
+    - Changed rendering of arrays when it's a row value, to render as other non-object values using `struct` view
+    - Renamed `scalarCol` option into `valueCol`
+    - Tweaked styles to dim the display of `true`, `false`, `null`, `NaN`, and `Infinity` values to differentiate them from strings and numbers
+    - Changed in the `cols` configuration:
+        - Added the `colWhen` option (like `when` or `whenData`) for the `table` view to conditionally render columns based on the table's data
+        - Added the `contentWhen` option (like `when` or `whenData`) for `table-cell` to conditionally render cell content based on the cell's data
+        - Changed the `when` and `whenData` options to behave as regular options for the `table-cell` view:
+            - Previously, `when` canceled column rendering; now `colWhen` should be used instead
+            - Previously, `whenData` canceled cell content rendering; now `contentWhen` (the `table-cell` option) should be used instead
 
 ## 1.0.0-beta.84 (05-09-2024)
 

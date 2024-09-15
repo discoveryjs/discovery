@@ -3,10 +3,9 @@
 import { numDelim } from '../../core/utils/html.js';
 
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
-const hasOwnProperty = Object.hasOwnProperty;
 
 function defaultCellRender(el, data, isDataObject) {
-    if (Array.isArray(data)) {
+    if (Array.isArray(data) || ArrayBuffer.isView(data)) {
         el.classList.add('number');
         el.textContent = data.length || '';
         return;
@@ -16,7 +15,7 @@ function defaultCellRender(el, data, isDataObject) {
         el.classList.add('complex');
 
         for (let k in data) {
-            if (hasOwnProperty.call(data, k)) {
+            if (Object.hasOwn(data, k)) {
                 el.textContent = '{…}';
                 return;
             }
@@ -35,6 +34,12 @@ function defaultCellRender(el, data, isDataObject) {
 
         el.classList.add('number');
 
+        if (!Number.isFinite(data)) {
+            el.classList.add('keyword');
+            el.textContent = str;
+            return;
+        }
+
         if (str.length > 3) {
             el.innerHTML = numDelim(str, false);
         } else {
@@ -44,12 +49,16 @@ function defaultCellRender(el, data, isDataObject) {
         return;
     }
 
+    if (data === null || data === false || data === true) {
+        el.classList.add('keyword');
+    }
+
     el.textContent = String(data);
 }
 
 export default function(host) {
     host.view.define('table-cell', function(el, config, data, context) {
-        let { content, details, colSpan, scalarAsStruct } = config;
+        let { content, contentWhen = true, details, colSpan } = config;
         const isDataObject =
             data !== null &&
             (Array.isArray(data) ? data.length > 0 : typeof data === 'object') &&
@@ -59,17 +68,11 @@ export default function(host) {
             el.colSpan = colSpan;
         }
 
-        if (typeof content === 'function') {
-            content = content(data, context);
-
-            if (!content) {
-                return;
-            }
-
-            content = content.content;
+        if (!host.queryBool(contentWhen, data, context)) {
+            return;
         }
 
-        if (details || (!content && isDataObject)) {
+        if (details || (details === undefined && !content && isDataObject)) {
             el.classList.add('details');
             el.addEventListener('click', (e) => {
                 let node = e.target;
@@ -88,12 +91,12 @@ export default function(host) {
                         currentDetailsEl.classList.remove('details-expanded');
 
                         if (currentDetailsEl === el) {
-                            rowEl.parentNode.removeChild(rowEl.nextSibling);
+                            rowEl.nextSibling.remove();
                             return;
                         }
 
                         if (currentDetailsRowEl !== rowEl) {
-                            currentDetailsRowEl.parentNode.removeChild(currentDetailsRowEl.nextSibling);
+                            currentDetailsRowEl.nextSibling.remove();
                         } else {
                             detailsEl = rowEl.nextSibling.firstChild;
                             detailsEl.innerHTML = '';
@@ -113,10 +116,6 @@ export default function(host) {
                     host.view.render(detailsEl, details || defaultDetailsRender, data, context);
                 }
             });
-        }
-
-        if (scalarAsStruct && !content && !isDataObject) {
-            content = 'struct';
         }
 
         if (content) {

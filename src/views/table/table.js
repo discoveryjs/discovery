@@ -4,14 +4,12 @@ import usage from './table.usage.js';
 import { isArray, isSet } from '../../core/utils/is-type.js';
 import { createElement } from '../../core/utils/dom.js';
 
-const hasOwnProperty = Object.hasOwnProperty;
-
-function configFromName(name) {
+function configFromName(name, query) {
     return {
         header: name,
+        sorting: `${query} ascN`,
         view: 'table-cell',
-        data: obj => obj[name],
-        sorting: `$[${JSON.stringify(name)}] ascN`
+        data: query
     };
 }
 
@@ -22,7 +20,7 @@ function sortingFromConfig(col, host, context) {
     if ('data' in col && col.data !== undefined) {
         switch (typeof col.data) {
             case 'string':
-                query = `(${col.data})`;
+                query = `(${col.data || '$'})`;
                 break;
 
             case 'function':
@@ -56,21 +54,25 @@ function sortingFromConfig(col, host, context) {
         : false;
 }
 
-function resolveColConfig(name, config) {
+function resolveColConfig(name, config, dataQuery) {
     if (typeof config === 'string') {
         config = { content: config };
     }
 
-    return hasOwnProperty.call(config, 'content') || hasOwnProperty.call(config, 'data')
+    return Object.hasOwn(config, 'content') || Object.hasOwn(config, 'data')
         ? {
             header: name,
             view: 'table-cell',
             ...config
         }
         : {
-            ...configFromName(name),
+            ...configFromName(name, dataQuery),
             ...config
         };
+}
+
+function toScalar(value) {
+    return Array.isArray(value) ? value.length : value;
 }
 
 function getOrder(host, data, sorting) {
@@ -81,8 +83,9 @@ function getOrder(host, data, sorting) {
     let order = 0;
 
     try {
-        for (let i = 1; i < data.length; i++) {
-            const sign = Math.sign(sorting(data[i - 1], data[i]));
+        for (let i = 1, prev = toScalar(data[0]); i < data.length; i++) {
+            const current = toScalar(data[i]);
+            const sign = Math.sign(sorting(prev, current));
 
             if (sign) {
                 if (order && sign !== order) {
@@ -91,6 +94,8 @@ function getOrder(host, data, sorting) {
 
                 order = sign;
             }
+
+            prev = current;
         }
     } catch (e) {
         host.log('error', 'Error on column order detection in table view', e);
@@ -101,11 +106,10 @@ function getOrder(host, data, sorting) {
 }
 
 export default function(host) {
-    const isScalarAssertion = 'is (null or not object or regexp)';
-    const isScalar = host.queryFn(isScalarAssertion);
+    const isNotObject = host.queryFn('is not object');
 
     host.view.define('table', function(el, config, data, context) {
-        let { cols, rowConfig, limit, scalarCol = false } = config;
+        let { cols, rowConfig, limit, valueCol = false } = config;
         let renderRowConfig;
 
         if (isSet(data)) {
@@ -148,7 +152,7 @@ export default function(host) {
         if (Array.isArray(cols)) {
             cols = cols.map((def, idx) =>
                 typeof def === 'string'
-                    ? configFromName(def)
+                    ? configFromName(def, host.pathToQuery([def]))
                     : {
                         header: 'col' + idx,
                         view: 'table-cell',
@@ -162,8 +166,8 @@ export default function(host) {
             cols = [];
 
             for (const value of data) {
-                if (isScalar(value)) {
-                    scalarCol = true;
+                if (isNotObject(value)) {
+                    valueCol = true;
                 } else {
                     for (const key of Object.keys(value)) {
                         colNames.add(key);
@@ -181,35 +185,35 @@ export default function(host) {
 
             for (const name of colNames) {
                 cols.push(
-                    hasOwnProperty.call(colsMap, name)
-                        ? resolveColConfig(name, colsMap[name])
-                        : configFromName(name)
+                    Object.hasOwn(colsMap, name)
+                        ? resolveColConfig(name, colsMap[name], host.pathToQuery([name]))
+                        : configFromName(name, host.pathToQuery([name]))
                 );
             }
         }
 
-        if (scalarCol) {
+        if (valueCol) {
             cols.unshift({
                 header: '[value]',
                 view: 'table-cell',
                 sorting: '$ ascN',
-                scalarAsStruct: true,
-                colSpan: `=${isScalarAssertion} ? #.cols.size() : 1`
+                colSpan: '=is not object ? #.cols.size() : 1',
+                content: '=is not object ? "struct"',
+                details: false
             });
         }
 
         cols = cols.filter(col =>
-            !hasOwnProperty.call(col, 'when') || host.queryBool(col.when, data, context)
+            !Object.hasOwn(col, 'colWhen') || host.queryBool(col.colWhen, data, context)
         );
 
         for (const col of cols) {
-            if (hasOwnProperty.call(col, 'whenData') && col.whenData !== undefined) {
-                const { whenData, content } = col;
-
-                col.whenData = undefined;
-                col.content = (data, context) =>
-                    host.queryBool(whenData, data, context) ? { content } : undefined;
-            }
+            const sorting = Object.hasOwn(col, 'sorting')
+                ? host.query(col.sorting, null, context)
+                : sortingFromConfig(col, host, context);
+            const defaultOrder = typeof sorting === 'function'
+                ? getOrder(host, data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
+                : 0;
 
             const headerCellEl = headEl.appendChild(createElement('th'));
             const headerCell = {
@@ -219,20 +223,12 @@ export default function(host) {
             headerCells.push(headerCell);
             headerCellEl.textContent = col.header;
 
-            const sorting = hasOwnProperty.call(col, 'sorting')
-                ? host.query(col.sorting, null, context)
-                : sortingFromConfig(col, host, context);
-            const defaultOrder = typeof sorting === 'function'
-                ? getOrder(host, data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
-                : 0;
-
             if (defaultOrder !== 0) {
-                col.sorting = sorting;
                 headerCell.sorting = sorting;
                 headerCellEl.classList.add('sortable');
                 headerCellEl.addEventListener('click', () => {
                     if (headerCellEl.classList.contains('asc')) {
-                        render(data.slice().sort((a, b) => -sorting(a, b)));
+                        render(data.slice().sort(sorting).reverse());
                     } else if (headerCellEl.classList.contains('desc') && !defaultOrder) {
                         render(data);
                     } else {
@@ -247,7 +243,7 @@ export default function(host) {
         moreButtonsEl.colSpan = cols.length;
         renderRowConfig = this.composeConfig({
             view: 'table-row',
-            cols: `=${isScalarAssertion} ? [#.cols[]] : #.cols`
+            cols: '=is not object ? [#.cols[]] : #.cols'
         }, rowConfig);
 
         return render(data);

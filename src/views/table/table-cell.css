@@ -9,7 +9,8 @@
 .view-table-cell .num-delim {
     padding-left: 2px;
 }
-.view-table-cell.complex {
+.view-table-cell.complex,
+.view-table-cell.keyword {
     color: #888;
 }
 
@@ -72,5 +73,7 @@
 .view-table-cell > .view-struct:hover {
     margin: -1px -8px -2px;
     padding: 2px 8px 1px;
+}
+.view-table-cell > .view-struct {
     background-color: transparent;
 }
