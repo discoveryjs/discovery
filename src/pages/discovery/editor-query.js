@@ -661,10 +661,6 @@ export default function(host, updateHostParams) {
 
                         scheduledCompute = null;
 
-                        // while (Date.now() - startTime < 500) {
-                        //     //
-                        // }
-
                         try {
                             computation.computed = host.query(computation.query, computation.data, computation.context);
                             computation.state = 'successful';

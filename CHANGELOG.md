@@ -1,3 +1,7 @@
+## next
+
+- Fixed unnecessary view rendering when returning to the discovery page
+
 ## 1.0.0-beta.85 (15-09-2024)
 
 - Changed `Widget#scheduleRender()` to schedule render for all subjects when no subject is specified (invoked without parameters)

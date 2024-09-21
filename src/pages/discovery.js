@@ -44,8 +44,20 @@ export default function(host) {
         };
     }
 
-    function acceptChanges(data) {
+    function actionQueryAcceptChanges(data) {
         return data === lastPerformData;
+    }
+
+    function actionQuerySubquery(query, rootData) {
+        if (actionQueryAcceptChanges(rootData)) {
+            get().queryEditor.createSubquery(query);
+        }
+    }
+
+    function actionQueryAppend(query, rootData) {
+        if (actionQueryAcceptChanges(rootData)) {
+            get().queryEditor.appendToQuery(query);
+        }
     }
 
     let refs = null;
@@ -57,17 +69,10 @@ export default function(host) {
         if (lastPageId !== host.pageId) {
             if (host.pageId === host.discoveryPageId) {
                 // enter discovery page
-                host.action.define('queryAcceptChanges', acceptChanges);
-                host.action.define('querySubquery', (query, rootData) => {
-                    if (acceptChanges(rootData)) {
-                        get().queryEditor.createSubquery(query);
-                    }
-                });
-                host.action.define('queryAppend', (query, rootData) => {
-                    if (acceptChanges(rootData)) {
-                        get().queryEditor.appendToQuery(query);
-                    }
-                });
+                // Note: Don't define action functions in place to ensure context comparison works
+                host.action.define('queryAcceptChanges', actionQueryAcceptChanges);
+                host.action.define('querySubquery', actionQuerySubquery);
+                host.action.define('queryAppend', actionQueryAppend);
             } else {
                 // leave discovery page
                 host.action.revoke('queryAcceptChanges');

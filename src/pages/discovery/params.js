@@ -75,15 +75,15 @@ function filterDecodedParams(params) {
     ));
 }
 
-function isEqual(a, b, skipKey) {
+function isEqual(a, b, ...skipKeys) {
     for (const key of Object.keys(a)) {
-        if (key !== skipKey && a[key] !== b[key]) {
+        if (a[key] !== b[key] && !skipKeys.includes(key)) {
             return false;
         }
     }
 
     for (const key of Object.keys(b)) {
-        if (key !== skipKey && a[key] !== b[key]) {
+        if (a[key] !== b[key] && !skipKeys.includes(key)) {
             return false;
         }
     }
@@ -97,8 +97,9 @@ export function contextWithoutEditorParams(newContext, currentContext = {}) {
         params: filterDecodedParams(newContext.params)
     };
 
-    if (!isEqual(currentContext, stableNewContext, 'params') ||
-        !isEqual(currentContext.params, stableNewContext.params)) {
+    if (!isEqual(currentContext, stableNewContext, 'params', 'actions') ||
+        !isEqual(currentContext.params, stableNewContext.params) ||
+        !isEqual(currentContext.actions, stableNewContext.actions)) {
         return stableNewContext;
     }
 
