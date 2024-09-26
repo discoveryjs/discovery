@@ -66,13 +66,11 @@ export default function(host: Widget) {
     let hideAllPopups: ReturnType<typeof setTimeout> | null = null;
     const setHideAllPopups = (event: Event) => {
         if (hideAllPopups === null) {
-            console.log('hide all');
             hideAllPopups = setTimeout(() => hideIfEventOutside(event), 0);
         }
     };
     const clearHideAllPopups = () => {
         if (hideAllPopups !== null) {
-            console.log('clear hide all');
             clearTimeout(hideAllPopups);
             hideAllPopups = null;
         }
