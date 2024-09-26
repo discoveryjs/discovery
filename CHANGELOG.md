@@ -1,5 +1,6 @@
 ## next
 
+- Fixed crashing the entire render tree on an exception in a view's `render` function; now, crashes are isolated to the affected view
 - Fixed unnecessary view rendering when returning to the discovery page
 - Fixed hiding a popup with `hideOnResize: true` when scrolling outside of the popup element
 - Added TypeScript typings for `Popup`

@@ -541,7 +541,8 @@ async function render(
                 : queryData;
 
             if (condition('whenData', viewRenderer, config, outputData, context, inputData, inputDataIndex, placeholder)) {
-                return renderDom(
+                // use await to catch possible errors in renderDom()
+                return await renderDom(
                     viewRenderer,
                     renderer,
                     placeholder,
