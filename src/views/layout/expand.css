@@ -11,19 +11,21 @@
     margin-top: 4px;
 }
 .view-expand > .header {
+    --discovery-view-expand-trigger-size: 22px;
+
     display: flex;
-    background: rgba(192, 192, 192, 0.175);
+    background-color: rgba(192, 192, 192, 0.175);
+    background-color: color-mix(in srgb, var(--discovery-background-color), rgb(192, 192, 192) 17.5%);
     font-size: 12px;
     cursor: pointer;
     margin-left: calc(var(--discovery-view-expand-trigger-size) + 1px);
-
-    --discovery-view-expand-trigger-size: 22px;
 }
 .view-expand.trigger-outside > .header {
     margin-left: 0;
 }
 .view-expand > .header:hover {
-    background: rgba(165, 165, 165, 0.3);
+    background-color: rgba(165, 165, 165, 0.3);
+    background-color: color-mix(in srgb, var(--discovery-background-color), rgb(165, 165, 165) 30%);
 }
 .view-expand > .header > .header-content {
     flex: 1;

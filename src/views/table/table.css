@@ -15,7 +15,7 @@
     font-weight: normal;
     text-align: left;
     background: #8d8d8d26 no-repeat right 1px center;
-    background-color: color-mix(in srgb, var(--discovery-background-color), 15% #8d8d8d);
+    background-color: color-mix(in srgb, var(--discovery-background-color), #8d8d8d 15%);
     background-size: 16px;
     background-clip: padding-box;
     border: solid var(--discovery-background-color);
@@ -41,6 +41,7 @@
 }
 .view-table > thead th.sortable:hover {
     background-color: rgba(141, 141, 141, 0.3);
+    background-color: color-mix(in srgb, var(--discovery-background-color), rgba(141, 141, 141) 30%);
 }
 
 .view-table-cell-details-row > .view-cell-details-content > .view-table:first-child {
