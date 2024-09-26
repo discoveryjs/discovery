@@ -1,6 +1,8 @@
 ## next
 
 - Fixed unnecessary view rendering when returning to the discovery page
+- Fixed hiding a popup with `hideOnResize: true` when scrolling outside of the popup element
+- Added TypeScript typings for `Popup`
 
 ## 1.0.0-beta.85 (15-09-2024)
 

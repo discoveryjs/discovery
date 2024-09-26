@@ -64,7 +64,7 @@ export function getPageOffset(element: HTMLElement | null = null) {
 
 export function getBoundingRect(
     element: HTMLElement | Window,
-    relElement: HTMLElement | null
+    relElement: HTMLElement | null = null
 ) {
     const offset = getPageOffset(relElement);
     let top = 0;

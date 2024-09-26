@@ -1,7 +1,8 @@
 /* eslint-env browser */
 
-import Dict from './dict.js';
 import type { Widget } from '../main/widget.js';
+import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
+import Dict from './dict.js';
 import { Preset } from './preset.js';
 
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
@@ -81,20 +82,20 @@ interface ErrorData {
     reason: string;
 }
 
-type TooltipConfig = {
-    showDelay?: boolean | number;
-    className?: any;
-    position?: 'pointer' | 'trigger';
-    positionMode?: 'safe' | 'natural';
-    pointerOffsetX?: number;
-    pointerOffsetY?: number;
-    content?: RawViewConfig;
-}
+type TooltipConfig = Partial<{
+    showDelay: boolean | number;
+    className: string;
+    position: PopupOptions['position'];
+    positionMode: PopupOptions['positionMode'];
+    pointerOffsetX: number;
+    pointerOffsetY: number;
+    content: RawViewConfig;
+}>;
 type TooltipInfo = {
     config: TooltipConfig | TooltipConfig['content'];
     data: any;
     context: any;
-}
+};
 
 const STUB_OBJECT = Object.freeze({});
 const STUB_CONFIG: SingleViewConfig = Object.freeze({ view: '' });
@@ -395,9 +396,9 @@ function createTooltip(host: Widget) {
         showDelay(triggerEl: HTMLElement) {
             const { config } = tooltipEls.get(triggerEl) || {};
 
-            if (isPopupConfig(config)) {
-                return config.showDelay;
-            }
+            return isPopupConfig(config)
+                ? config.showDelay || false
+                : false;
         },
         render(el: HTMLElement, triggerEl: HTMLElement) {
             const { config, data, context } = tooltipEls.get(triggerEl) || {};
@@ -559,7 +560,6 @@ async function render(
     }
 }
 
-type PopupRender = ((el: HTMLElement) => any);
 type PopupShowArgs = [triggerEl: HTMLElement, render?: PopupRender, showImmediately?: boolean];
 export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup instead
     el: HTMLElement;
@@ -568,11 +568,11 @@ export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup inste
     pointerOffsetX: TooltipConfig['pointerOffsetX'];
     pointerOffsetY: TooltipConfig['pointerOffsetY'];
     // use method definition aside, since stub implementation doesn't use config parameter
-    constructor(config: any);
+    constructor(config: Partial<PopupOptions>);
     constructor() {}
 
-    toggle(...args: PopupShowArgs): Promise<void>;
-    async toggle() {}
+    toggle(...args: PopupShowArgs): void;
+    toggle() {}
     show(...args: PopupShowArgs): Promise<void>;
     async show() {}
     hide() {}

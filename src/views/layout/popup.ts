@@ -2,56 +2,38 @@
 import { getOffsetParent, getBoundingRect, getViewportRect } from '../../core/utils/layout.js';
 import { passiveCaptureOptions } from '../../core/utils/dom.js';
 import { pointerXY } from '../../core/utils/pointer.js';
+import { Widget } from '../../lib.js';
 
-const openedPopups = [];
-const delayedToShowPopups = new Set();
-const hoverPinModes = [false, 'popup-hover', 'trigger-click'];
-const defaultShowDelay = 300;
-const defaultOptions = {
-    position: 'trigger',
-    positionMode: 'safe', // 'safe' – choose side with more space, 'natural' – choose right/bottom when enough space
-    pointerOffsetX: 3,
-    pointerOffsetY: 3,
-    showDelay: false, // false = 0, true = defaultShowDelay
-    hoverTriggers: null, // null or string (a list of css selectors)
-    hoverPin: false, // see hoverPinModes
-    hideIfEventOutside: true,
-    hideOnResize: true,
-    render: undefined
+export type PopupTriggerEl = HTMLElement | null | undefined;
+export type PopupRender = (el: HTMLElement, triggerEl: PopupTriggerEl, hide: () => void) => void;
+export type PopupOptions = {
+    position: 'trigger' | 'pointer';
+    positionMode: 'safe' | 'natural'; // 'safe' – choose side with more space, 'natural' – choose right/bottom when enough space
+    pointerOffsetX: number;
+    pointerOffsetY: number;
+    showDelay: boolean | number | ((triggerEl: PopupTriggerEl) => boolean | number); // false = 0, true = defaultShowDelay
+    hoverTriggers: string | null; // string is a list of css selectors
+    hoverPin: false | 'popup-hover' | 'trigger-click';
+    hideIfEventOutside: boolean;
+    hideOnResize: boolean;
+    render: PopupRender;
+    className: string;
 };
 
-function findTargetRelatedPopup(popup, target) {
-    if (popup.el.contains(target)) {
-        return popup;
-    }
+const hoverPinModes = [false, 'popup-hover', 'trigger-click'] as const;
+const defaultShowDelay = 300;
 
-    return popup.relatedPopups.reduce(
-        (res, related) => res || findTargetRelatedPopup(related, target),
-        null
-    );
-}
-
-function isElementNullOrInDocument(element) {
+function isElementNullOrInDocument(element: Element | null) {
     return element ? element.getRootNode({ composed: true }) === document : true;
 }
 
-function hideIfEventOutside(event) {
-    openedPopups.slice().forEach(popup => popup.hideIfEventOutside(event));
-}
-function hideOnTriggerHasLeftDocument() {
-    openedPopups.slice().forEach(popup => popup.hideOnTriggerHasLeftDocument());
-}
-function hideOnResize(event) {
-    openedPopups.slice().forEach(popup => popup.hideOnResize(event));
-}
-
-function showDelayToMs(value, triggerEl) {
+function showDelayToMs(value: PopupOptions['showDelay'], triggerEl: PopupTriggerEl) {
     if (typeof value === 'function') {
         value = value(triggerEl);
     }
 
     if (typeof value === 'number') {
-        return isFinite(value) ? value : 0;
+        return ensureNumber(value);
     }
 
     if (typeof value === 'boolean') {
@@ -60,35 +42,43 @@ function showDelayToMs(value, triggerEl) {
 
     return 0;
 }
-function stopDelayedShow(popup) {
-    clearTimeout(popup.showDelayTimer);
-    popup.showDelayTimer = null;
-    popup.showDelayArgs = null;
-    delayedToShowPopups.delete(popup);
-}
 
-function startDelayedShow(popup, triggerEl, render) {
-    clearTimeout(popup.showDelayTimer);
-    popup.showDelayTimer = setTimeout(() => popup.show(triggerEl, render, true), showDelayToMs(popup.showDelay, triggerEl));
-    popup.showDelayArgs = [triggerEl, render];
-    delayedToShowPopups.add(popup);
-}
-
-function appendIfNeeded(parent, child) {
+function appendIfNeeded(parent: HTMLElement, child: HTMLElement) {
     if (parent.lastChild !== child) {
         parent.appendChild(child);
     }
 }
 
-function ensureNumber(value, fallback = 0) {
-    return Number.isFinite(value) ? value : fallback;
+function ensureNumber(value: unknown, fallback = 0): number {
+    return Number.isFinite(value) ? value as number : fallback;
 }
 
-export default function(host) {
-    const hoverTriggerInstances = [];
+function isHoverPinModeValue(value: unknown): value is PopupOptions['hoverPin'] {
+    return hoverPinModes.includes(value as PopupOptions['hoverPin']);
+}
+
+export default function(host: Widget) {
+    const openedPopups: Popup[] = [];
+    const delayedToShowPopups = new Set<Popup>();
+    const hoverTriggerInstances: Popup[] = [];
     const inspectorLockedInstances = new Set();
-    let globalListeners = null;
-    let hideAllPopups = null;
+
+    let hideAllPopups: ReturnType<typeof setTimeout> | null = null;
+    const setHideAllPopups = (event: Event) => {
+        if (hideAllPopups === null) {
+            console.log('hide all');
+            hideAllPopups = setTimeout(() => hideIfEventOutside(event), 0);
+        }
+    };
+    const clearHideAllPopups = () => {
+        if (hideAllPopups !== null) {
+            console.log('clear hide all');
+            clearTimeout(hideAllPopups);
+            hideAllPopups = null;
+        }
+    };
+
+    let globalListeners: (() => void)[] | null = null;
     const addHostElHoverListeners = () => {
         if (globalListeners !== null) {
             return;
@@ -104,10 +94,14 @@ export default function(host) {
                     const targetRelatedPopup = findTargetRelatedPopup(instance, target);
                     const triggerEl = targetRelatedPopup
                         ? targetRelatedPopup.el
-                        : target.closest(instance.hoverTriggers);
+                        // cast to string since hoverTriggerInstances contains only popup's with hoverTriggers
+                        : (target as HTMLElement).closest(instance.hoverTriggers as string);
 
                     if (triggerEl) {
-                        instance.hideTimer = clearTimeout(instance.hideTimer);
+                        if (instance.hideTimer !== null) {
+                            clearTimeout(instance.hideTimer);
+                            instance.hideTimer = null;
+                        }
 
                         if (triggerEl !== instance.lastHoverTriggerEl) {
                             // change hover pinned only when trigger is not a popup in pinned mode
@@ -136,27 +130,21 @@ export default function(host) {
                 }
             }, passiveCaptureOptions),
 
-            host.addGlobalEventListener('scroll', (event) => {
-                hideAllPopups = setTimeout(() => hideIfEventOutside(event), 0);
-            }, true),
-
+            host.addGlobalEventListener('scroll', setHideAllPopups, true),
             host.addHostElEventListener('scroll', (event) => {
-                clearTimeout(hideAllPopups);
+                clearHideAllPopups();
                 hideIfEventOutside(event);
-            }),
-
-            host.addGlobalEventListener('click', (event) => {
-                hideAllPopups = setTimeout(() => hideIfEventOutside(event), 0);
             }, true),
 
+            host.addGlobalEventListener('click', setHideAllPopups, true),
             host.addHostElEventListener('click', (event) => {
-                clearTimeout(hideAllPopups);
+                clearHideAllPopups();
                 hideIfEventOutside(event);
                 setTimeout(hideOnTriggerHasLeftDocument, 50);
 
                 for (const instance of hoverTriggerInstances) {
                     if (instance.hoverPin === 'trigger-click') {
-                        if (instance.lastHoverTriggerEl && instance.lastTriggerEl.contains(event.target)) {
+                        if (instance.lastHoverTriggerEl && instance.lastTriggerEl?.contains(event.target as Node)) {
                             instance.lastHoverTriggerEl = null;
                             instance.hoverPinned = true;
                             instance.el.classList.add('pinned');
@@ -175,8 +163,11 @@ export default function(host) {
                 popup.updatePosition();
             }
         }
+
         for (const popup of delayedToShowPopups) {
-            startDelayedShow(popup, ...popup.showDelayArgs);
+            const { showDelayArgs } = popup;
+
+            startDelayedShow(popup, showDelayArgs?.[0], showDelayArgs?.[1]);
         }
     });
 
@@ -186,19 +177,89 @@ export default function(host) {
             : inspectorLockedInstances.clear()
     );
 
-    host.view.Popup = class Popup {
-        constructor(options) {
-            options = {
-                ...defaultOptions,
-                ...options
-            };
+    function hideIfEventOutside(event: Event) {
+        openedPopups.slice().forEach(popup => popup.hideIfEventOutside(event));
+    }
+    function hideOnTriggerHasLeftDocument() {
+        openedPopups.slice().forEach(popup => popup.hideOnTriggerHasLeftDocument());
+    }
+    function hideOnResize() {
+        openedPopups.slice().forEach(popup => popup.hideOnResize());
+    }
+
+    function findTargetRelatedPopup(popup, target) {
+        if (popup.el.contains(target)) {
+            return popup;
+        }
+
+        return popup.relatedPopups.find((popup) => findTargetRelatedPopup(popup, target)) || null;
+    }
+
+    function stopDelayedShow(popup: Popup) {
+        if (popup.showDelayTimer !== null) {
+            clearTimeout(popup.showDelayTimer);
+        }
+
+        popup.showDelayTimer = null;
+        popup.showDelayArgs = null;
+        delayedToShowPopups.delete(popup);
+    }
+
+    function startDelayedShow(popup: Popup, triggerEl: PopupTriggerEl, render: PopupRender | undefined) {
+        if (popup.showDelayTimer !== null) {
+            clearTimeout(popup.showDelayTimer);
+        }
+
+        popup.showDelayTimer = setTimeout(() => popup.show(triggerEl, render, true), showDelayToMs(popup.showDelay, triggerEl));
+        popup.showDelayArgs = [triggerEl, render];
+        delayedToShowPopups.add(popup);
+    }
+
+    class Popup {
+        el: HTMLElement;
+
+        showDelayTimer: ReturnType<typeof setTimeout> | null;
+        showDelayArgs: [triggerEl: PopupTriggerEl, render: PopupRender | undefined] | null;
+        showDelay: PopupOptions['showDelay'];
+
+        lastTriggerEl: HTMLElement | null;
+        lastHoverTriggerEl: HTMLElement | null;
+        render: PopupOptions['render'] | undefined;
+        position: PopupOptions['position'];
+        positionMode: PopupOptions['positionMode'];
+        pointerOffsetX: PopupOptions['pointerOffsetX'];
+        pointerOffsetY: PopupOptions['pointerOffsetY'];
+        hoverTriggers: PopupOptions['hoverTriggers'];
+        hoverPin: PopupOptions['hoverPin'];
+
+        hideIfEventOutsideDisabled: boolean;
+        hideOnResizeDisabled: boolean;
+        hideTimer: ReturnType<typeof setTimeout> | null;
+        hoverPinned: boolean;
+        frozen: boolean;
+        lastRenderMarker: symbol | null;
+
+        constructor(options?: Partial<PopupOptions>) {
+            const {
+                render,
+                showDelay = false,
+                position = 'trigger',
+                positionMode = 'safe',
+                pointerOffsetX,
+                pointerOffsetY,
+                hoverTriggers,
+                hoverPin,
+                hideIfEventOutside = true,
+                hideOnResize = true,
+                className
+            } = options || {};
 
             this.el = document.createElement('div');
             this.el.classList.add('discovery-view-popup');
 
             this.showDelayTimer = null;
             this.showDelayArgs = null;
-            this.showDelay = options.showDelay;
+            this.showDelay = showDelay;
 
             this.hideTimer = null;
             this.hide = this.hide.bind(this);
@@ -207,23 +268,21 @@ export default function(host) {
             this.lastHoverTriggerEl = null;
             this.hoverPinned = false;
             this.frozen = false;
-            this.render = options.render;
-            this.position = options.position;
-            this.positionMode = options.positionMode;
-            this.pointerOffsetX = ensureNumber(options.pointerOffsetX);
-            this.pointerOffsetY = ensureNumber(options.pointerOffsetY);
-            this.hoverTriggers = options.hoverTriggers;
-            this.hoverPin = options.hoverPin;
-            this.hideIfEventOutsideDisabled = !options.hideIfEventOutside;
-            this.hideOnResizeDisabled = !options.hideOnResize;
 
-            if (options.className) {
-                this.el.classList.add(options.className);
-            }
+            this.render = render;
+            this.lastRenderMarker = null;
 
-            if (!hoverPinModes.includes(options.hoverPin)) {
-                host.log('warn', `Bad value for \`Popup#options.hoverPin\` (should be ${hoverPinModes.join(', ')}):`, options.hoverPin);
-                this.hoverPin = false;
+            this.position = position;
+            this.positionMode = positionMode;
+            this.pointerOffsetX = ensureNumber(pointerOffsetX, 3);
+            this.pointerOffsetY = ensureNumber(pointerOffsetY, 3);
+            this.hoverTriggers = hoverTriggers || null;
+            this.hoverPin = isHoverPinModeValue(hoverPin) ? hoverPin : false;
+            this.hideIfEventOutsideDisabled = !hideIfEventOutside;
+            this.hideOnResizeDisabled = !hideOnResize;
+
+            if (className) {
+                this.el.classList.add(className);
             }
 
             if (this.hoverTriggers) {
@@ -243,7 +302,7 @@ export default function(host) {
             return openedPopups.includes(this);
         }
 
-        toggle(...args) {
+        toggle(...args: Parameters<typeof this.show>) {
             if (this.visible) {
                 this.hide();
             } else {
@@ -251,7 +310,7 @@ export default function(host) {
             }
         }
 
-        async show(triggerEl, render = this.render, showImmediately = false) {
+        async show(triggerEl?: PopupTriggerEl, render = this.render, showImmediately = false) {
             if (!this.visible && !showImmediately && showDelayToMs(this.showDelay, triggerEl) > 0) {
                 startDelayedShow(this, triggerEl, render);
                 return;
@@ -263,7 +322,11 @@ export default function(host) {
 
             const hostEl = host.dom.container;
 
-            this.hideTimer = clearTimeout(this.hideTimer);
+            if (this.hideTimer !== null) {
+                clearTimeout(this.hideTimer);
+                this.hideTimer = null;
+            }
+
             this.relatedPopups.forEach(related => related.hide());
             this.el.classList.toggle('inspect', host.inspectMode.value);
 
@@ -320,24 +383,29 @@ export default function(host) {
         }
 
         updatePosition() {
-            const pointerPosition = this.position === 'pointer';
+            if (!this.visible) {
+                return;
+            }
 
-            if (!this.visible || (pointerPosition ? this.frozen : !this.lastTriggerEl)) {
+            const pointerPosition = this.position === 'pointer';
+            const boxEl = pointerPosition ? null : this.lastTriggerEl;
+
+            if (pointerPosition ? this.frozen : !boxEl) {
                 return;
             }
 
             const hostEl = host.dom.container;
-            const offsetParent = getOffsetParent(hostEl.firstChild);
+            const offsetParent = getOffsetParent(hostEl.firstChild as HTMLElement);
             const viewport = getViewportRect(window, offsetParent);
             const { x: pointerX, y: pointerY } = pointerXY.value;
             const { pointerOffsetX, pointerOffsetY } = this;
-            const box = !pointerPosition
-                ? getBoundingRect(this.lastTriggerEl, hostEl)
+            const box = boxEl
+                ? getBoundingRect(boxEl, hostEl)
                 : {
-                    left: parseInt(pointerX) - pointerOffsetX,
-                    right: parseInt(pointerX) + pointerOffsetX,
-                    top: parseInt(pointerY) - pointerOffsetY,
-                    bottom: parseInt(pointerY) + pointerOffsetY
+                    left: Math.round(pointerX) - pointerOffsetX,
+                    right: Math.round(pointerX) + pointerOffsetX,
+                    top: Math.round(pointerY) - pointerOffsetY,
+                    bottom: Math.round(pointerY) + pointerOffsetY
                 };
             const boxLeft = pointerPosition ? box.left : box.right;
             const boxRight = pointerPosition ? box.right : box.left;
@@ -401,8 +469,13 @@ export default function(host) {
         }
 
         hide() {
-            this.hideTimer = clearTimeout(this.hideTimer);
             this.lastRenderMarker = null;
+
+            if (this.hideTimer !== null) {
+                clearTimeout(this.hideTimer);
+                this.hideTimer = null;
+            }
+
             stopDelayedShow(this);
 
             if (this.visible && !inspectorLockedInstances.has(this)) {
@@ -471,9 +544,11 @@ export default function(host) {
 
             this.hide();
 
-            this.el = null;
+            this.el = null as unknown as HTMLElement;
             this.lastTriggerEl = null;
             this.lastHoverTriggerEl = null;
         }
     };
+
+    host.view.Popup = Popup;
 };
