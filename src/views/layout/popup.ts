@@ -84,12 +84,8 @@ export default function(host: Widget) {
 
         globalListeners = [
             host.addHostElEventListener('mouseenter', ({ target }) => {
-                if (target === document) {
-                    return;
-                }
-
                 for (const instance of hoverTriggerInstances) {
-                    const targetRelatedPopup = findTargetRelatedPopup(instance, target);
+                    const targetRelatedPopup = findTargetRelatedPopup(instance, target as Node);
                     const triggerEl = targetRelatedPopup
                         ? targetRelatedPopup.el
                         // cast to string since hoverTriggerInstances contains only popup's with hoverTriggers
@@ -128,11 +124,11 @@ export default function(host: Widget) {
                 }
             }, passiveCaptureOptions),
 
-            host.addGlobalEventListener('scroll', setHideAllPopups, true),
+            host.addGlobalEventListener('scroll', setHideAllPopups, passiveCaptureOptions),
             host.addHostElEventListener('scroll', (event) => {
                 clearHideAllPopups();
                 hideIfEventOutside(event);
-            }, true),
+            }, passiveCaptureOptions),
 
             host.addGlobalEventListener('click', setHideAllPopups, true),
             host.addHostElEventListener('click', (event) => {
@@ -185,7 +181,7 @@ export default function(host: Widget) {
         openedPopups.slice().forEach(popup => popup.hideOnResize());
     }
 
-    function findTargetRelatedPopup(popup, target) {
+    function findTargetRelatedPopup(popup: Popup, target: Node) {
         if (popup.el.contains(target)) {
             return popup;
         }
@@ -496,19 +492,19 @@ export default function(host: Widget) {
             }
         }
 
-        hideIfEventOutside({ target }) {
+        hideIfEventOutside({ target }: Event) {
             // the feature is disabled or inspect mode is enabled (i.e. inspecting views)
             if (this.hideIfEventOutsideDisabled || inspectorLockedInstances.has(this)) {
                 return;
             }
 
             // event inside a trigger element
-            if (this.lastTriggerEl && this.lastTriggerEl.contains(target)) {
+            if (this.lastTriggerEl && this.lastTriggerEl.contains(target as Node)) {
                 return;
             }
 
             // event inside a popup or its related popups
-            if (findTargetRelatedPopup(this, target)) {
+            if (findTargetRelatedPopup(this, target as Node)) {
                 return;
             }
 
