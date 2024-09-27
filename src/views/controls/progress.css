@@ -32,3 +32,15 @@
     /* transition: transform .2s; */ /* since Chrome (tested on 85) freezes transition during js loop */
     background-color: var(--color, #1f7ec5);
 }
+
+.view-progress > .content.main-secondary {
+    display: flex;
+    white-space: nowrap;
+    gap: 1ex;
+}
+.view-progress > .content > .secondary {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #888;
+}

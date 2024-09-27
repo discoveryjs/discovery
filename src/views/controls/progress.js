@@ -5,13 +5,16 @@ import usage from './progress.usage.js';
 export default function(host) {
     host.view.define('progress', function(el, config, data, context) {
         const { content, progress, color } = config;
-        const progressEl = el.appendChild(createElement('div', {
+
+        el.append(createElement('div', {
             class: 'progress',
             style: `--progress: ${Math.max(0, Math.min(1, Number(progress)))};--color: ${color || 'unset'};`
         }));
 
         if (content) {
-            const contentEl = el.insertBefore(createElement('div', { class: 'content' }), progressEl);
+            const contentEl = createElement('div', 'content');
+
+            el.prepend(contentEl);
 
             return host.view.render(contentEl, content, data, context);
         }

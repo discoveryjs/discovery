@@ -137,6 +137,8 @@ export default class Progressbar extends Observer<ProgressbarState> {
     appearanceDelay: number;
     domReady: Promise<any>;
     el: HTMLElement;
+    #titleEl: HTMLElement;
+    #stepEl: HTMLElement;
 
     constructor({ onTiming, onFinish, delay, domReady }: ProgressbarOptions) {
         super({ stage: 'inited', progress: null, error: null });
@@ -152,7 +154,10 @@ export default class Progressbar extends Observer<ProgressbarState> {
         this.domReady = domReady || Promise.resolve();
 
         this.el = createElement('div', 'view-progress init', [
-            createElement('div', 'title'),
+            createElement('div', 'content main-secondary', [
+                this.#titleEl = createElement('span', 'main'),
+                this.#stepEl = createElement('span', 'secondary')
+            ]),
             createElement('div', 'progress')
         ]);
     }
@@ -171,6 +176,16 @@ export default class Progressbar extends Observer<ProgressbarState> {
 
         this.timings.push(entry);
         this.onTiming(entry);
+    }
+
+    async #awaitRenderIfNeeded(enforce = false, now = performance.now()) {
+        const timeSinceAwaitRepaint = now - (this.awaitRepaint || 0);
+        const timeSinceLastStageStart = now - (this.lastStageStart || 0);
+
+        if (enforce || (timeSinceAwaitRepaint > 65 && timeSinceLastStageStart > 200)) {
+            await letRepaintIfNeeded();
+            this.awaitRepaint = performance.now();
+        }
     }
 
     async setState(state: Partial<ProgressbarState>) {
@@ -224,18 +239,20 @@ export default class Progressbar extends Observer<ProgressbarState> {
         }
 
         const { title, progressValue } = decodeStageProgress(stage, progress);
-        const titleEl = this.el.querySelector('.title');
 
         this.el.style.setProperty('--progress', String(progressValue));
 
-        if (titleEl !== null) {
-            titleEl.textContent = title;
-        }
+        this.#titleEl.textContent = title;
+        this.#stepEl.textContent = '';
 
-        if (stageChanged || (now - (this.awaitRepaint || 0) > 65 && now - (this.lastStageStart || 0) > 200)) {
-            await letRepaintIfNeeded();
-            this.awaitRepaint = performance.now();
-        }
+        return this.#awaitRenderIfNeeded(stageChanged, now);
+    }
+
+    async setStateStep(name: string) {
+        this.#titleEl.textContent = (this.#titleEl.textContent || '').replace(/(\.{3}|:)?$/, ':');
+        this.#stepEl.textContent = name;
+
+        return this.#awaitRenderIfNeeded(true);
     }
 
     finish(error?: Error) {

@@ -1,14 +1,15 @@
-import jora from 'jora';
-import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetupMethods } from './model.js';
+import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
+import jora from 'jora';
 
-export function createExtensionApi(host: Model): PrepareContextApiWrapper {
+export function createExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
     return {
         before() {
             host.objectMarkers.reset();
         },
         contextApi: {
             markers: host.objectMarkers.markerMap(),
+            setStageTitle: options?.setPrepareStepTitle || (() => Promise.resolve()),
             rejectData(message: string, renderContent: any) {
                 throw Object.assign(new Error(message), { renderContent });
             }

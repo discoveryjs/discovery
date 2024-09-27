@@ -1,13 +1,14 @@
-import jora from 'jora';
-import ObjectMarker, { ObjectMarkerConfig } from '../core/object-marker.js';
-import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams } from './model.js';
+import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions } from './model.js';
 import type { ValueAnnotationContext, Widget } from './widget.js';
+import ObjectMarker, { ObjectMarkerConfig } from '../core/object-marker.js';
+import jora from 'jora';
 
-export function createLegacyExtensionApi(host: Model): PrepareContextApiWrapper {
+export function createLegacyExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
     const objectMarkers = new ObjectMarker();
     const linkResolvers: Model['linkResolvers'] = [];
     const annotations: Widget['annotations'] = [];
     const contextApi: LegacyPrepareContextApi = {
+        setStageTitle: options?.setPrepareStepTitle || (() => Promise.resolve()),
         rejectData(message: string, renderContent: any) {
             throw Object.assign(new Error(message), { renderContent });
         },

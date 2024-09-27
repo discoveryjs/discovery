@@ -1,5 +1,14 @@
 ## next
 
+- Added `setStageTitle` method to the prepare context API to display additional text on the progress bar:
+```js
+export function async prepare(input, { setStageTitle }) {
+    await setStageTitle('phase 1');
+    // ...
+    await setStageTitle('phase 2');
+    // ...
+}
+```
 - Fixed crashing the entire render tree on an exception in a view's `render` function; now, crashes are isolated to the affected view
 - Fixed unnecessary view rendering when returning to the discovery page
 - Fixed hiding a popup with `hideOnResize: true` when scrolling outside of the popup element
