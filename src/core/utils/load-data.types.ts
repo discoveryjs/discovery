@@ -15,6 +15,7 @@ export type Encoding =
 export type LoadDataResult = {
     state: Observer<LoadDataState>;
     dataset: Promise<Dataset>;
+    title?: string;
 }
 export type LoadDataState =
     | {

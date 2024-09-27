@@ -1,13 +1,15 @@
 /* eslint-env browser */
 
-import { SetDataProgressOptions, Widget, WidgetEvents, WidgetOptions } from './widget.js';
+import type { SetDataProgressOptions, WidgetEvents, WidgetOptions } from './widget.js';
+import type { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
+import { Widget } from './widget.js';
+import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
+import Progressbar, { ProgressbarOptions } from '../core/utils/progressbar.js';
 import upload, { UploadOptions } from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
-import { createElement } from '../core/utils/dom.js';
-import Progressbar, { ProgressbarOptions, loadStages } from '../core/utils/progressbar.js';
 import * as navButtons from '../nav/buttons.js';
-import { syncLoaderWithProgressbar, LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
+import { createElement } from '../core/utils/dom.js';
 
 const coalesceOption = (value: any, fallback: any) => value !== undefined ? value : fallback;
 
@@ -177,8 +179,7 @@ export class App<
     }
 
     async trackLoadDataProgress(loadDataResult: LoadDataResult) {
-        const currentStage = loadDataResult.state.value.stage;
-        const progressbar = this.progressbar({ title: loadStages[currentStage].title });
+        const progressbar = this.progressbar({ title: loadDataResult.title });
 
         this.setLoadingState('init', { progressbar });
         this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
