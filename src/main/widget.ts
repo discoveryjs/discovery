@@ -245,7 +245,7 @@ export class Widget<
         await progressbar?.setState({ stage: 'prepare' });
         await this.setData(data, context, {
             dataset,
-            setPrepareStepTitle: progressbar?.setStateStep.bind(progressbar),
+            setPrepareWorkTitle: progressbar?.setStateStep.bind(progressbar),
             render: false
         });
 

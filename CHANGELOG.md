@@ -1,11 +1,11 @@
 ## next
 
-- Added `setStageTitle` method to the prepare context API to display additional text on the progress bar:
+- Added `setWorkTitle` method to the prepare context API to display additional text on the progress bar:
 ```js
-export function async prepare(input, { setStageTitle }) {
-    await setStageTitle('phase 1');
+export function async prepare(input, { setWorkTitle: (title: string) => Promise<void> }) {
+    await setWorkTitle('phase 1');
     // ...
-    await setStageTitle('phase 2');
+    await setWorkTitle('phase 2');
     // ...
 }
 ```

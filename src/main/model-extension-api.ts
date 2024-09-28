@@ -9,7 +9,7 @@ export function createExtensionApi(host: Model, options?: SetDataOptions): Prepa
         },
         contextApi: {
             markers: host.objectMarkers.markerMap(),
-            setStageTitle: options?.setPrepareStepTitle || (() => Promise.resolve()),
+            setWorkTitle: options?.setPrepareWorkTitle || (() => Promise.resolve()),
             rejectData(message: string, renderContent: any) {
                 throw Object.assign(new Error(message), { renderContent });
             }

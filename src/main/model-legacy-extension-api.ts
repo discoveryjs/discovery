@@ -8,7 +8,7 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
     const linkResolvers: Model['linkResolvers'] = [];
     const annotations: Widget['annotations'] = [];
     const contextApi: LegacyPrepareContextApi = {
-        setStageTitle: options?.setPrepareStepTitle || (() => Promise.resolve()),
+        setWorkTitle: options?.setPrepareWorkTitle || (() => Promise.resolve()),
         rejectData(message: string, renderContent: any) {
             throw Object.assign(new Error(message), { renderContent });
         },

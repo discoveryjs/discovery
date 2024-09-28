@@ -45,7 +45,7 @@ export type ModelDataset = Dataset | RawDataDataset;
 export type GetDecodeParams = (pageId: string) => (entries: [string, any][]) => object;
 
 export interface SetDataOptions {
-    setPrepareStepTitle?: (name: string) => Promise<void>;
+    setPrepareWorkTitle?: (title: string) => Promise<void>;
     dataset?: Dataset;
 }
 
@@ -65,12 +65,12 @@ export type PrepareContextApiWrapper = {
     contextApi: PrepareContextApi | LegacyPrepareContextApi;
 };
 export interface PrepareContextApi {
-    setStageTitle: (name: string) => Promise<void>;
+    setWorkTitle: (title: string) => Promise<void>;
     rejectData: (message: string, extra: any) => void;
     markers: Record<string, (value: unknown) => void>;
 }
 export interface LegacyPrepareContextApi {
-    setStageTitle: (name: string) => Promise<void>;
+    setWorkTitle: (title: string) => Promise<void>;
     rejectData: (message: string, extra: any) => void;
     defineObjectMarker<T extends object>(name: string, options: ObjectMarkerConfig<T>): ObjectMarker<T>['mark'];
     lookupObjectMarker(value: any, type?: string): ObjectMarkerDescriptor<object> | null;
