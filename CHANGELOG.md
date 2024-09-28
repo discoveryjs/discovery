@@ -1,8 +1,8 @@
-## next
+## 1.0.0-beta.86 (27-09-2024)
 
 - Added `setWorkTitle` method to the prepare context API to display additional text on the progress bar:
 ```js
-export function async prepare(input, { setWorkTitle: (title: string) => Promise<void> }) {
+export function async prepare(input, { setWorkTitle }) {
     await setWorkTitle('phase 1');
     // ...
     await setWorkTitle('phase 2');
