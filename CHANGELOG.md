@@ -9,13 +9,19 @@ export function async prepare(input, { setWorkTitle: (title: string) => Promise<
     // ...
 }
 ```
-- Refactor `Progressbar`
+- Refactor `Progressbar`:
     - Added `setStateStep(step)` method to set a secondary text for the stage
     - Changed `setState()` method to take second optional parameter `step`
     - Modified logic for await repainting
     - Added `awaitRepaintPenaltyTime` property to indicate time spending on awaiting for repaint
     - Changed `onFinish` callback to add `awaitRepaintPenaltyTime` to `timings` array
+    - Added `decoding` stage
+    - Renamed `receive` stage into `receiving`
     - Removed `lastStage` as it redundant, use `value.stage` instead
+- Changes in data loading:
+    - Added `decoding` stage for load state
+    - Renamed `receive` stage into `receiving` for load state
+    - Added `loadingTime` and `decodingTime` into dataset timings
 - Fixed crashing the entire render tree on an exception in a view's `render` function; now, crashes are isolated to the affected view
 - Fixed unnecessary view rendering when returning to the discovery page
 - Fixed hiding a popup with `hideOnResize: true` when scrolling outside of the popup element

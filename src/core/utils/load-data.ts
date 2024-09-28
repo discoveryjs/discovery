@@ -139,7 +139,11 @@ export async function dataFromStream(
     stream: ReadableStream<Uint8Array>,
     extraEncodings: Encoding[] | undefined,
     totalSize: number | undefined,
-    setProgress: (state: LoadDataStateProgress) => Promise<boolean>
+    setStageProgress: (
+        stage: 'receiving' | 'decoding',
+        progress?: LoadDataStateProgress,
+        step?: string
+    ) => Promise<boolean>
 ) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const reader = stream.getReader();
@@ -149,44 +153,11 @@ export async function dataFromStream(
         buildinEncodings.jsonxl,
         buildinEncodings.json
     ];
+    let decodingTime = 0;
     let encoding = 'unknown';
     let size = 0;
 
-    const streamConsumer = async function*(firstChunk?: ReadableStreamReadResult<Uint8Array>) {
-        while (true) {
-            const { value, done } = firstChunk || await reader.read();
-
-            firstChunk = undefined;
-
-            if (done) {
-                await setProgress({
-                    done: true,
-                    elapsed: Date.now() - streamStartTime,
-                    units: 'bytes',
-                    completed: size,
-                    total: totalSize
-                });
-                break;
-            }
-
-            for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
-                const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
-                    ? value
-                    : value.slice(offset, offset + CHUNK_SIZE);
-
-                size += chunk.length;
-                yield chunk;
-
-                await setProgress({
-                    done: false,
-                    elapsed: Date.now() - streamStartTime,
-                    units: 'bytes',
-                    completed: size,
-                    total: totalSize
-                });
-            }
-        }
-    };
+    await setStageProgress('receiving', getProgress(false));
 
     try {
         const firstChunk = await reader.read();
@@ -202,10 +173,10 @@ export async function dataFromStream(
 
                 const decodeRequest = streaming
                     ? decode(streamConsumer(firstChunk))
-                    : consumeChunksAsSingleTypedArray(streamConsumer(firstChunk)).then(decode);
+                    : consumeChunksAsSingleTypedArray(streamConsumer(firstChunk)).then(measureDecodingTime(decode));
                 const data = await decodeRequest;
 
-                return { data, encoding, size };
+                return { data, encoding, size, decodingTime };
             }
         }
 
@@ -213,18 +184,67 @@ export async function dataFromStream(
     } finally {
         reader.releaseLock();
     }
+
+    function getProgress(done: boolean): LoadDataStateProgress {
+        return {
+            done,
+            elapsed: Date.now() - streamStartTime,
+            units: 'bytes',
+            completed: size,
+            total: totalSize
+        };
+    }
+
+    async function* streamConsumer(firstChunk?: ReadableStreamReadResult<Uint8Array>) {
+        while (true) {
+            const { value, done } = firstChunk || await reader.read();
+
+            firstChunk = undefined;
+
+            if (done) {
+                break;
+            }
+
+            for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
+                const chunkDecodingStartTime = performance.now();
+                const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
+                    ? value
+                    : value.slice(offset, offset + CHUNK_SIZE);
+
+                yield chunk;
+
+                decodingTime += performance.now() - chunkDecodingStartTime;
+                size += chunk.length;
+
+                await setStageProgress('receiving', getProgress(false));
+            }
+        }
+
+        // progress done
+        await setStageProgress('receiving', getProgress(true));
+    }
+
+    function measureDecodingTime(decode: (payload: Uint8Array) => any) {
+        return async (payload: Uint8Array) => {
+            await setStageProgress('decoding', undefined, encoding);
+
+            const startDecodingTime = performance.now();
+
+            try {
+                return await decode(payload);
+            } finally {
+                decodingTime = performance.now() - startDecodingTime;
+            }
+        };
+    }
 }
 
 async function loadDataFromStreamInternal(
     request: LoadDataRequest,
-    progress: Observer<LoadDataState>
+    loadDataStateTracker: Observer<LoadDataState>
 ): Promise<Dataset> {
-    const stage = async <T>(stage: 'request' | 'receive', fn: () => T): Promise<T> => {
-        await progress.asyncSet({ stage });
-        return await fn();
-    };
-
     try {
+        await loadDataStateTracker.asyncSet({ stage: 'request' });
         const requestStart = new Date();
         const {
             method,
@@ -232,22 +252,29 @@ async function loadDataFromStreamInternal(
             resource: rawResource,
             options,
             data: explicitData
-        } = await stage('request', request);
+        } = await request();
 
         const responseStart = new Date();
         const payloadSize = rawResource?.size;
         const { encodings } = options || {};
-        const { data: rawData, encoding = 'unknown', size = undefined } = explicitData ? { data: explicitData } : await stage('receive', () =>
-            dataFromStream(stream, encodings, Number(payloadSize) || 0, state => progress.asyncSet({
-                stage: 'receive',
-                progress: state
-            }))
+        const {
+            data: rawData,
+            encoding = 'unknown',
+            size = undefined,
+            decodingTime = 0
+        } = explicitData ? { data: explicitData } : await dataFromStream(
+            stream,
+            encodings,
+            Number(payloadSize) || 0,
+            (stage, progress, step) => loadDataStateTracker.asyncSet({ stage, progress, step })
         );
 
-        await progress.asyncSet({ stage: 'received' });
+        await loadDataStateTracker.asyncSet({ stage: 'received' });
 
         const { data, resource, meta } = buildDataset(rawData, rawResource, { size, encoding });
         const finishedTime = new Date();
+        const time = Number(finishedTime) - Number(requestStart);
+        const roundedDecodingTime = Math.round(decodingTime || 0);
 
         return {
             loadMethod: method,
@@ -255,9 +282,11 @@ async function loadDataFromStreamInternal(
             meta,
             data,
             timings: {
-                time: Number(finishedTime) - Number(requestStart),
+                time,
                 start: requestStart,
                 end: finishedTime,
+                loadingTime: time - roundedDecodingTime,
+                decodingTime: roundedDecodingTime,
                 requestTime: Number(responseStart) - Number(requestStart),
                 requestStart,
                 requestEnd: responseStart,
@@ -268,7 +297,7 @@ async function loadDataFromStreamInternal(
         };
     } catch (error) {
         console.error('[Discovery] Error loading data:', error);
-        await progress.asyncSet({ stage: 'error', error });
+        await loadDataStateTracker.asyncSet({ stage: 'error', error });
         throw error;
     }
 }
@@ -412,21 +441,21 @@ export function loadDataFromPush(options?: LoadDataBaseOptions) {
 
 export function syncLoaderWithProgressbar({ dataset, state }: LoadDataResult, progressbar: Progressbar) {
     return new Promise<Dataset>((resolve, reject) =>
-        state.subscribeSync((loadDataState, unsubscribe) => {
-            const { stage } = loadDataState;
-
-            if (stage === 'error') {
+        state.subscribeSync(async (loadDataState, unsubscribe) => {
+            if (loadDataState.stage === 'error') {
                 unsubscribe();
                 reject(loadDataState.error);
                 return;
             }
 
+            const { stage, progress, step } = loadDataState;
+
+            await progressbar.setState({ stage, progress }, step);
+
             if (stage === 'received') {
                 unsubscribe();
                 resolve(dataset);
             }
-
-            return progressbar.setState({ stage, progress: loadDataState.progress });
         })
     );
 }

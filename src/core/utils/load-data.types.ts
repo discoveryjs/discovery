@@ -19,12 +19,13 @@ export type LoadDataResult = {
 }
 export type LoadDataState =
     | {
-        stage: 'inited' | 'request' | 'receive' | 'received',
-        progress?: LoadDataStateProgress
+        stage: 'inited' | 'request' | 'receiving' | 'decoding' | 'received';
+        progress?: LoadDataStateProgress;
+        step?: string;
     }
     | {
-        stage: 'error',
-        error: Error
+        stage: 'error';
+        error: Error;
     };
 export type LoadDataStateProgress = {
     done: boolean;
@@ -87,6 +88,8 @@ export type DatasetTimings = {
     time: number;
     start: Date;
     end: Date;
+    loadingTime: number;
+    decodingTime: number;
     requestTime: number;
     requestStart: Date;
     requestEnd: Date;

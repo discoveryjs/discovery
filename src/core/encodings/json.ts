@@ -6,4 +6,4 @@ export default Object.freeze({
     test: () => true,
     streaming: true,
     decode: parseChunked
-}) satisfies Encoding;
+}) satisfies Encoding as Encoding;

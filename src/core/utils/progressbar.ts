@@ -38,24 +38,29 @@ export const loadStages = {
         duration: 0.1,
         title: 'Awaiting data'
     },
-    receive: {
+    receiving: {
         value: 0.1,
         duration: 0.8,
         title: 'Receiving data'
     },
-    received: {
+    decoding: {
         value: 0.9,
-        duration: 0.025,
+        duration: 0.015,
+        title: 'Decoding data'
+    },
+    received: {
+        value: 0.915,
+        duration: 0.01,
         title: 'Await app ready'
     },
     prepare: {
         value: 0.925,
-        duration: 0.050,
+        duration: 0.055,
         title: 'Processing data (prepare)'
     },
     initui: {
-        value: 0.975,
-        duration: 0.025,
+        value: 0.98,
+        duration: 0.02,
         title: 'Rendering UI'
     },
     done: {
@@ -69,9 +74,6 @@ export const loadStages = {
         title: 'Error'
     }
 };
-Object.values(loadStages).forEach((item, idx, array) => {
-    item.duration = (idx !== array.length - 1 ? array[idx + 1].value : 0) - item.value;
-});
 
 const int = (value: number) => value | 0;
 const ensureFunction = (value: any): (() => void) => typeof value === 'function' ? value : () => undefined;
@@ -111,6 +113,8 @@ export function decodeStageProgress(stage: Stage, progress: ProgressbarState['pr
                 : String(completed);
         }
     }
+
+    console.log(stage, progressValue, value + progressValue * duration);
 
     return {
         stageTitle,

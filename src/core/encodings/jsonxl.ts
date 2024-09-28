@@ -6,4 +6,4 @@ export default Object.freeze({
     test,
     streaming: false,
     decode
-}) satisfies Encoding;
+}) satisfies Encoding as Encoding;
