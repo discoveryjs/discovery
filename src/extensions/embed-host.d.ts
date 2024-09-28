@@ -101,9 +101,10 @@ export type StageProgress = {
 }
 
 export function loadStages(stages: any, progressBar: HTMLElement, options: any): void;
-export function decodeStageProgress(stage: string, progress?: StageProgress): {
+export function decodeStageProgress(stage: string, progress?: StageProgress, step?: string): {
     stageTitle: string;
     progressValue: number;
     progressText: string;
+    stepText: string;
     title: string;
 };

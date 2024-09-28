@@ -137,7 +137,7 @@ export class App<
                         ]
                     }
                 ], {
-                    stage: progressbar?.lastStage,
+                    stage: progressbar?.value.stage,
                     errorText: error.message || String(error),
                     errorStack: (error.stack || '').replace(/^Error:\s*(\S+Error:)/, '$1')
                 }, {
@@ -172,7 +172,10 @@ export class App<
             onFinish: (timings) => this.log({
                 level: 'perf',
                 message: `${options.title || 'Load data'} (${timings[timings.length - 1].duration}ms)`,
-                collapsed: () => timings.map(timing => `${timing.title}: ${timing.duration}ms`)
+                collapsed: () => [
+                    ...timings.map(timing => `${timing.title}: ${timing.duration}ms`),
+                    `(await repaint: ${timings.awaitRepaintPenaltyTime}ms)`
+                ]
             }),
             ...options
         });
