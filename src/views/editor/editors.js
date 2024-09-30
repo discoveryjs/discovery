@@ -10,6 +10,29 @@ import modeView from './editor-mode-view.js';
 import 'codemirror/mode/javascript/javascript.js';
 import './editors-hint.js';
 
+// Workaround to prevent warning in Chrome: [Violation] Added non-passive event listener to a scroll-blocking <some> event. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+// GitHub issue: https://github.com/codemirror/codemirror5/issues/6735
+Object.defineProperty(CodeMirror.prototype, 'display', {
+    configurable: true,
+    set(value) {
+        const _addEventListener = value.scroller.addEventListener;
+        value.scroller.addEventListener = function (eventName, cb, options) {
+            _addEventListener.call(this, eventName, cb, typeof options !== 'boolean' ? options : {
+                capture: options,
+                passive: ['touchstart', 'touchmove', 'wheel', 'mousewheel'].includes(eventName)
+            });
+        };
+
+        Object.defineProperty(this, 'display', {
+            configurable: true,
+            enumerable: true,
+            value
+        });
+
+        return value;
+    }
+});
+
 function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) {
     const startChar = text[0];
     const lastChar = text[text.length - 1];
