@@ -1,3 +1,7 @@
+## next
+
+- Removed missed `console.log()` in progressbar
+
 ## 1.0.0-beta.86 (27-09-2024)
 
 - Added `setWorkTitle` method to the prepare context API to display additional text on the progress bar:

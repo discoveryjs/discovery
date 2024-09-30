@@ -114,8 +114,6 @@ export function decodeStageProgress(stage: Stage, progress: ProgressbarState['pr
         }
     }
 
-    console.log(stage, progressValue, value + progressValue * duration);
-
     return {
         stageTitle,
         progressValue: value + progressValue * duration,
