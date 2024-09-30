@@ -177,6 +177,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
         //     duration: entry.duration
         // });
 
+        this.lastStageStartTime = end;
         this.timings.push(entry);
         this.onTiming(entry);
     }
@@ -241,7 +242,6 @@ export default class Progressbar extends Observer<ProgressbarState> {
                 this.recordTiming(currentStage, this.lastStageStartTime, now);
             }
 
-            this.lastStageStartTime = now;
             this.awaitRepaint = now;
         }
 
@@ -275,7 +275,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
             }
 
             this.recordTiming(error ? 'error' : 'done', this.startTime || this.lastStageStartTime || performance.now());
-            this.set({ stage: 'done', progress: null, error: null });
+            this.set({ stage: 'done', progress: null, error: error || null });
             this.onFinish(Object.assign([...this.timings], {
                 awaitRepaintPenaltyTime: Math.round(this.awaitRepaintPenaltyTime)
             }));

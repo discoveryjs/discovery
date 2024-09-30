@@ -1,5 +1,6 @@
 ## next
 
+- Fixed missed error on progressbar's value when the progressbar finishes with error
 - Fixed warning "Added non-passive event listener..." in Chrome caused by CodeMirror (https://github.com/codemirror/codemirror5/issues/6735)
 - Removed missed `console.log()` in progressbar
 
