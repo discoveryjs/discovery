@@ -6,11 +6,6 @@ export function collectObjectMap(value, expanded, objectStat) {
             continue;
         }
 
-        if (!expanded) {
-            objectStat.properties = null;
-            break;
-        }
-
         let propMap;
 
         if (objectStat.dictMode) {
@@ -54,7 +49,7 @@ export function collectStat(value, expanded, stat = Object.create(null)) {
             if ('object' in stat === false) {
                 stat.object = new Map();
                 stat.object.count = 0;
-                stat.object.properties = new Map();
+                stat.object.properties = expanded ? new Map() : null;
                 stat.object.dictMode = null;
                 stat.object.sortKeys = false;
             }
@@ -63,7 +58,9 @@ export function collectStat(value, expanded, stat = Object.create(null)) {
 
             if (!stat.object.has(value)) {
                 stat.object.set(value, 1);
-                collectObjectMap(value, expanded, stat.object);
+                if (expanded) {
+                    collectObjectMap(value, expanded, stat.object);
+                }
             } else {
                 stat.object.set(value, stat.object.get(value) + 1);
             }

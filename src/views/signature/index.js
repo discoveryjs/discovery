@@ -26,7 +26,7 @@ export default function(host) {
         const data = elementToData.get(activeEl);
 
         if (data) {
-            const { path, map, offset } = data;
+            const { path, stat, map, offset } = data;
             const fragment = document.createDocumentFragment();
 
             switch (action) {
@@ -64,7 +64,7 @@ export default function(host) {
                     }
             }
 
-            renderStat(fragment, { object: map }, elementToData, path, offset);
+            renderStat(fragment, { object: map }, elementToData, path, offset, stat);
             activeEl.replaceWith(fragment);
         }
     };

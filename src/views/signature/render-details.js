@@ -57,11 +57,14 @@ function getStatCounts(stat) {
 }
 
 export function renderPropertyDetails(el, data, host) {
-    const { count, map } = data.stat.object.dictMode || data.stat.object.properties.get(data.name);
-    const total = (data.stat.object.dictMode || data.stat.object).count;
+    const objectStat = data.stat.object;
+    const { map, count: total } = objectStat.dictMode || objectStat.properties.get(data.name);
+    const count = objectStat.dictMode
+        ? objectStat.dictMode.count
+        : objectStat.size;
     const output = {
         name: data.name,
-        path: data.path,
+        path: host.pathToQuery(data.path),
         total,
         count,
         percent: fixedNum(100 * count / total, 1) + '%'
@@ -72,8 +75,7 @@ export function renderPropertyDetails(el, data, host) {
             view: 'block',
             when: 'path',
             className: 'path',
-            data: data => host.pathToQuery(data.path),
-            content: 'text:$'
+            content: 'text:path'
         },
         {
             view: 'h1',
@@ -93,7 +95,7 @@ export function renderPropertyDetails(el, data, host) {
 
     renderTypeStat(el, {
         map,
-        count
+        count: total
     }, host);
 }
 
@@ -102,7 +104,7 @@ function renderTypeStat(el, { map, count }, host) {
     const typeStat = [];
     const types = typeOrder.filter(type => type in map);
 
-    Object.entries(typeCounts).sort(([,a], [,b]) => a - b).reverse().forEach(([name, val], idx) => {
+    Object.entries(typeCounts).sort(([,a], [,b]) => b - a).forEach(([name, val], idx) => {
         typeStat.push({
             name: escapeHtml(name),
             count: val,

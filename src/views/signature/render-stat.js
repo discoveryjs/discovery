@@ -1,12 +1,12 @@
-import { createElement, createText } from '../../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import { typeOrder } from './const.js';
 
-export function renderStat(el, stat, elementToData, path = [], offset = '') {
+export function renderStat(el, stat, elementToData, path = [], offset = '', fullStat = null) {
     Object.keys(stat)
         .sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b))
-        .forEach((type, idx) => {
+        .forEach((type, idx, types) => {
             if (idx > 0) {
-                el.appendChild(createText(' | '));
+                el.append(' | ');
             }
 
             switch (type) {
@@ -30,6 +30,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '') {
                         elementToData.set(el.appendChild(createElement('span', 'expand', '{…}')), {
                             type: 'expand',
                             path,
+                            stat,
                             map: stat[type],
                             offset
                         });
@@ -78,7 +79,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '') {
                         offset
                     });
 
-                    if (valuesCount > 1) {
+                    if (valuesCount > 1 || types.length > 1 || (fullStat !== null && Object.keys(fullStat).length > 1)) {
                         contentEl.appendChild(createElement('span', 'count')).dataset.value = String(valuesCount);
                     }
 
@@ -97,38 +98,38 @@ export function renderStat(el, stat, elementToData, path = [], offset = '') {
                             map
                         });
 
-                        contentEl.appendChild(createText(`\n${propertyOffset}`));
+                        contentEl.append(`\n${propertyOffset}`);
                         contentEl.appendChild(propertyEl);
 
                         if (count !== valuesCount && dictMode === null) {
                             propertyEl.appendChild(createElement('span', 'optional', '?'));
                         }
 
-                        contentEl.appendChild(createText(': '));
+                        contentEl.append(': ');
                         renderStat(contentEl, map, elementToData, path.concat(dictMode ? '*' : name), propertyOffset);
-                        contentEl.appendChild(createText(';'));
+                        contentEl.append(';');
                     }
 
                     if (contentEl.lastChild.nodeValue === ';') {
-                        contentEl.appendChild(createText(`\n${offset}`));
+                        contentEl.append(`\n${offset}`);
                     }
 
-                    contentEl.appendChild(createText('}'));
+                    contentEl.append('}');
 
                     break;
                 }
 
                 case 'array':
-                    el.appendChild(createText('['));
+                    el.append('[');
                     renderStat(el, stat[type].map, elementToData, path, offset);
-                    el.appendChild(createText(']'));
+                    el.append(']');
 
                     break;
 
                 case 'set':
-                    el.appendChild(createText('Set('));
+                    el.append('Set(');
                     renderStat(el, stat[type].map, elementToData, path, offset);
-                    el.appendChild(createText(')'));
+                    el.append(')');
 
                     break;
             }

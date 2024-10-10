@@ -29,8 +29,10 @@
 }
 
 .view-signature .count {
+    display: inline-block;
     vertical-align: middle;
-    padding-left: 3px;
+    margin-top: -2px;
+    padding-left: 4px;
     font-size: 90%;
     color: rgba(157, 157, 157, 0.35);
 }
