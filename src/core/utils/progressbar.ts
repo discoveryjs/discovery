@@ -242,6 +242,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
                 this.recordTiming(currentStage, this.lastStageStartTime, now);
             }
 
+            this.lastStageStartTime = now;
             this.awaitRepaint = now;
         }
 
@@ -250,6 +251,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
         this.el.style.setProperty('--progress', String(progressValue));
         this.#titleEl.textContent = title;
         this.#stepEl.textContent = stepText;
+        this.el.offsetWidth; // should trigger reflow, which in turn should trigger repaint
 
         await this.#awaitRenderIfNeeded(stageChanged, now);
     }
@@ -259,6 +261,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
 
         this.#titleEl.textContent = title;
         this.#stepEl.textContent = stepText;
+        this.el.offsetWidth; // should trigger reflow, which in turn should trigger repaint
 
         await this.#awaitRenderIfNeeded(true);
     }

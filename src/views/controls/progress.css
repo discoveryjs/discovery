@@ -2,8 +2,10 @@
     max-width: 300px;
     width: 100%;
     z-index: 1;
-    transition: opacity .15s var(--appearance-delay, 0ms);
     pointer-events: none;
+    transition: opacity .15s var(--appearance-delay, 0ms);
+    will-change: opacity;
+    contain: paint;
 }
 .view-progress.init {
     opacity: 0;
