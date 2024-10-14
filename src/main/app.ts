@@ -2,6 +2,7 @@
 
 import type { SetDataProgressOptions, WidgetEvents, WidgetOptions } from './widget.js';
 import type { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
+import type { Style } from '../core/utils/inject-styles.js';
 import { Widget } from './widget.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
 import Progressbar, { ProgressbarOptions } from '../core/utils/progressbar.js';
@@ -75,7 +76,7 @@ export class App<
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
 
-        this.mode = this.options.mode;
+        this.mode = options.mode;
     }
 
     setLoadingState<S extends AppLoadingState>(state: S, options?: AppLoadingStateOptions<S>) {
@@ -196,7 +197,7 @@ export class App<
     }
 
     loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {
-        if (this.options.mode === 'modelfree' && this.defaultPageId !== this.discoveryPageId) {
+        if (this.mode === 'modelfree' && this.defaultPageId !== this.discoveryPageId) {
             this._defaultPageId = this.defaultPageId;
             this.defaultPageId = this.discoveryPageId;
             this.setPageHash(this.pageHash, true);
@@ -207,7 +208,7 @@ export class App<
     }
 
     unloadData() {
-        if (this.hasDatasets() && this.options.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
+        if (this.hasDatasets() && this.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
             this.defaultPageId = this._defaultPageId as string;
             this.setPageHash(this.pageHash, true);
             this.cancelScheduledRender();
@@ -216,8 +217,8 @@ export class App<
         super.unloadData();
     }
 
-    initDom() {
-        super.initDom();
+    initDom(styles?: Style[]) {
+        super.initDom(styles);
 
         this.dom.container.append(
             this.dom.loadingOverlay = createElement('div', 'loading-overlay done')

@@ -39,10 +39,8 @@ function createPresetTab(name, content, updateParams) {
 }
 
 export default function(host, updateParams) {
+    const viewPresets = defaultViewPresets;
     let lastView = {};
-    const viewPresets = Array.isArray(host.options.viewPresets)
-        ? defaultViewPresets.concat(host.options.viewPresets)
-        : defaultViewPresets;
 
     let viewSetupEl;
     let availableViewsEl;

@@ -129,14 +129,22 @@ export class Model<
     constructor(options?: Partial<Options>) {
         super();
 
+        // FIXME: remove this.options
         this.options = options || {};
+        // Object.defineProperty(this, 'options', {
+        //     get() {
+        //         console.trace('get options');
+        //         return options || {};
+        //     }
+        // });
 
         const {
             logLevel = 'warn',
             logger = console,
             extensions,
+            encodings,
             setup
-        } = this.options;
+        } = options || {};
 
         this.logger = logger || noopLogger;
         this.logLevel = logLevels.includes(logLevel) ? logLevel : 'warn';
@@ -146,7 +154,7 @@ export class Model<
         this.linkResolvers = [];
 
         this.datasets = [];
-        this.encodings = normalizeEncodings(this.options.encodings);
+        this.encodings = normalizeEncodings(encodings);
         this.data = undefined;
         this.context = undefined;
         this.prepare = data => data;

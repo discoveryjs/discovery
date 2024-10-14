@@ -30,7 +30,6 @@ export type SetDataProgressOptions = Partial<{
     progressbar: Progressbar;
 }>;
 
-const renderScheduler = new WeakMap<Widget, Set<RenderSubject> & { timer?: Promise<void> | null }>();
 const renderSubjects = ['sidebar', 'page'] as const;
 
 const defaultEncodeParams = (params: [string, unknown][]) => params;
@@ -85,6 +84,7 @@ export class Widget<
     Options extends WidgetOptions = WidgetOptionsBind,
     Events extends WidgetEvents = WidgetEvents
 > extends Model<Options, Events> {
+    compact: boolean;
     darkmode: DarkModeController;
     inspectMode: Observer<boolean>;
 
@@ -92,6 +92,7 @@ export class Widget<
     nav: WidgetNavigation;
     preset: PresetRenderer;
     page: PageRenderer;
+    #renderScheduler: Set<RenderSubject> & { timer?: Promise<void> | null };
 
     annotations: ValueAnnotation[];
 
@@ -118,8 +119,11 @@ export class Widget<
 
     constructor(options: Partial<Options>) {
         const {
+            container,
+            styles,
             extensions,
             logLevel,
+            compact,
             darkmode = 'disabled',
             darkmodePersistent = false,
             defaultPage,
@@ -135,35 +139,18 @@ export class Widget<
             extensions: undefined
         });
 
+        this.compact = Boolean(compact);
         this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
         this.inspectMode = new Observer(false);
-        this.initDom();
-
-        this.action
-            .on('define', () => {
-                if (this.context) {
-                    this.scheduleRender();
-                }
-            })
-            .on('revoke', () => {
-                if (this.context) {
-                    this.scheduleRender();
-                }
-            });
+        this.initDom(styles);
 
         this.view = new ViewRenderer(this);
         this.nav = new WidgetNavigation(this);
         this.preset = new PresetRenderer(this.view);
-        this.page = new PageRenderer(this, this.view).on('define', (pageId) => {
-            // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
-            if (this.pageId === pageId && this.pageHash !== '#') {
-                const hash = this.pageHash;
-                this.pageHash = '#';
-                this.setPageHash(hash);
-                this.cancelScheduledRender();
-            }
-        });
-        renderScheduler.set(this, new Set());
+        this.page = new PageRenderer(this, this.view);
+        this.#renderScheduler = new Set();
+
+        this.initRenderTriggers();
 
         this.defaultPageId = defaultPageId || 'default';
         this.discoveryPageId = discoveryPageId || 'discovery';
@@ -186,6 +173,37 @@ export class Widget<
             this.apply(inspector);
         }
 
+        this.initMarkerAnnotations();
+
+        this.nav.render(this.dom.nav, this.data, this.getRenderContext());
+        this.setContainer(container);
+    }
+
+    initRenderTriggers() {
+        this.action
+            .on('define', () => {
+                if (this.context) {
+                    this.scheduleRender();
+                }
+            })
+            .on('revoke', () => {
+                if (this.context) {
+                    this.scheduleRender();
+                }
+            });
+
+        // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
+        this.page.on('define', (pageId) => {
+            if (this.pageId === pageId && this.pageHash !== '#') {
+                const hash = this.pageHash;
+                this.pageHash = '#';
+                this.setPageHash(hash);
+                this.cancelScheduledRender();
+            }
+        });
+    }
+
+    initMarkerAnnotations() {
         for (const { name, page, lookup } of this.objectMarkers.values) {
             if (page && !this.page.isDefined(page)) {
                 this.log('error', `Page reference "${page}" in object marker "${name}" doesn't exist`);
@@ -209,9 +227,6 @@ export class Widget<
                 }
             });
         }
-
-        this.nav.render(this.dom.nav, this.data, this.getRenderContext());
-        this.setContainer(this.options.container);
     }
 
     //
@@ -254,7 +269,7 @@ export class Widget<
         this.scheduleRender();
         await Promise.all([
             this.dom.wrapper.parentNode ? this.dom.ready : true,
-            renderScheduler.get(this)?.timer
+            this.#renderScheduler.timer
         ]);
 
         // finish progress
@@ -332,10 +347,10 @@ export class Widget<
     // UI
     //
 
-    initDom() {
+    initDom(styles?: Style[]) {
         const wrapper = createElement('div', 'discovery init');
         const shadow = wrapper.attachShadow({ mode: 'open' });
-        const readyStyles = injectStyles(shadow, this.options.styles);
+        const readyStyles = injectStyles(shadow, styles);
         const container = shadow.appendChild(createElement('div'));
         const pageContent = createElement('article');
         const nav = createElement('div', 'discovery-nav discovery-hidden-in-dzen');
@@ -437,9 +452,9 @@ export class Widget<
             return;
         }
 
-        const scheduledRenders = renderScheduler.get(this);
+        const scheduledRenders = this.#renderScheduler;
 
-        if (scheduledRenders === undefined || scheduledRenders?.has(subject)) {
+        if (scheduledRenders.has(subject)) {
             return;
         }
 
@@ -468,14 +483,10 @@ export class Widget<
     }
 
     cancelScheduledRender(subject?: RenderSubject) {
-        const scheduledRenders = renderScheduler.get(this);
-
-        if (scheduledRenders) {
-            if (subject) {
-                scheduledRenders.delete(subject);
-            } else {
-                scheduledRenders.clear();
-            }
+        if (subject) {
+            this.#renderScheduler.delete(subject);
+        } else {
+            this.#renderScheduler.clear();
         }
     }
 
@@ -497,7 +508,7 @@ export class Widget<
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        renderScheduler.get(this)?.delete('sidebar');
+        this.#renderScheduler.delete('sidebar');
 
         if (this.hasDatasets() && this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
@@ -586,7 +597,7 @@ export class Widget<
 
     renderPage() {
         // cancel scheduled renderPage
-        renderScheduler.get(this)?.delete('page');
+        this.#renderScheduler.delete('page');
 
         const data = this.data;
         const context = this.getRenderContext();
@@ -609,7 +620,7 @@ export class Widget<
 
         setDatasetValue(this.dom.container, 'page', this.pageId);
         setDatasetValue(this.dom.container, 'dzen', Boolean(this.pageParams.dzen));
-        setDatasetValue(this.dom.container, 'compact', Boolean(this.options.compact));
+        setDatasetValue(this.dom.container, 'compact', Boolean(this.compact));
 
         renderState.then(() => {
             if (this.pageParams['!anchor']) {
