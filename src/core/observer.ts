@@ -1,7 +1,6 @@
 type OnChangeCallback<T> = (value: T, unsubscribe: () => void) => void | Promise<void>;
 type Subscriber<T> = {
     callback: OnChangeCallback<T> | null;
-    thisArg?: any;
     subscriber: Subscriber<T> | null;
 }
 
@@ -28,33 +27,31 @@ export class Observer<T> {
         };
     }
 
-    subscribe(callback: OnChangeCallback<T>, thisArg?: any) {
+    subscribe(callback: OnChangeCallback<T>) {
         this.subscriber = {
             callback,
-            thisArg,
             subscriber: this.subscriber
         };
 
-        return () => this.unsubscribe(callback, thisArg);
+        return () => this.unsubscribe(callback);
     }
 
-    subscribeSync(callback: OnChangeCallback<T>, thisArg?: any) {
-        const unsubscribe = this.subscribe(callback, thisArg);
+    subscribeSync(callback: OnChangeCallback<T>) {
+        const unsubscribe = this.subscribe(callback);
 
         // sync
-        callback.call(thisArg, this.value, unsubscribe);
+        callback(this.value, unsubscribe);
 
         return unsubscribe;
     }
 
-    unsubscribe(callback: OnChangeCallback<T>, thisArg?: any) {
+    unsubscribe(callback: OnChangeCallback<T>) {
         let prev: this | Subscriber<T> = this;
         let cursor = this.subscriber;
 
         while (cursor !== null) {
-            if (cursor.callback === callback && cursor.thisArg === thisArg) {
+            if (cursor.callback === callback) {
                 cursor.callback = null;
-                cursor.thisArg = null;
                 prev.subscriber = cursor.subscriber;
                 break;
             }
@@ -91,10 +88,10 @@ export class Observer<T> {
 
         // search for a callback and remove it
         while (cursor !== null) {
-            const { callback, thisArg } = cursor;
+            const { callback } = cursor;
 
             if (callback !== null) {
-                callbacks.push(callback.call(thisArg, value, () => this.unsubscribe(callback, thisArg)));
+                callbacks.push(callback(value, () => this.unsubscribe(callback)));
             }
 
             cursor = cursor.subscriber;
