@@ -18,16 +18,64 @@
 .discovery > .loading-overlay.error .action-buttons .view-button + .view-button {
     margin-left: 2ex;
 }
-.discovery > .loading-overlay.error .view-alert .view-header {
-    margin-top: 0;
+
+.discovery > .loading-overlay.error > .error-message,
+.discovery > .loading-overlay.error > .warning-message {
+    margin: 20px 0;
+    padding: 20px;
+    box-sizing: border-box;
+    color: #d85a5a;
+    background: #ff00002e;
+    overflow: auto;
 }
-.discovery > .loading-overlay.error .view-alert .view-badge {
+.discovery > .loading-overlay.error > .warning-message {
+    color: #856404;
+    background-color: #fff3d1;
+}
+.discovery-root-darkmode > .loading-overlay.error > .error-message {
+    background-color: #3f3333;
+    color: #eb8f8f;
+}
+.discovery-root-darkmode > .loading-overlay.error > .warning-message {
+    background-color: #3c3627;
+    color: #bdab77;
+}
+.discovery > .loading-overlay.error > :is(.error-message, .warning-message) a {
     color: inherit;
+    color: color-mix(in srgb, currentColor, var(--discovery-color) 35%);
+    text-decoration-color: color-mix(in srgb, currentColor, var(--discovery-background-color) 65%);
 }
-.discovery > .loading-overlay.error .view-alert pre {
-    font-family: var(--discovery-monospace-font-family);
-    font-size: 13px;
-    margin: 0;
+.discovery-root-darkmode > .loading-overlay.error > :is(.error-message, .warning-message) a {
+    color: color-mix(in srgb, currentColor, var(--discovery-color) 45%);
+    text-decoration-color: color-mix(in srgb, currentColor, var(--discovery-background-color) 45%);
+}
+.discovery > .loading-overlay.error > :is(.error-message, .warning-message) a:hover {
+    text-decoration-color: currentColor;
+}
+
+.discovery > .loading-overlay.error > :is(.error-message, .warning-message) .error-type-badge {
+    margin: -20px 0 15px -20px;
+}
+.discovery > .loading-overlay.error > :is(.error-message, .warning-message) .error-type-badge::before {
+    content: 'Error' attr(data-stage);
+    display: inline-block;
+    padding: 1ex 20px;
+    background-color: #ff9d9d;
+    color: #e23c3c;
+    text-shadow: none;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+.discovery-root-darkmode > .loading-overlay.error > :is(.error-message, .warning-message) .error-type-badge::before {
+    color: var(--discovery-color);
+    background-color: #833939;
+}
+.discovery > .loading-overlay.error > .warning-message .error-type-badge::before {
+    color: inherit;
+    background-color: #f9de91;
+}
+.discovery-root-darkmode > .loading-overlay.error > .warning-message .error-type-badge::before {
+    background-color: #5d502d;
 }
 
 .discovery > .loading-overlay.done:not(.error) {

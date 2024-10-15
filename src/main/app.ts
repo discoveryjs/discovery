@@ -120,18 +120,23 @@ export class App<
                             }
                         ]
                     },
-                    error.renderContent || {
-                        view: 'alert-danger',
+                    {
+                        view: 'block',
+                        className: Object.hasOwn(error, 'renderContent')
+                            ? 'warning-message'
+                            : 'error-message',
                         content: [
                             {
-                                view: 'h3',
-                                content: [
-                                    'badge:"Error"',
-                                    { view: 'text', when: 'stage', data: '`[${stage}] `' },
-                                    'text:errorText'
-                                ]
+                                view: 'block',
+                                className: 'error-type-badge',
+                                postRender(el: HTMLElement, config: unknown, data: any) {
+                                    if (data.stage) {
+                                        el.dataset.stage = ` on ${data.stage}`;
+                                    }
+                                }
                             },
-                            'text:"(see details in the console)"'
+                            'h3:errorText',
+                            error.renderContent || 'text:"(see details in the console)"'
                         ]
                     }
                 ], {

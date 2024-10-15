@@ -1,5 +1,6 @@
 ## next
 
+- Enhanced style of errors on the loading data overlay
 - Enhanced responsiveness and addressing issues with freezing during transition states for views related to the data loading state. Instead of setup of initial state via JavaScript, the new `@starting-style` at-rule is used:
     - Tweaked styles to improve the performance perception
     - Widget:
