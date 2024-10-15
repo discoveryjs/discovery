@@ -4,7 +4,7 @@ export function createSignaturePopup(host, elementData, buildPathForElement) {
         hoverPin: 'popup-hover',
         hoverTriggers: '.view-struct .show-signature',
         showDelay: 50,
-        render: function(popupEl, triggerEl) {
+        render(popupEl, triggerEl) {
             const el = triggerEl.parentNode;
             const data = elementData.get(el);
 
