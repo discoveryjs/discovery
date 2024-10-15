@@ -388,6 +388,9 @@ export function loadDataFromUrl(url: string, options?: LoadDataFetchOptions) {
             }
 
             error = new Error(error);
+            error.isFetchError = true;
+            error.status = response.status;
+            error.statusText = response.statusText;
             error.stack = null;
             throw error;
         }),
