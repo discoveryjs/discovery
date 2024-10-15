@@ -187,6 +187,8 @@ export default (host) => {
 
             // use rAF to make a transition work
             requestAnimationFrame(() => {
+                onHover(overlayByViewNode.get(leaf.node)?.el || null);
+                clearTimeout(hideTimer);
                 popup.show();
                 popup.freeze();
             });
