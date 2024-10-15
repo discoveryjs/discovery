@@ -5,6 +5,7 @@ import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
 import Dict from './dict.js';
 import { Preset } from './preset.js';
 
+export type RenderContext = ReturnType<typeof createRenderContext>;
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
 type ViewRenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
 type ViewNormalizePropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
@@ -82,7 +83,7 @@ interface ErrorData {
     reason: string;
 }
 
-type TooltipConfig = Partial<{
+export type TooltipConfig = Partial<{
     showDelay: boolean | number;
     className: string;
     position: PopupOptions['position'];

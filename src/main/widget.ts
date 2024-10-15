@@ -13,18 +13,11 @@ import inspector from '../extensions/inspector.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
 import { WidgetNavigation } from '../nav/index.js';
-import { Model, ModelEvents, ModelOptions, PageParams, PageRef, Query, SetDataOptions } from './model.js';
+import { Model, ModelEvents, ModelOptions, PageParams, PageRef, SetDataOptions } from './model.js';
 import type { Dataset } from '../core/utils/load-data.js';
 import type Progressbar from '../core/utils/progressbar.js';
 
 export type RenderSubject = typeof renderSubjects[number];
-export type ValueAnnotation = { query: Query, [key: string]: any };
-export type ValueAnnotationContext = {
-    parent: ValueAnnotationContext | null;
-    host: any;
-    key: string | number;
-    index: number;
-};
 export type SetDataProgressOptions = Partial<{
     dataset: Dataset;
     progressbar: Progressbar;
@@ -94,8 +87,6 @@ export class Widget<
     page: PageRenderer;
     #renderScheduler: Set<RenderSubject> & { timer?: Promise<void> | null };
 
-    annotations: ValueAnnotation[];
-
     defaultPageId: string;
     discoveryPageId: string;
     reportToDiscoveryRedirect: boolean; // TODO: to make bookmarks work, remove sometime in the future
@@ -159,7 +150,6 @@ export class Widget<
         this.pageRef = null;
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
-        this.annotations = [];
 
         this.apply(views);
         this.apply(pages);
@@ -173,10 +163,16 @@ export class Widget<
             this.apply(inspector);
         }
 
-        this.initMarkerAnnotations();
-
         this.nav.render(this.dom.nav, this.data, this.getRenderContext());
         this.setContainer(container);
+
+        // check if all page values used in markers (defined during setup) exist;
+        // this ensures early warnings to avoid broken links
+        for (const { name, page } of this.objectMarkers.values) {
+            if (page && !this.page.isDefined(page)) {
+                this.log('error', `Page reference "${page}" in object marker "${name}" doesn't exist`);
+            }
+        }
     }
 
     initRenderTriggers() {
@@ -201,32 +197,6 @@ export class Widget<
                 this.cancelScheduledRender();
             }
         });
-    }
-
-    initMarkerAnnotations() {
-        for (const { name, page, lookup } of this.objectMarkers.values) {
-            if (page && !this.page.isDefined(page)) {
-                this.log('error', `Page reference "${page}" in object marker "${name}" doesn't exist`);
-            }
-
-            this.annotations.push({
-                query(value: unknown, context: ValueAnnotationContext) {
-                    const marker = // annotateScalars ||
-                        (value !== null && typeof value === 'object')
-                            ? lookup(value)
-                            : null;
-
-                    if (marker !== null && marker.object !== context.host) {
-                        return {
-                            place: 'before',
-                            style: 'badge',
-                            text: name,
-                            href: marker.href
-                        };
-                    }
-                }
-            });
-        }
     }
 
     //

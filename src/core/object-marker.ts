@@ -10,17 +10,19 @@ export type LookupRefFunction<T> = ((object: LookupValue<T>) => LookupValue<T> |
 export type LookupValue<T> = T | string | number;
 export type MarkerConfigGetterKeys = 'ref' | 'title';
 export type MarkerConfigArrayGetter = 'refs' | 'lookupRefs';
-export type ObjectMarkerConfig<T = object> = {
-    refs?: Getter<T>[];
-    lookupRefs?: LookupRefFunction<T>[];
-    page?: string;
-    ref?: Getter<T>;
-    title?: Getter<T>;
-};
+export type ObjectMarkerConfig<T = object> = Partial<{
+    annotateScalars: boolean;
+    refs: Getter<T>[];
+    lookupRefs: LookupRefFunction<T>[];
+    page: string;
+    ref: Getter<T>;
+    title: Getter<T>;
+}>;
 export type NormalizedObjectMarkerConfig<T> = {
     name: string;
     indexRefs: GetterFunction<T>[];
     lookupRefs: LookupRefFunction<T>[];
+    annotateScalars: boolean;
     page: string | null;
     getRef: GetterFunction<T> | null;
     getTitle: GetterFunction<T>;
@@ -36,7 +38,7 @@ export type ObjectMarker<T> = {
     name: string;
     page: string | null;
     mark(value: T): void;
-    lookup(value: unknown): ObjectMarkerDescriptor<T> | null;
+    lookup(value: unknown, x?: boolean): ObjectMarkerDescriptor<T> | null;
     reset(): void;
 };
 
@@ -116,9 +118,14 @@ function configArrayGetter<T>(
     );
 }
 
-function isLookupValue<T>(value: unknown): value is LookupValue<T> {
-    const valueType = value === null ? 'null' : typeof value;
-    return valueType === 'object' || valueType === 'number' || valueType === 'string';
+function isLookupValue<T>(value: unknown, objectsOnly = false): value is LookupValue<T> {
+    if (value === null) {
+        return false;
+    }
+
+    return objectsOnly
+        ? typeof value === 'object'
+        : typeof value === 'object' || typeof value === 'number' || typeof value === 'string';
 }
 
 function createObjectMarker<T extends object>(logger: LogCallback, config: NormalizedObjectMarkerConfig<T>): ObjectMarker<T> {
@@ -126,6 +133,7 @@ function createObjectMarker<T extends object>(logger: LogCallback, config: Norma
         name,
         indexRefs,
         lookupRefs,
+        annotateScalars,
         page,
         getRef,
         getTitle
@@ -186,9 +194,9 @@ function createObjectMarker<T extends object>(logger: LogCallback, config: Norma
             }
         }
     };
-    const lookup = (value: unknown): ObjectMarkerDescriptor<T> | null => {
+    const lookup = (value: unknown, useAnnotateScalars = false): ObjectMarkerDescriptor<T> | null => {
         // value is not lookup-able
-        if (!isLookupValue<T>(value)) {
+        if (!isLookupValue<T>(value, useAnnotateScalars ? !annotateScalars : false)) {
             return null;
         }
 
@@ -290,6 +298,7 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker<object>> {
 
         const indexRefs = configArrayGetter(name, config, 'refs');
         const lookupRefs = configArrayGetter(name, config, 'lookupRefs');
+        const annotateScalars = Boolean(config.annotateScalars);
         const configPage = config.page; // Otherwise TS doesn't infer page type right
         const page = typeof configPage === 'string' ? configPage : null;
         const getRef = configGetter(name, config, 'ref', null);
@@ -299,6 +308,7 @@ export default class ObjectMarkerManager extends Dict<ObjectMarker<object>> {
             name,
             indexRefs,
             lookupRefs,
+            annotateScalars,
             page,
             getRef,
             getTitle

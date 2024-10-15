@@ -1,12 +1,12 @@
 import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions } from './model.js';
-import type { ValueAnnotationContext, Widget } from './widget.js';
 import ObjectMarker, { ObjectMarkerConfig } from '../core/object-marker.js';
 import jora from 'jora';
+import { ValueAnnotation, ValueAnnotationContext } from '../views/struct/render-annotations.js';
 
 export function createLegacyExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
     const objectMarkers = new ObjectMarker();
     const linkResolvers: Model['linkResolvers'] = [];
-    const annotations: Widget['annotations'] = [];
+    const annotations: ValueAnnotation[] = [];
     const contextApi: LegacyPrepareContextApi = {
         setWorkTitle: options?.setPrepareWorkTitle || (() => Promise.resolve()),
         rejectData(message: string, renderContent: any) {
@@ -58,8 +58,7 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
     // Helpers
     //
 
-    function defineObjectMarker<T>(name: string, options: ObjectMarkerConfig<T> & { annotateScalars?: boolean }) {
-        const annotateScalars = Boolean(options?.annotateScalars);
+    function defineObjectMarker<T>(name: string, options: ObjectMarkerConfig<T>) {
         const { page, mark, lookup } = objectMarkers.define(name, options) || {};
 
         if (!lookup) {
@@ -85,9 +84,7 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
         }
 
         addValueAnnotation((value: any, context: ValueAnnotationContext) => {
-            const marker = annotateScalars || (typeof value === 'object' && value !== null)
-                ? lookup(value)
-                : null;
+            const marker = lookup(value, true);
 
             if (marker !== null && marker.object !== context.host) {
                 return {

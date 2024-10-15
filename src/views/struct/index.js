@@ -5,7 +5,7 @@ import { isArray, isSet } from '../../core/utils/is-type.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
 import value2html from './value-to-html.js';
-import renderAnnotations from './render-annotations.js';
+import { getDefaultAnnotations, prepareAnnotations, renderAnnotations } from './render-annotations.js';
 import usage from './struct.usage.js';
 import {
     stringValueProto,
@@ -17,8 +17,7 @@ import {
 } from './el-proto.js';
 import { createSignaturePopup } from './poup-signature.js';
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
-const toString = Object.prototype.toString;
+const { hasOwnProperty, toString } = Object.prototype;
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
 const defaultCollapsedObjectEntries = 0;
@@ -332,6 +331,7 @@ export default function(host) {
     const elementContext = new WeakMap();
     const elementOptions = new WeakMap();
     const structViewRoots = new WeakSet();
+    const defaultAnnotations = getDefaultAnnotations(host);
     const annotationsToRender = [];
     let annotationsTimer = null;
 
@@ -363,18 +363,18 @@ export default function(host) {
             maxPropertyLength,
             maxCompactPropertyLength
         } = config;
-        const normalizedAnnotations = annotations
-            ? (host.annotations || []).concat(annotations.map(annotation =>
-                typeof annotation === 'string' || typeof annotation === 'function'
-                    ? { query: annotation }
-                    : annotation
-            ))
-            : host.annotations;
+        const normalizedAnnotations = prepareAnnotations(
+            annotations,
+            defaultAnnotations ||
+            // FIXME: that's a fallback to work with legacy prepare,
+            // remove when discard model-legacy-extension-api
+            host.annotations
+        );
 
         const options = {
             renderer: this,
             context,
-            annotations: normalizedAnnotations,
+            annotations: normalizedAnnotations || [],
             limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
             limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limitCompactObjectEntries: host.view.listLimit(limitCompactObjectEntries, defaultCollapsedObjectEntries),
