@@ -9,7 +9,7 @@ type ApplyContainerStylesOptions = {
 
 const styles: Styles = {
     'font-family': 'Tahoma, Verdana, Arial, sans-serif',
-    'font-size': '16px',
+    'font-size': '14px',
     'line-height': '1.6',
     '-webkit-text-size-adjust': 'none',
     'text-size-adjust': 'none',

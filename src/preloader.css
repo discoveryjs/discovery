@@ -3,7 +3,7 @@
 :host {
     /* all: initial; */
     position: absolute;
-    z-index: 1;
+    z-index: 1001 !important;
     padding: 35px 40px;
     width: 100%;
 }
