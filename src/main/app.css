@@ -7,14 +7,7 @@
     left: 0;
     padding: 35px 40px;
     background: var(--discovery-background-color);
-    will-change: opacity;
-}
-.discovery > .loading-overlay > * {
-    transition: opacity .15s .4s;
-}
-.discovery > .loading-overlay.init > *,
-.discovery > .loading-overlay.done:not(.error) > * {
-    opacity: 0;
+    will-change: opacity, visibility;
 }
 .discovery > .loading-overlay.error {
     overflow: auto;
@@ -36,11 +29,17 @@
     font-size: 13px;
     margin: 0;
 }
+
 .discovery > .loading-overlay.done:not(.error) {
     opacity: 0;
     visibility: hidden;
-    transition: all .2s;
+    transition: all .25s;
+    pointer-events: none;
 }
-.discovery > .loading-overlay .progressbar {
-    margin: 15px 20px;
+
+.discovery > .loading-overlay .view-progress {
+    max-width: none;
+}
+.discovery > .loading-overlay .view-progress .progress {
+    max-width: 300px;
 }

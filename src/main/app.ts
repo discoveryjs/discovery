@@ -92,10 +92,7 @@ export class App<
                     return;
                 }
 
-                loadingOverlayEl.innerHTML = '';
-                loadingOverlayEl.append(progressbar?.el || '');
-                loadingOverlayEl.classList.add('init');
-                requestAnimationFrame(() => loadingOverlayEl.classList.remove('init'));
+                loadingOverlayEl.replaceChildren(progressbar?.el || '');
 
                 break;
             }
@@ -110,7 +107,7 @@ export class App<
                 const error = (options as AppLoadingStateOptions<'error'>)?.error;
 
                 loadingOverlayEl.classList.add('error');
-                loadingOverlayEl.innerHTML = '';
+                loadingOverlayEl.replaceChildren();
 
                 this.view.render(loadingOverlayEl, [
                     {
@@ -168,7 +165,6 @@ export class App<
 
     progressbar(options: ProgressbarOptions & { title?: string }) {
         return new Progressbar({
-            delay: 200,
             domReady: this.dom.ready,
             onFinish: (timings) => this.log({
                 level: 'perf',

@@ -1,8 +1,19 @@
 ## next
 
-- Fixed missed error on progressbar's value when the progressbar finishes with error
+- Enhanced responsiveness and addressing issues with freezing during transition states for views related to the data loading state. Instead of setup of initial state via JavaScript, the new `@starting-style` at-rule is used:
+    - Tweaked styles to improve the performance perception
+    - Widget:
+        - Removed adding of `.init` class to the main container in `initDom()`
+    - App:
+        - Removed adding of `.init` class to the overlay during the initialization phase
+    - Progressbar:
+        - Added adding `.done` and `.error` classes on the main container on progressbar finish
+        - Removed `delay` option from the constructor
+        - Removed `appearanceDelay` property
+        - Removed adding `.init` class to the main container at the first stage change
 - Fixed value counting in the `signature` view when a property contains duplicated objects, which previously led to incorrect `optional` label
 - Fixed warning "Added non-passive event listener..." in Chrome caused by CodeMirror (https://github.com/codemirror/codemirror5/issues/6735)
+- Fixed missed error on progressbar's value when the progressbar finishes with error
 - Removed missed `console.log()` in progressbar
 
 ## 1.0.0-beta.86 (27-09-2024)

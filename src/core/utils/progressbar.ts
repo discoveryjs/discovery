@@ -12,7 +12,6 @@ export type OnFinishCallback = (timings: Timing[] & { awaitRepaintPenaltyTime: n
 export type ProgressbarOptions = Partial<{
     onTiming: OnTimingCallback;
     onFinish: OnFinishCallback;
-    delay: number | true;
     domReady: Promise<any>;
 }>;
 export type ProgressbarState = {
@@ -82,7 +81,7 @@ const letRepaintIfNeeded = async () => {
     if (!document.hidden) {
         return Promise.race([
             new Promise(requestAnimationFrame).then(() => waitMs(0)),
-            waitMs(20)
+            waitMs(12)
         ]);
     }
 };
@@ -142,7 +141,7 @@ export default class Progressbar extends Observer<ProgressbarState> {
     #titleEl: HTMLElement;
     #stepEl: HTMLElement;
 
-    constructor({ onTiming, onFinish, delay, domReady }: ProgressbarOptions) {
+    constructor({ onTiming, onFinish, domReady }: ProgressbarOptions) {
         super({ stage: 'inited', progress: null, error: null });
 
         this.startTime = null;
@@ -153,10 +152,9 @@ export default class Progressbar extends Observer<ProgressbarState> {
         this.timings = [];
         this.onTiming = ensureFunction(onTiming);
         this.onFinish = ensureFunction(onFinish);
-        this.appearanceDelay = delay === true ? 200 : Number(delay) || 0;
         this.domReady = domReady || Promise.resolve();
 
-        this.el = createElement('div', 'view-progress init', [
+        this.el = createElement('div', 'view-progress skip-fast-track', [
             createElement('div', 'content main-secondary', [
                 this.#titleEl = createElement('span', 'main'),
                 this.#stepEl = createElement('span', 'secondary')
@@ -221,20 +219,6 @@ export default class Progressbar extends Observer<ProgressbarState> {
 
         if (currentStage === 'inited') {
             this.startTime = now;
-            this.domReady.then(async () => {
-                const appearanceDelay = Math.max(0, this.appearanceDelay - int(performance.now() - now));
-
-                if (appearanceDelay) {
-                    this.el.style.setProperty('--appearance-delay', `${appearanceDelay}ms`);
-                }
-
-                // This is a hack to trigger styles computation,
-                // otherwise Blink might not run a transition for progressbar appearance
-                // and it will be shown immediately which is not desired in case of fast loaded data
-                getComputedStyle(this.el).opacity;
-
-                this.el.classList.remove('init');
-            });
         }
 
         if (stageChanged) {
@@ -282,6 +266,9 @@ export default class Progressbar extends Observer<ProgressbarState> {
             this.onFinish(Object.assign([...this.timings], {
                 awaitRepaintPenaltyTime: Math.round(this.awaitRepaintPenaltyTime)
             }));
+
+            this.el.classList.add('done');
+            this.el.classList.toggle('error', Boolean(error));
         }
     }
 

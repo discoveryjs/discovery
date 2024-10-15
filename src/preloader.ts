@@ -21,7 +21,6 @@ export type PreloaderOptions = {
 
 function createProgressbar(domReady: Promise<void>) {
     return new Progressbar({
-        delay: 300,
         domReady,
         onTiming: ({ title, duration }) =>
             console.log(`[Discovery/preloader] ${title} – ${duration}ms`)

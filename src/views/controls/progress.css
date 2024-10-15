@@ -1,15 +1,22 @@
 .view-progress {
     max-width: 300px;
-    width: 100%;
     z-index: 1;
     pointer-events: none;
-    transition: opacity .15s var(--appearance-delay, 0ms);
+}
+
+.view-progress.skip-fast-track {
+    transition: opacity .25s var(--appearance-delay, 500ms);
     will-change: opacity;
     contain: paint;
+
+    @starting-style {
+        opacity: 0;
+    }
 }
-.view-progress.init {
-    opacity: 0;
+.view-progress.skip-fast-track.done:not(.error) {
+    display: none;
 }
+
 .view-progress > .progress {
     content: '';
     display: block;

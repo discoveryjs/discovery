@@ -318,7 +318,7 @@ export class Widget<
     //
 
     initDom(styles?: Style[]) {
-        const wrapper = createElement('div', 'discovery init');
+        const wrapper = createElement('div', 'discovery');
         const shadow = wrapper.attachShadow({ mode: 'open' });
         const readyStyles = injectStyles(shadow, styles);
         const container = shadow.appendChild(createElement('div'));
@@ -365,11 +365,6 @@ export class Widget<
                 this.setPageHash(linkEl.hash);
             }
         }, true);
-
-        this.dom.ready.then(() => {
-            getComputedStyle(this.dom.wrapper).opacity; // trigger repaint
-            this.dom.wrapper.classList.remove('init');
-        });
     }
 
     setContainer(container?: HTMLElement) {
