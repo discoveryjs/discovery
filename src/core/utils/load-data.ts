@@ -302,26 +302,33 @@ async function loadDataFromStreamInternal(
     }
 }
 
-export function createLoadDataState<T extends Record<string, unknown>>(request: LoadDataRequest, extra?: T): LoadDataResult & T {
+export function createLoadDataState<T extends Record<string, unknown>>(
+    datasetFactory: (state: Observer<LoadDataState>) => Promise<Dataset>,
+    extra?: T
+): LoadDataResult & T {
     const state = new Observer<LoadDataState>({ stage: 'inited' });
 
     return {
         state,
         // encapsulate logic into separate function since it's async,
         // but we need to return observer for progress tracking purposes
-        dataset: loadDataFromStreamInternal(request, state),
+        dataset: datasetFactory(state),
         ...(extra as any)
     };
 }
 
+export function createDatasetFactoryFromStreamRequest(request: LoadDataRequest) {
+    return (state: Observer<LoadDataState>) => loadDataFromStreamInternal(request, state);
+}
+
 export function loadDataFromStream(stream: ReadableStream, options?: LoadDataBaseOptions) {
     return createLoadDataState(
-        () => ({
+        createDatasetFactoryFromStreamRequest(() => ({
             method: 'stream',
             stream,
             resource: options?.resource,
             options
-        })
+        }))
     );
 }
 
@@ -329,12 +336,12 @@ export function loadDataFromFile(file: File, options?: LoadDataBaseOptions) {
     const resource = extractResourceMetadata(file);
 
     return createLoadDataState(
-        () => ({
+        createDatasetFactoryFromStreamRequest(() => ({
             method: 'file',
             stream: file.stream(),
             resource: options?.resource || resource, // options.resource takes precedence over an extracted resource
             options
-        }),
+        })),
         { title: 'Load data from file: ' + (resource?.name || 'unknown') }
     );
 }
@@ -357,7 +364,7 @@ export function loadDataFromUrl(url: string, options?: LoadDataFetchOptions) {
     options = options || {};
 
     return createLoadDataState(
-        async () => {
+        createDatasetFactoryFromStreamRequest(async () => {
             const response = await fetch(url, options.fetch);
             const resource = extractResourceMetadata(response, options);
 
@@ -383,7 +390,7 @@ export function loadDataFromUrl(url: string, options?: LoadDataFetchOptions) {
             error = new Error(error);
             error.stack = null;
             throw error;
-        },
+        }),
         { title: `Load data from url: ${url}` }
     );
 }
@@ -413,7 +420,7 @@ export function loadDataFromPush(options?: LoadDataBaseOptions) {
     options = options || {};
 
     return createLoadDataState(
-        () => request,
+        createDatasetFactoryFromStreamRequest(() => request),
         {
             start(resource: LoadDataResourceMetadata) {
                 resolveRequest(resource);
