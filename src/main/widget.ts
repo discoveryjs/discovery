@@ -550,13 +550,13 @@ export class Widget<
             this.pageRef = pageRef;
             this.pageParams = pageParams;
             this.scheduleRender('page');
+        }
 
-            if (hash !== this.pageHash) {
-                this.pageHash = hash;
-                this.emit('pageHashChange', replace);
+        if (hash !== this.pageHash) {
+            this.pageHash = hash;
+            this.emit('pageHashChange', replace);
 
-                return true;
-            }
+            return true;
         }
 
         return false;
