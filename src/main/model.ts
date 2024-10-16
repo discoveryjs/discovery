@@ -38,6 +38,10 @@ export type ResolvedLink = {
 
 export type Query = string | QueryFunction;
 export type QueryFunction = (data: unknown, context: unknown) => unknown;
+export type QueryFromStringOptions = {
+    tolerant?: boolean;
+    stat?: boolean;
+};
 
 export type RawDataDataset = { data: any };
 export type ModelDataset = Dataset | RawDataDataset;
@@ -333,7 +337,7 @@ export class Model<
 
     // This method is overrides on init by setupModel();
     // used method definition aside to avoid lint errors, since stub implementation doesn't use query parameter
-    queryFnFromString(query: string): QueryFunction;
+    queryFnFromString(query: string, options?: QueryFromStringOptions): QueryFunction;
     queryFnFromString() {
         return noopQuery;
     }
@@ -365,7 +369,7 @@ export class Model<
         return jora.buildin.bool(this.query(query, data, context));
     }
 
-    querySuggestions(query: any, offset: number, data: unknown, context: unknown) {
+    querySuggestions(query: string, offset: number, data: unknown, context: unknown) {
         return querySuggestions(this, query, offset, data, context);
     }
 
