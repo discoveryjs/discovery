@@ -411,7 +411,7 @@ export class Model<
 
     decodePageHash(hash: string, getDecodeParams: GetDecodeParams = () => Object.fromEntries) {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
-        const [pageId, pageRef] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
+        const [pageId, pageRef = null] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
         const pairs: [string, string | boolean][] = hash.slice(delimIndex + 1).split('&').filter(Boolean).map(pair => {
             const eqIndex = pair.indexOf('=');
             return eqIndex !== -1
