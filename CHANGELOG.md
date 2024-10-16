@@ -13,6 +13,7 @@
         - Removed `appearanceDelay` property
         - Removed adding `.init` class to the main container at the first stage change
 - Changed `createLoadDataState()` to take a dataset factory function instead of a load data request, enhancing its reusability
+- Fixed re-rendering on data unload
 - Fixed preloader styles to ensure the data loading progressbar remains visible during the prepare stage
 - Fixed value counting in the `signature` view when a property contains duplicated objects, which previously led to incorrect `optional` label
 - Fixed warning "Added non-passive event listener..." in Chrome caused by CodeMirror (https://github.com/codemirror/codemirror5/issues/6735)

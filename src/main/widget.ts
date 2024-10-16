@@ -176,6 +176,8 @@ export class Widget<
     }
 
     initRenderTriggers() {
+        this.on('unloadData', () => this.scheduleRender());
+
         this.action
             .on('define', () => {
                 if (this.context) {
