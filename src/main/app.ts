@@ -141,7 +141,8 @@ export class App<
                     }
                 ], {
                     stage: progressbar?.value.stage,
-                    errorText: error.message || String(error),
+                    errorText: String(error),
+                    errorMessage: error.message || String(error),
                     errorStack: (error.stack || '').replace(/^Error:\s*(\S+Error:)/, '$1')
                 }, {
                     actions: this.action.actionMap

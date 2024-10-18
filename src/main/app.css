@@ -34,7 +34,7 @@
 }
 .discovery-root-darkmode > .loading-overlay.error > .error-message {
     background-color: #3f3333;
-    color: #eb8f8f;
+    color: #dc7c7c;
 }
 .discovery-root-darkmode > .loading-overlay.error > .warning-message {
     background-color: #3c3627;
