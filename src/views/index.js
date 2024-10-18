@@ -44,7 +44,7 @@ export { default as textMatch } from './text/text-match.js';
 export { default as textNumeric } from './text/text-numeric.js';
 
 export { default as context } from './context.js';
-export { default as switch } from './switch.js';
+export { default as switchView } from './switch.js'; // switch can't be used as an identifier
 
 export { default as signature } from './signature/index.js';
 export { default as struct } from './struct/index.js';

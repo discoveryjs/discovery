@@ -1,3 +1,7 @@
+## next
+
+- Fixed TypeScript warning related to `switch` view export due `switch` is reserved word and can't be an identifier
+
 ## 1.0.0-beta.87 (15-10-2024)
 
 - Enhanced style of errors on the loading data overlay
