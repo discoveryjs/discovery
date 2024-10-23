@@ -76,8 +76,12 @@ export default {
                 '    view: "table-cell",',
                 '    data: value => value?.[key]',
                 '}',
-                '```'
+                '```',
+                '[test]({{"table".pageLink("views-showcase")}})'
             ].join('\n') },
+            afterDemo: [
+                'struct:#.id.pageLink(#.page, #.params)'
+            ],
             highlightProps: ['cols'],
             demo: {
                 view: 'table',

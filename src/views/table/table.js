@@ -109,15 +109,15 @@ export default function(host) {
     const isNotObject = host.queryFn('is not object');
 
     host.view.define('table', function(el, config, data, context) {
-        let { cols, rowConfig, limit, valueCol = false } = config;
+        let { items = data, cols, rowConfig, limit, valueCol = false } = config;
         let renderRowConfig;
 
-        if (isSet(data)) {
-            data = [...data];
+        if (isSet(items)) {
+            items = [...items];
         }
 
-        if (!isArray(data)) {
-            data = data ? [data] : [];
+        if (!isArray(items)) {
+            items = items ? [items] : [];
         }
 
         const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
@@ -165,7 +165,7 @@ export default function(host) {
 
             cols = [];
 
-            for (const value of data) {
+            for (const value of items) {
                 if (isNotObject(value)) {
                     valueCol = true;
                 } else {
@@ -212,7 +212,7 @@ export default function(host) {
                 ? host.query(col.sorting, null, context)
                 : sortingFromConfig(col, host, context);
             const defaultOrder = typeof sorting === 'function'
-                ? getOrder(host, data, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
+                ? getOrder(host, items, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
                 : 0;
 
             const headerCellEl = headEl.appendChild(createElement('th'));
@@ -228,11 +228,11 @@ export default function(host) {
                 headerCellEl.classList.add('sortable');
                 headerCellEl.addEventListener('click', () => {
                     if (headerCellEl.classList.contains('asc')) {
-                        render(data.slice().sort(sorting).reverse());
+                        render(items.slice().sort(sorting).reverse());
                     } else if (headerCellEl.classList.contains('desc') && !defaultOrder) {
-                        render(data);
+                        render(items);
                     } else {
-                        render(data.slice().sort(sorting));
+                        render(items.slice().sort(sorting));
                     }
                 });
             } else {
@@ -246,7 +246,7 @@ export default function(host) {
             cols: '=is not object ? [#.cols[]] : #.cols'
         }, rowConfig);
 
-        return render(data);
+        return render(items);
     }, {
         tag: 'table',
         usage

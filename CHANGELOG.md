@@ -1,5 +1,6 @@
 ## next
 
+- Added `items` option for `table` view to specify data for rows, with `data` being used by default if `items` is not specified
 - Added `detailsWhen` option for `table` cells to explicitly control the activation of details
 - Changed `button` view to take `text`, `href` and `external` options; it attempts to derive these values from `data` when options are not explicitly provided for backward compatibility
 - Changed `button` view so that `disabled` values are no longer treated as queries. To use a query for disabling a button, specify it explicitly like `{ view: "button", disabled: "=query" }`.
