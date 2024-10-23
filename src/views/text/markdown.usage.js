@@ -72,7 +72,7 @@ export default {
                     {
                         view: 'button',
                         content: 'text:"Say \\"Hello world\\""',
-                        onClick: new Function('return () => alert("Hello world!")')()
+                        onClick: Function('return () => alert("Hello world!")')()
                     }
                 ],
                 source: '```js\nconsole.log("Hello world")\n```'

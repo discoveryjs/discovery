@@ -53,7 +53,7 @@ export default {
                     { value: 'two', text: 'Two' },
                     { value: 'three', text: 'Three' }
                 ],
-                onChange: new Function('return (value) => alert("changed to " + value)')(),
+                onChange: Function('return (value) => alert("changed to " + value)')(),
                 content: 'text:"Selected: " + #.example'
             }
         }

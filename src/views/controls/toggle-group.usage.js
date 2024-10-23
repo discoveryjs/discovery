@@ -49,7 +49,7 @@ export default {
             demo: {
                 view: 'toggle-group',
                 name: 'example',
-                onChange: new Function('return (value) => alert("changed to " + value)')(),
+                onChange: Function('return (value) => alert("changed to " + value)')(),
                 data: [
                     { value: 'one', text: 'One' },
                     { value: 'two', text: 'Two' },

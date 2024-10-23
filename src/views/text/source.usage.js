@@ -2,7 +2,8 @@ import CodeMirror from 'codemirror';
 import { equal } from '../../core/utils/compare.js';
 
 const codeExample = 'let name = "world";\n\nconsole.log(`Hello, ${name}!`);';
-const lineNum = new Function('return num => num + 5')();
+const lineNum = Function('return num => num + 5')();
+const helloWorld = Function('return () => alert("Hello world!")')();
 
 function getSupported() {
     const modes = new Set();
@@ -120,7 +121,7 @@ export default {
                     {
                         view: 'button',
                         content: 'text:"Say \\"Hello world\\""',
-                        onClick: new Function('return () => alert("Hello world!")')()
+                        onClick: helloWorld
                     }
                 ],
                 data: {

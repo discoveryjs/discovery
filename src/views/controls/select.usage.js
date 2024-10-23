@@ -1,5 +1,5 @@
 /* eslint-env browser */
-const onChange = new Function('return (value) => alert(`Changed to ${value}!`)')();
+const onChange = Function('return (value) => alert(`Changed to ${value}!`)')();
 
 export default {
     demo: {
