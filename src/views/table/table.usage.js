@@ -145,8 +145,8 @@ export default {
             beforeDemo: { view: 'md', source: [
                 'To manage cell display, the following options are available in the `cols` setting:',
                 '- `colWhen` (similar to `when` and `whenData` options) allows disabling column rendering based on the table\'s data.',
-                '- `contentWhen` (similar to `when` and `whenData` options) allows disabling cell content rendering based on the row\'s data.',
                 '- `when` and `whenData` apply to `table-cell` and behave the same way as they do for any view, to disabling rendering of the cell itself.',
+                '- `contentWhen` (similar to `when` and `whenData` options) allows disabling cell content rendering based on the cell\'s data.',
                 '- `colSpan` allows setting a relevant attribute for a table cell. (Note: subsequent cells should be disabled using `when` or `whenData`).'
             ].join('\n') },
             highlightProps: ['contentWhen', 'colWhen', 'colSpan', 'when'],
@@ -182,15 +182,22 @@ export default {
         },
         {
             title: 'Cell details',
-            beforeDemo: { view: 'md', source: 'Cells can provide an additional detail view for its value which displaying when a user click on the cell, and hides on a click by the same cell or other cell with details. To enable and soecify content for detailed view, `details` option is used. By default, `details` is enabled for object and non-empty array values when no `content` is specified, by displaying a value with `struct` view.' },
-            highlightProps: ['details'],
+            beforeDemo: { view: 'md', source: [
+                'Table cells can display an additional detail view of their content when clicked. Clicking the same cell again, or a different cell with details, will hide the view. To enable and customize the detail view, use the `details` option.',
+                '',
+                'By default, if the `details` option is not explicitly defined, it will automatically activate for cells containing an object or a non-empty array, as long as no custom `content` is specified. In this case, a default `struct` view will be used to display the data.',
+                '',
+                'You can control the visibility of detail views using the `detailsWhen` option. This option accepts a function that checks the cell\'s data and disables the details view if the function returns a falsy value.'
+            ] },
+            highlightProps: ['details', 'detailsWhen'],
             demo: {
                 view: 'table',
                 cols: [
                     { header: 'Group', data: 'group' },
                     { header: 'Default', data: 'peoples' },
                     { header: 'Custom details', data: 'peoples', details: ['h2:"Custom detail views"', 'table'] },
-                    { header: 'Disable default', data: 'peoples', details: false }
+                    { header: 'Disable default details', data: 'peoples', details: false },
+                    { header: 'Conditional details', data: 'peoples', detailsWhen: 'size() > 2' }
                 ]
             },
             demoData: [

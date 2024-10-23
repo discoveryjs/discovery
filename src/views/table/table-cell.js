@@ -58,8 +58,9 @@ function defaultCellRender(el, data, isDataObject) {
 
 export default function(host) {
     host.view.define('table-cell', function(el, config, data, context) {
-        let { content, contentWhen = true, details, colSpan } = config;
+        let { content, contentWhen = true, details, detailsWhen = true, colSpan } = config;
         const isDataObject =
+            !content &&
             data !== null &&
             (Array.isArray(data) ? data.length > 0 : typeof data === 'object') &&
             data instanceof RegExp === false;
@@ -72,7 +73,7 @@ export default function(host) {
             return;
         }
 
-        if (details || (details === undefined && !content && isDataObject)) {
+        if ((details || (details === undefined && isDataObject)) && host.queryBool(detailsWhen, data, context)) {
             el.classList.add('details');
             el.addEventListener('click', (e) => {
                 let node = e.target;

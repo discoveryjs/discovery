@@ -1,5 +1,6 @@
 ## next
 
+- Added `detailsWhen` option for `table` cells to explicitly control the activation of details
 - Fixed TypeScript warning related to `switch` view export due `switch` is reserved word and can't be an identifier
 
 ## 1.0.0-beta.87 (15-10-2024)
