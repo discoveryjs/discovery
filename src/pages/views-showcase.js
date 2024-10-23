@@ -136,20 +136,29 @@ export default function(host) {
             {
                 view: 'block',
                 className: 'sidebar',
-                content: {
-                    view: 'content-filter',
-                    content: {
-                        view: 'menu',
-                        name: 'view',
-                        limit: false,
-                        data: `
-                            .[name ~= #.filter]
-                            .sort(name asc)
-                            .({ ..., disabled: no options.usage })
-                        `,
-                        item: 'text-match:{ text: name, match: #.filter }'
+                content: [
+                    {
+                        view: 'link',
+                        className: 'index-page-link',
+                        href: '="".pageLink(#.page)',
+                        text: 'Index page'
+                    },
+                    {
+                        view: 'content-filter',
+                        content: {
+                            view: 'menu',
+                            name: 'view',
+                            limit: false,
+                            emptyText: 'Nothing matched',
+                            item: 'text-match:{ text: name, match: #.filter }',
+                            data: `
+                                .[name ~= #.filter]
+                                .sort(name asc)
+                                .({ ..., disabled: no options.usage })
+                            `
+                        }
                     }
-                }
+                ]
             }
         ],
         content: {

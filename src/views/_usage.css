@@ -1,8 +1,10 @@
 .discovery-view-usage {
-    margin-top: 20px;
+    margin-top: 16px;
 }
-.discovery-view-usage  > .view-header:first-child {
+.discovery-view-usage > .view-header:first-child {
     margin-top: 0;
+    font-family: Helvetica Neue, Helvetica, Tahoma, Arial, sans-serif;
+    font-weight: 200;
 }
 .discovery-view-usage .usage-render {
     position: relative;
