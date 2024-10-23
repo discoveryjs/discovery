@@ -1,7 +1,7 @@
 export default (view, group) => ({
     demo: {
         view,
-        data: JSON.stringify(view)
+        text: 'hello world'
     },
     examples: [
         {
@@ -115,7 +115,7 @@ export default (view, group) => ({
             highlightProps: ['content'],
             demo: {
                 view,
-                content: ['text:"text "', 'link:{ href: "#example" }']
+                content: ['text:"text "', 'link{ href: "#example" }']
             }
         }
     ]
