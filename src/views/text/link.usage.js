@@ -1,7 +1,7 @@
 export default {
     demo: {
         view: 'link',
-        text: 'I am link',
+        text: 'I am a link',
         href: '#example'
     },
     examples: [
