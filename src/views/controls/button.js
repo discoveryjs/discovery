@@ -3,14 +3,29 @@
 import usage from './button.usage.js';
 import { createElement } from '../../core/utils/dom.js';
 
+const props = `is not array? | {
+    text: #.props has no 'content' ? is (string or number or boolean) ?: text,
+    content: undefined,
+    disabled: false,
+    href,
+    external,
+    onClick: undefined
+} | overrideProps()`;
+
 export default function(host) {
-    function render(el, config, data, context) {
-        const { content, disabled = false, onClick } = config;
-        const { text = '', href, external } = data || {};
+    function render(el, props, data, context) {
+        const {
+            text,
+            content,
+            disabled,
+            href,
+            external,
+            onClick
+        } = props;
 
         el.classList.add('view-button');
 
-        if (host.query(disabled, data, context)) {
+        if (disabled) {
             el.disabled = true;
         } else if (typeof onClick === 'function') {
             el.addEventListener('click', () => onClick(el, data, context));
@@ -29,8 +44,8 @@ export default function(host) {
         }
     }
 
-    host.view.define('button', render, { tag: 'button', usage });
-    host.view.define('button-primary', render, { tag: 'button', usage });
-    host.view.define('button-danger', render, { tag: 'button', usage });
-    host.view.define('button-warning', render, { tag: 'button', usage });
+    host.view.define('button', render, { tag: 'button', props, usage });
+    host.view.define('button-primary', render, { tag: 'button', props, usage });
+    host.view.define('button-danger', render, { tag: 'button', props, usage });
+    host.view.define('button-warning', render, { tag: 'button', props, usage });
 }
