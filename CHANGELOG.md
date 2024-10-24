@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.88 (24-10-2024)
 
 - Added `context` option for all views, which executes before `data` and replaces the input context value with its result
 - Added `rows` option for `table` view to specify data for rows, with `data` being used by default if `rows` is not specified
