@@ -4,6 +4,7 @@
 - Added `detailsWhen` option for `table` cells to explicitly control the activation of details
 - Changed `button` view to take `text`, `href` and `external` options; it attempts to derive these values from `data` when options are not explicitly provided for backward compatibility
 - Changed `button` view so that `disabled` values are no longer treated as queries. To use a query for disabling a button, specify it explicitly like `{ view: "button", disabled: "=query" }`
+- Improved the computation of estimated JSON size in the `struct` view actions popup, making it 2x faster
 - Fixed behavior of `tooltip` option to display a tooltip with a delay by default
 - Fixed TypeScript warning related to `switch` view export due `switch` is reserved word and can't be an identifier
 

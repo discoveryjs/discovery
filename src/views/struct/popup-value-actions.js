@@ -50,32 +50,34 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                 let formattedSize = 0;
 
                 try {
-                    const { bytes, circular } = jsonStringifyInfo(data);
-
-                    compactSize = bytes;
+                    const { bytes, spaceBytes, circular } = jsonStringifyInfo(data, { space: 4 });
 
                     if (circular.length) {
                         jsonCompactStringifyError = 'Converting circular structure to JSON';
-                    } else if (compactSize > maxAllowedSize) {
-                        jsonCompactStringifyError = 'Resulting JSON is over 1 Gb';
                     } else {
-                        formattedSize = jsonStringifyInfo(data, null, 4).bytes;
+                        compactSize = bytes - spaceBytes;
+                        formattedSize = bytes + 2;
+
+                        if (compactSize > maxAllowedSize) {
+                            jsonCompactStringifyError = 'Resulting JSON is over 1 Gb';
+                        }
+
                         if (formattedSize > maxAllowedSize) {
                             jsonFormattedStringifyError = 'Resulting JSON is over 1 Gb';
                         }
                     }
                 } catch (e) {
-                    jsonCompactStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
+                    jsonCompactStringifyError = jsonFormattedStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
                         ? 'Too much nested structure'
                         : e.message;
                 }
 
                 if (jsonCompactStringifyError) {
                     jsonCompactStringifyError = 'Can\'t be copied: ' + jsonCompactStringifyError;
+                }
 
-                    if (!jsonFormattedStringifyError) {
-                        jsonFormattedStringifyError = jsonCompactStringifyError;
-                    }
+                if (jsonFormattedStringifyError) {
+                    jsonFormattedStringifyError = 'Can\'t be copied: ' + jsonFormattedStringifyError;
                 }
 
                 if (path) {
@@ -109,7 +111,7 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                 });
                 actions.push({
                     text: 'Copy as JSON',
-                    notes: `(compact${jsonCompactStringifyError ? '' : formatSize(compactSize)})`,
+                    notes: `(compact${formatSize(compactSize)})`,
                     error: jsonCompactStringifyError,
                     disabled: Boolean(jsonCompactStringifyError),
                     action: () => copyText(JSON.stringify(data))

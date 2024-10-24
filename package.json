@@ -47,7 +47,7 @@
         "node": ">=8.0.0"
     },
     "dependencies": {
-        "@discoveryjs/json-ext": "^0.6.1",
+        "@discoveryjs/json-ext": "^0.6.2",
         "codemirror": "^5.65.2",
         "hitext": "^1.0.0-beta.1",
         "jora": "1.0.0-beta.13",
