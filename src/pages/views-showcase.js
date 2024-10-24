@@ -14,12 +14,10 @@ In Discovery.js, presentations are organized as a tree of views. Views are defin
 A view definition takes \`data\` and \`context\` values, which can be used to define properties and control rendering. Views can transform data and context (using the \`data\` and \`context\` properties) for use by the view and its descendant views, enabling clear data flow. Views are rendered by calling the render method:
 
 \`\`\`js
-discovery.view.render(containerEl, viewDefinition, data, context)
+discovery.render(containerEl, viewDefinition, data, context)
 \`\`\`
 
 Discovery.js is designed to be declarative. For dynamic calculations or event handling, [jora](https://discoveryjs.github.io/jora/) queries are preferred over JavaScript functions.
-
-## Common view properties
 
 Each view can use the following properties:
 
@@ -55,18 +53,15 @@ The sequence of property evaluation during rendering (view render lifecycle):
 \`\`\`
 
 - \`context\` and \`data\` — Modify the flow of context or data based on the provided value:
-  - **String** — Treated as a jora query, and its result is used as the output data.
+  - **String** — Treated as a jora query, and its result is used.
   - **Function** (\`fn(data, context)\`) — The result of the function invocation is used.
-  - **Other values** — Directly used as output data.
-
+  - **Other values** — Directly used as a new value for data or context.
 - \`when\` and \`whenData\` — Determine if a view should be rendered:
   - **String** — Treated as a jora query.
   - \`true\` — Evaluated as an empty query, meaning the data itself is tested for truthiness.
   - \`undefined\` — Treated as not specified, allowing rendering.
   - **Function** (\`fn(data, context)\`) or other values — Evaluated for truthiness.
   > Note: In jora, empty arrays and objects with no own keys are falsy, unlike JavaScript where they are truthy.
-
-Example:
 
 \`\`\`discovery-view
 {
@@ -79,18 +74,16 @@ Example:
 
 ## Computable property values
 
-If a property starts with \`=\`, it indicates a jora query used to compute the value. This helps in dynamically computing values based on data.
-
-Example:
+If a property starts with \`=\`, it indicates a jora query used to compute the property's value before a rendering.
 
 \`\`\`discovery-view
 {
     view: 'list',
-    limit: '=size() <= 12 ? false : 10' // Dynamically computes the limit based on data properties
+    limit: '=size() <= 12 ? false : 10' // Dynamically computes the limit based on flow data
 }
 \`\`\`
 
-> To pass a literal string that starts with \`=\`, use a query like \`"=some string"\`.
+> To pass a literal string that starts with \`=\`, use a query like \`'="=some string"'\`.
 
 ## Shorthand notations
 
@@ -104,19 +97,16 @@ Discovery.js supports shorthand notations for defining views, making the configu
 
 ## Lists of views
 
-Multiple views can be combined into a list using an array. This is useful when a view contains nested elements that should each be rendered separately.
+Multiple views can be combined into a list using an array:
 
 \`\`\`discovery-view
-[
-    {
-        view: 'list',
-        item: [
-            'text:name',
-            { view: 'badge', data: 'something.size()' }
-        ]
-    },
-    'table{ limit: 10 }'
-]
+{
+    view: 'list',
+    item: [ // render two views as a content of a list item
+        'text:name',
+        { view: 'badge', data: 'something.size()' }
+    ]
+}
 \`\`\`
 
 ## Tooltips
