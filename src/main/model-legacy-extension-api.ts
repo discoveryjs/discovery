@@ -1,7 +1,8 @@
 import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions } from './model.js';
+import type { ValueAnnotation, ValueAnnotationContext } from '../views/struct/render-annotations.js';
 import ObjectMarker, { ObjectMarkerConfig } from '../core/object-marker.js';
+import { hasOwn } from '../core/utils/object-utils.js';
 import jora from 'jora';
-import { ValueAnnotation, ValueAnnotationContext } from '../views/struct/render-annotations.js';
 
 export function createLegacyExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
     const objectMarkers = new ObjectMarker();
@@ -115,7 +116,7 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
         const result = { ...current };
 
         for (const key of Object.keys(result)) {
-            if (Object.hasOwn(props, key)) {
+            if (hasOwn(props, key)) {
                 result[key] = props[key];
             }
         }

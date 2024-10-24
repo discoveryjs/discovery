@@ -3,10 +3,13 @@
 import type { SetDataProgressOptions, WidgetEvents, WidgetOptions } from './widget.js';
 import type { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
 import type { Style } from '../core/utils/inject-styles.js';
+import type { ProgressbarOptions } from '../core/utils/progressbar.js';
+import type { UploadOptions } from '../extensions/upload.js';
 import { Widget } from './widget.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
-import Progressbar, { ProgressbarOptions } from '../core/utils/progressbar.js';
-import upload, { UploadOptions } from '../extensions/upload.js';
+import { hasOwn } from '../core/utils/object-utils.js';
+import Progressbar from '../core/utils/progressbar.js';
+import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import * as navButtons from '../nav/buttons.js';
@@ -122,7 +125,7 @@ export class App<
                     },
                     {
                         view: 'block',
-                        className: Object.hasOwn(error, 'renderContent')
+                        className: hasOwn(error, 'renderContent')
                             ? 'warning-message'
                             : 'error-message',
                         content: [

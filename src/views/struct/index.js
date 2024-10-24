@@ -2,6 +2,7 @@
 
 import { numDelim } from '../../core/utils/html.js';
 import { isArray, isSet } from '../../core/utils/is-type.js';
+import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
 import value2html from './value-to-html.js';
@@ -17,7 +18,6 @@ import {
 } from './el-proto.js';
 import { createSignaturePopup } from './poup-signature.js';
 
-const { hasOwnProperty, toString } = Object.prototype;
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
 const defaultCollapsedObjectEntries = 0;
@@ -48,7 +48,7 @@ function isValueExpandable(value, options) {
 
     // object-like values
     if (typeof value === 'object' && value !== null) {
-        switch (toString.call(value)) {
+        switch (objectToString(value)) {
             // set
             case '[object Set]': {
                 return value.size > 0;
@@ -57,7 +57,7 @@ function isValueExpandable(value, options) {
             // plain object
             case '[object Object]': {
                 for (const key in value) {
-                    if (hasOwnProperty.call(value, key)) {
+                    if (hasOwn(value, key)) {
                         return true;
                     }
                 }

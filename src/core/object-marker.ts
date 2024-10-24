@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import type { Model } from '../main/model.js';
+import { hasOwn } from './utils/object-utils.js';
 import Dict from './dict.js';
 
 export type LogCallback = Model['log'];
@@ -80,7 +81,7 @@ function getter<T = object>(name: string, getter: Getter<T>, reference: string) 
 
         case 'string':
             return Object.assign(
-                (object: any) => object && Object.hasOwn(object, getter)
+                (object: any) => object && hasOwn(object, getter)
                     ? object[getter]
                     : undefined,
                 { getterFromString: `object[${JSON.stringify(getter)}]` }
@@ -97,7 +98,7 @@ function configGetter<F extends GetterFunction<T> | null, T>(
     property: MarkerConfigGetterKeys,
     fallback: F
 ): GetterFunction<T> | F {
-    const value = config && Object.hasOwn(config, property) ? config[property] : undefined;
+    const value = config && hasOwn(config, property) ? config[property] : undefined;
 
     if (value !== undefined) {
         return getter(name, value, `"${property}" option`);

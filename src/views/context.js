@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import { hasOwn } from '../core/utils/object-utils.js';
 import usage from './context.usage.js';
 
 const props = `#.props | {
@@ -59,7 +60,7 @@ export default function(host) {
         }
 
         function updateContext(value, name) {
-            if (name && (!Object.hasOwn(localContext, name) || localContext[name] !== value)) {
+            if (name && (!hasOwn(localContext, name) || localContext[name] !== value)) {
                 localContext = {
                     ...localContext,
                     [name]: value

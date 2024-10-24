@@ -1,7 +1,6 @@
 /* eslint-env browser */
+import { hasOwn } from '../../core/utils/object-utils.js';
 import usage from './dropdown.usage.js';
-
-const { hasOwnProperty } = Object.prototype;
 
 function simpleCompare(a, b) {
     if (!a || !b) {
@@ -13,13 +12,13 @@ function simpleCompare(a, b) {
     }
 
     for (const k in a) {
-        if (hasOwnProperty.call(a, k) && a[k] !== b[k]) {
+        if (hasOwn(a, k) && a[k] !== b[k]) {
             return false;
         }
     }
 
     for (const k in b) {
-        if (hasOwnProperty.call(b, k) && a[k] !== b[k]) {
+        if (hasOwn(b, k) && a[k] !== b[k]) {
             return false;
         }
     }

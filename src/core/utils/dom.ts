@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import { hasOwn } from './object-utils.js';
 
 type EventHandler<Element, Event> = (this: Element, evt: Event) => void;
 type Attrs<TagName extends keyof HTMLElementTagNameMap> = {
@@ -24,7 +25,7 @@ export function createElement<TagName extends keyof HTMLElementTagNameMap>(
     }
 
     for (const attrName in attrs) {
-        if (Object.hasOwn(attrs, attrName)) {
+        if (hasOwn(attrs, attrName)) {
             const value = attrs[attrName];
 
             if (typeof value === 'undefined') {

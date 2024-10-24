@@ -1,5 +1,6 @@
 /* eslint-env browser */
 
+import { hasOwn } from '../../core/utils/object-utils.js';
 import { collectObjectMap, collectStat } from './collect-stat.js';
 import { renderStat } from './render-stat.js';
 import { renderPropertyDetails, renderTypeDetails } from './render-details.js';
@@ -45,7 +46,7 @@ export default function(host) {
                         };
                         map.forEach((_, value) => {
                             for (const key in value) {
-                                if (hasOwnProperty.call(value, key)) {
+                                if (hasOwn(value, key)) {
                                     dictMode.keys.add(key);
                                     dictMode.count++;
                                     collectStat(value[key], 1, dictMode.map);

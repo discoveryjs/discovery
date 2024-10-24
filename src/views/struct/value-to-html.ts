@@ -1,9 +1,8 @@
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
+import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
 import { isArray } from '../../core/utils/is-type.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
-const toString = Object.prototype.toString;
-const hasOwn = Object.hasOwn || ((object, key) => Object.prototype.hasOwnProperty.call(object, key));
 
 function token(type: string, str: string) {
     return `<span class="${type}">${str}</span>`;
@@ -74,7 +73,7 @@ export default function value2html(value: unknown, compact: boolean, options: Op
                 return `[${content.join(', ')}]`;
             }
 
-            switch (toString.call(value)) {
+            switch (objectToString(value)) {
                 case '[object Set]': {
                     const valueSize = (value as Set<unknown>).size;
                     const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > valueSize

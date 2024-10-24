@@ -3,6 +3,7 @@ import usage from './table.usage.js';
 
 import { isArray, isSet } from '../../core/utils/is-type.js';
 import { createElement } from '../../core/utils/dom.js';
+import { hasOwn } from '../../core/utils/object-utils.js';
 
 function configFromName(name, query) {
     return {
@@ -59,7 +60,7 @@ function resolveColConfig(name, config, dataQuery) {
         config = { content: config };
     }
 
-    return Object.hasOwn(config, 'content') || Object.hasOwn(config, 'data')
+    return hasOwn(config, 'content') || hasOwn(config, 'data')
         ? {
             header: name,
             view: 'table-cell',
@@ -185,7 +186,7 @@ export default function(host) {
 
             for (const name of colNames) {
                 cols.push(
-                    Object.hasOwn(colsMap, name)
+                    hasOwn(colsMap, name)
                         ? resolveColConfig(name, colsMap[name], host.pathToQuery([name]))
                         : configFromName(name, host.pathToQuery([name]))
                 );
@@ -204,11 +205,11 @@ export default function(host) {
         }
 
         cols = cols.filter(col =>
-            !Object.hasOwn(col, 'colWhen') || host.queryBool(col.colWhen, data, context)
+            !hasOwn(col, 'colWhen') || host.queryBool(col.colWhen, data, context)
         );
 
         for (const col of cols) {
-            const sorting = Object.hasOwn(col, 'sorting')
+            const sorting = hasOwn(col, 'sorting')
                 ? host.query(col.sorting, null, context)
                 : sortingFromConfig(col, host, context);
             const defaultOrder = typeof sorting === 'function'

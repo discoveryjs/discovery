@@ -1,3 +1,5 @@
+import { objectToString } from './object-utils.js';
+
 export { stringifyInfo as jsonStringifyInfo } from '@discoveryjs/json-ext';
 
 type Replacer = (key: string, value: any) => void;
@@ -37,7 +39,6 @@ function restoreValue(value: any, ws: string, property: string) {
     return property + String(value);
 }
 
-const { toString } = Object.prototype;
 const specialValueTypes = new Set([
     '[object Function]',
     '[object RegExp]',
@@ -47,11 +48,11 @@ const specialValueTypes = new Set([
 export function jsonStringifyAsJavaScript(value: any, replacer: Replacer, space = 4) {
     const specials: any[] = [];
     const jsReplacer = function(key: string, value: any) {
-        if (typeof value === 'string' && toString.call(this[key]) === '[object Date]') {
+        if (typeof value === 'string' && objectToString(this[key]) === '[object Date]') {
             value = this[key];
         }
 
-        if (value !== null && specialValueTypes.has(toString.call(value))) {
+        if (value !== null && specialValueTypes.has(objectToString(value))) {
             specials.push(value);
             return '{{{__placeholder__}}}';
         }

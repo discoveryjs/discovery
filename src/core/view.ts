@@ -2,8 +2,9 @@
 
 import type { Widget } from '../main/widget.js';
 import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
-import Dict from './dict.js';
+import { hasOwn } from './utils/object-utils.js';
 import { Preset } from './preset.js';
+import Dict from './dict.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
@@ -214,7 +215,7 @@ function condition(
     inputDataIndex: number | undefined,
     placeholder: Comment
 ) {
-    if (!Object.hasOwn(config, type) || config[type] === undefined) {
+    if (!hasOwn(config, type) || config[type] === undefined) {
         return true;
     }
 

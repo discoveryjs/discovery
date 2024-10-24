@@ -1,8 +1,9 @@
 import { isArray, isSet } from '../../core/utils/is-type.js';
+import { hasOwn } from '../../core/utils/object-utils.js';
 
 export function collectObjectMap(value, expanded, objectStat) {
     for (let key in value) {
-        if (!hasOwnProperty.call(value, key)) {
+        if (!hasOwn(value, key)) {
             continue;
         }
 

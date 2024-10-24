@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 import { numDelim } from '../../core/utils/html.js';
+import { hasOwn } from '../../core/utils/object-utils.js';
 
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
 
@@ -15,7 +16,7 @@ function defaultCellRender(el, data, isDataObject) {
         el.classList.add('complex');
 
         for (let k in data) {
-            if (Object.hasOwn(data, k)) {
+            if (hasOwn(data, k)) {
                 el.textContent = '{…}';
                 return;
             }

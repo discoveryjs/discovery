@@ -1,4 +1,4 @@
-const hasOwn = Object.hasOwn || ((obj, key) => Object.prototype.hasOwnProperty.call(obj, key));
+import { hasOwn } from './object-utils.js';
 
 export const deepEqual = (a: any, b: any) => equal(a, b, deepEqual);
 

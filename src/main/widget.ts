@@ -1,21 +1,26 @@
 /* eslint-env browser */
 
-import jora from 'jora';
+import type { ModelEvents, ModelOptions, PageParams, PageRef, SetDataOptions } from './model.js';
+import type { Dataset } from '../core/utils/load-data.js';
+import type { Style } from '../core/utils/inject-styles.js';
+import type { PageOptionName, PageOptions } from '../core/page.js';
+import type { SingleViewConfig } from '../core/view.js';
+import type Progressbar from '../core/utils/progressbar.js';
 import { createElement } from '../core/utils/dom.js';
-import injectStyles, { Style } from '../core/utils/inject-styles.js';
+import injectStyles from '../core/utils/inject-styles.js';
 import { deepEqual } from '../core/utils/compare.js';
+import { hasOwn } from '../core/utils/object-utils.js';
 import { DarkModeController, InitValue } from '../core/darkmode.js';
-import PageRenderer, { PageOptionName, PageOptions } from '../core/page.js';
-import ViewRenderer, { SingleViewConfig } from '../core/view.js';
-import PresetRenderer from '../core/preset.js';
 import { Observer } from '../core/observer.js';
+import { WidgetNavigation } from '../nav/index.js';
+import { Model } from './model.js';
+import PageRenderer from '../core/page.js';
+import ViewRenderer from '../core/view.js';
+import PresetRenderer from '../core/preset.js';
 import inspector from '../extensions/inspector.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
-import { WidgetNavigation } from '../nav/index.js';
-import { Model, ModelEvents, ModelOptions, PageParams, PageRef, SetDataOptions } from './model.js';
-import type { Dataset } from '../core/utils/load-data.js';
-import type Progressbar from '../core/utils/progressbar.js';
+import jora from 'jora';
 
 export type RenderSubject = typeof renderSubjects[number];
 export type SetDataProgressOptions = Partial<{
@@ -39,7 +44,7 @@ function setDatasetValue(el: HTMLElement, key: string, value: any) {
 function getPageOption<K extends PageOptionName>(host: Widget, pageId: string, name: K, fallback: PageOptions[K]) {
     const options = host.page.get(pageId)?.options;
 
-    return options !== undefined && Object.hasOwn(options, name)
+    return options !== undefined && hasOwn(options, name)
         ? options[name]
         : fallback;
 }

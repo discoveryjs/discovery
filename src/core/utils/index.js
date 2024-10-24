@@ -10,6 +10,7 @@ import * as types from './is-type.js';
 import * as json from './json.js';
 import * as layout from './layout.js';
 import * as dataLoad from './load-data.js';
+import * as objectUtils from './object-utils.js';
 import * as pattern from './pattern.js';
 import * as persistent from './persistent.js';
 import * as pointer from './pointer.js';
@@ -28,6 +29,7 @@ export default {
     ...html,
     injectStyles,
     ...types,
+    ...objectUtils,
     ...json,
     ...layout,
     pattern,

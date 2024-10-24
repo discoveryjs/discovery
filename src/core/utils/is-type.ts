@@ -1,4 +1,4 @@
-const { toString } = Object.prototype;
+import { objectToString } from './object-utils.js';
 
 type TypedArray =
     | Uint8Array
@@ -22,9 +22,9 @@ export function isArray<T>(value: unknown): value is Array<T> | TypedArray {
 }
 
 export function isSet<T>(value: unknown): value is Set<T> {
-    return toString.call(value) === '[object Set]';
+    return objectToString(value) === '[object Set]';
 }
 
 export function isRegExp(value: unknown): value is RegExp {
-    return toString.call(value) === '[object RegExp]';
+    return objectToString(value) === '[object RegExp]';
 }

@@ -1,5 +1,6 @@
 import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
+import { hasOwn } from '../core/utils/object-utils.js';
 import jora from 'jora';
 
 export function createExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
@@ -72,7 +73,7 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
         const result = { ...current };
 
         for (const key of Object.keys(result)) {
-            if (Object.hasOwn(props, key)) {
+            if (hasOwn(props, key)) {
                 result[key] = props[key];
             }
         }
