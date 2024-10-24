@@ -1,5 +1,6 @@
 ## next
 
+- Added `context` option for all views, which executes before `data` and replaces the input context value with its result
 - Added `rows` option for `table` view to specify data for rows, with `data` being used by default if `rows` is not specified
 - Added `detailsWhen` option for `table` cells to explicitly control the activation of details
 - Changed `button` view to take `text`, `href` and `external` options; it attempts to derive these values from `data` when options are not explicitly provided for backward compatibility

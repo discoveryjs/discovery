@@ -54,13 +54,14 @@ interface View {
 export interface SingleViewConfig {
     view: string | RenderFunction;
     when?: query;
+    context?: query;
     data?: query;
     whenData?: query;
     className?: string | ClassNameFn | (string | ClassNameFn)[];
     tooltip?: TooltipConfig | RawViewConfig;
     [key: string]: any;
 }
-type RenderPropsForbiddenKeys = 'view' | 'when' | 'data' | 'whenData' | 'postRender' | 'className' | 'tooltip';
+type RenderPropsForbiddenKeys = 'view' | 'when' | 'context' | 'data' | 'whenData' | 'postRender' | 'className' | 'tooltip';
 type RenderProps = {
     [K in string]: K extends RenderPropsForbiddenKeys ? never : any
 }
@@ -108,6 +109,7 @@ const propsTransitions = new WeakMap<object, PropsTransition>();
 const configOnlyProps = new Set<RenderPropsForbiddenKeys>([
     'view',
     'when',
+    'context',
     'data',
     'whenData',
     'postRender',
@@ -538,20 +540,23 @@ async function render(
     try {
         // when -> data -> whenData -> render
         if (condition('when', viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder)) {
-            const outputData = 'data' in config
-                ? await viewRenderer.host.query(config.data, queryData, context)
+            const renderContext = 'context' in config
+                ? await viewRenderer.host.query(config.context, queryData, context)
+                : context;
+            const renderData = 'data' in config
+                ? await viewRenderer.host.query(config.data, queryData, renderContext)
                 : queryData;
 
-            if (condition('whenData', viewRenderer, config, outputData, context, inputData, inputDataIndex, placeholder)) {
+            if (condition('whenData', viewRenderer, config, renderData, renderContext, inputData, inputDataIndex, placeholder)) {
                 // use await to catch possible errors in renderDom()
                 return await renderDom(
                     viewRenderer,
                     renderer,
                     placeholder,
                     config,
-                    viewRenderer.propsFromConfig(config, outputData, context),
-                    outputData,
-                    context,
+                    viewRenderer.propsFromConfig(config, renderData, renderContext),
+                    renderData,
+                    renderContext,
                     inputData,
                     inputDataIndex
                 );
