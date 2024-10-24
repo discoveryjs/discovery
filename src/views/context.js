@@ -1,8 +1,7 @@
 /* eslint-env browser */
 import usage from './context.usage.js';
 
-const props = `
-#.props | {
+const props = `#.props | {
     modifiers is array ?: is truthy ? [$] : [],
     content,
     proxy.bool(),
@@ -11,37 +10,35 @@ const props = `
 }`;
 
 export default function(host) {
-    host.view.define('context', function(el, props, data, context) {
+    host.view.define('context', async function(el, props, data, context) {
+        let {
+            modifiers = [],
+            content = [],
+            proxy,
+            onInit,
+            onChange
+        } = props;
+
         let localContext = context;
-        let contentStartMarker = null;
-        let contentEndMarker = null;
         let lastRender = null;
         let inited = false;
-        let { modifiers = [], content = [] } = props;
-        const { proxy, onInit, onChange } = props;
 
-        if (!Array.isArray(modifiers)) {
-            modifiers = [modifiers];
-        }
-
-        const renderModifiers = this.render(el, this.composeConfig(modifiers, {
+        await this.render(el, this.composeConfig(modifiers, {
             onInit: updateContext,
             onChange: updateContext
         }), data, context);
 
-        contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
-        contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
+        const contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
+        const contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
 
         if (proxy && (onInit || onChange)) {
             content = this.composeConfig(content, { onInit, onChange });
         }
 
-        return renderModifiers.then(() => {
-            inited = true;
-            return renderContent();
-        });
+        inited = true;
+        await renderContent();
 
-        function renderContent() {
+        async function renderContent() {
             // clear old content
             let cursor = contentEndMarker.previousSibling;
             while (cursor && cursor !== contentStartMarker) {
@@ -51,14 +48,14 @@ export default function(host) {
 
             // render new content
             const buffer = lastRender = document.createDocumentFragment();
-            return host.view
-                .render(buffer, content, data, localContext)
-                .then(() => {
-                    if (buffer === lastRender) {
-                        host.view.adoptFragment(buffer, contentStartMarker);
-                        contentStartMarker.after(buffer);
-                    }
-                });
+
+            await host.view.render(buffer, content, data, localContext);
+
+            if (buffer === lastRender) {
+                host.view.adoptFragment(buffer, contentStartMarker);
+                contentStartMarker.after(buffer);
+                lastRender = null;
+            }
         }
 
         function updateContext(value, name) {
