@@ -110,15 +110,19 @@ export default function(host) {
     const isNotObject = host.queryFn('is not object');
 
     host.view.define('table', function(el, config, data, context) {
-        let { items = data, cols, rowConfig, limit, valueCol = false } = config;
+        let { rows, cols, rowConfig, limit, valueCol = false } = config;
         let renderRowConfig;
 
-        if (isSet(items)) {
-            items = [...items];
+        if ('rows' in config === false) {
+            rows = data;
         }
 
-        if (!isArray(items)) {
-            items = items ? [items] : [];
+        if (isSet(rows)) {
+            rows = [...rows];
+        }
+
+        if (!isArray(rows)) {
+            rows = rows ? [rows] : [];
         }
 
         const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
@@ -166,7 +170,7 @@ export default function(host) {
 
             cols = [];
 
-            for (const value of items) {
+            for (const value of rows) {
                 if (isNotObject(value)) {
                     valueCol = true;
                 } else {
@@ -213,7 +217,7 @@ export default function(host) {
                 ? host.query(col.sorting, null, context)
                 : sortingFromConfig(col, host, context);
             const defaultOrder = typeof sorting === 'function'
-                ? getOrder(host, items, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
+                ? getOrder(host, rows, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
                 : 0;
 
             const headerCellEl = headEl.appendChild(createElement('th'));
@@ -229,11 +233,11 @@ export default function(host) {
                 headerCellEl.classList.add('sortable');
                 headerCellEl.addEventListener('click', () => {
                     if (headerCellEl.classList.contains('asc')) {
-                        render(items.slice().sort(sorting).reverse());
+                        render(rows.slice().sort(sorting).reverse());
                     } else if (headerCellEl.classList.contains('desc') && !defaultOrder) {
-                        render(items);
+                        render(rows);
                     } else {
-                        render(items.slice().sort(sorting));
+                        render(rows.slice().sort(sorting));
                     }
                 });
             } else {
@@ -247,7 +251,7 @@ export default function(host) {
             cols: '=is not object ? [#.cols[]] : #.cols'
         }, rowConfig);
 
-        return render(items);
+        return render(rows);
     }, {
         tag: 'table',
         usage
