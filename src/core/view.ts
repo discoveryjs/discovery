@@ -398,8 +398,8 @@ function createTooltip(host: Widget) {
             const { config } = tooltipEls.get(triggerEl) || {};
 
             return isPopupConfig(config)
-                ? config.showDelay || false
-                : false;
+                ? config.showDelay ?? true
+                : true;
         },
         render(el: HTMLElement, triggerEl: HTMLElement) {
             const { config, data, context } = tooltipEls.get(triggerEl) || {};
