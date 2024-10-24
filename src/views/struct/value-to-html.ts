@@ -3,20 +3,30 @@ import { isArray } from '../../core/utils/is-type.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 const toString = Object.prototype.toString;
+const hasOwn = Object.hasOwn || ((object, key) => Object.prototype.hasOwnProperty.call(object, key));
 
-function token(type, str) {
+function token(type: string, str: string) {
     return `<span class="${type}">${str}</span>`;
 }
 
-function more(num) {
-    return token('more', `…${numDelim(num)} more…`);
+function more(num: number) {
+    return token('more', `… ${numDelim(num)} more`);
 }
 
-export default function value2html(value, compact, options) {
+type Options = {
+    limitCollapsed: false | number;
+    limitCompactObjectEntries: false | number;
+    maxCompactPropertyLength: number;
+    maxCompactStringLength: number;
+    maxStringLength: number;
+    allowedExcessStringLength: number;
+};
+
+export default function value2html(value: unknown, compact: boolean, options: Options) {
     switch (typeof value) {
         case 'boolean':
         case 'undefined':
-            return token('keyword', value);
+            return token('keyword', String(value));
 
         case 'number':
         case 'bigint':
@@ -29,13 +39,14 @@ export default function value2html(value, compact, options) {
             return 'ƒn';
 
         case 'string': {
+            const valueLength = value.length;
             const maxLength = compact ? options.maxCompactStringLength : options.maxStringLength;
-            const shortString = value.length > maxLength + options.allowedExcessStringLength;
+            const shortString = valueLength > maxLength + options.allowedExcessStringLength;
             const stringContent = shortString
                 ? escapeHtml(JSON.stringify(value.slice(0, maxLength)).slice(1, -1))
                 : escapeHtml(JSON.stringify(value).slice(1, -1));
             const stringRest = shortString
-                ? more(value.length - maxLength)
+                ? more(valueLength - maxLength)
                 : '';
 
             return token(
@@ -52,11 +63,12 @@ export default function value2html(value, compact, options) {
             }
 
             if (isArray(value)) {
-                const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.length ? value.length : options.limitCollapsed;
+                const valueLength = value.length;
+                const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > valueLength ? valueLength : options.limitCollapsed;
                 const content = Array.from({ length: limitCollapsed }, (_, index) => value2html(value[index], true, options));
 
-                if (value.length > limitCollapsed) {
-                    content.push(`${more(value.length - limitCollapsed)} `);
+                if (valueLength > limitCollapsed) {
+                    content.push(`${more(valueLength - limitCollapsed)} `);
                 }
 
                 return `[${content.join(', ')}]`;
@@ -64,29 +76,30 @@ export default function value2html(value, compact, options) {
 
             switch (toString.call(value)) {
                 case '[object Set]': {
-                    const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > value.size
-                        ? value.size
+                    const valueSize = (value as Set<unknown>).size;
+                    const limitCollapsed = options.limitCollapsed === false || options.limitCollapsed > valueSize
+                        ? valueSize
                         : options.limitCollapsed;
-                    const iterator = value.values();
+                    const iterator = (value as Set<unknown>).values();
                     const content = Array.from({ length: limitCollapsed }, () => value2html(iterator.next().value, true, options));
 
-                    if (value.size > limitCollapsed) {
-                        content.push(`${more(value.size - limitCollapsed)} `);
+                    if (valueSize > limitCollapsed) {
+                        content.push(`${more(valueSize - limitCollapsed)} `);
                     }
 
                     return `[${content.join(', ')}]`;
                 }
 
                 case '[object Date]':
-                    return token('date', value);
+                    return token('date', String(value));
 
                 case '[object RegExp]':
-                    return token('regexp', value);
+                    return token('regexp', String(value));
             }
 
             if (compact && options.limitCompactObjectEntries === 0) {
-                for (let key in value) {
-                    if (hasOwnProperty.call(value, key)) {
+                for (const key in value) {
+                    if (hasOwn(value, key)) {
                         return '{…}';
                     }
                 }
@@ -97,11 +110,11 @@ export default function value2html(value, compact, options) {
             const limitObjectEntries = compact
                 ? options.limitCompactObjectEntries === false ? Infinity : options.limitCompactObjectEntries
                 : options.limitCollapsed === false ? Infinity : options.limitCollapsed;
-            const content = [];
+            const content: string[] = [];
             let count = 0;
 
-            for (let key in value) {
-                if (hasOwnProperty.call(value, key)) {
+            for (const key in value) {
+                if (hasOwn(value, key)) {
                     if (count < limitObjectEntries) {
                         const property = escapeHtml(key.length > options.maxCompactPropertyLength
                             ? key.slice(0, options.maxCompactPropertyLength) + '…'
