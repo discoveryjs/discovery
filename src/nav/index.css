@@ -30,7 +30,7 @@
     border-bottom-right-radius: 5px;
     transition: border-radius .25s ease-in-out;
 }
-.discovery-nav .view-nav-button.discovery-view-popup-active {
+.discovery-nav .view-nav-button.discovery-view-popup-active:not(.discovery-view-has-tooltip) {
     border-radius: 0;
 }
 .discovery-nav .view-nav-button[data-name="burger"] {

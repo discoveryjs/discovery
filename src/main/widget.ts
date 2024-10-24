@@ -356,7 +356,7 @@ export class Widget<
                 return;
             }
 
-            // do nothing when the has different origin or pathname
+            // do nothing when the link has different origin or pathname
             if (linkEl.origin !== location.origin || linkEl.pathname !== location.pathname) {
                 return;
             }
