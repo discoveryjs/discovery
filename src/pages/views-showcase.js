@@ -3,10 +3,7 @@ import renderUsage from '../views/_usage.js';
 const intro = `
 ## Working with views
 
-In Discovery.js, a presentation is set up as a tree of views.
-There are several ways to define a view, each suitable for different cases.
-The primary notation is an object, and all other notations are converted to it.
-The only required property is \`view\`, which defines the view's name. Any other properties are optional.
+In Discovery.js, presentations are organized as a tree of views. Views are defined using object notation, where the \`view\` property specifies the type, and additional properties allow further customization.
 
 \`\`\`discovery-view
 {
@@ -14,74 +11,100 @@ The only required property is \`view\`, which defines the view's name. Any other
 }
 \`\`\`
 
-The following properties are supported by any view:
-
-- \`when\`: Controls view rendering (should it be rendered or not) before input data is transformed (\`data\` is applied).
-- \`data\`: Transforms input data for the view and its nested views.
-- \`whenData\`: Controls view rendering after input data is transformed.
-- \`className\`: Adds class name(s) to the root element of the view if any.
-- \`postRender\`: A function to be invoked after view rendering but before placing it in the destination place in the DOM.
-- \`tooltip\`: Sets up a tooltip to show on view hovering; can be applied for views with a container only.
-
-The order of evaluation during view rendering:
+A view definition takes \`data\` and \`context\` values, which can be used to define properties and control rendering. Views can transform data and context (using the \`data\` and \`context\` properties) for use by the view and its descendant views, enabling clear data flow. Views are rendered by calling the render method:
 
 \`\`\`js
-                          input data | output data (the result of "data" evaluation if any)
-                                     |
-render start ---> [when] --> [data] -|-> [whenData] --> [postRender] --> [className] --> render finish
-                                     |
+discovery.view.render(containerEl, viewDefinition, data, context)
 \`\`\`
 
-When the \`data\` property is specified, it changes the flow's data according to the following rules:
+Discovery.js is designed to be declarative. For dynamic calculations or event handling, [jora](https://discoveryjs.github.io/jora/) queries are preferred over JavaScript functions.
 
-- A string: Treated as a query whose result is used as the output data.
-- A function like \`fn(data, context)\`: The result of the function invocation is used as the output data.
-- Any other value is used as the output data.
+## Common view properties
 
-> Note: Only \`when\` and \`data\` properties receive input data; any other functions and queries receive the result of the \`data\` property evaluation. When \`data\` is not specified, all queries and functions receive the same input data.
+Each view can use the following properties:
 
-Properties \`when\` and \`whenData\` can take:
+- \`view\` (required) — Specifies the view type.
+- \`when\` — Controls whether the view should be rendered. Evaluated before \`data\` transformation.
+- \`context\` — Transforms the input context for the view and its nested views.
+- \`data\` — Transforms the input data for the view and its nested views.
+- \`whenData\` — Controls rendering based on the computed \`data\`. Evaluated after \`context\` and \`data\` are set.
+- \`className\` — Adds CSS class name(s) to the root element of the view.
+- \`postRender\` — A function executed after rendering the view but before placing it in the DOM.
+- \`tooltip\` — Sets up a tooltip for the view (only applicable to views with a container element).
 
-- A string: Treated as a query.
-- \`true\`: Treated as an empty query, which means that the data itself is examined with no transformation.
-- \`undefined\`: Same as when not specified; just render (ignore the property).
-- A function like \`fn(data, context)\`.
-- Any other value is used as is.
+The sequence of property evaluation during rendering (view render lifecycle):
 
-Regardless of how the value is obtained, it is coerced to a boolean.
-Please note that Jora rules are used, which means that empty arrays and objects with no own keys are falsy (truthy in JavaScript).
-The view is only rendered if the resulting value is truthy.
+\`\`\`
+[start]               render(data, context)
+ \\                          |     |
+  * when()                  |     | // stop rendering when value is falsy
+  |\\                        |     |
+  | * context() ------------|-----* // replace \`context\` with new value
+  |  \\                      |     |
+  |   * data() -------------*     | // replace \`data\` with new value
+  |    \\                    |     |
+  |     * whenData()        |     | // stop rendering when value is falsy
+  |     |\\                  |     |
+  |     | * (render)        |     |
+  |     |  \\                |     |
+  |     |   * postRender()  |     |
+  |     |    \\              |     |
+  |     |     * className() |     |
+  |     |      \\            V     V
+  +-----+-----> * [finish render]
+\`\`\`
 
-## Queries for properties
+- \`context\` and \`data\` — Modify the flow of context or data based on the provided value:
+  - **String** — Treated as a jora query, and its result is used as the output data.
+  - **Function** (\`fn(data, context)\`) — The result of the function invocation is used.
+  - **Other values** — Directly used as output data.
 
-In some cases, it is necessary to compute the value of a property based on the data.
-To do this, you can use a string value for a property that starts with \`=\`.
-This means that everything after the \`=\` is a query that will take output data and produce a value for the property.
-Other values are passed to the view render as is, without any changes.
+- \`when\` and \`whenData\` — Determine if a view should be rendered:
+  - **String** — Treated as a jora query.
+  - \`true\` — Evaluated as an empty query, meaning the data itself is tested for truthiness.
+  - \`undefined\` — Treated as not specified, allowing rendering.
+  - **Function** (\`fn(data, context)\`) or other values — Evaluated for truthiness.
+  > Note: In jora, empty arrays and objects with no own keys are falsy, unlike JavaScript where they are truthy.
 
-For example, limit the number of items rendered at once only if there are more than 12 items:
+Example:
 
 \`\`\`discovery-view
 {
     view: 'list',
-    limit: '=size() <= 12 ? false : 10'
+    data: 'some.list.sort(name asc)', // Fetch an array for the list view, based on current data
+    whenData: 'size() > 0',  // Check if the array has elements, skip rendering if empty
+    item: 'text:name' // Render each element as text, displaying the name
 }
 \`\`\`
 
-> Note: In those rare cases when you need to pass a property a string that starts with \`=\`, you can use a query like \`"=some string"\`, e.g., \`{ view: 'example', prop: '="=string="' }\`.
+## Computable property values
+
+If a property starts with \`=\`, it indicates a jora query used to compute the value. This helps in dynamically computing values based on data.
+
+Example:
+
+\`\`\`discovery-view
+{
+    view: 'list',
+    limit: '=size() <= 12 ? false : 10' // Dynamically computes the limit based on data properties
+}
+\`\`\`
+
+> To pass a literal string that starts with \`=\`, use a query like \`"=some string"\`.
 
 ## Shorthand notations
 
-| Shorthand notation | Expands into... |
-| --- | --- |
-| \`'name'\` | \`{ view: 'name' }\`
-| \`'name:<query>'\` | \`{ view: 'name', data: '<query>' }\`
-| \`'name{ foo: size() / 2, bar: "qux" }'\` | \`{ view: 'name', foo: '=size() / 2', bar: 'qux' }\`
+Discovery.js supports shorthand notations for defining views, making the configuration more concise:
 
-## List of views
+| Shorthand notation                      | Expanded form                                      |
+| --------------------------------------- | -------------------------------------------------- |
+| \`'name'\`                                | \`{ view: 'name' }\`                                 |
+| \`'name:<query>'\`                        | \`{ view: 'name', data: '<query>' }\`                |
+| \`'name{ foo: size() / 2, bar: "qux" }'\` | \`{ view: 'name', foo: '=size() / 2', bar: 'qux' }\` |
 
-If you need to specify a list of views, you must use an array.
-An array with view definitions can be passed anywhere a view is accepted as a value.
+## Lists of views
+
+Multiple views can be combined into a list using an array. This is useful when a view contains nested elements that should each be rendered separately.
 
 \`\`\`discovery-view
 [
@@ -96,31 +119,42 @@ An array with view definitions can be passed anywhere a view is accepted as a va
 ]
 \`\`\`
 
-## Tooltip
+## Tooltips
 
-A canonical form for a tooltip setup is an object with fields (all are optional, defaults provided below):
+Tooltips can be configured using a simple view definition or an object with additional settings. When the \`tooltip\` value is a view definition, it becomes the \`content\` of the tooltip.
 
-\`\`\`js
+\`\`\`discovery-view
 {
-    className: 'string',     // additional class names for tooltip's element
-    position: 'pointer',     // 'trigger' or 'pointer'
-    positionMode: 'natural', // 'safe' or 'natural'
-    pointerOffsetX: 3,       // tooltip offset from the pointer
-    pointerOffsetY: 3,       // tooltip offset from the pointer
-    showDelay: true,         // true (300ms), false (0ms), a number, or a function which takes a triggerEl and returns showDelay value
-    content: 'a view config' // view config for tooltip's content
+    view: 'button',
+    tooltip: 'md:"Some **content**"'
 }
 \`\`\`
 
-Instead of such an object, any view notation can be used, i.e., a string, an object with a \`view\` property, an array, or a function:
+\`\`\`discovery-view
+{
+    view: 'button',
+    tooltip: {
+        position: 'trigger',
+        content: 'md:"Some **content**"'
+    }
+}
+\`\`\`
 
-| Shorthand notation | Expands into... |
-| --- | --- |
-| \`'name'\` | \`{ content: 'name' }\`
-| \`{ view: 'name' }\` | \`{ content: { view: 'name' } }\`
-| \`['view', { view: 'name' }]\` | \`{ content: ['view', { view: 'name' }] }\`
+| Tooltip value                     | Normalized tooltip config                      |
+| --------------------------------- | ---------------------------------------------- |
+| \`'shorthand-view-notation'\`       | \`{ content: 'shorthand-view-notation' }\`       |
+| \`{ view: 'name', ... }\`           | \`{ content: { view: 'name', ... } }\`           |
+| \`['view', { view: 'name', ... }]\` | \`{ content: ['view', { view: 'name', ... }] }\` |
 
-The content is rendered into a popup container. When \`className\` is used, it behaves the same as for a view but applies to a popup container.
+Tooltip options:
+
+- \`className\` — Additional class names for the tooltip element.
+- \`position\` — Where the tooltip is positioned. Options are \`'trigger'\` or \`'pointer'\` (default).
+- \`positionMode\` — Positioning mode. Options are \`'natural'\` (default) or \`'safe'\`.
+- \`pointerOffsetX\` — Horizontal offset from the pointer (default: 3).
+- \`pointerOffsetY\` — Vertical offset from the pointer (default: 3).
+- \`showDelay\` — Delay before showing the tooltip. Options are \`true\` (300ms, default), \`false\` (0ms), a number, or a function that returns a boolean or numeric value.
+- \`content\` — View configuration for tooltip content.
 `;
 
 export default function(host) {
