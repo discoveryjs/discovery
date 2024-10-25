@@ -1,3 +1,13 @@
+## next
+
+- Modified `PageRenderer#define()` and `ViewRenderer#define()` to allow specifying all options with a single config parameter:
+  ```js
+  // new signature
+  discovery.page.define('example', { render: [/* ... */], ...restOptions });
+  // old signature remains compatible
+  discovery.page.define('example', [/* ... */], { /* options */ });
+  ```
+
 ## 1.0.0-beta.88 (24-10-2024)
 
 - Added `context` option for all views, which executes before `data` and replaces the input context value with its result

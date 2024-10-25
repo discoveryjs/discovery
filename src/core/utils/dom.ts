@@ -53,6 +53,10 @@ export function createText(text: any) {
     return document.createTextNode(String(text));
 }
 
+export function isDocumentFragment(value: Node): value is DocumentFragment {
+    return value.nodeType === Node.DOCUMENT_FRAGMENT_NODE;
+}
+
 export function createFragment(...children: (Node | string)[]) {
     const fragment = document.createDocumentFragment();
 

@@ -2,6 +2,7 @@
 
 import type { Widget } from '../main/widget.js';
 import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
+import { isDocumentFragment } from './utils/dom.js';
 import { hasOwn } from './utils/object-utils.js';
 import { Preset } from './preset.js';
 import Dict from './dict.js';
@@ -9,8 +10,9 @@ import Dict from './dict.js';
 export type RenderContext = ReturnType<typeof createRenderContext>;
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
 type ViewRenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
-type ViewNormalizePropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
-type DefineViewConfig = ViewRenderFunction | RawViewConfig;
+type NormalizedViewPropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
+type DefineViewRender = ViewRenderFunction | RawViewConfig;
+type ViewUsage = any; // TODO: define a type
 export type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
 export type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
 type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
@@ -35,20 +37,22 @@ type ViewTreeNode = {
     viewRoot?: RootViewInfo;
 }
 
-interface ViewOptions {
-    tag?: string | false | null;
-    usage?: any;
-    props?: ViewNormalizePropsFunction | string
+export interface ViewOptions {
+    tag: string | false | null;
+    render: DefineViewRender;
+    usage: ViewUsage;
+    props: NormalizedViewPropsFunction | string;
 }
-interface ViewNormalizedOptions {
-    tag?: string | null;
-    usage?: any;
-    props?: ViewNormalizePropsFunction
+export type ViewOptionsWithoutRender = Exclude<ViewOptions, 'render'>;
+export interface NormalizedViewOptions {
+    tag: string | null | undefined;
+    usage?: ViewUsage;
+    props?: NormalizedViewPropsFunction;
 }
 
 interface View {
     name: string | false;
-    options: ViewNormalizedOptions;
+    options: NormalizedViewOptions;
     render: RenderFunction;
 }
 export interface SingleViewConfig {
@@ -67,7 +71,7 @@ type RenderProps = {
 }
 type PropsTransition = {
     props: any;
-    fn: ViewNormalizePropsFunction & { query?: string };
+    fn: NormalizedViewPropsFunction & { query?: string };
 };
 
 interface ViewInfo {
@@ -100,7 +104,7 @@ type TooltipInfo = {
     context: any;
 };
 
-const STUB_OBJECT = Object.freeze({});
+const STUB_VIEW_OPTIONS: NormalizedViewOptions = Object.freeze({ tag: undefined });
 const STUB_CONFIG: SingleViewConfig = Object.freeze({ view: '' });
 const tooltipEls = new WeakMap<HTMLElement, TooltipInfo>();
 const rootViewEls = new WeakMap<HTMLElement, RootViewInfo>();
@@ -117,8 +121,12 @@ const configOnlyProps = new Set<RenderPropsForbiddenKeys>([
     'tooltip'
 ]);
 
-function isDocumentFragment(value: HTMLElement | DocumentFragment): value is DocumentFragment {
-    return value.nodeType === Node.DOCUMENT_FRAGMENT_NODE;
+export function isRawViewConfig(value: unknown): value is RawViewConfig {
+    return (
+        typeof value === 'string' ||
+        Array.isArray(value) ||
+        (value !== null && typeof value === 'object' && typeof((value as any).view) === 'string')
+    );
 }
 
 function regConfigTransition<T extends object>(res: T, from: any): T {
@@ -182,7 +190,7 @@ function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTre
 function createDefaultRenderErrorView(view: ViewRenderer): View {
     return {
         name: 'config-error',
-        options: STUB_OBJECT,
+        options: STUB_VIEW_OPTIONS,
         render(el: HTMLElement, config: ErrorData) {
             el.className = 'discovery-buildin-view-render-error';
             el.dataset.type = config.type;
@@ -475,7 +483,7 @@ async function render(
         case 'function':
             renderer = {
                 name: false,
-                options: STUB_OBJECT,
+                options: STUB_VIEW_OPTIONS,
                 render: config.view
             };
             break;
@@ -604,8 +612,14 @@ export default class ViewRenderer extends Dict<View> {
         this.tooltip = null;
     }
 
-    define(name: string, render: DefineViewConfig, options?: ViewOptions) {
-        const { tag, props } = options || {};
+    define(name: string, render: DefineViewRender, options?: ViewOptionsWithoutRender): Readonly<View>;
+    define(name: string, options: ViewOptions): Readonly<View>;
+    define(name: string, _render: DefineViewRender | ViewOptions, _options?: ViewOptions) {
+        const options: Partial<ViewOptions> = isRawViewConfig(_render) || typeof _render === 'function'
+            ? { ..._options, render: _render }
+            : _render;
+        const { render = [], ...optionsWithoutRender } = options;
+        const { tag, props } = optionsWithoutRender;
 
         return ViewRenderer.define<View>(this, name, Object.freeze({
             name,
@@ -713,7 +727,7 @@ export default class ViewRenderer extends Dict<View> {
         config: SingleViewConfig,
         data: any,
         context: any,
-        fn: ViewNormalizePropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
+        fn: NormalizedViewPropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
     ) {
         let props: Record<string, any> = {}; // regConfigTransition({}, config);
 

@@ -4,17 +4,20 @@ import Dict from './dict.js';
 import { Observer } from './observer.js';
 import { createElement } from './utils/dom.js';
 import type ViewRenderer from './view.js';
-import type { RawViewConfig } from './view.js';
+import { isRawViewConfig, type RawViewConfig } from './view.js';
 import type { Widget, PageParams } from '../main/index.js';
 
 export type PageOptionName = keyof PageOptions;
+export type PageOptionRender = RawViewConfig | Page['render'];
 export type PageOptions = {
     reuseEl: boolean;
     init(newPageEl: HTMLElement): void;
+    render: PageOptionRender;
     keepScrollOffset: boolean;
     encodeParams(params: PageParams): [string, any][] | string;
     decodeParams(params: [string, string | boolean][]): Record<string, unknown>;
 };
+export type PageOptionsWithoutRender = Exclude<PageOptions, 'render'>;
 export type Page = {
     name: string;
     render(el: HTMLElement, data: any, context: any): any;
@@ -78,13 +81,24 @@ export default class PageRenderer extends Dict<Page> {
         }
     }
 
-    define(name: string, render: RawViewConfig | Page['render'], options?: PageOptions) {
+    define(name: string, options: PageOptions): Readonly<Page>;
+    define(name: string, render: PageOptionRender, options?: PageOptionsWithoutRender): Readonly<Page>;
+    define(name: string, _render: PageOptionRender | PageOptions, _options?: PageOptionsWithoutRender): Readonly<Page> {
+        const options: Partial<PageOptions> = isRawViewConfig(_render) || typeof _render === 'function'
+            ? { ..._options, render: _render }
+            : _render;
+        const { render, ...optionsWithoutRender } = options;
+
+        if (render === undefined) {
+            throw new Error(`Page "${name}" requires a specified render option`);
+        }
+
         return PageRenderer.define(this, name, Object.freeze({
             name,
             render: typeof render === 'function'
                 ? render.bind(this.#view)
                 : (el, data, context) => this.#view.render(el, render, data, context),
-            options: Object.freeze({ ...options }),
+            options: Object.freeze(optionsWithoutRender),
             [CONFIG]: render
         } satisfies Page));
     }
