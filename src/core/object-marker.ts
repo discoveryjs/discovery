@@ -39,7 +39,7 @@ export type ObjectMarker<T> = {
     name: string;
     page: string | null;
     mark(value: T): void;
-    lookup(value: unknown, x?: boolean): ObjectMarkerDescriptor<T> | null;
+    lookup(value: unknown, useAnnotateScalars?: boolean): ObjectMarkerDescriptor<T> | null;
     reset(): void;
 };
 
