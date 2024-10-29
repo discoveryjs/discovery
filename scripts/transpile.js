@@ -6,7 +6,7 @@ import esbuild from 'esbuild';
 
 const srcpath = resolvePath('../src');
 const dstpath = resolvePath('../lib');
-const detVersionFilename = path.join(dstpath, 'version.js');
+const dstVersionFilename = path.join(dstpath, 'version.js');
 const { version } = JSON.parse(fs.readFileSync(resolvePath('../package.json')));
 
 function resolvePath(p) {
@@ -53,8 +53,8 @@ export async function compile() {
         });
     } catch {}
 
-    replaceFileContent(detVersionFilename, content => content.replace('0.0.0-dev', version));
-    replaceFileContent(detVersionFilename.replace('.js', '.d.ts'), content => content.replace('0.0.0-dev', version));
+    replaceFileContent(dstVersionFilename, content => content.replace('0.0.0-dev', version));
+    replaceFileContent(dstVersionFilename.replace('.js', '.d.ts'), content => content.replace('0.0.0-dev', version));
 
     console.log(`Compiled in ${Date.now() - startTime} ms`);
 }
