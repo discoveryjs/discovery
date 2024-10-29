@@ -1,19 +1,18 @@
 /* eslint-env browser */
 import { hasOwn } from './object-utils.js';
 
-type EventHandler<Element, Event> = (this: Element, evt: Event) => void;
-type Attrs<TagName extends keyof HTMLElementTagNameMap> = {
-  [key in keyof HTMLElementEventMap as `on${key}`]?: EventHandler<
-    HTMLElementTagNameMap[TagName],
-    HTMLElementEventMap[key]
-  >;
+export type CreateElementAttrs<TagName extends keyof HTMLElementTagNameMap> = {
+  [key in keyof HTMLElementEventMap as `on${key}`]?: (
+    this: HTMLElementTagNameMap[TagName],
+    evt: HTMLElementEventMap[key]
+  ) => void;
 } & {
   [key: string]: any | undefined; // TODO: replace "any" with "string"
 };
 
 export function createElement<TagName extends keyof HTMLElementTagNameMap>(
     tag: TagName,
-    attrs?: Attrs<TagName> | string | null,
+    attrs?: CreateElementAttrs<TagName> | string | null,
     children?: (Node | string)[] | string
 ) {
     const el = document.createElement(tag);

@@ -1,5 +1,5 @@
 import type { InitValue } from './core/darkmode.js';
-import type { Style } from './core/utils/inject-styles.js';
+import type { InjectStyle } from './core/utils/inject-styles.js';
 import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from './core/utils/load-data.js';
 import { hasOwn } from './core/utils/object-utils.js';
 import { randomId } from './core/utils/id.js';
@@ -12,7 +12,7 @@ type PushDataLoading = ReturnType<typeof dataSource['push']>;
 export type PreloaderOptions = {
     dataSource: keyof typeof dataSource;
     container: HTMLElement;
-    styles: Style[];
+    styles: InjectStyle[];
     darkmode: InitValue;
     darkmodePersistent: boolean;
     embed: boolean;

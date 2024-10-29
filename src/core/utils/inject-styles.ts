@@ -1,18 +1,18 @@
 import { createElement } from './dom.js';
 
-export type Style = string | InlineStyle | LinkStyle;
-export type InlineStyle = {
+export type InjectStyle = string | InjectInlineStyle | InjectLinkStyle;
+export type InjectInlineStyle = {
     type: 'style' | 'inline';
     content: string;
     media?: string;
 };
-export type LinkStyle = {
+export type InjectLinkStyle = {
     type: 'link' | 'external';
     href: string;
     media?: string;
 };
 
-export async function injectStyles(el: HTMLElement | ShadowRoot, styles?: Style[]) {
+export async function injectStyles(el: HTMLElement | ShadowRoot, styles?: InjectStyle[]) {
     const foucFix = createElement('style', null, ':host{display:none}');
     const awaitingStyles = new Set<Promise<void>>();
 

@@ -2,7 +2,7 @@ import { InitValue, resolveDarkmodeValue } from '../darkmode.js';
 
 type Styles = Record<string, string>;
 type SavedStyles = Record<string, [string, string]>;
-type ApplyContainerStylesOptions = {
+export type ApplyContainerStylesOptions = {
     darkmode?: InitValue,
     darkmodePersistent?: boolean;
 };

@@ -16,6 +16,10 @@
             "discovery-dev": "./src/lib.js",
             "default": "./lib/lib.js"
         },
+        "./utils": {
+            "discovery-dev": "./src/core/utils/index.js",
+            "default": "./lib/core/utils/index.js"
+        },
         "./dist/*": "./dist/*",
         "./lib/*": "./lib/*",
         "./src/*": {

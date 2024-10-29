@@ -1,6 +1,6 @@
 import { objectToString } from './object-utils.js';
 
-type TypedArray =
+export type TypedArray =
     | Uint8Array
     | Uint8ClampedArray
     | Uint16Array

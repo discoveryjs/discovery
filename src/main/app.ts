@@ -2,7 +2,7 @@
 
 import type { SetDataProgressOptions, ViewModelEvents, ViewModelOptions } from './view-model.js';
 import type { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
-import type { Style } from '../core/utils/inject-styles.js';
+import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { ProgressbarOptions } from '../core/utils/progressbar.js';
 import type { UploadOptions } from '../extensions/upload.js';
 import { hasOwn } from '../core/utils/object-utils.js';
@@ -222,7 +222,7 @@ export class App<
         super.unloadData();
     }
 
-    initDom(styles?: Style[]) {
+    initDom(styles?: InjectStyle[]) {
         super.initDom(styles);
 
         this.dom.container.append(

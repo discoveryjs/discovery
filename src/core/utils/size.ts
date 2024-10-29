@@ -3,6 +3,8 @@ import { Observer } from '../observer.js';
 const resizeObserverSupported = typeof ResizeObserver === 'function';
 
 export class ContentRect extends Observer<DOMRectReadOnly | null> {
+    static supported = resizeObserverSupported;
+
     private el: HTMLElement | null;
     private observer: ResizeObserver | null;
 

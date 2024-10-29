@@ -4,12 +4,12 @@
  * Adopted for Discovery.js project
  */
 
-type Options = {
+export type DebounceOptions = {
     wait: number;
     maxWait?: number;
     leading?: boolean;
 }
-type DebounceMethods<R> = {
+export type DebounceMethods<R> = {
     cancel(): void;
     flush(): R;
     pending(): boolean;
@@ -85,7 +85,7 @@ export function debounce<
     T extends (...args: A) => R,
     A extends any[],
     R
->(func: T, options?: Options | number): T & DebounceMethods<R> {
+>(func: T, options?: DebounceOptions | number): T & DebounceMethods<R> {
     if (typeof func !== 'function') {
         throw new TypeError('Expected a function');
     }

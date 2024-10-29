@@ -1,6 +1,10 @@
 import { Emitter } from '../emitter.js';
 
 export type StorageType = 'localStorage' | 'sessionStorage';
+export type StorageMap = Map<string, PersistentKey> & {
+    storage: Storage | null;
+    getOrCreate: PersistentKeyGetOrCreate;
+};
 export type PersistentValue = string | null;
 export type PersistentKey = {
     readonly value: PersistentValue,
@@ -15,11 +19,7 @@ export type PersistentKeyEvents = {
     change: [value: PersistentValue];
     foo: [];
 }
-export type StorageMap = Map<string, PersistentKey> & {
-    storage: Storage | null;
-    getOrCreate: GetOrCreate;
-};
-export type GetOrCreate = ((key: string) => PersistentKey) & {
+export type PersistentKeyGetOrCreate = ((key: string) => PersistentKey) & {
     available: boolean;
 };
 

@@ -1,21 +1,21 @@
 import { Observer } from '../observer.js';
 import { createElement } from './dom.js';
 
-export type Stage = keyof typeof loadStages;
-export type Timing = {
-    stage: Stage;
+export type ProgressbarStage = keyof typeof loadStages;
+export type ProgressbarTiming = {
+    stage: ProgressbarStage;
     title: string;
     duration: number;
 };
-export type OnTimingCallback = (timing: Timing) => void;
-export type OnFinishCallback = (timings: Timing[] & { awaitRepaintPenaltyTime: number }) => void;
+export type ProgressbarOnTimingCallback = (timing: ProgressbarTiming) => void;
+export type ProgressbarOnFinishCallback = (timings: ProgressbarTiming[] & { awaitRepaintPenaltyTime: number }) => void;
 export type ProgressbarOptions = Partial<{
-    onTiming: OnTimingCallback;
-    onFinish: OnFinishCallback;
+    onTiming: ProgressbarOnTimingCallback;
+    onFinish: ProgressbarOnFinishCallback;
     domReady: Promise<any>;
 }>;
 export type ProgressbarState = {
-    stage: Stage;
+    stage: ProgressbarStage;
     progress: {
         done: boolean;
         elapsed: number;
@@ -86,7 +86,7 @@ const letRepaintIfNeeded = async () => {
     }
 };
 
-export function decodeStageProgress(stage: Stage, progress: ProgressbarState['progress'], step?: string) {
+export function decodeStageProgress(stage: ProgressbarStage, progress: ProgressbarState['progress'], step?: string) {
     const { value, title: stageTitle, duration } = loadStages[stage];
     let progressValue = 0;
     let progressText: string | null = null;
@@ -132,9 +132,9 @@ export class Progressbar extends Observer<ProgressbarState> {
     awaitRepaintPenaltyTime: number;
     finished: boolean;
     awaitRepaint: number | null;
-    timings: Timing[];
-    onTiming: OnTimingCallback;
-    onFinish: OnFinishCallback;
+    timings: ProgressbarTiming[];
+    onTiming: ProgressbarOnTimingCallback;
+    onFinish: ProgressbarOnFinishCallback;
     appearanceDelay: number;
     domReady: Promise<any>;
     el: HTMLElement;
@@ -163,8 +163,8 @@ export class Progressbar extends Observer<ProgressbarState> {
         ]);
     }
 
-    recordTiming(stage: Stage, start: number, end = performance.now()) {
-        const entry: Timing = {
+    recordTiming(stage: ProgressbarStage, start: number, end = performance.now()) {
+        const entry: ProgressbarTiming = {
             stage,
             title: loadStages[stage].title,
             duration: int(end - start)

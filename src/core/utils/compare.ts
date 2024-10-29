@@ -7,7 +7,7 @@ export function equal(a: any, b: any, compare = Object.is) {
         return true;
     }
 
-    if (!a || typeof a !== 'object' || !b || typeof b !== 'object') {
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
         return false;
     }
 

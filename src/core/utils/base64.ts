@@ -57,10 +57,10 @@ export function encodeBytes(input: string | number[] | Uint8Array): Uint8Array {
 }
 
 export function decode(input: string): string {
-    return decoder.decode(decodeBase64Bytes(input));
+    return decoder.decode(decodeBytes(input));
 }
 
-export function decodeBase64Bytes(input: string): Uint8Array {
+export function decodeBytes(input: string): Uint8Array {
     let inputSize = input.length;
 
     // ignore trailing "=" (padding)

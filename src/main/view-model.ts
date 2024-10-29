@@ -2,7 +2,7 @@
 
 import type { ModelEvents, ModelOptions, PageParams, PageRef, SetDataOptions } from './model.js';
 import type { Dataset } from '../core/utils/load-data.js';
-import type { Style } from '../core/utils/inject-styles.js';
+import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { PageOptionName, PageOptions } from '../core/page.js';
 import type { SingleViewConfig } from '../core/view.js';
 import type { Progressbar } from '../core/utils/progressbar.js';
@@ -63,7 +63,7 @@ export interface ViewModelEvents extends ModelEvents {
 }
 export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
     container: HTMLElement;
-    styles: Style[];
+    styles: InjectStyle[];
 
     compact: boolean;
     darkmode: InitValue;
@@ -324,7 +324,7 @@ export class ViewModel<
     // UI
     //
 
-    initDom(styles?: Style[]) {
+    initDom(styles?: InjectStyle[]) {
         const wrapper = createElement('div', 'discovery');
         const shadow = wrapper.attachShadow({ mode: 'open' });
         const readyStyles = injectStyles(shadow, styles);

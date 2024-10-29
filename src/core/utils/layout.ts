@@ -1,6 +1,6 @@
 /* eslint-env browser */
 const { documentElement } = document;
-const standartsMode = document.compatMode === 'CSS1Compat';
+const standardsMode = document.compatMode === 'CSS1Compat';
 
 export function getOffsetParent(node: HTMLElement) {
     let offsetParent = node.offsetParent as HTMLElement;
@@ -42,7 +42,7 @@ export function getPageOffset(element: HTMLElement | null = null) {
         left = -rect.left;
     } else {
         // offset relative to page
-        if (standartsMode) {
+        if (standardsMode) {
             top = window.pageYOffset || documentElement.scrollTop;
             left = window.pageXOffset || documentElement.scrollLeft;
         } else {
@@ -90,7 +90,7 @@ export function getViewportRect(
     element: HTMLElement | Window,
     relElement: HTMLElement | null = null
 ) {
-    const topViewport = standartsMode ? document.documentElement : document.body;
+    const topViewport = standardsMode ? document.documentElement : document.body;
     let { top, left } = element === topViewport && !relElement
         ? getPageOffset()
         : getBoundingRect(element, relElement);

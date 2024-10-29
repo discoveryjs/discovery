@@ -12,7 +12,7 @@ function matchWithString(str: string, pattern: string, lastIndex: number) {
     return offset !== -1 ? { offset, length: pattern.length } : null;
 };
 
-export function has(text: string, pattern: RegExp | string | null, ignoreCase = false) {
+export function match(text: string, pattern: RegExp | string | null, ignoreCase = false) {
     if (isRegExp(pattern)) {
         return ignoreCase && !pattern.ignoreCase
             ? new RegExp(pattern, pattern.flags + 'i').test(text)
