@@ -1,8 +1,8 @@
+import type { ViewModel } from '../main/view-model.js';
+import type { NormalizedViewConfig, RawViewConfig, SingleViewConfig, ViewPopup } from '../core/view.js';
 import { createElement, createFragment } from '../core/utils/dom.js';
 import { ContentRect } from '../core/utils/size.js';
 import { version } from '../version.js';
-import type { Widget } from '../main/widget.js';
-import type { NormalizedViewConfig, RawViewConfig, SingleViewConfig, ViewPopup } from '../core/view.js';
 
 export type NavItemConfig = Omit<SingleViewConfig, 'view'> & { view?: string };
 export type NavItem = NormalizedViewConfig & {
@@ -11,10 +11,10 @@ export type NavItem = NormalizedViewConfig & {
 
 export class NavItemArray {
     items: NavItem[];
-    host: Widget;
+    host: ViewModel;
     baseConfig: RawViewConfig | undefined;
 
-    constructor(host: Widget, baseConfig?: RawViewConfig) {
+    constructor(host: ViewModel, baseConfig?: RawViewConfig) {
         this.host = host;
         this.baseConfig = baseConfig;
         this.items = [];
@@ -81,8 +81,8 @@ export class NavItemArray {
 }
 
 export * as buttons from './buttons.js';
-export class WidgetNavigation extends NavItemArray {
-    host: Widget;
+export class ViewModelNavigation extends NavItemArray {
+    host: ViewModel;
     popup: ViewPopup | null;
     data: any;
     context: any;
@@ -92,7 +92,7 @@ export class WidgetNavigation extends NavItemArray {
     menu: NavItemArray;
     contentRect: ContentRect;
 
-    constructor(host: Widget, baseConfig: RawViewConfig = 'nav-button') {
+    constructor(host: ViewModel, baseConfig: RawViewConfig = 'nav-button') {
         super(host, baseConfig);
 
         const poweredByDiscovery = createElement('div', 'powered-by-discoveryjs', [

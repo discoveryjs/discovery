@@ -1,5 +1,5 @@
+import type { ViewModel } from '../main/view-model.js';
 import { createElement } from '../core/utils/dom.js';
-import { Widget } from '../main/widget.js';
 
 // export an integration with default settings
 export default Object.assign(setup(), { setup });
@@ -13,7 +13,7 @@ const isExtension = (value: string) => /^\./.test(value);
 function setup(options?: UploadOptions) {
     options = options || {};
 
-    return function(host: Widget) {
+    return function(host: ViewModel) {
         const dragdrop = Boolean(options.dragdrop || options.dragdrop === undefined);
         const accept = options.accept
             ? String(options.accept)

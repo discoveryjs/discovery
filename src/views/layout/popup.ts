@@ -1,8 +1,8 @@
 /* eslint-env browser */
+import type { ViewModel } from '../../main/view-model.js';
 import { getOffsetParent, getBoundingRect, getViewportRect } from '../../core/utils/layout.js';
 import { passiveCaptureOptions } from '../../core/utils/dom.js';
 import { pointerXY } from '../../core/utils/pointer.js';
-import { Widget } from '../../lib.js';
 
 export type PopupTriggerEl = HTMLElement | null | undefined;
 export type PopupRender = (el: HTMLElement, triggerEl: PopupTriggerEl, hide: () => void) => void;
@@ -57,7 +57,7 @@ function isHoverPinModeValue(value: unknown): value is PopupOptions['hoverPin'] 
     return hoverPinModes.includes(value as PopupOptions['hoverPin']);
 }
 
-export default function(host: Widget) {
+export default function(host: ViewModel) {
     const openedPopups: Popup[] = [];
     const delayedToShowPopups = new Set<Popup>();
     const hoverTriggerInstances: Popup[] = [];

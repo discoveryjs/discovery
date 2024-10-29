@@ -12,7 +12,7 @@ import { deepEqual } from '../core/utils/compare.js';
 import { hasOwn } from '../core/utils/object-utils.js';
 import { DarkModeController, InitValue } from '../core/darkmode.js';
 import { Observer } from '../core/observer.js';
-import { WidgetNavigation } from '../nav/index.js';
+import { ViewModelNavigation } from '../nav/index.js';
 import { Model } from './model.js';
 import PageRenderer from '../core/page.js';
 import ViewRenderer from '../core/view.js';
@@ -41,7 +41,7 @@ function setDatasetValue(el: HTMLElement, key: string, value: any) {
     }
 }
 
-function getPageOption<K extends PageOptionName>(host: Widget, pageId: string, name: K, fallback: PageOptions[K]) {
+function getPageOption<K extends PageOptionName>(host: ViewModel, pageId: string, name: K, fallback: PageOptions[K]) {
     const options = host.page.get(pageId)?.options;
 
     return options !== undefined && hasOwn(options, name)
@@ -49,7 +49,7 @@ function getPageOption<K extends PageOptionName>(host: Widget, pageId: string, n
         : fallback;
 }
 
-function getPageMethod<K extends PageOptionName>(host: Widget, pageId: string, name: K, fallback: PageOptions[K]) {
+function getPageMethod<K extends PageOptionName>(host: ViewModel, pageId: string, name: K, fallback: PageOptions[K]) {
     const method = getPageOption(host, pageId, name, fallback);
 
     return typeof method === 'function'
@@ -57,11 +57,11 @@ function getPageMethod<K extends PageOptionName>(host: Widget, pageId: string, n
         : fallback;
 }
 
-export interface WidgetEvents extends ModelEvents {
+export interface ViewModelEvents extends ModelEvents {
     startSetData: [subscribe: (...args: Parameters<Progressbar['subscribeSync']>) => void];
     pageHashChange: [replace: boolean];
 }
-export interface WidgetOptions<T = Widget> extends ModelOptions<T> {
+export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
     container: HTMLElement;
     styles: Style[];
 
@@ -76,18 +76,18 @@ export interface WidgetOptions<T = Widget> extends ModelOptions<T> {
 
     inspector: boolean;
 }
-type WidgetOptionsBind = WidgetOptions; // to fix: Type parameter 'Options' has a circular default.
+type ViewModelOptionsBind = ViewModelOptions; // to fix: Type parameter 'Options' has a circular default.
 
-export class Widget<
-    Options extends WidgetOptions = WidgetOptionsBind,
-    Events extends WidgetEvents = WidgetEvents
+export class ViewModel<
+    Options extends ViewModelOptions = ViewModelOptionsBind,
+    Events extends ViewModelEvents = ViewModelEvents
 > extends Model<Options, Events> {
     compact: boolean;
     darkmode: DarkModeController;
     inspectMode: Observer<boolean>;
 
     view: ViewRenderer;
-    nav: WidgetNavigation;
+    nav: ViewModelNavigation;
     preset: PresetRenderer;
     page: PageRenderer;
     #renderScheduler: Set<RenderSubject> & { timer?: Promise<void> | null };
@@ -141,7 +141,7 @@ export class Widget<
         this.initDom(styles);
 
         this.view = new ViewRenderer(this);
-        this.nav = new WidgetNavigation(this);
+        this.nav = new ViewModelNavigation(this);
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this, this.view);
         this.#renderScheduler = new Set();
@@ -262,16 +262,16 @@ export class Widget<
         const config: SingleViewConfig = { view };
 
         if (ast.type !== 'Block') {
-            throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must be a "Block"');
+            throw new SyntaxError('[Discovery] ViewModel#queryToConfig(): query root must be a "Block"');
         }
 
         if (ast.body.type !== 'Object') {
-            throw new SyntaxError('[Discovery] Widget#queryToConfig(): query root must return an "Object"');
+            throw new SyntaxError('[Discovery] ViewModel#queryToConfig(): query root must return an "Object"');
         }
 
         for (const entry of ast.body.properties) {
             if (entry.type !== 'ObjectEntry') {
-                throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object entry type "' + entry.type + '"');
+                throw new SyntaxError('[Discovery] ViewModel#queryToConfig(): unsupported object entry type "' + entry.type + '"');
             }
 
             let key: string;
@@ -292,11 +292,11 @@ export class Widget<
                     break;
 
                 default:
-                    throw new SyntaxError('[Discovery] Widget#queryToConfig(): unsupported object key type "' + entry.key.type + '"');
+                    throw new SyntaxError('[Discovery] ViewModel#queryToConfig(): unsupported object key type "' + entry.key.type + '"');
             }
 
             if (key === 'view' || key === 'postRender') {
-                throw new SyntaxError('[Discovery] Widget#queryToConfig(): set a value for "' + key + '" property in shorthand notation is prohibited');
+                throw new SyntaxError('[Discovery] ViewModel#queryToConfig(): set a value for "' + key + '" property in shorthand notation is prohibited');
             }
 
             // when / data / whenData properties take string values as a jora query

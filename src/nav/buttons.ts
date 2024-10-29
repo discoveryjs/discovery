@@ -1,7 +1,7 @@
+import type { ViewModel } from '../main/view-model.js';
 import type { ViewPopup } from '../core/view.js';
-import type { Widget } from '../main/widget.js';
 
-export function indexPage(host: Widget) {
+export function indexPage(host: ViewModel) {
     host.nav.append({
         name: 'index-page',
         when: '#.widget | pageId != defaultPageId',
@@ -9,7 +9,7 @@ export function indexPage(host: Widget) {
     });
 }
 
-export function discoveryPage(host: Widget) {
+export function discoveryPage(host: ViewModel) {
     host.nav.append({
         name: 'discovery-page',
         when: '#.widget | pageId != discoveryPageId',
@@ -17,7 +17,7 @@ export function discoveryPage(host: Widget) {
     });
 }
 
-export function loadData(host: Widget) {
+export function loadData(host: ViewModel) {
     host.nav.append({
         name: 'load-data',
         when: '#.actions.uploadFile and (#.datasets or (#.widget | pageId != defaultPageId))',
@@ -26,14 +26,14 @@ export function loadData(host: Widget) {
     });
 }
 
-export function darkmodeToggle(host: Widget) {
+export function darkmodeToggle(host: ViewModel) {
     let detachToggleDarkMode = () => {};
     host.nav.menu.append({
         view: 'block',
         className: ['toggle-menu-item', 'dark-mode-switcher'],
         name: 'dark-mode',
         when: '#.widget | darkmode.mode not in ["disabled", "only"]',
-        postRender: (el: HTMLElement, opts: any, data: any, { widget, hide }: { widget: Widget, hide: ViewPopup['hide'] }) => {
+        postRender: (el: HTMLElement, opts: any, data: any, { widget, hide }: { widget: ViewModel, hide: ViewPopup['hide'] }) => {
             let selfValue: boolean | 'auto';
 
             detachToggleDarkMode();
@@ -66,7 +66,7 @@ export function darkmodeToggle(host: Widget) {
     });
 }
 
-export function inspect(host: Widget) {
+export function inspect(host: ViewModel) {
     const suspendSeconds = 3;
     let suspendInspectTimer: ReturnType<typeof setTimeout> | null = null;
     let suspendInspectSeconds = 0;

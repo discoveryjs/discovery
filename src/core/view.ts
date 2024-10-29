@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import type { Widget } from '../main/widget.js';
+import type { ViewModel } from '../main/view-model.js';
 import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
 import { isDocumentFragment } from './utils/dom.js';
 import { hasOwn } from './utils/object-utils.js';
@@ -245,7 +245,7 @@ function condition(
     return false;
 }
 
-function computeClassName(host: Widget, className: any, data: any, context: any): string[] | null {
+function computeClassName(host: ViewModel, className: any, data: any, context: any): string[] | null {
     let classNames = className;
 
     if (typeof classNames === 'string' && classNames.startsWith('=')) {
@@ -379,7 +379,7 @@ function createRenderContext(viewRenderer: ViewRenderer, name: string) {
     };
 }
 
-function attachTooltip(host: Widget, el: HTMLElement, config: TooltipConfig | RawViewConfig, data: any, context: any) {
+function attachTooltip(host: ViewModel, el: HTMLElement, config: TooltipConfig | RawViewConfig, data: any, context: any) {
     el.classList.add('discovery-view-has-tooltip');
     tooltipEls.set(el, { config, data, context });
 
@@ -399,7 +399,7 @@ function isPopupConfig(value: any): value is TooltipConfig {
 function ensureNumber(value: unknown, fallback: number): number {
     return Number.isFinite(value) ? Number(value) : fallback;
 }
-function createTooltip(host: Widget) {
+function createTooltip(host: ViewModel) {
     let classNames: string[] | null = null;
     const popup = new host.view.Popup({
         className: 'discovery-buildin-view-tooltip',
@@ -595,14 +595,14 @@ export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup inste
 }
 
 export default class ViewRenderer extends Dict<View> {
-    host: Widget;
+    host: ViewModel;
     defaultRenderErrorRenderer: View;
     viewEls: WeakMap<Node, ViewInfo>;
     fragmentEls: WeakMap<Node, ViewInfo[]>;
     tooltip: ReturnType<typeof createTooltip> | null;
     Popup = ViewPopup;
 
-    constructor(host: Widget) {
+    constructor(host: ViewModel) {
         super();
 
         this.host = host;

@@ -1,7 +1,7 @@
 /* eslint-env browser */
-import { Widget } from '../main/widget.js';
+import type { ViewModel } from '../main/view-model.js';
 
-export default function(host: Widget) {
+export default function(host: ViewModel) {
     let preventLocationUpdate = false;
 
     // init

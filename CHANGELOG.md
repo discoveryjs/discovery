@@ -1,5 +1,6 @@
 ## next
 
+- Renamed `Widget` class into `ViewModel`
 - Modified `PageRenderer#define()` and `ViewRenderer#define()` to allow specifying all options with a single config parameter:
   ```js
   // new signature

@@ -1,19 +1,19 @@
 /* eslint-env browser */
 
-import type { SetDataProgressOptions, WidgetEvents, WidgetOptions } from './widget.js';
+import type { SetDataProgressOptions, ViewModelEvents, ViewModelOptions } from './view-model.js';
 import type { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
 import type { Style } from '../core/utils/inject-styles.js';
 import type { ProgressbarOptions } from '../core/utils/progressbar.js';
 import type { UploadOptions } from '../extensions/upload.js';
-import { Widget } from './widget.js';
-import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
 import { hasOwn } from '../core/utils/object-utils.js';
+import { createElement } from '../core/utils/dom.js';
+import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
+import { ViewModel } from './view-model.js';
 import Progressbar from '../core/utils/progressbar.js';
 import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import * as navButtons from '../nav/buttons.js';
-import { createElement } from '../core/utils/dom.js';
 
 const coalesceOption = (value: any, fallback: any) => value !== undefined ? value : fallback;
 
@@ -23,10 +23,10 @@ export type AppLoadingStateOptions<T> =
     T extends 'error' ? { error: Error & { renderContent?: any }, progressbar: Progressbar } :
     undefined;
 
-export interface AppEvents extends WidgetEvents {
+export interface AppEvents extends ViewModelEvents {
     startLoadData: [subscribe: Parameters<Progressbar['subscribe']>];
 }
-export interface AppOptions<T = Widget> extends WidgetOptions<T> {
+export interface AppOptions<T = ViewModel> extends ViewModelOptions<T> {
     mode: 'modelfree';
     router: boolean;
     upload: UploadOptions
@@ -37,10 +37,10 @@ type AppOptionsBind = AppOptions; // to fix: Type parameter 'Options' has a circ
 export class App<
     Options extends AppOptions = AppOptionsBind,
     Events extends AppEvents = AppEvents
-> extends Widget<Options, Events> {
+> extends ViewModel<Options, Events> {
     mode: string | undefined;
     _defaultPageId: string | undefined;
-    declare dom: Widget['dom'] & {
+    declare dom: ViewModel['dom'] & {
         loadingOverlay: HTMLElement;
     };
 

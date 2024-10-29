@@ -168,7 +168,7 @@ class Completion {
             if (picked && data.list.length == 1) {
                 this.pick(data, 0);
             } else {
-                this.widget = new Widget(this, data);
+                this.widget = new CompletionWidget(this, data);
                 CodeMirror.signal(data, 'shown');
             }
         }
@@ -191,7 +191,7 @@ function getHintElement(hintsElement, el) {
     return el;
 }
 
-class Widget {
+class CompletionWidget {
     constructor(completion, data) {
         const cm = completion.cm;
         const hintsEl = this.hintsEl = document.createElement('ul');

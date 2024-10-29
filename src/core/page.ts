@@ -1,11 +1,11 @@
 /* eslint-env browser */
 
+import type { ViewModel, PageParams } from '../main/index.js';
+import type ViewRenderer from './view.js';
 import Dict from './dict.js';
 import { Observer } from './observer.js';
 import { createElement } from './utils/dom.js';
-import type ViewRenderer from './view.js';
 import { isRawViewConfig, type RawViewConfig } from './view.js';
-import type { Widget, PageParams } from '../main/index.js';
 
 export type PageOptionName = keyof PageOptions;
 export type PageOptionRender = RawViewConfig | Page['render'];
@@ -35,14 +35,14 @@ const BUILDIN_NOT_FOUND: Page = {
 };
 
 export default class PageRenderer extends Dict<Page> {
-    #host: Widget;
+    #host: ViewModel;
     #view: ViewRenderer;
     lastPage: string | null;
     lastPageRef: string | null;
     pageOverscrolled: Observer<boolean>;
     setPageOverscroll: (el: HTMLElement) => void;
 
-    constructor(host: Widget, view: ViewRenderer) {
+    constructor(host: ViewModel, view: ViewRenderer) {
         super();
 
         this.#host = host;

@@ -1,5 +1,5 @@
 import { version } from './version.js';
-import { Model, Widget, App } from './main/index.js';
+import { Model, ViewModel, App } from './main/index.js';
 import * as views from './views/index.js';
 import * as pages from './pages/index.js';
 import inspector from './extensions/inspector.js';
@@ -14,7 +14,8 @@ export type * from './main/index.js';
 export {
     version,
     Model,
-    Widget,
+    ViewModel,
+    ViewModel as Widget, // for backward compatibility
     App,
     views,
     pages,

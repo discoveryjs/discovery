@@ -1,4 +1,4 @@
-import type { Widget } from '../../main/widget.js';
+import type { ViewModel } from '../../main/view-model.js';
 import type { Query } from '../../main/model.js';
 import type { RenderContext, TooltipConfig } from '../../core/view.js';
 import { createElement } from '../../core/utils/dom.js';
@@ -36,7 +36,7 @@ type RenderAnnotationConfig = {
 const styles = ['none', 'default', 'badge'];
 const annotationsElByEl = new WeakMap<HTMLElement, HTMLElement>();
 
-export function getDefaultAnnotations(host: Widget) {
+export function getDefaultAnnotations(host: ViewModel) {
     const annotations: ValueAnnotation[] = [];
 
     for (const { name, lookup } of host.objectMarkers.values) {
