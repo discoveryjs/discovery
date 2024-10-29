@@ -104,6 +104,14 @@ const noopLogger = new Proxy({}, { get: () => () => {} });
 const logLevels: LogLevel[] = ['silent', 'error', 'warn', 'info', 'perf', 'debug'];
 const logPrefix = '[Discovery]';
 
+const isJoraIdentifier = (value: string) =>
+    /^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(value) && !joraKeywords.includes(value);
+const joraKeywords = [
+    'and', 'or', 'in', 'has', 'is', 'not', 'no',
+    'asc', 'ascN', 'ascA', 'ascNA', 'ascAN',
+    'desc', 'descN', 'descA', 'descNA', 'descAN'
+];
+
 const mixinEncodings = (host: Model, options?: LoadDataBaseOptions) => ({
     ...options,
     encodings: Array.isArray(options?.encodings)
@@ -376,13 +384,25 @@ export class Model<
     }
 
     pathToQuery(path: (string | number)[]): string {
-        return path.map((part, idx) =>
-            part === '*'
-                ? (idx === 0 ? 'values()' : '.values()')
-                : typeof part === 'number' || !/^[a-zA-Z_][a-zA-Z_$0-9]*$/.test(part)
-                    ? (idx === 0 ? `$[${JSON.stringify(part)}]` : `[${JSON.stringify(part)}]`)
-                    : (idx === 0 ? part : '.' + part)
-        ).join('');
+        let query = '';
+        const putPart = (part: string) =>
+            query += query === ''
+                ? part[0] === '[' ? '$' + part : part
+                : part[0] === '[' ? part : '.' + part;
+
+        for (const part of path) {
+            if (part === '*') {
+                putPart('values()');
+            } else if (typeof part === 'number') {
+                putPart(`[${part}]`);
+            } else if (isJoraIdentifier(part)) {
+                putPart(part);
+            } else {
+                putPart(`["${part}"]`);
+            }
+        }
+
+        return query;
     }
 
     // ======================
