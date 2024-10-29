@@ -1,8 +1,8 @@
 /* eslint-env browser */
 
-import Emitter from './emitter.js';
+import { Emitter } from './emitter.js';
 
-export default class Dictionary<V, K = string> extends Emitter<{
+export class Dictionary<V, K = string> extends Emitter<{
     define: [key: K, value: V];
     revoke: [key: K];
 }> {

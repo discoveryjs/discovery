@@ -1,2 +1,2 @@
-export { default as json } from './json.js';
-export { default as jsonxl } from './jsonxl.js';
+export { encoding as json } from './json.js';
+export { encoding as jsonxl } from './jsonxl.js';

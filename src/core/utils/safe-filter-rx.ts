@@ -8,7 +8,7 @@ function buildRx(pattern: string, flags?: string) {
     return new RegExp('((?:' + pattern.replace(/[\[\]\(\)\?\+\*\{\}\\]/g, '\\$&') + ')+)', flags);
 }
 
-export default function safeFilterRx(pattern: string, flags = 'i') {
+export function safeFilterRx(pattern: string, flags = 'i') {
     return Object.assign(buildRx(pattern, flags), {
         rawSource: pattern
     });

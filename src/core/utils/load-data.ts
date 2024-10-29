@@ -1,7 +1,4 @@
-import { Observer } from '../observer.js';
-import { normalizeEncodings } from '../encodings/utils.js';
-import * as buildinEncodings from '../encodings/index.js';
-import type Progressbar from './progressbar.js';
+import type { Progressbar } from './progressbar.js';
 import type {
     Encoding,
     LoadDataRequest,
@@ -17,6 +14,9 @@ import type {
     LoadDataStateProgress,
     DatasetResource
 } from './load-data.types.js';
+import { Observer } from '../observer.js';
+import { normalizeEncodings } from '../encodings/utils.js';
+import * as buildinEncodings from '../encodings/index.js';
 
 export type * from './load-data.types.js';
 export const dataSource = {

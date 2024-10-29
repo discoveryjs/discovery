@@ -2,7 +2,7 @@
 
 import type { Model } from '../main/model.js';
 import { hasOwn } from './utils/object-utils.js';
-import Dict from './dict.js';
+import { Dictionary } from './dict.js';
 
 export type LogCallback = Model['log'];
 export type GetterFunction<T> = ((object: T) => any) & { getterFromString?: string };
@@ -275,7 +275,7 @@ function createObjectMarker<T extends object>(logger: LogCallback, config: Norma
     };
 }
 
-export default class ObjectMarkerManager extends Dict<ObjectMarker<object>> {
+export class ObjectMarkerManager extends Dictionary<ObjectMarker<object>> {
     #preventDefine = false;
 
     constructor(private logger: LogCallback = () => {}) {

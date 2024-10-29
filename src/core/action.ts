@@ -1,13 +1,13 @@
 /* eslint-env browser */
 
-import Dict from './dict.js';
+import { Dictionary } from './dict.js';
 
 type Action = {
     name: string;
     callback: (...args: unknown[]) => unknown;
 }
 
-export default class ActionManager extends Dict<Action> {
+export class ActionManager extends Dictionary<Action> {
     #actionMap: Readonly<Record<string, Action['callback']>>;
 
     constructor() {

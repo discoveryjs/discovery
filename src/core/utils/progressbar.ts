@@ -126,7 +126,7 @@ export function decodeStageProgress(stage: Stage, progress: ProgressbarState['pr
     };
 }
 
-export default class Progressbar extends Observer<ProgressbarState> {
+export class Progressbar extends Observer<ProgressbarState> {
     startTime: number | null;
     lastStageStartTime: number | null;
     awaitRepaintPenaltyTime: number;

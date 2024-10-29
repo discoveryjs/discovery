@@ -3,7 +3,7 @@
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { ContentRect } from '../../core/utils/size.js';
-import Emitter from '../../core/emitter.js';
+import { Emitter } from '../../core/emitter.js';
 import CodeMirror from 'codemirror';
 import modeQuery from './editor-mode-query.js';
 import modeView from './editor-mode-view.js';

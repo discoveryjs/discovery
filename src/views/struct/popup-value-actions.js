@@ -1,6 +1,6 @@
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
 import { jsonStringifyInfo } from '../../core/utils/json.js';
-import copyText from '../../core/utils/copy-text.js';
+import { copyText } from '../../core/utils/copy-text.js';
 
 function formatSize(size) {
     if (!size) {

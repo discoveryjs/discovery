@@ -6,7 +6,7 @@ import 'codemirror/mode/javascript/javascript.js';
 import 'codemirror/mode/css/css.js';
 import 'codemirror/mode/xml/xml.js';
 import { createElement } from '../../core/utils/dom.js';
-import copyText from '../../core/utils/copy-text.js';
+import { copyText } from '../../core/utils/copy-text.js';
 import usage from './source.usage.js';
 
 const defaultMaxSourceSizeToHighlight = 250 * 1024;

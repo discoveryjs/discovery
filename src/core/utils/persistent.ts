@@ -1,4 +1,4 @@
-import Emitter from '../emitter.js';
+import { Emitter } from '../emitter.js';
 
 export type StorageType = 'localStorage' | 'sessionStorage';
 export type PersistentValue = string | null;

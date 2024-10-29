@@ -9,7 +9,7 @@ import { hasOwn } from '../core/utils/object-utils.js';
 import { createElement } from '../core/utils/dom.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
 import { ViewModel } from './view-model.js';
-import Progressbar from '../core/utils/progressbar.js';
+import { Progressbar } from '../core/utils/progressbar.js';
 import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';

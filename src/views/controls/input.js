@@ -1,6 +1,6 @@
 /* eslint-env browser */
-import safeFilterRx from '../../core/utils/safe-filter-rx.js';
-import debounceFn from '../../core/utils/debounce.js';
+import { safeFilterRx } from '../../core/utils/safe-filter-rx.js';
+import { debounce as debounceFn } from '../../core/utils/debounce.js';
 import usage from './input.usage.js';
 
 export default function(host) {

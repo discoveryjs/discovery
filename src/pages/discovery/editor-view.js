@@ -1,4 +1,4 @@
-import debounce from '../../core/utils/debounce.js';
+import { debounce } from '../../core/utils/debounce.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';

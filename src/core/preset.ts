@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
-import Dict from './dict.js';
-import type ViewRenderer from './view.js';
+import type { ViewRenderer } from './view.js';
+import { Dictionary } from './dict.js';
 
 export type Preset = {
     name: string;
@@ -9,7 +9,7 @@ export type Preset = {
     config: any;
 }
 
-export default class PresetRenderer extends Dict<Preset> {
+export class PresetRenderer extends Dictionary<Preset> {
     #view: ViewRenderer;
 
     constructor(view: ViewRenderer) {

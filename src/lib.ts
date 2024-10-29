@@ -7,7 +7,7 @@ import upload from './extensions/upload.js';
 import router from './extensions/router.js';
 import embed from './extensions/embed-client.js';
 import { buttons as navButtons } from './nav/index.js';
-import jsonxl from './core/encodings/jsonxl.js';
+import { encoding as jsonxl } from './core/encodings/jsonxl.js';
 import utils from './core/utils/index.js';
 
 export type * from './main/index.js';

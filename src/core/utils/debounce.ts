@@ -81,7 +81,7 @@ function isObject(value: unknown): value is object {
  * const status = debounced.pending() ? "Pending..." : "Ready"
  */
 
-export default function debounce<
+export function debounce<
     T extends (...args: A) => R,
     A extends any[],
     R

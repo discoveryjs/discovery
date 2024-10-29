@@ -5,7 +5,7 @@ export type Listener<P extends unknown[]> = {
     next: Listener<P> | null;
 };
 
-export default class Emitter<Events extends EventMap> {
+export class Emitter<Events extends EventMap> {
     listeners: {
         [EventName in keyof Events]: Listener<Events[EventName]> | null;
     };

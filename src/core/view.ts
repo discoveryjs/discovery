@@ -4,8 +4,8 @@ import type { ViewModel } from '../main/view-model.js';
 import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
 import { isDocumentFragment } from './utils/dom.js';
 import { hasOwn } from './utils/object-utils.js';
+import { Dictionary } from './dict.js';
 import { Preset } from './preset.js';
-import Dict from './dict.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
@@ -594,7 +594,7 @@ export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup inste
     hide() {}
 }
 
-export default class ViewRenderer extends Dict<View> {
+export class ViewRenderer extends Dictionary<View> {
     host: ViewModel;
     defaultRenderErrorRenderer: View;
     viewEls: WeakMap<Node, ViewInfo>;

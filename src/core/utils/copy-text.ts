@@ -32,7 +32,7 @@ function execCommandFallback(text: string) {
     }
 }
 
-export default async function copyText(text: string) {
+export async function copyText(text: string) {
     try {
         if (navigator.clipboard) {
             const permissionStatus = await navigator.permissions.query({

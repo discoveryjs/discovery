@@ -1,6 +1,6 @@
 /* eslint-env browser */
 import { createElement } from '../../core/utils/dom.js';
-import copyText from '../../core/utils/copy-text.js';
+import { copyText } from '../../core/utils/copy-text.js';
 
 function quote(str) {
     return str

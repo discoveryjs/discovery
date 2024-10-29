@@ -8,6 +8,7 @@
   // old signature remains compatible
   discovery.page.define('example', [/* ... */], { /* options */ });
   ```
+- Removed `export default` in the core modules
 - Fixed an edge case in the `table` view when rendering a single cell with an explicit column setup and row data containing non-object values
 
 ## 1.0.0-beta.88 (24-10-2024)

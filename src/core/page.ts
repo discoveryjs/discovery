@@ -1,8 +1,8 @@
 /* eslint-env browser */
 
 import type { ViewModel, PageParams } from '../main/index.js';
-import type ViewRenderer from './view.js';
-import Dict from './dict.js';
+import type { ViewRenderer } from './view.js';
+import { Dictionary } from './dict.js';
 import { Observer } from './observer.js';
 import { createElement } from './utils/dom.js';
 import { isRawViewConfig, type RawViewConfig } from './view.js';
@@ -34,7 +34,7 @@ const BUILDIN_NOT_FOUND: Page = {
     }
 };
 
-export default class PageRenderer extends Dict<Page> {
+export class PageRenderer extends Dictionary<Page> {
     #host: ViewModel;
     #view: ViewRenderer;
     lastPage: string | null;

@@ -1,5 +1,6 @@
 import { createElement } from './dom.js';
 
+export type Style = string | InlineStyle | LinkStyle;
 export type InlineStyle = {
     type: 'style' | 'inline';
     content: string;
@@ -10,9 +11,8 @@ export type LinkStyle = {
     href: string;
     media?: string;
 };
-export type Style = string | InlineStyle | LinkStyle;
 
-export default async function injectStyles(el: HTMLElement | ShadowRoot, styles?: Style[]) {
+export async function injectStyles(el: HTMLElement | ShadowRoot, styles?: Style[]) {
     const foucFix = createElement('style', null, ':host{display:none}');
     const awaitingStyles = new Set<Promise<void>>();
 

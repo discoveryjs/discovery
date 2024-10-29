@@ -3,7 +3,7 @@
 import { createElement, passiveCaptureOptions } from '../core/utils/dom.js';
 import { getBoundingRect } from '../core/utils/layout.js';
 import { pointerXY } from '../core/utils/pointer.js';
-import debounce from '../core/utils/debounce.js';
+import { debounce } from '../core/utils/debounce.js';
 import { resetViewTreeScrollTopBeforeSelect, viewTree } from './inspector/view-tree.js';
 import { propsConfigView } from './inspector/props-config.js';
 import { dataView } from './inspector/data.js';

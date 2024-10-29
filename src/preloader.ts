@@ -1,12 +1,12 @@
-import Progressbar from './core/utils/progressbar.js';
-import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
-import { applyContainerStyles } from './core/utils/container-styles.js';
-import injectStyles from './core/utils/inject-styles.js';
-import { randomId } from './core/utils/id.js';
-import { hasOwn } from './core/utils/object-utils.js';
 import type { InitValue } from './core/darkmode.js';
 import type { Style } from './core/utils/inject-styles.js';
 import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from './core/utils/load-data.js';
+import { hasOwn } from './core/utils/object-utils.js';
+import { randomId } from './core/utils/id.js';
+import { applyContainerStyles } from './core/utils/container-styles.js';
+import { injectStyles } from './core/utils/inject-styles.js';
+import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
+import { Progressbar } from './core/utils/progressbar.js';
 
 type PushDataLoading = ReturnType<typeof dataSource['push']>;
 export type PreloaderOptions = {
