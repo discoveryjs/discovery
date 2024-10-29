@@ -248,7 +248,9 @@ export default function(host) {
         moreButtonsEl.colSpan = cols.length;
         renderRowConfig = this.composeConfig({
             view: 'table-row',
-            cols: '=is not object ? [#.cols[]] : #.cols'
+            cols: valueCol
+                ? '=is not object ? [#.cols[]] : #.cols'
+                : '=#.cols'
         }, rowConfig);
 
         return render(rows);
