@@ -63,10 +63,9 @@ export default function(host) {
     let refs = null;
     let lastRequest = null;
     let lastPerformData = NaN; // used NaN to mismatch with any value
-    let lastPageId = null;
 
-    host.on('pageHashChange', () => {
-        if (lastPageId !== host.pageId) {
+    host.on('pageStateChange', (prev) => {
+        if (host.pageId !== prev.id) {
             if (host.pageId === host.discoveryPageId) {
                 // enter discovery page
                 // Note: Don't define action functions in place to ensure context comparison works
@@ -79,8 +78,6 @@ export default function(host) {
                 host.action.revoke('querySubquery');
                 host.action.revoke('queryAppend');
             }
-
-            lastPageId = host.pageId;
         }
     });
 
@@ -106,7 +103,7 @@ export default function(host) {
         lastPerformData = NaN;
 
         // perform query
-        const request = lastRequest = {};
+        const request = lastRequest = Symbol('last-query-request');
         queryEditor.perform(data, context).then(queryResult => {
             if (lastRequest !== request) {
                 return;

@@ -59,6 +59,11 @@ function getPageMethod<K extends PageOptionName>(host: ViewModel, pageId: string
 
 export interface ViewModelEvents extends ModelEvents {
     startSetData: [subscribe: (...args: Parameters<Progressbar['subscribeSync']>) => void];
+    pageStateChange: [prev: {
+        id: string;
+        ref: PageRef;
+        params: Record<string, any>;
+    }];
     pageHashChange: [replace: boolean];
 }
 export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
@@ -182,6 +187,7 @@ export class ViewModel<
 
     initRenderTriggers() {
         this.on('unloadData', () => this.scheduleRender());
+        this.on('pageStateChange', () => this.scheduleRender());
 
         this.action
             .on('define', () => {
@@ -550,11 +556,16 @@ export class ViewModel<
         if (this.pageId !== pageId ||
             this.pageRef !== pageRef ||
             !deepEqual(this.pageParams, pageParams)) {
+            const prev = {
+                id: this.pageId,
+                ref: this.pageRef,
+                params: this.pageParams
+            };
 
             this.pageId = pageId;
             this.pageRef = pageRef;
             this.pageParams = pageParams;
-            this.scheduleRender('page');
+            this.emit('pageStateChange', prev);
         }
 
         if (hash !== this.pageHash) {
