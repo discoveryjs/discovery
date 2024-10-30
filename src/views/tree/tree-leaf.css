@@ -82,6 +82,7 @@
 }
 .view-tree-leaf-content::before {
     content: '\200B';
+    float: left;
 }
 .view-tree-leaf-content:empty::before {
     content: '<empty>';
