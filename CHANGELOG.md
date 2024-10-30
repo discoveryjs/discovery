@@ -2,6 +2,7 @@
 
 - Renamed `Widget` class into `ViewModel`
 - Added `pageStateChange` event to `ViewModel`, triggered when `pageId`, `pageRef`, or `pageParams` changes
+- Added `query` property to functions produced from a string (jora query), i.e. with `Model#queryFn(query)`
 - Added `@discoveryjs/discovery/utils` export
 - Changed `nav-button` view to align with `button` view (`text`, `href` and `external` as config options, `disabled` is no longer treated as query)
 - Modified `PageRenderer#define()` and `ViewRenderer#define()` to allow specifying all options with a single config parameter:

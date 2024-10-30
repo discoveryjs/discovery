@@ -39,7 +39,7 @@ export type ResolvedLink = {
 };
 
 export type Query = string | QueryFunction;
-export type QueryFunction = (data: unknown, context: unknown) => unknown;
+export type QueryFunction = ((data: unknown, context: unknown) => unknown) & { query?: string };
 export type QueryFromStringOptions = {
     tolerant?: boolean;
     stat?: boolean;
@@ -358,7 +358,7 @@ export class Model<
                 return query;
 
             case 'string':
-                return this.queryFnFromString(query);
+                return Object.assign(this.queryFnFromString(query), { query });
         }
     }
 
