@@ -34,7 +34,7 @@
     border-radius: 0;
 }
 .discovery-nav .view-nav-button[data-name="burger"] {
-    background-image: url('./burger-menu.svg');
+    background-image: url('./img/burger-menu.svg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 18px;
@@ -42,13 +42,12 @@
 .discovery-nav .view-nav-button[data-name="inspect"]::before {
     content: '';
     display: inline-block;
-    -webkit-mask: url('./inspect.svg') no-repeat center / 16px 16px;
-    mask: url('./inspect.svg') no-repeat center / 16px 16px;
-    background-color: currentColor;
-    width: 16px;
+    vertical-align: text-top;
     height: 16px;
-    vertical-align: top;
-    margin: 2px -8px 0;
+    aspect-ratio: 1;
+    margin: 0 -8px;
+    mask: url('./img/inspect.svg') no-repeat center / 16px;
+    background-color: currentColor;
     opacity: .85;
 }
 .discovery-nav .view-nav-button[data-name="inspect"][data-suspend-seconds]::before {
@@ -58,9 +57,26 @@
     content: attr(data-suspend-seconds);
     display: inline-block;
     position: absolute;
-    margin-left: -14px;
+    margin-left: -11px;
     width: 24px;
     text-align: center;
+}
+
+.discovery-nav > .view-nav-button[data-name="github"]::before {
+    content: "";
+    display: inline-block;
+    vertical-align: text-top;
+    height: 15px;
+    aspect-ratio: 1;
+    margin-left: -3px;
+    margin-right: 5px;
+    mask: url("./img/github.svg") no-repeat center / 15px;
+    background-color: currentColor;
+    opacity: .85;
+}
+.discovery-nav > .view-nav-button[data-name="github"]:empty::before {
+    margin-left: -7px;
+    margin-right: -7px;
 }
 
 .discovery-nav-popup > .toggle-menu-item {
