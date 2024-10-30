@@ -5,7 +5,8 @@ export function indexPage(host: ViewModel) {
     host.nav.append({
         name: 'index-page',
         when: '#.widget | pageId != defaultPageId',
-        data: '{ text: "Index", href: pageLink(#.widget.defaultPageId) }'
+        text: 'Index',
+        href: '=pageLink(#.widget.defaultPageId)'
     });
 }
 
@@ -13,7 +14,8 @@ export function discoveryPage(host: ViewModel) {
     host.nav.append({
         name: 'discovery-page',
         when: '#.widget | pageId != discoveryPageId',
-        data: '{ text: "Discover", href: pageLink(#.widget.discoveryPageId) }'
+        text: 'Discover',
+        href: '=pageLink(#.widget.discoveryPageId)'
     });
 }
 
@@ -21,7 +23,7 @@ export function loadData(host: ViewModel) {
     host.nav.append({
         name: 'load-data',
         when: '#.actions.uploadFile and (#.datasets or (#.widget | pageId != defaultPageId))',
-        content: 'text:"Open file…"',
+        text: 'Open file…',
         onClick: '=#.actions.uploadFile'
     });
 }
@@ -33,7 +35,7 @@ export function darkmodeToggle(host: ViewModel) {
         className: ['toggle-menu-item', 'dark-mode-switcher'],
         name: 'dark-mode',
         when: '#.widget | darkmode.mode not in ["disabled", "only"]',
-        postRender: (el: HTMLElement, opts: any, data: any, { widget, hide }: { widget: ViewModel, hide: ViewPopup['hide'] }) => {
+        postRender(el: HTMLElement, opts: any, data: any, { widget, hide }: { widget: ViewModel, hide: ViewPopup['hide'] }) {
             let selfValue: boolean | 'auto';
 
             detachToggleDarkMode();
@@ -49,7 +51,7 @@ export function darkmodeToggle(host: ViewModel) {
                 widget.view.render(el, {
                     view: 'toggle-group',
                     beforeToggles: 'text:"Color schema"',
-                    onChange: (value: boolean | 'auto') => {
+                    onChange(value: boolean | 'auto') {
                         selfValue = value;
                         widget.darkmode.set(value);
                         hide();
@@ -78,7 +80,7 @@ export function inspect(host: ViewModel) {
             showDelay: true,
             content: 'md:"**Enable view inspection**<br>To suspend enabling inspect mode by ' + suspendSeconds + ' seconds,<br>click the button with Cmd (⌘) or Ctrl-key"'
         },
-        onClick: (el: HTMLElement, data: any, context: any, event: MouseEvent) => {
+        onClick(el: HTMLElement, data: any, context: any, event: MouseEvent) {
             if (!host.inspectMode.value && (event.metaKey || event.ctrlKey)) {
                 if (suspendInspectTimer === null) {
                     suspendInspectSeconds = 0;
