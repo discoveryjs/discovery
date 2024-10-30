@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import type { SetDataProgressOptions, ViewModelEvents, ViewModelOptions } from './view-model.js';
-import type { LoadDataBaseOptions, LoadDataResult } from '../core/utils/load-data.js';
+import type { LoadDataResult } from '../core/utils/load-data.js';
 import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { ProgressbarOptions } from '../core/utils/progressbar.js';
 import type { UploadOptions } from '../extensions/upload.js';
@@ -10,6 +10,7 @@ import { createElement } from '../core/utils/dom.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
 import { ViewModel } from './view-model.js';
 import { Progressbar } from '../core/utils/progressbar.js';
+import modelfree from '../extensions/modelfree.js';
 import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
@@ -38,8 +39,6 @@ export class App<
     Options extends AppOptions = AppOptionsBind,
     Events extends AppEvents = AppEvents
 > extends ViewModel<Options, Events> {
-    mode: string | undefined;
-    _defaultPageId: string | undefined;
     declare dom: ViewModel['dom'] & {
         loadingOverlay: HTMLElement;
     };
@@ -53,7 +52,9 @@ export class App<
             extensions.push(router);
         }
 
-        if (options.mode !== 'modelfree') {
+        if (options.mode === 'modelfree') {
+            extensions.push(modelfree);
+        } else {
             extensions.push(navButtons.indexPage);
             extensions.push(navButtons.discoveryPage);
         }
@@ -78,8 +79,6 @@ export class App<
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
-
-        this.mode = options.mode;
     }
 
     setLoadingState<S extends AppLoadingState>(state: S, options?: AppLoadingStateOptions<S>) {
@@ -199,27 +198,6 @@ export class App<
         );
 
         await loadDataResult.dataset;
-    }
-
-    loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {
-        if (this.mode === 'modelfree' && this.defaultPageId !== this.discoveryPageId) {
-            this._defaultPageId = this.defaultPageId;
-            this.defaultPageId = this.discoveryPageId;
-            this.setPageHash(this.pageHash, true);
-            this.cancelScheduledRender();
-        }
-
-        return super.loadDataFromEvent(event, options);
-    }
-
-    unloadData() {
-        if (this.hasDatasets() && this.mode === 'modelfree' && this._defaultPageId !== this.defaultPageId) {
-            this.defaultPageId = this._defaultPageId as string;
-            this.setPageHash(this.pageHash, true);
-            this.cancelScheduledRender();
-        }
-
-        super.unloadData();
     }
 
     initDom(styles?: InjectStyle[]) {
