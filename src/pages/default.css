@@ -10,6 +10,6 @@
     width: 42px;
     height: 42px;
     content: '';
-    background: url('../logo.svg') no-repeat center;
+    background: var(--discovery-app-icon) no-repeat center;
     background-size: 42px;
 }

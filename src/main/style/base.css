@@ -19,9 +19,11 @@
     transition-duration: .25s;
     transition-timing-function: ease-in;
 
+    --discovery-app-icon: url('../../logo.svg');
     --discovery-font-family: Tahoma, Verdana, Arial, sans-serif;
     --discovery-monospace-font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
     --discovery-ui-font-family: system-ui, Arial, sans-serif;
+
     --discovery-background-color: white;
     --discovery-color: black;
     --discovery-input-bg-color: white;

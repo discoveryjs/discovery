@@ -29,6 +29,7 @@ export { default as section } from './layout/section.js';
 export { default as tocSection } from './layout/toc-section.js';
 
 export { default as alerts } from './text/alerts.js';
+export { default as appHeader } from './text/app-header.js';
 export { default as autoLink } from './text/auto-link.js';
 export { default as badges } from './text/badges.js';
 export { default as headers } from './text/headers.js';

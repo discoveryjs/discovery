@@ -1,0 +1,50 @@
+.view-app-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.view-app-header:not(:last-child) {
+    margin-bottom: 30px;
+}
+.view-app-header .icon {
+    --icon: var(--discovery-app-icon);
+
+    float: left;
+    display: inline-block;
+    line-height: 1;
+
+    width: 48px;
+    aspect-ratio: 1;
+    vertical-align: middle;
+    padding: 4px;
+    background: var(--icon, var(--discovery-app-icon)) no-repeat center;
+    background-size: 48px;
+    background-color: #f4f4f4;
+    border-radius: 3px;
+}
+.discovery-root-darkmode .view-app-header .icon {
+    background-color: #2b2b2b;
+}
+.view-app-header h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 31px;
+    font-family: Helvetica Neue, Helvetica, Tahoma, Arial, sans-serif;
+    font-weight: 200;
+}
+.view-app-header .version {
+    vertical-align: top;
+    display: inline-block;
+    margin-left: 1ex;
+    font-size: 12px;
+    line-height: 18px;
+    opacity: .4;
+}
+.view-app-header .version:hover {
+    opacity: .75;
+}
+.view-app-header .description {
+    font-size: 12px;
+    line-height: 19px;
+    color: #aaa;
+}
