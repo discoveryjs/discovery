@@ -75,6 +75,7 @@ export function inspect(host: ViewModel) {
 
     host.nav.append({
         name: 'inspect',
+        when: '#.widget.inspectMode',
         tooltip: {
             position: 'trigger',
             showDelay: true,
