@@ -346,8 +346,11 @@ export function loadDataFromFile(file: File, options?: LoadDataBaseOptions) {
     );
 }
 
-export function loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {
-    const source = event.dataTransfer || (event.target as HTMLInputElement | null);
+export function loadDataFromEvent(event: DragEvent | ClipboardEvent | InputEvent, options?: LoadDataBaseOptions) {
+    const source =
+        (event as DragEvent).dataTransfer ||
+        (event as ClipboardEvent).clipboardData ||
+        (event.target as HTMLInputElement | null);
     const file = source?.files?.[0];
 
     event.stopPropagation();

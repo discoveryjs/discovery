@@ -20,8 +20,8 @@ function setup(options?: UploadOptions) {
             : 'application/json,application/jsonxl,.json,.jsonxl';
         const acceptTokens = accept.split(',');
 
-        // setup the drag&drop listeners for upload data if not disabled
         if (dragdrop) {
+            // setup the drag&drop listeners for upload data from event.dataTransfer
             host.dom.container.addEventListener('drop', event => {
                 host.loadDataFromEvent(event);
             }, true);
@@ -29,6 +29,15 @@ function setup(options?: UploadOptions) {
                 event.stopPropagation();
                 event.preventDefault();
             }, true);
+
+            // setup the paste listener for upload a file from clipboard if any
+            document.addEventListener('paste', (e) => {
+                const { files } = e.clipboardData || { files: [] };
+
+                if (files?.length > 0) {
+                    host.loadDataFromEvent(e);
+                }
+            });
         }
 
         // define view preset

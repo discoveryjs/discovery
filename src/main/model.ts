@@ -305,7 +305,7 @@ export class Model<
         return this.trackLoadDataProgress(loadDataFromStream(stream, mixinEncodings(this, options)));
     }
 
-    loadDataFromEvent(event: DragEvent | InputEvent, options?: LoadDataBaseOptions) {
+    loadDataFromEvent(event: DragEvent | ClipboardEvent | InputEvent, options?: LoadDataBaseOptions) {
         return this.trackLoadDataProgress(loadDataFromEvent(event, mixinEncodings(this, options)));
     }
 
