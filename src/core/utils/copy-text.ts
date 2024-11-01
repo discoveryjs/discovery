@@ -35,12 +35,21 @@ function execCommandFallback(text: string) {
 export async function copyText(text: string) {
     try {
         if (navigator.clipboard) {
-            const permissionStatus = await navigator.permissions.query({
-                name: 'clipboard-write' as PermissionName // see https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1245
-            });
+            try {
+                const permissionStatus = await navigator.permissions.query({
+                    name: 'clipboard-write' as PermissionName // see https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1245
+                });
 
-            if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
-                return navigator.clipboard.writeText(text);
+                if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
+                    return navigator.clipboard.writeText(text);
+                }
+            } catch (e) {
+                // Safari does not support the clipboard-write permission and throws a TypeError;
+                // however, the writeText() method works fine. Attempt to call writeText() before
+                // resorting to a fallback, believing it will work
+                if (e instanceof TypeError) {
+                    return navigator.clipboard.writeText(text);
+                }
             }
         }
     } catch {}
