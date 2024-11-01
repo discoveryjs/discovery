@@ -6,6 +6,7 @@
 - Added `app-header` view
 - Added support for uploading files from `paste` event
 - Added `@discoveryjs/discovery/utils` export
+- Changed the extension application order for `App` so that `options.extensions` are applied after implicit extensions
 - Changed `nav-button` view to align with `button` view (`text`, `href` and `external` as config options, `disabled` is no longer treated as query)
 - Modified `PageRenderer#define()` and `ViewRenderer#define()` to allow specifying all options with a single config parameter:
   ```js

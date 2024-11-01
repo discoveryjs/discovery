@@ -44,7 +44,7 @@ export class App<
     };
 
     constructor(options: Partial<Options> = {}) {
-        const extensions = options.extensions ? [options.extensions] : [];
+        const extensions: typeof options.extensions = [];
 
         extensions.push(navButtons.darkmodeToggle);
 
@@ -64,18 +64,20 @@ export class App<
             extensions.push(navButtons.loadData);
         }
 
-        if (coalesceOption(options.embed, false)) {
-            extensions.push(embed);
-        }
-
         if (coalesceOption(options.inspector, true)) {
             extensions.push(navButtons.inspect);
+        }
+
+        if (coalesceOption(options.embed, false)) {
+            extensions.push(embed);
         }
 
         super({
             container: document.body,
             ...options,
-            extensions,
+            extensions: options.extensions
+                ? [extensions, options.extensions]
+                : extensions,
             darkmode: coalesceOption(options.darkmode, 'auto'),
             darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
         });
