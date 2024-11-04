@@ -1,4 +1,4 @@
-import Emitter from '../core/emitter.js';
+import { Emitter } from '../core/emitter.js';
 import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';
 import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
