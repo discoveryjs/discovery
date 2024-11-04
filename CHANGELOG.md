@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.89 (04-11-2024)
 
 - Renamed `Widget` class into `ViewModel`
 - Added `pageStateChange` event to `ViewModel`, triggered when `pageId`, `pageRef`, or `pageParams` changes
