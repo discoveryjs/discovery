@@ -1,3 +1,6 @@
+import { loadDataFromUrl } from '../../src/core/utils/load-data.ts';
+import { utils } from '../../src/lib.ts';
+
 function prettySize(size, signed, pad) {
     const unit = ['', 'kB', 'MB', 'GB'];
 
@@ -35,7 +38,7 @@ async function fetchUrl(url, progressEl, parse) {
     progressEl.innerHTML = '<div class="title">Awaiting response</div><div class="progress"></div>';
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { mode: 'cors' });
 
         if (!response.ok) {
             throw new Error(await response.text());
@@ -127,7 +130,7 @@ discovery.page.define('default', [
                         data: { text: 'Bench!' },
                         async onClick(el, data, context) {
                             const urls = context.urls.split(/\n/).map(s => s.trim()).filter(Boolean);
-                            const containerEl = document.querySelector('.results');
+                            const containerEl = discovery.dom.container.querySelector('.results');
                             const results = [];
                             const startTime = Date.now();
 
@@ -137,7 +140,7 @@ discovery.page.define('default', [
                             const responsive = setInterval(() => responsiveEl.textContent = Date.now() - startTime, 1000 / 60);
 
                             for (const url of urls) {
-                                if (!document.body.contains(containerEl)) {
+                                if (!discovery.dom.container.contains(containerEl)) {
                                     // if container is not in document, then it was removed due to re-render
                                     // prevent request processing
                                     clearInterval(responsive);
@@ -147,7 +150,7 @@ discovery.page.define('default', [
                                 const statEl = document.createElement('div');
                                 statEl.className = 'stat';
                                 statEl.innerHTML = [
-                                    '<span class="url">' + discovery.lib.utils.escapeHtml(url) + '</span>',
+                                    '<span class="url">' + utils.escapeHtml(url) + '</span>',
                                     '<span class="metric throughput-rate"></span>',
                                     '<span class="metric load-time"></span>',
                                     '<span class="metric size"></span>'
@@ -163,12 +166,16 @@ discovery.page.define('default', [
                                         ? fetchUrl(url, progressEl, context.mode === 'fetch-parse')
                                         : discovery.loadDataFromUrl.call({
                                             trackLoadDataProgress: discovery.trackLoadDataProgress,
+                                            setLoadingState: discovery.setLoadingState,
+                                            progressbar: discovery.progressbar,
+                                            emit() {},
+                                            setDataProgress() {},
                                             setData() {},
                                             options: {},
                                             dom: {
                                                 loadingOverlay: progressEl
                                             }
-                                        }, url);
+                                        }, url, { fetch: { mode1: 'cors' } });
                                     progressEl.append(statEl);
                                     const { size, loadTime } = await result;
 
