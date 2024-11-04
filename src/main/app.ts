@@ -211,7 +211,7 @@ export class App<
     }
 
     renderPage() {
-        document.title = this.getRenderContext().name || document.title;
+        document.title = this.info.name || document.title;
 
         return super.renderPage();
     }

@@ -91,7 +91,12 @@ export interface ModelEvents extends EventMap {
     unloadData: [];
 }
 export interface ModelOptions<T = Model> {
-    logger: ConsoleLike
+    name: string;
+    version: string;
+    description: string;
+    icon: string;
+
+    logger: ConsoleLike;
     logLevel: LogLevel;
     extensions: Extension<T>;
     encodings: Encoding[];
@@ -124,6 +129,12 @@ export class Model<
     Events extends ModelEvents = ModelEvents
 > extends Emitter<Events> {
     options: Partial<Options>;
+    info: {
+        name: string;
+        version: string | null;
+        description: string | null;
+        icon: string | null;
+    };
 
     logger: ConsoleLike;
     logLevel: LogLevel;
@@ -153,12 +164,24 @@ export class Model<
         // });
 
         const {
+            name,
+            version,
+            description,
+            icon,
+
             logLevel = 'warn',
             logger = console,
             extensions,
             encodings,
             setup
         } = options || {};
+
+        this.info = {
+            name: name || 'Untitled model',
+            version: version || null,
+            description: description || null,
+            icon: icon || null
+        };
 
         this.logger = logger || noopLogger;
         this.logLevel = logLevels.includes(logLevel) ? logLevel : 'warn';

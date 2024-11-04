@@ -3,9 +3,11 @@
 - Renamed `Widget` class into `ViewModel`
 - Added `pageStateChange` event to `ViewModel`, triggered when `pageId`, `pageRef`, or `pageParams` changes
 - Added `query` property to functions produced from a string (jora query), i.e. with `Model#queryFn(query)`
-- Added `app-header` view
 - Added `clipboard` option to the `upload` extension for enabling loading data from the clipboard
 - Added support for uploading files from `paste` event
+- Added `app-header` view
+- Model's info:
+    - Added `name`, `version`, `description`, and `icon` options for `Model`, storing these values in the `info` property
 - Added `@discoveryjs/discovery/utils` export
 - Changed the extension application order for `App` so that `options.extensions` are applied after implicit extensions
 - Changed `nav-button` view to align with `button` view (`text`, `href` and `external` as config options, `disabled` is no longer treated as query)
