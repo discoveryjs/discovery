@@ -3,11 +3,9 @@ import { ViewModel } from '../main/view-model.js';
 export default (host: ViewModel) => {
     let defaultPageId = '';
 
-    host.nav.primary.append({
-        name: 'github',
-        href: 'https://github.com/discoveryjs/discovery',
-        external: true
-    });
+    host.nav.remove('index-page');
+    host.nav.remove('discovery-page');
+
     host.on('data', () => {
         if (host.defaultPageId !== host.discoveryPageId) {
             defaultPageId = host.defaultPageId;

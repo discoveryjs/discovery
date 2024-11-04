@@ -46,6 +46,8 @@ export class App<
     constructor(options: Partial<Options> = {}) {
         const extensions: typeof options.extensions = [];
 
+        extensions.push(navButtons.indexPage);
+        extensions.push(navButtons.discoveryPage);
         extensions.push(navButtons.darkmodeToggle);
 
         if (coalesceOption(options.router, true)) {
@@ -54,9 +56,6 @@ export class App<
 
         if (options.mode === 'modelfree') {
             extensions.push(modelfree);
-        } else {
-            extensions.push(navButtons.indexPage);
-            extensions.push(navButtons.discoveryPage);
         }
 
         if (coalesceOption(options.upload, false)) {
