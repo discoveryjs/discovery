@@ -12,7 +12,7 @@ const myapp = new App({ upload: true }); // or the same as for Widget via "exten
 const myapp = new Widget({
     extensions: [
         upload,
-        navButtons.loadData
+        navButtons.uploadFile
     ]
 });
 ```

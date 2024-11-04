@@ -49,7 +49,7 @@ function setup(options?: Partial<UploadOptions>) {
         host.preset.define('upload', [
             {
                 view: 'button-primary',
-                text: '=`Open file${#.actions.uploadFile.fileExtensions |? " (" + join(", ") + ")" : "" | size > 1 and size() <= 17 ?: "…"}`',
+                text: '=`Open file${#.actions.uploadFile.fileExtensions |? " (" + join(", ") + ")" : "" | size() > 1 and size() <= 17 ?: "…"}`',
                 onClick: '=#.actions.uploadFile'
             },
             {

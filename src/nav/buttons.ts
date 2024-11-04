@@ -19,12 +19,21 @@ export function discoveryPage(host: ViewModel) {
     });
 }
 
-export function loadData(host: ViewModel) {
-    host.nav.append({
-        name: 'load-data',
+export function uploadFile(host: ViewModel) {
+    host.nav.before('inspect', {
+        name: 'open-file',
         when: '#.actions.uploadFile and (#.datasets or (#.widget | pageId != defaultPageId))',
         text: 'Open file…',
         onClick: '=#.actions.uploadFile'
+    });
+}
+
+export function unloadData(host: ViewModel) {
+    host.nav.menu.append({
+        name: 'unload-data',
+        when: '#.actions.unloadData and #.datasets',
+        content: 'text:"Unload data"',
+        onClick: '=#.actions.unloadData'
     });
 }
 

@@ -5,6 +5,8 @@
 - Added `query` property to functions produced from a string (jora query), i.e. with `Model#queryFn(query)`
 - Added `clipboard` option to the `upload` extension for enabling loading data from the clipboard
 - Added support for uploading files from `paste` event
+- Added `unloadData` nav button
+- Renamed `loadData` nav button into `uploadFile`
 - Added `app-header` view
 - Model's info:
     - Added `name`, `version`, `description`, and `icon` options for `Model`, storing these values in the `info` property

@@ -61,7 +61,7 @@ export class App<
 
         if (coalesceOption(options.upload, false)) {
             extensions.push(upload.setup(options.upload));
-            extensions.push(navButtons.loadData);
+            extensions.push(navButtons.uploadFile);
         }
 
         if (coalesceOption(options.inspector, true)) {
