@@ -333,12 +333,17 @@ export class ViewModel<
     initDom(styles?: InjectStyle[]) {
         const wrapper = createElement('div', 'discovery');
         const shadow = wrapper.attachShadow({ mode: 'open' });
-        const readyStyles = injectStyles(shadow, styles);
         const container = shadow.appendChild(createElement('div'));
         const pageContent = createElement('article');
         const nav = createElement('div', 'discovery-nav discovery-hidden-in-dzen');
         const sidebar = createElement('nav', 'discovery-sidebar discovery-hidden-in-dzen');
         const content = createElement('main', 'discovery-content', [pageContent]);
+
+        const readyStyles = injectStyles(shadow,
+            this.info.icon
+                ? styles?.concat(`.discovery-root{--discovery-app-icon:url(${JSON.stringify(this.info.icon)}`)
+                : styles
+        );
 
         this.dom = {
             ready: readyStyles,

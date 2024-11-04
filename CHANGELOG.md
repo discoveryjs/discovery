@@ -9,6 +9,7 @@
 - Model's info:
     - Added `name`, `version`, `description`, and `icon` options for `Model`, storing these values in the `info` property
     - Added `model` property to a render context (result of `ViewModel#getRenderContext()`) reflecting `info` value
+    - Added `--discovery-app-icon` CSS custom property which contains value of model's `icon`
 - Added `@discoveryjs/discovery/utils` export
 - Changed the extension application order for `App` so that `options.extensions` are applied after implicit extensions
 - Changed `nav-button` view to align with `button` view (`text`, `href` and `external` as config options, `disabled` is no longer treated as query)
