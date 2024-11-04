@@ -7,6 +7,7 @@
 - Added support for uploading files from `paste` event
 - Added `unloadData` nav button
 - Renamed `loadData` nav button into `uploadFile`
+- Changed `Model#unloadData()` method to not reset context
 - Added `app-header` view
 - Model's info:
     - Added `name`, `version`, `description`, and `icon` options for `Model`, storing these values in the `info` property

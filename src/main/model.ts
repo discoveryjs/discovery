@@ -347,7 +347,6 @@ export class Model<
 
         this.datasets = [];
         this.data = undefined;
-        this.context = undefined;
 
         this.emit('unloadData');
     }
