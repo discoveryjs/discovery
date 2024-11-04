@@ -38,7 +38,7 @@ export class PageRenderer extends Dictionary<Page> {
     #host: ViewModel;
     #view: ViewRenderer;
     lastPage: string | null;
-    lastPageRef: string | null;
+    lastPageRef: string | number | null;
     pageOverscrolled: Observer<boolean>;
     setPageOverscroll: (el: HTMLElement) => void;
 
@@ -114,8 +114,8 @@ export class PageRenderer extends Dictionary<Page> {
         }
 
         const { reuseEl, init, keepScrollOffset = true } = page.options || {};
+        const pageRef = this.#host.pageRef;
         const pageChanged = this.lastPage !== name;
-        const pageRef = context && context.id;
         const pageRefChanged = this.lastPageRef !== pageRef;
         const newPageEl = reuseEl && !pageChanged ? prevPageEl : document.createElement('article');
         const parentEl = prevPageEl.parentNode;
@@ -133,6 +133,7 @@ export class PageRenderer extends Dictionary<Page> {
             rendered = page.render(newPageEl, data, context);
         } catch (e) {
             // FIXME: Should not to use a view (alert-danger) since it may to be undefined. Replace render with onError hook?
+            newPageEl.replaceChildren();
             rendered = this.#view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
             this.#host.log('error', 'Page render error:', e);
         }
