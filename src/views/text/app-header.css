@@ -17,7 +17,8 @@
     aspect-ratio: 1;
     vertical-align: middle;
     padding: 4px;
-    background: var(--icon, var(--discovery-app-icon)) no-repeat center;
+    background: no-repeat center;
+    background-image: var(--icon, var(--discovery-app-icon));
     background-size: 48px;
     background-color: #f4f4f4;
     border-radius: 3px;

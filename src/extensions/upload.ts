@@ -3,21 +3,26 @@ import { createElement } from '../core/utils/dom.js';
 
 // export an integration with default settings
 export default Object.assign(setup(), { setup });
-export type UploadOptions = Partial<{
+export type UploadOptions = {
     accept: string | string[];
     dragdrop: boolean;
-}>;
+    clipboard: boolean;
+};
 
 const isExtension = (value: string) => /^\./.test(value);
 
-function setup(options?: UploadOptions) {
-    options = options || {};
+function setup(options?: Partial<UploadOptions>) {
+    options = {
+        accept: 'application/json,application/jsonxl,.json,.jsonxl',
+        dragdrop: true,
+        clipboard: false,
+        ...options
+    };
 
     return function(host: ViewModel) {
-        const dragdrop = Boolean(options.dragdrop || options.dragdrop === undefined);
-        const accept = options.accept
-            ? String(options.accept)
-            : 'application/json,application/jsonxl,.json,.jsonxl';
+        const dragdrop = Boolean(options.dragdrop);
+        const clipboard = Boolean(options.clipboard);
+        const accept = String(options.accept);
         const acceptTokens = accept.split(',');
 
         if (dragdrop) {
@@ -44,8 +49,20 @@ function setup(options?: UploadOptions) {
         host.preset.define('upload', [
             {
                 view: 'button-primary',
-                onClick: '=#.actions.uploadFile',
-                content: 'text:`Open file ${#.actions.uploadFile.fileExtensions | $ ? "(" + join(", ") + ")" : ""}`'
+                text: '=`Open file${#.actions.uploadFile.fileExtensions |? " (" + join(", ") + ")" : "" | size > 1 and size() <= 17 ?: "…"}`',
+                onClick: '=#.actions.uploadFile'
+            },
+            {
+                view: 'context',
+                when: '#.actions.uploadDataFromClipboard',
+                content: [
+                    'html:"<span style=\\"color: #888; padding: 0 1ex\\"> or </span>"',
+                    {
+                        view: 'button',
+                        text: 'Paste from clipboard',
+                        onClick: '=#.actions.uploadDataFromClipboard'
+                    }
+                ]
             },
             {
                 view: 'context',
@@ -72,8 +89,18 @@ function setup(options?: UploadOptions) {
             {
                 fileExtensions: acceptTokens.filter(token => isExtension(token)),
                 mimeTypes: acceptTokens.filter(token => !isExtension(token)),
-                dragdrop
+                dragdrop,
+                clipboard
             }
         ));
+
+        if (clipboard) {
+            host.action.define('uploadDataFromClipboard', async () => {
+                // const items = await.clipboard.read();
+                // const blob = await items[0].getType('text/plain');
+                const items = await navigator.clipboard.readText(); // {"a":123}
+                host.loadDataFromStream(new Blob([items]).stream());
+            });
+        }
     };
 }

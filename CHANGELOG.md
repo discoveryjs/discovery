@@ -4,6 +4,7 @@
 - Added `pageStateChange` event to `ViewModel`, triggered when `pageId`, `pageRef`, or `pageParams` changes
 - Added `query` property to functions produced from a string (jora query), i.e. with `Model#queryFn(query)`
 - Added `app-header` view
+- Added `clipboard` option to the `upload` extension for enabling loading data from the clipboard
 - Added support for uploading files from `paste` event
 - Added `@discoveryjs/discovery/utils` export
 - Changed the extension application order for `App` so that `options.extensions` are applied after implicit extensions
