@@ -98,6 +98,11 @@ export class App<
 
                 loadingOverlayEl.replaceChildren(progressbar?.el || '');
 
+                // const fragment = document.createDocumentFragment();
+                // this.view
+                //     .render(fragment, 'app-header:#.model', this.data, this.context)
+                //     .then(() => loadingOverlayEl.prepend(fragment));
+
                 break;
             }
 
@@ -109,11 +114,15 @@ export class App<
 
             case 'error': {
                 const error = (options as AppLoadingStateOptions<'error'>)?.error;
-
-                loadingOverlayEl.classList.add('error');
-                loadingOverlayEl.replaceChildren();
-
-                this.view.render(loadingOverlayEl, [
+                const renderContext = this.getRenderContext();
+                const renderData = {
+                    stage: progressbar?.value.stage,
+                    errorText: String(error),
+                    errorMessage: error.message || String(error),
+                    errorStack: (error.stack || '').replace(/^Error:\s*(\S+Error:)/, '$1')
+                };
+                const renderConfig = [
+                    'app-header:#.model',
                     {
                         view: 'block',
                         className: 'action-buttons',
@@ -143,14 +152,19 @@ export class App<
                             error.renderContent || 'text:"(see details in the console)"'
                         ]
                     }
-                ], {
-                    stage: progressbar?.value.stage,
-                    errorText: String(error),
-                    errorMessage: error.message || String(error),
-                    errorStack: (error.stack || '').replace(/^Error:\s*(\S+Error:)/, '$1')
-                }, {
-                    actions: this.action.actionMap
-                }).then(() => {
+                ];
+
+                loadingOverlayEl.classList.add('error');
+                loadingOverlayEl.replaceChildren();
+
+                this.view.setViewRoot(loadingOverlayEl, 'AppOverlay', {
+                    inspectable: false,
+                    config: renderConfig,
+                    data: renderData,
+                    context: renderContext
+                });
+
+                this.view.render(loadingOverlayEl, renderConfig, renderData, renderContext).then(() => {
                     this.log('error', error);
                     progressbar?.setState({ error });
                 });

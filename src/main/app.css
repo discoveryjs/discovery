@@ -11,17 +11,37 @@
 }
 .discovery > .loading-overlay.error {
     overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
-.discovery > .loading-overlay.error .action-buttons {
-    margin-bottom: 1em;
+
+.discovery > .loading-overlay > .view-app-header {
+    transition: opacity .25s 500ms;
+    will-change: opacity;
+    contain: paint;
+
+    @starting-style {
+        opacity: 0;
+    }
 }
-.discovery > .loading-overlay.error .action-buttons .view-button + .view-button {
+.discovery > .loading-overlay.error > .view-app-header {
+    transition: none !important;
+}
+.discovery > .loading-overlay.done > .view-app-header {
+    visibility: hidden;
+}
+.discovery > .loading-overlay.error > .view-app-header:first-child {
+    margin-top: -10px;
+    margin-bottom: 27px;
+}
+
+.discovery > .loading-overlay.error > .action-buttons .view-button + .view-button {
     margin-left: 2ex;
 }
 
 .discovery > .loading-overlay.error > .error-message,
 .discovery > .loading-overlay.error > .warning-message {
-    margin: 20px 0;
     padding: 20px;
     box-sizing: border-box;
     color: #d85a5a;
@@ -61,7 +81,7 @@
     display: inline-block;
     padding: 1ex 20px;
     background-color: #ff9d9d;
-    color: #e23c3c;
+    color: #992d2d;
     text-shadow: none;
     font-size: 11px;
     text-transform: uppercase;
@@ -78,7 +98,7 @@
     background-color: #5d502d;
 }
 
-.discovery > .loading-overlay.done:not(.error) {
+.discovery > .loading-overlay.done {
     opacity: 0;
     visibility: hidden;
     transition: all .25s;
