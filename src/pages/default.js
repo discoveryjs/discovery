@@ -3,26 +3,37 @@ export default function(host) {
         view: 'switch',
         content: [
             {
-                when: 'not #.datasets',
-                content: [
-                    {
-                        view: 'h1',
-                        className: 'no-data-loaded',
-                        content: 'text:"Discovery.js"'
-                    },
-                    {
-                        view: 'markdown',
-                        when: '#.meta.description',
-                        source: '=#.meta.description'
-                    },
-                    'html:"<br>"',
-                    'preset/upload'
-                ]
+                when: 'no #.datasets',
+                content: 'preset/welcome-block'
             },
             {
                 content: [
                     'page-header{ content: "h1:#.name" }',
                     { view: 'struct', expanded: 1 }
+                ]
+            }
+        ]
+    });
+
+    // default welcome block
+    host.preset.define('welcome-block', {
+        view: 'block',
+        className: 'welcome-block',
+        data: '#.model',
+        content: [
+            'app-header',
+
+            {
+                view: 'block',
+                className: 'upload-data',
+                when: '#.actions.uploadFile',
+                content: [
+                    'preset/upload',
+                    {
+                        view: 'block',
+                        className: 'upload-notes',
+                        content: 'html:name + " is a server-less application that securely opens and analyzes your data directly on your device,<br>ensuring all processing is done locally without transmitting your data elsewhere."'
+                    }
                 ]
             }
         ]

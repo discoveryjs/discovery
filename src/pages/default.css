@@ -13,3 +13,25 @@
     background: var(--discovery-app-icon) no-repeat center;
     background-size: 42px;
 }
+
+.welcome-block {
+    margin-top: -10px;
+}
+.welcome-block .upload-data {
+    margin-top: 1.5em;
+    margin-left: -13px;
+    background-color: #00000008;
+    border: 1px dashed #a8a8a8;
+    padding: 12px;
+    border-radius: 7px;
+    max-width: 620px;
+}
+.discovery-root-darkmode .welcome-block .upload-data {
+    background-color: #00000014;
+    border-color: #555;
+}
+.welcome-block .upload-notes {
+    font-size: 82%;
+    color: #aaa;
+    padding: 10px 0 0 3px;
+}
