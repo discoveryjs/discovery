@@ -1,0 +1,56 @@
+.view-histogram {
+    display: inline-block;
+}
+
+.view-histogram__canvas {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    border-bottom: 1px solid #8883;
+}
+.view-histogram[data-size="xs"] .view-histogram__canvas { height: 22px;  min-width: 100px; }
+.view-histogram[data-size="s"]  .view-histogram__canvas { height: 35px;  min-width: 150px; }
+.view-histogram[data-size="m"]  .view-histogram__canvas { height: 60px;  min-width: 250px; }
+.view-histogram[data-size="l"]  .view-histogram__canvas { height: 90px;  min-width: 400px; }
+.view-histogram[data-size="xl"] .view-histogram__canvas { height: 125px; min-width: 600px; }
+
+.view-histogram__range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: #888;
+}
+.view-histogram__range::before {
+    content: attr(data-min) ' (min)';
+}
+.view-histogram__range::after {
+    content: '(max) ' attr(data-max);
+}
+
+.view-histogram__bar {
+    --size: calc(var(--bin-size) / var(--max-bin-size));
+    --gap: calc(var(--min-gap, 1px) - .5px * min(1, max(0, var(--bin-count, 0) - var(--min-gap-threshold, 50))));
+    flex: 1;
+    border-right: var(--gap) solid transparent;
+}
+.view-histogram[data-y-scale="log"] .view-histogram__bar {
+    --size: calc(var(--bin-log-size) / var(--max-bin-log-size));
+}
+.view-histogram[data-size="xs"] .view-histogram__bar { --min-gap: .5px;  --min-gap-threshold: 25; min-width: 1px; }
+.view-histogram[data-size="s"]  .view-histogram__bar { --min-gap: .85px; --min-gap-threshold: 50; min-width: 2px; }
+.view-histogram[data-size="m"]  .view-histogram__bar { --min-gap: 1.4px; --min-gap-threshold: 75; min-width: 3px; }
+.view-histogram[data-size="l"]  .view-histogram__bar { --min-gap: 1.5px; --min-gap-threshold: 100; min-width: 4px; }
+.view-histogram[data-size="xl"] .view-histogram__bar { --min-gap: 1.6px; --min-gap-threshold: 150; min-width: 5px; }
+.view-histogram__bar:hover {
+    background-color: #fff2;
+}
+.view-histogram__bar::before {
+    content: "";
+    display: block;
+    height: 100%;
+    background-image: linear-gradient(
+        to top,
+        var(--color, #54a6eea6) max(min(1px, var(--size) * 1000000px), calc(var(--size) * 100%)),
+        transparent 0
+    );
+}
