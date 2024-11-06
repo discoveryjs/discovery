@@ -52,6 +52,9 @@
 .discovery-view-popup.view-struct-actions-popup .num-delim {
     padding-left: 3px;
 }
+.discovery-view-popup.view-struct-actions-popup .view-menu-item + .view-menu-item.group-start:not(:first-child) {
+    border-top: 1px solid #8888;
+}
 
 .discovery-view-popup.view-struct-signature-popup.computing {
     padding: 8px;

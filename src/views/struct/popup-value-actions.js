@@ -92,6 +92,7 @@ export function createValueActionsPopup(host, elementData, elementContext, build
 
                     if (host.action.has('queryAcceptChanges') && host.action.call('queryAcceptChanges', rootData)) {
                         host.action.has('querySubquery') && actions.push({
+                            groupStart: true,
                             text: 'Create a subquery from the path',
                             action: () => host.action.call('querySubquery', path, rootData)
                         });
@@ -103,6 +104,7 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                 }
 
                 actions.push({
+                    groupStart: true,
                     text: 'Copy as JSON',
                     notes: `(formatted${formatSize(formattedSize)})`,
                     error: jsonFormattedStringifyError,
@@ -123,6 +125,9 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                 onClick(item) {
                     hide();
                     item.action();
+                },
+                itemConfig: {
+                    className: '=groupStart ? "group-start" : null'
                 },
                 item: [
                     'html:text',
