@@ -58,8 +58,8 @@ function getStatCounts(stat) {
 
 export function renderPropertyDetails(el, data, host) {
     const objectStat = data.stat.object;
-    const { map, count: total } = objectStat.dictMode || objectStat.properties.get(data.name);
-    const count = objectStat.dictMode
+    const { map, count } = objectStat.dictMode || objectStat.properties.get(data.name);
+    const total = objectStat.dictMode
         ? objectStat.dictMode.count
         : objectStat.size;
     const output = {
@@ -95,7 +95,7 @@ export function renderPropertyDetails(el, data, host) {
 
     renderTypeStat(el, {
         map,
-        count: total
+        count
     }, host);
 }
 

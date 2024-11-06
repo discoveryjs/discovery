@@ -1,3 +1,7 @@
+## next
+
+- Fixed optional values statistics in `signature` view
+
 ## 1.0.0-beta.89 (04-11-2024)
 
 - Renamed `Widget` class into `ViewModel`
