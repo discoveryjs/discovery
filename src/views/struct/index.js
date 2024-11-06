@@ -336,7 +336,7 @@ export default function(host) {
     let annotationsTimer = null;
 
     const valueActionsPopup = createValueActionsPopup(host, elementData, elementContext, buildPathForElement);
-    const signaturePopup = createSignaturePopup(host, elementData, buildPathForElement);
+    const signaturePopup = createSignaturePopup(host, elementData, elementOptions, buildPathForElement);
     const clickHandler = createClickHandler(
         expandValue,
         collapseValue,

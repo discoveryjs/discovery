@@ -27,7 +27,7 @@ export default function(host) {
         const data = elementToData.get(activeEl);
 
         if (data) {
-            const { path, stat, map, offset } = data;
+            const { context, path, stat, map, offset } = data;
             const fragment = document.createDocumentFragment();
 
             switch (action) {
@@ -65,7 +65,7 @@ export default function(host) {
                     }
             }
 
-            renderStat(fragment, { object: map }, elementToData, path, offset, stat);
+            renderStat(fragment, { object: map }, elementToData, context, path, offset, stat);
             activeEl.replaceWith(fragment);
         }
     };
@@ -81,7 +81,7 @@ export default function(host) {
             .view-signature .property,
             .view-signature .type
         `,
-        render: function(popupEl, triggerEl) {
+        render(popupEl, triggerEl) {
             const data = elementToData.get(triggerEl);
 
             switch (data.type) {
@@ -94,12 +94,12 @@ export default function(host) {
         }
     });
 
-    host.view.define('signature', function(el, config, data) {
+    host.view.define('signature', function(el, config, data, context) {
         const { expanded, path } = config;
         const stat = collectStat(data, expanded);
         const normPath = Array.isArray(path) ? path : undefined;
 
-        renderStat(el, stat, elementToData, normPath);
+        renderStat(el, stat, elementToData, context, normPath);
     }, {
         usage
     });

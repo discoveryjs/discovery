@@ -1,7 +1,7 @@
 import { createElement } from '../../core/utils/dom.js';
 import { typeOrder } from './const.js';
 
-export function renderStat(el, stat, elementToData, path = [], offset = '', fullStat = null) {
+export function renderStat(el, stat, elementToData, context, path = [], offset = '', fullStat = null) {
     Object.keys(stat)
         .sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b))
         .forEach((type, idx, types) => {
@@ -15,6 +15,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '', full
 
                     elementToData.set(typeEl, {
                         type: 'type',
+                        context,
                         path,
                         stat,
                         name: type
@@ -29,6 +30,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '', full
                     if (properties === null) {
                         elementToData.set(el.appendChild(createElement('span', 'expand', '{…}')), {
                             type: 'expand',
+                            context,
                             path,
                             stat,
                             map: stat[type],
@@ -74,6 +76,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '', full
 
                     elementToData.set(contentEl, {
                         type: 'shape',
+                        context,
                         path,
                         map: stat[type],
                         offset
@@ -92,6 +95,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '', full
 
                         elementToData.set(propertyEl, {
                             type: 'property',
+                            context,
                             path,
                             stat,
                             name,
@@ -106,7 +110,7 @@ export function renderStat(el, stat, elementToData, path = [], offset = '', full
                         }
 
                         contentEl.append(': ');
-                        renderStat(contentEl, map, elementToData, path.concat(dictMode ? '*' : name), propertyOffset);
+                        renderStat(contentEl, map, elementToData, context, path.concat(dictMode ? '*' : name), propertyOffset);
                         contentEl.append(';');
                     }
 
@@ -121,14 +125,14 @@ export function renderStat(el, stat, elementToData, path = [], offset = '', full
 
                 case 'array':
                     el.append('[');
-                    renderStat(el, stat[type].map, elementToData, path, offset);
+                    renderStat(el, stat[type].map, elementToData, context, path, offset);
                     el.append(']');
 
                     break;
 
                 case 'set':
                     el.append('Set(');
-                    renderStat(el, stat[type].map, elementToData, path, offset);
+                    renderStat(el, stat[type].map, elementToData, context, path, offset);
                     el.append(')');
 
                     break;

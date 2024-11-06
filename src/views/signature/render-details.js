@@ -58,13 +58,15 @@ function getStatCounts(stat) {
 
 export function renderPropertyDetails(el, data, host) {
     const objectStat = data.stat.object;
-    const { map, count } = objectStat.dictMode || objectStat.properties.get(data.name);
+    const { context, path, stat, name } = data;
+    const objectStat = stat.object;
+    const { map, count } = objectStat.dictMode || objectStat.properties.get(name);
     const total = objectStat.dictMode
         ? objectStat.dictMode.count
         : objectStat.size;
     const output = {
-        name: data.name,
-        path: host.pathToQuery(data.path),
+        name: name,
+        path: host.pathToQuery(path),
         total,
         count,
         percent: fixedNum(100 * count / total, 1) + '%'
@@ -91,15 +93,16 @@ export function renderPropertyDetails(el, data, host) {
                 }
             ]
         }
-    ], output);
+    ], output, context);
 
     renderTypeStat(el, {
+        context,
         map,
         count
     }, host);
 }
 
-function renderTypeStat(el, { map, count }, host) {
+function renderTypeStat(el, { context, map, count }, host) {
     const typeCounts = getStatCounts(map);
     const typeStat = [];
     const types = typeOrder.filter(type => type in map);
@@ -142,14 +145,15 @@ function renderTypeStat(el, { map, count }, host) {
                 ]
             }
         ]
-    }, typeStat);
+    }, typeStat, context);
 
     types.forEach(name =>
-        renderTypeDetails(el, { name, stat: map }, host)
+        renderTypeDetails(el, { context, name, stat: map }, host)
     );
 }
 
 export function renderTypeDetails(el, data, host) {
+    const context = data.context;
     const stat = data.stat[data.name];
     const total = getStatCount(data.stat);
     const renderSections = [];
@@ -418,5 +422,5 @@ export function renderTypeDetails(el, data, host) {
         path: data.path,
         total,
         percent: fixedNum(100 * output.count / total, 1) + '%'
-    }, {});
+    }, context);
 }
