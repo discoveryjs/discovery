@@ -53,6 +53,7 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                     const { bytes, spaceBytes, circular } = jsonStringifyInfo(data, { space: 4 });
 
                     if (circular.length) {
+                        jsonFormattedStringifyError = 'Converting circular structure to JSON';
                         jsonCompactStringifyError = 'Converting circular structure to JSON';
                     } else {
                         compactSize = bytes - spaceBytes;
