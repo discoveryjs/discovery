@@ -1,9 +1,10 @@
 
 .discovery-view-popup.signature-details {
     padding: 10px;
+    min-width: 340px;
 }
 .discovery-view-popup.signature-details > * {
-    max-width: 420px;
+    max-width: 450px;
 }
 
 .discovery-view-popup.signature-details .path {
@@ -59,8 +60,9 @@
     font-size: 11px;
     color: #aaa;
 }
-.discovery-view-popup.signature-details .pie-stat .view-list {
-    max-width: 270px;
+.discovery-view-popup.signature-details .pie-stat > .view-block:last-child {
+    overflow: hidden;
+    padding-right: 10px;
 }
 .discovery-view-popup.signature-details .pie-stat .view-list-item {
     display: flex;
@@ -132,6 +134,22 @@
 }
 .discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct.struct-expanded-value {
     overflow-x: auto;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .struct-expanded-value:has(>.string) {
+    white-space: normal !important;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .value:not(.struct-expanded-value) > .string {
+    white-space: normal;
+    word-break: break-all;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .value > .string-text-wrapper {
+    padding-left: 6px;
+    margin-left: 4px;
+    overflow-x: auto;
+}
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .string-value-as-text .string-text {
+    display: inline-block;
+    white-space: pre;
 }
 .discovery-view-popup.signature-details .struct-list > .view-list-item > .count {
     position: absolute;

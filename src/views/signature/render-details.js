@@ -29,7 +29,7 @@ function svgPieChart(slices) {
                 'L 0 0' // Line
             ];
 
-            return `<path d="${pathData.join(' ')}" fill="${slice.color}"/>`;
+            return `<path d="${pathData.join(' ')}" fill="${slice.color}" stroke="black" stroke-width=".0025"/>`;
         }),
         '</svg>'
     ].join('\n');
@@ -57,7 +57,6 @@ function getStatCounts(stat) {
 }
 
 export function renderPropertyDetails(el, data, host) {
-    const objectStat = data.stat.object;
     const { context, path, stat, name } = data;
     const objectStat = stat.object;
     const { map, count } = objectStat.dictMode || objectStat.properties.get(name);
@@ -272,7 +271,7 @@ export function renderTypeDetails(el, data, host) {
 
         if (output.values.length > 1 &&
             output.duplicated &&
-            data.name !== 'object' &&  // exclude object and array since we can't presentate those values in legend in short at the moment
+            data.name !== 'object' &&  // exclude object and array since we can't present those values in legend in short form at the moment
             data.name !== 'set' &&
             data.name !== 'array') {
             const segments = [];
@@ -341,15 +340,24 @@ export function renderTypeDetails(el, data, host) {
                 renderSections.push({
                     view: 'content-filter',
                     name: 'filter',
+                    data: 'values.sort(value ascN)',
                     content: {
-                        view: 'menu',
-                        data: 'values.[no #.filter or value~=#.filter].sort(=>value)',
+                        view: data.name === 'string' ? 'list' : 'menu',
+                        className: 'struct-list',
+                        data: '.[no #.filter or value~=#.filter]',
+                        emptyText: 'Nothing matched',
                         item: [
-                            {
-                                view: 'block',
-                                className: 'caption',
-                                content: 'text-match:{ text: value, match: #.filter }'
-                            },
+                            data.name === 'string'
+                                ? {
+                                    view: 'struct',
+                                    data: 'value',
+                                    match: '=#.filter'
+                                }
+                                : {
+                                    view: 'block',
+                                    className: 'caption',
+                                    content: 'text-match:{ text: value, match: #.filter }'
+                                },
                             {
                                 view: 'block',
                                 when: 'count > 1',
@@ -364,7 +372,7 @@ export function renderTypeDetails(el, data, host) {
             if (data.name === 'number' || data.name === 'string' || data.name === 'boolean') {
                 renderSections.push({
                     view: 'struct',
-                    data: 'values.pick().value'
+                    data: 'values[].value'
                 });
             }
         }
