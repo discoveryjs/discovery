@@ -75,6 +75,7 @@ export const objectValueProto = createFragment(
 );
 export const entryProtoEl = createElement('div', 'entry-line');
 export const valueProtoEl = createElement('span', 'value');
+export const matchProtoEl = createElement('span', 'match');
 export const objectKeyProtoEl = createElement('span', 'label', [
     '\xA0\xA0\xA0\xA0',
     createElement('span', 'property'),

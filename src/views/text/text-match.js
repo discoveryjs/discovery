@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import { createElement, createText } from '../../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import { matchAll } from '../../core/utils/pattern.js';
 import usage from './text-match.usage.js';
 
@@ -22,10 +22,10 @@ export default function(host) {
             String(text),
             pattern,
             text => el
-                .appendChild(createText(text)),
+                .append(text),
             text => el
                 .appendChild(matchWrapperEl.cloneNode())
-                .appendChild(createText(text)),
+                .append(text),
             ignoreCase
         );
     }, {

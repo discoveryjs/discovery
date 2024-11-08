@@ -1,6 +1,7 @@
 module.exports = {
     name: 'Discovery examples',
     models: {
-        'load-benchmark': require('./load-benchmark/index.cjs')
+        discovery: '../gh-pages.config.cjs',
+        'load-benchmark': './load-benchmark/index.cjs'
     }
 };

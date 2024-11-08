@@ -1,3 +1,5 @@
+import { stringifyIfNeeded } from './value-to-html.js';
+
 export const createClickHandler = (
     expandValue,
     collapseValue,
@@ -64,29 +66,37 @@ export const createClickHandler = (
             scheduleApplyAnnotations();
             break;
 
-        case 'toggle-string-mode':
+        case 'toggle-string-mode': {
             cursor = cursor.parentNode;
 
-            const stringTextNode = cursor.querySelector('.string-text').firstChild;
+            const asText = cursor.classList.toggle('string-value-as-text');
 
-            stringTextNode.nodeValue = cursor.classList.toggle('string-value-as-text')
-                ? JSON.parse(`"${stringTextNode.nodeValue}"`)
-                : JSON.stringify(stringTextNode.nodeValue).slice(1, -1);
+            for (let child = cursor.querySelector('.string-text').firstChild; child !== null; child = child.nextSibling) {
+                const textNode = child.nodeType === 3 ? child : child.firstChild;
+                const value = textNode.nodeValue;
+
+                if (asText) {
+                    if (value.indexOf('\\') !== -1) {
+                        textNode.nodeValue = JSON.parse(`"${value}"`);
+                    }
+                } else {
+                    const newValue = stringifyIfNeeded(value);
+
+                    if (newValue !== value) {
+                        textNode.nodeValue = newValue;
+                    }
+                }
+            }
             break;
+        }
 
         case 'toggle-view-as-table':
             cursor = cursor.parentNode;
 
-            const asTable = cursor.classList.toggle('view-as-table');
-
-            if (asTable) {
+            if (cursor.classList.toggle('view-as-table')) {
                 renderTable(cursor);
             } else {
-                const tableEl = cursor.querySelector(':scope > .view-table');
-
-                if (tableEl) {
-                    tableEl.remove();
-                }
+                cursor.querySelector(':scope > .view-table')?.remove();
             }
             break;
     }

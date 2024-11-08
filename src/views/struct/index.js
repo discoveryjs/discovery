@@ -1,11 +1,11 @@
 /* eslint-env browser */
 
 import { numDelim } from '../../core/utils/html.js';
-import { isArray, isSet } from '../../core/utils/is-type.js';
+import { isArray, isRegExp, isSet } from '../../core/utils/is-type.js';
 import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
-import value2html from './value-to-html.js';
+import value2html, { stringifyIfNeeded } from './value-to-html.js';
 import { getDefaultAnnotations, prepareAnnotations, renderAnnotations } from './render-annotations.js';
 import usage from './struct.usage.js';
 import {
@@ -14,9 +14,11 @@ import {
     objectValueProto,
     entryProtoEl,
     valueProtoEl,
-    objectKeyProtoEl
+    objectKeyProtoEl,
+    matchProtoEl
 } from './el-proto.js';
 import { createSignaturePopup } from './poup-signature.js';
+import { matchAll } from '../../core/utils/pattern.js';
 
 const defaultExpandedItemsLimit = 50;
 const defaultCollapsedItemsLimit = 4;
@@ -122,13 +124,24 @@ export default function(host) {
         // since only such types of data expandable
         if (typeof data === 'string') {
             // string
+            const options = elementOptions.get(el);
             const valueEl = stringValueProto.cloneNode(true);
             const stringValueEl = valueEl.lastChild.previousSibling;
+            const stringContentEl = stringValueEl.firstChild;
             const sizeEl = stringValueEl.previousSibling;
-            const text = JSON.stringify(data);
+            const text = stringifyIfNeeded(data);
 
-            appendText(stringValueEl.firstChild, text.slice(1, -1));
             sizeEl.innerHTML = `length: ${numDelim(text.length)} chars`;
+            if (options.match) {
+                matchAll(
+                    data,
+                    options.match,
+                    chunk => stringContentEl.append(JSON.stringify(chunk).slice(1, -1)),
+                    chunk => stringContentEl.appendChild(matchProtoEl.cloneNode()).append(JSON.stringify(chunk).slice(1, -1))
+                );
+            } else {
+                appendText(stringContentEl, text);
+            }
 
             el.replaceChildren(valueEl);
             moveAnnotationsEl(el, sizeEl);
@@ -353,6 +366,7 @@ export default function(host) {
     host.view.define('struct', function(el, config, data, context) {
         const {
             annotations,
+            match,
             expanded,
             limit,
             limitCollapsed,
@@ -375,6 +389,7 @@ export default function(host) {
             renderer: this,
             context,
             annotations: normalizedAnnotations || [],
+            match: isRegExp(match) || typeof match === 'string' ? match : null,
             limit: host.view.listLimit(limit, defaultExpandedItemsLimit),
             limitCollapsed: host.view.listLimit(limitCollapsed, defaultCollapsedItemsLimit),
             limitCompactObjectEntries: host.view.listLimit(limitCompactObjectEntries, defaultCollapsedObjectEntries),
@@ -394,7 +409,7 @@ export default function(host) {
         });
         scheduleApplyAnnotations();
 
-        if (!expanded && isValueExpandable(data, options)) {
+        if ((!expanded || typeof data === 'string') && isValueExpandable(data, options)) {
             el.classList.add('struct-expand');
         }
     }, {

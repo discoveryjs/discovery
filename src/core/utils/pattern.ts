@@ -1,7 +1,11 @@
 import { isRegExp } from './is-type.js';
 
-function matchWithRx(str: string, pattern: RegExp, lastIndex: number) {
-    const offset = str.slice(lastIndex).search(pattern);
+const stopSymbol = Symbol('stop-match');
+
+function matchWithRx(str: string, pattern: RegExp, lastIndex = 0) {
+    const offset = lastIndex !== 0
+        ? str.slice(lastIndex).search(pattern)
+        : str.search(pattern);
 
     return offset !== -1 ? { offset: lastIndex + offset, length: RegExp.lastMatch.length } : null;
 };
@@ -31,12 +35,12 @@ export function match(text: string, pattern: RegExp | string | null, ignoreCase 
 export function matchAll(
     text: string,
     pattern: RegExp | string | null,
-    onText: (substring: string) => void,
-    onMatch: (substring: string) => void,
+    onText: (substring: string, last: boolean) => void,
+    onMatch: (substring: string, stopSymbol: symbol) => void | symbol,
     ignoreCase = false
 ) {
     if (!isRegExp(pattern) && typeof pattern !== 'string') {
-        onText(text);
+        onText(text, true);
         return;
     }
 
@@ -54,22 +58,25 @@ export function matchAll(
     }
 
     let lastIndex = 0;
+    let stopMatch = false;
     do {
-        const match = typeof pattern === 'string'
-            ? matchWithString(matchText, pattern, lastIndex)
-            : matchWithRx(matchText, pattern, lastIndex);
+        const match = stopMatch
+            ? null
+            : typeof pattern === 'string'
+                ? matchWithString(matchText, pattern, lastIndex)
+                : matchWithRx(matchText, pattern, lastIndex);
 
         if (match === null || (match.length === 0 && match.offset === lastIndex)) {
-            onText(lastIndex > 0 ? text.slice(lastIndex) : text);
+            onText(lastIndex > 0 ? text.slice(lastIndex) : text, true);
             break;
         }
 
         if (match.length !== 0) {
             if (match.offset !== lastIndex) {
-                onText(text.slice(lastIndex, match.offset));
+                onText(text.slice(lastIndex, match.offset), false);
             }
 
-            onMatch(text.substr(match.offset, match.length));
+            stopMatch = onMatch(text.substr(match.offset, match.length), stopSymbol) === stopSymbol;
         }
 
         lastIndex = match.offset + match.length;

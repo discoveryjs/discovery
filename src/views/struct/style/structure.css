@@ -72,14 +72,17 @@
 .view-struct .string-text {
     display: inline;
     white-space: pre-wrap;
-    box-shadow: 0 0 0 2px var(--discovery-fmt-string-highlight-color);
+    padding: 2px 4px 1.5px;
     background: var(--discovery-fmt-string-highlight-color);
     color: var(--discovery-fmt-string-color);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
 }
 .view-struct .string-value-as-text .string-text {
     display: block;
     white-space: pre-wrap;
-    box-shadow: 0 0 0 2px rgba(145, 145, 145, 0.1);
+    padding-top: 0;
+    padding-bottom: 0;
     background: rgba(145, 145, 145, 0.1);
     color: var(--discovery-fmt-color);
 }
@@ -94,11 +97,38 @@
 .view-struct .more > .num-delim {
     padding-left: 2px;
 }
-.view-struct .string > .more {
-    margin: 0 3px;
+.view-struct .string > .more.suffix {
+    margin: 0 1px 0 3px;
+}
+.view-struct .string > .more.suffix::before {
+    content: '…';
+    padding-right: calc(1ch - 4px);
+}
+.view-struct .string > .more.suffix::after {
+    content: ' more';
+}
+.view-struct .string > .more.prefix {
+    padding: 0 .6ch 0 .4ch;
+    /* padding: 0 3px 0 1px; */
+}
+.view-struct .string > .more.prefix::after {
+    content: '…';
+    /* padding-left: calc(1ch - 4px); */
 }
 .view-struct .value > .more-buttons {
     padding-left: 4ch;
+}
+
+.view-struct .string > .match,
+.view-struct .string-text > .match {
+    background-color: #f5e69a;
+    padding-top: 1px;
+    border-bottom: 1px solid transparent;
+}
+.discovery-root-darkmode .view-struct .string > .match,
+.discovery-root-darkmode .view-struct .string-text > .match {
+    background-color: #565638;
+    border-color: #a7a73b;
 }
 
 .view-struct .value > .view-table {
