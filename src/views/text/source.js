@@ -9,7 +9,6 @@ import { createElement } from '../../core/utils/dom.js';
 import { copyText } from '../../core/utils/copy-text.js';
 import usage from './source.usage.js';
 
-const defaultMaxSourceSizeToHighlight = 250 * 1024;
 CodeMirror.modeToMime = {
     js: 'application/javascript',
     ts: 'application/typescript',
@@ -98,30 +97,41 @@ const refsPrinter = {
     }
 };
 
+const props = `is not array? | {
+    source: #.props has no 'source' ? is string ?: content is string ? content : source,
+    syntax,
+    lineNum is function ?: is not undefined ? bool() : true,
+    refs is array ?: null,
+    maxSourceSizeToHighlight is number ?: 250 * 1024, // 250Kb
+    actionButtons: undefined,
+    prelude: undefined,
+    postlude: undefined
+} | overrideProps()`;
+
 export default function(host) {
-    host.view.define('source', function(el, config, data, context) {
+    host.view.define('source', async function(el, props, data, context) {
         const preludeEl = el.appendChild(createElement('div', 'view-source__prelude'));
         const contentEl = el.appendChild(createElement('div', 'view-source__content'));
         const postludeEl = el.appendChild(createElement('div', 'view-source__postlude'));
         const refsTooltips = new Map();
         const decorators = [];
         const {
-            mime, // deprecated, syntax = name or mime
-            binary,
-            size,
-            maxSourceSizeToHighlight = defaultMaxSourceSizeToHighlight,
+            source,
             syntax,
             lineNum = true,
-            content,
-            refs
-        } = data;
+            refs,
+            maxSourceSizeToHighlight,
+            actionButtons,
+            prelude,
+            postlude
+        } = props;
 
-        if (typeof content !== 'string') {
+        if (typeof source !== 'string') {
             return;
         }
 
         // prevent syntax highlighting for sources over maxSourceSizeToHighlight to avoid page freeze
-        if (content.length < maxSourceSizeToHighlight) {
+        if (source.length < maxSourceSizeToHighlight) {
             decorators.push([codeMirrorHighlight(syntax || mime, host), {
                 html: {
                     open({ data: type }) {
@@ -155,56 +165,53 @@ export default function(host) {
             ]);
         }
 
-        if (binary) {
-            contentEl.innerHTML = 'Binary content' + (typeof size === 'number' ? ' (' + size + ' bytes)' : '');
-        } else {
-            const lineOffset = typeof lineNum === 'function' ? lineNum : idx => idx + 1;
-            const lines = lineNum
-                ? '<div class="view-source__lines">' +
-                    content.split(/\r\n?|\n/g)
-                        .map((_, idx) => '<span>' + lineOffset(idx) + '</span>')
-                        .join('') +
-                  '</div>'
-                : '';
+        const lineOffset = typeof lineNum === 'function' ? lineNum : idx => idx + 1;
+        const lines = lineNum
+            ? '<div class="view-source__lines">' +
+                source.split(/\r\n?|\n/g)
+                    .map((_, idx) => '<span>' + lineOffset(idx) + '</span>')
+                    .join('') +
+                '</div>'
+            : '';
 
-            // main content
-            contentEl.innerHTML =
-                lines +
-                `<div class="view-source__source">${
-                    hitext(decorators, 'html')(content)
-                }</div>`;
+        // main content
+        contentEl.innerHTML =
+            lines +
+            `<div class="view-source__source">${
+                hitext(decorators, 'html')(source)
+            }</div>`;
 
-            // action buttons
-            const actionButtonsEl = createElement('div', 'view-source__action-buttons');
+        // action buttons
+        const actionButtonsEl = createElement('div', 'view-source__action-buttons');
 
-            host.view.render(actionButtonsEl, [
-                config.actionButtons,
-                { view: 'button', className: 'copy', async onClick(btnEl) {
-                    clearTimeout(btnEl.copiedTimer);
-                    await copyText(content);
-                    btnEl.classList.add('copied');
-                    btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
-                } }
-            ], data, context);
-            contentEl.prepend(actionButtonsEl);
+        contentEl.prepend(actionButtonsEl);
+        await host.view.render(actionButtonsEl, [
+            actionButtons,
+            { view: 'button', className: 'copy', async onClick(btnEl) {
+                clearTimeout(btnEl.copiedTimer);
+                await copyText(source);
+                btnEl.classList.add('copied');
+                btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
+            } }
+        ], data, context);
 
-            // tooltips
-            for (const refEl of contentEl.querySelectorAll(':scope [data-tooltip-id]')) {
-                const ref = refsTooltips.get(Number(refEl.dataset.tooltipId));
+        // tooltips
+        for (const refEl of contentEl.querySelectorAll(':scope [data-tooltip-id]')) {
+            const ref = refsTooltips.get(Number(refEl.dataset.tooltipId));
 
-                delete refEl.dataset.tooltipId;
-                this.tooltip(refEl, ref.tooltip, ref, context);
-            }
+            delete refEl.dataset.tooltipId;
+            this.tooltip(refEl, ref.tooltip, ref, context);
+        }
 
-            if (config.prelude) {
-                host.view.render(preludeEl, config.prelude, data, context);
-            }
+        if (prelude) {
+            await host.view.render(preludeEl, prelude, data, context);
+        }
 
-            if (config.postlude) {
-                host.view.render(postludeEl, config.postlude, data, context);
-            }
+        if (postlude) {
+            await host.view.render(postludeEl, postlude, data, context);
         }
     }, {
+        props,
         usage,
         tag: 'pre'
     });

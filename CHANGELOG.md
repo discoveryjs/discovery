@@ -1,5 +1,7 @@
 ## next
 
+- Changed `source` view to take `source`, `syntax`, `lineNum`, `refs` and `maxSourceSizeToHighlight` options. It attempts to derive these values from `data` when options are not explicitly provided for backward compatibility. The `source` can be derived from `data` as `content` (for backward compatibility) or `source` property
+- Removed `mime`, `binary` and `size` data options for `source` view
 - Improved string rendering in the values popup of `signature` view
 - Fixed optional values statistics in `signature` view
 

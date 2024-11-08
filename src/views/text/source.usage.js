@@ -66,7 +66,8 @@ function getSupported() {
 export default {
     demo: {
         view: 'source',
-        data: { syntax: 'js', content: codeExample }
+        syntax: 'js',
+        source: codeExample
     },
     examples: [
         {
@@ -90,14 +91,20 @@ export default {
         {
             title: 'Custom line numbers',
             highlightProps: ['lineNum'],
-            demo: {
-                view: 'source',
-                data: {
-                    content: codeExample,
+            demo: [
+                {
+                    view: 'source',
+                    source: codeExample,
                     syntax: 'js',
                     lineNum
+                },
+                {
+                    view: 'source',
+                    source: codeExample,
+                    syntax: 'js',
+                    lineNum: '==> $ + 12345'
                 }
-            }
+            ]
         },
         {
             title: 'Hide line numbers',
@@ -105,11 +112,9 @@ export default {
             beforeDemo: ['md:"Pass falsy value to `lineNum` option to hide line numbers:"'],
             demo: {
                 view: 'source',
-                data: {
-                    content: codeExample,
-                    syntax: 'js',
-                    lineNum: false
-                }
+                source: codeExample,
+                syntax: 'js',
+                lineNum: false
             }
         },
         {
@@ -146,10 +151,8 @@ export default {
                     'text:"Postlude:"',
                     'struct:{ data: $, context: # }'
                 ],
-                data: {
-                    content: codeExample,
-                    syntax: 'js'
-                }
+                source: codeExample,
+                syntax: 'js'
             }
         },
         {
@@ -157,17 +160,15 @@ export default {
             highlightProps: ['refs'],
             demo: {
                 view: 'source',
-                data: {
-                    syntax: 'js',
-                    content: codeExample,
-                    refs: [
-                        { range: [4, 8] },
-                        { range: [21, 28], type: 'link', href: '#example', tooltip: {
-                            position: 'trigger',
-                            content: ['text:"Link to "', 'text:href']
-                        } }
-                    ]
-                }
+                source: codeExample,
+                syntax: 'js',
+                refs: [
+                    { range: [4, 8] },
+                    { range: [21, 28], type: 'link', href: '#example', tooltip: {
+                        position: 'trigger',
+                        content: ['text:"Link to "', 'text:href']
+                    } }
+                ]
             }
         },
         {
@@ -176,11 +177,9 @@ export default {
             beforeDemo: ['md:"By default a syntax highlighing is not appling to a source longer than 250Kb. Option `maxSourceSizeToHighlight` is using to change max size of source to be syntax highlighted."'],
             demo: {
                 view: 'source',
-                data: {
-                    content: codeExample,
-                    syntax: 'js',
-                    maxSourceSizeToHighlight: 4
-                }
+                source: codeExample,
+                syntax: 'js',
+                maxSourceSizeToHighlight: 4
             }
         }
     ]
