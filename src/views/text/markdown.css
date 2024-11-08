@@ -19,7 +19,7 @@
     padding: 0;
     padding-left: 1em;
     color: #6a737d;
-    border-left: .25em solid rgba(191, 197, 203, 0.5);
+    border-left: .25em solid rgba(191, 197, 197, 0.5);
 }
 .discovery-root-darkmode .view-markdown blockquote {
     color: #808993;
@@ -34,6 +34,22 @@
 }
 .discovery-root-darkmode .view-markdown blockquote code {
     background-color: rgba(116, 126, 136, 0.2);
+}
+
+.view-markdown kbd {
+    --border-color: #ddd;
+    --bg-color: #f8f8f8;
+    padding: .15em .4em;
+    font-family: var(--discovery-monospace-font-family);
+    font-size: 90%;
+    border: 1px solid var(--border-color, #888);
+    border-radius: 6px;
+    box-shadow: 0 -1px var(--border-color, #888) inset;
+    background-color: var(--bg-color);
+}
+.discovery-root-darkmode .view-markdown kbd {
+    --border-color: #484848;
+    --bg-color: #181818;
 }
 
 .view-markdown sup {
