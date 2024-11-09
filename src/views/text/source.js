@@ -132,7 +132,7 @@ export default function(host) {
 
         // prevent syntax highlighting for sources over maxSourceSizeToHighlight to avoid page freeze
         if (source.length < maxSourceSizeToHighlight) {
-            decorators.push([codeMirrorHighlight(syntax || mime, host), {
+            decorators.push([codeMirrorHighlight(syntax, host), {
                 html: {
                     open({ data: type }) {
                         return '<span class="token ' + type + '">';
