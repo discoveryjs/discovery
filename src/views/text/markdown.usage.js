@@ -29,7 +29,7 @@ export default {
                 source: [
                     'Simple evaluation: 2 + 2 = `{{ 2 + 2 }}`',
                     '',
-                    'Markdown view has {{ viewDef.examples.size() }} examples'
+                    'Markdown view has {{ #.options.usage.examples.size() }} examples'
                 ]
             }
         },
@@ -57,25 +57,9 @@ export default {
             ],
             demo: {
                 view: 'markdown',
-                sectionPrelude: 'struct',
-                sectionPostlude: { view: 'link', data: '{ href: "#top", text: "Scroll to top ↑" }' },
-                source: 'Some text\n\n## Header level 2\n\nSome text\n\n### Header level 3\n\nSome text\n\n## Header level 2\n\nSome text'
-            }
-        },
-        {
-            title: 'Additional action buttons for code blocks',
-            highlightProps: ['codeActionButtons'],
-            beforeDemo: ['md:"Use `codeActionButtons` to add additional buttons to code blocks. The option is the same as `actionButtons` for `source` view."'],
-            demo: {
-                view: 'markdown',
-                codeActionButtons: [
-                    {
-                        view: 'button',
-                        content: 'text:"Say \\"Hello world\\""',
-                        onClick: Function('return () => alert("Hello world!")')()
-                    }
-                ],
-                source: '```js\nconsole.log("Hello world")\n```'
+                sectionPrelude: 'struct:#.section',
+                sectionPostlude: { view: 'link', href: '#top', text: 'Scroll to top ↑' },
+                source: 'Section without a header\n\n## Header level 2\n\nSection 1\n\n### Header level 3\n\nSection 2\n\n## Header level 2\n\nSection 3'
             }
         },
         {
@@ -89,7 +73,14 @@ export default {
                         view: 'block',
                         content: ['badge:syntax', 'text:"Length: " + content.size()']
                     },
-                    postlude: 'struct:{ data: $, context: # }'
+                    postlude: 'struct:#.section',
+                    actionButtons: [
+                        {
+                            view: 'button',
+                            text: 'Say "Hello world"',
+                            onClick: Function('return () => alert("Hello world!")')()
+                        }
+                    ]
                 },
                 source: '# Header 1\n\n```js\nconsole.log("Hello world")\n```\n\n## Header 2\n\ntext\n\n## Header 3\n\n\n\n```jora\nfoo.bar.baz\n```'
             }

@@ -619,7 +619,10 @@ export class ViewModel<
                     const pageHeaderEl: HTMLElement | null = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
 
                     el.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
-                    el.scrollIntoView(true);
+                    // FIXME: Broken for some reason. In previous versions (including 1.0.0-beta.89)
+                    // it worked just fine. But now it requires a next tick. Don't know what changed.
+                    // el.scrollIntoView(true);
+                    setTimeout(() => el.scrollIntoView(true), 0);
                 }
             }
         });

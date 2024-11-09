@@ -1,36 +1,30 @@
 /* eslint-env browser */
-import { Slugger } from 'marked';
+import { slug as generateSlug } from 'github-slugger';
 import { createElement } from '../../core/utils/dom.js';
 import usage from './headers.usage.js';
 
 export default function(host) {
-    const slugger = new Slugger;
-
-    function render(el, config, data, context) {
+    async function render(el, config, data, context) {
         const { content, anchor = false } = config;
 
         el.classList.add('view-header');
 
-        const render = host.view.render(el, content || 'text', data, context);
+        await host.view.render(el, content || 'text', data, context);
 
         if (anchor) {
-            render.then(() => {
-                const slug = slugger.slug(anchor === true ? el.textContent : String(anchor), { dryrun: true });
-                const href = host.encodePageHash(
-                    host.pageId,
-                    host.pageRef,
-                    { ...host.pageParams, '!anchor': slug }
-                );
+            const slug = generateSlug(anchor === true ? el.textContent : String(anchor));
+            const href = host.encodePageHash(
+                host.pageId,
+                host.pageRef,
+                { ...host.pageParams, '!anchor': slug }
+            );
 
-                el.prepend(createElement('a', {
-                    class: 'view-header__anchor',
-                    id: `!anchor:${slug}`,
-                    href
-                }));
-            });
+            el.prepend(createElement('a', {
+                class: 'view-header__anchor',
+                id: `!anchor:${slug}`,
+                href
+            }));
         }
-
-        return render;
     }
 
     host.view.define('header', render, { tag: 'h4', usage });

@@ -80,5 +80,8 @@
 
 .view-markdown .check-list-item {
     list-style: none;
-    margin-left: -22px;
+}
+.view-markdown .check-list-item > .view-checkbox:first-child {
+    width: 20px;
+    margin-left: -20px;
 }
