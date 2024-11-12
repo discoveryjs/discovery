@@ -6,6 +6,7 @@
 - Added styles for `<kbd>` in `markdown` view
 - Improved string rendering in the values popup of `signature` view
 - Fixed optional values statistics in `signature` view
+- Fixed navigation history update on the query graph changes on `discovery` page
 
 ## 1.0.0-beta.89 (04-11-2024)
 

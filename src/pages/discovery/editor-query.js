@@ -371,7 +371,7 @@ export default function(host, updateHostParams) {
         }
     });
 
-    function updateParams(delta, autofocus = true, replace = true) {
+    function updateParams(delta, autofocus = true, replace = false) {
         updateHostParams(delta, replace);
 
         if (autofocus) {
