@@ -156,6 +156,7 @@ export function renderTypeDetails(el, data, host) {
     const stat = data.stat[data.name];
     const total = getStatCount(data.stat);
     const renderSections = [];
+    const actionButtons = [];
     let output;
 
     switch (data.name) {
@@ -304,6 +305,24 @@ export function renderTypeDetails(el, data, host) {
                     });
                 }
 
+                actionButtons.push({
+                    view: 'button',
+                    className: 'group',
+                    when: '#.actions | queryAcceptChanges and querySubquery',
+                    onClick(el, data, context) {
+                        const path = data.path ? [...data.path] : [];
+                        const groupBy = path.pop();
+                        const pathStr = host.pathToQuery(path);
+                        const rootData = context.rootData;
+
+                        if (context.actions.queryAcceptChanges(rootData)) {
+                            context.actions.querySubquery(
+                                `${pathStr}${pathStr ? '.group(' : 'group('}=>${host.pathToQuery([groupBy])}).sort(value.size() desc)`,
+                                rootData
+                            );
+                        }
+                    }
+                });
                 renderSections.push({
                     view: 'block',
                     className: 'pie-stat',
@@ -398,7 +417,9 @@ export function renderTypeDetails(el, data, host) {
             renderSections.push({
                 view: 'block',
                 className: data.name === 'array' ? 'array-types' : 'set-types',
-                content: (el) => renderTypeStat(el, stat, host)
+                postRender(el) {
+                    renderTypeStat(el, { ...stat, context }, host);
+                }
             });
         }
     }
@@ -410,6 +431,11 @@ export function renderTypeDetails(el, data, host) {
             className: 'path',
             data: data => host.pathToQuery(data.path),
             content: 'text'
+        },
+        {
+            view: 'block',
+            className: 'signature-action-buttons',
+            content: actionButtons
         },
         {
             view: 'h1',

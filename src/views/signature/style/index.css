@@ -68,3 +68,7 @@
 .view-signature .type:hover {
     background-color: rgba(170, 170, 170, 0.2);
 }
+.view-signature .type.discovery-view-popup-active {
+    position: relative;
+    z-index: 1;
+}

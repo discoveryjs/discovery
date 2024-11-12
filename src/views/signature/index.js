@@ -98,8 +98,13 @@ export default function(host) {
         const { expanded, path } = config;
         const stat = collectStat(data, expanded);
         const normPath = Array.isArray(path) ? path : undefined;
+        const rootData = 'rootData' in config
+            ? config.rootData
+            : !normPath || normPath.length === 0
+                ? data
+                : undefined;
 
-        renderStat(el, stat, elementToData, context, normPath);
+        renderStat(el, stat, elementToData, { ...context, rootData }, normPath);
     }, {
         usage
     });

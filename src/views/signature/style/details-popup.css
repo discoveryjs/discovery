@@ -7,6 +7,30 @@
     max-width: 450px;
 }
 
+.discovery-view-popup.signature-details .signature-action-buttons {
+    float: right;
+    clear: both;
+    position: relative;
+    z-index: 1;
+    margin-top: 2px;
+}
+.discovery-view-popup.signature-details .signature-action-buttons .view-button {
+    padding: 0;
+}
+.discovery-view-popup.signature-details .signature-action-buttons .view-button::after {
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    width: 23px;
+    aspect-ratio: 1;
+    mask: url('./img/group.svg') no-repeat center / 14px;
+    background-color: currentColor;
+    opacity: .85;
+}
+.discovery-view-popup.signature-details .signature-action-buttons .group::after {
+    mask-image: url('./img/group.svg');
+}
+
 .discovery-view-popup.signature-details .path {
     position: relative;
     top: -4px;
@@ -28,7 +52,7 @@
     color: var(--discovery-fmt-atom-color);
     margin-bottom: 8px;
 }
-.discovery-view-popup.signature-details .path + .view-h1,
+.discovery-view-popup.signature-details :is(.path, .signature-action-buttons) + .view-h1,
 .discovery-view-popup.signature-details .view-h1:first-child {
     margin-top: 0;
 }
@@ -135,10 +159,7 @@
 .discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct.struct-expanded-value {
     overflow-x: auto;
 }
-.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .struct-expanded-value:has(>.string) {
-    white-space: normal !important;
-}
-.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .value:not(.struct-expanded-value) > .string {
+.discovery-view-popup.signature-details .struct-list > .view-list-item > .view-struct > .value:not(.struct-expanded-value) > .string:only-child {
     white-space: normal;
     word-break: break-all;
 }
@@ -171,8 +192,8 @@
 }
 .discovery-view-popup.signature-details .array-types::before,
 .discovery-view-popup.signature-details .set-types::before {
-    display: inline-block;
-    vertical-align: top;
+    display: block;
+    float: left;
     position: relative;
     top: -8px;
     left: -12px;
