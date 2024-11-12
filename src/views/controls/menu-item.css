@@ -6,8 +6,8 @@
     cursor: pointer;
 }
 .view-menu-item:empty::before {
-    content: '|';
-    visibility: hidden;
+    content: '\200B';
+    float: left;
 }
 .view-menu-item:hover,
 .view-menu-item.discovery-view-popup-active {

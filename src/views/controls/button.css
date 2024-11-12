@@ -28,9 +28,8 @@
     --discovery-view-button-focus-border-color: rgba(128, 128, 128, 0.6);
 }
 .view-button:empty::before {
-    content: '|';
-    width: 0;
-    visibility: hidden;
+    content: '\200B';
+    float: left;
 }
 .view-button:focus-visible {
     box-shadow: 0 0 1px 3px rgba(0, 170, 255, 0.2);
