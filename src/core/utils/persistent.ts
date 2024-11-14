@@ -70,15 +70,15 @@ function getStorageMap(type: StorageType): StorageMap {
     return map;
 }
 
-const sessionStorage = getStorageMap('sessionStorage');
-const localStorage = getStorageMap('localStorage');
+const sessionStorageMap = getStorageMap('sessionStorage');
+const localStorageMap = getStorageMap('localStorage');
 const storages = new Map([
-    ['session', sessionStorage],
-    ['local', localStorage]
+    ['session', sessionStorageMap],
+    ['local', localStorageMap]
 ]);
 
-export const sessionStorageEntry = sessionStorage.getOrCreate;
-export const localStorageEntry = localStorage.getOrCreate;
+export const sessionStorageEntry = sessionStorageMap.getOrCreate;
+export const localStorageEntry = localStorageMap.getOrCreate;
 
 addEventListener('storage', (e) => {
     for (const [, map] of storages) {
