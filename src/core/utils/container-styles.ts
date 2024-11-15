@@ -9,10 +9,7 @@ const styles: Styles = {
     '-webkit-text-size-adjust': 'none',
     'text-size-adjust': 'none',
     'background-color': 'var(--discovery-background-color, white)',
-    'color': 'var(--discovery-color, black)',
-    'transition-property': 'background-color, color',
-    'transition-duration': '.25s',
-    'transition-timing-function': 'ease-in'
+    'color': 'var(--discovery-color, black)'
 };
 const darkmodeStyles: Styles = {
     '--discovery-background-color': '#242424',
@@ -53,7 +50,7 @@ export function applyContainerStyles(container: HTMLElement, darkmode: boolean |
     const resolvedDarkmode = resolveDarkmode(darkmode);
 
     for (const [prop, value] of Object.entries(styles)) {
-        if (stylesBeforeApply.has(container) || !/^transition/.test(prop)) {
+        if (stylesBeforeApply.has(container)) {
             saveContainerStyleProp(container, prop, containerStyles);
             container.style.setProperty(prop, value);
         }
