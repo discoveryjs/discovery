@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.90 (15-11-2024)
 
 - Added `@discoveryjs/discovery/embed` export
 - Changed `applyContainerStyles()` to take a single `darkmode` value instead of "options", with supported values: `true`, `false`, `'true'`, `'false'`, `'dark'`, `'light'` and `'auto'`
