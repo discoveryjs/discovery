@@ -50,10 +50,8 @@ export function applyContainerStyles(container: HTMLElement, darkmode: boolean |
     const resolvedDarkmode = resolveDarkmode(darkmode);
 
     for (const [prop, value] of Object.entries(styles)) {
-        if (stylesBeforeApply.has(container)) {
-            saveContainerStyleProp(container, prop, containerStyles);
-            container.style.setProperty(prop, value);
-        }
+        saveContainerStyleProp(container, prop, containerStyles);
+        container.style.setProperty(prop, value);
     }
 
     for (const [prop, value] of Object.entries(darkmodeStyles)) {
