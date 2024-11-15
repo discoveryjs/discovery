@@ -9,6 +9,7 @@
 - Improved string rendering in the values popup of `signature` view
 - Fixed optional values statistics in `signature` view
 - Fixed navigation history update on the query graph changes on `discovery` page
+- Fixed scrollbar color schema in darkmode mode
 
 ## 1.0.0-beta.89 (04-11-2024)
 

@@ -4,6 +4,7 @@
 
 .discovery-root {
     all: initial;
+    color-scheme: only light;
 
     position: relative;
 
@@ -57,6 +58,8 @@
     --discovery-page-padding-left: 40px;
 }
 .discovery-root-darkmode {
+    color-scheme: only dark;
+
     --discovery-background-color: #242424;
     --discovery-color: #cccccc;
     --discovery-link-color: #1c87d4;
