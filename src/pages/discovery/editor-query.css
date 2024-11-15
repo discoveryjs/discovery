@@ -87,9 +87,8 @@
     gap: 1px;
 }
 .query-graph-actions .view-button {
-    padding: 3px 10px 5px;
-    font-size: 12px;
-    line-height: 14px;
+    padding: 0;
+    width: 23.5px;
     margin: 0 !important;
     border: none;
     border-radius: 0px;
@@ -102,25 +101,25 @@
 }
 .query-graph-actions .view-button.clone {
     background-image: url('./img/clone.svg');
-    background-size: 18px 18px;
+    background-size: 17.5px 17.5px;
 }
 .query-graph-actions.root .view-button.clone {
     background-image: url('./img/clone-root.svg');
 }
 .query-graph-actions .view-button.stash {
     background-image: url('./img/stash.svg');
-    background-size: 18px 18px;
+    background-size: 17.5px 17.5px;
 }
 .query-graph-actions.root .view-button.stash {
     background-image: url('./img/stash-root.svg');
 }
 .query-graph-actions .view-button.subquery {
     background-image: url('./img/subquery.svg');
-    background-size: 20px 20px;
+    background-size: 18.5px 18.5px;
 }
 .query-graph-actions .view-button.delete {
     background-image: url('./img/delete.svg');
-    background-size: 13px 13px;
+    background-size: 12.5px 12.5px;
 }
 .discovery-buildin-view-tooltip.hint-tooltip {
     font-size: 12px;
