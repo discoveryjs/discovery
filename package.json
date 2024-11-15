@@ -27,6 +27,10 @@
             "discovery-dev": "./src/core/utils/index.js",
             "default": "./lib/core/utils/index.js"
         },
+        "./embed": {
+            "discovery-dev": "./src/extensions/embed-host.js",
+            "default": "./lib/extensions/embed-host.js"
+        },
         "./dist/*": "./dist/*",
         "./lib/*": "./lib/*",
         "./src/*": {

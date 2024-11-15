@@ -1,5 +1,6 @@
 ## next
 
+- Added `@discoveryjs/discovery/embed` export
 - Changed `applyContainerStyles()` to take a single `darkmode` value instead of "options", with supported values: `true`, `false`, `'true'`, `'false'`, `'dark'`, `'light'` and `'auto'`
 - Changed `applyContainerStyles()` to avoid applying transition styles to the container, preventing unwanted flashes of opposite colors
 - Changed `source` view to take `source`, `syntax`, `lineNum`, `refs` and `maxSourceSizeToHighlight` options. It attempts to derive these values from `data` when options are not explicitly provided for backward compatibility. The `source` can be derived from `data` as `content` (for backward compatibility) or `source` property
