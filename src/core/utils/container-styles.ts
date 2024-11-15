@@ -1,12 +1,7 @@
-import { InitValue, resolveDarkmodeValue } from '../darkmode.js';
-
 type Styles = Record<string, string>;
 type SavedStyles = Record<string, [string, string]>;
-export type ApplyContainerStylesOptions = {
-    darkmode?: InitValue,
-    darkmodePersistent?: boolean;
-};
 
+const stylesBeforeApply = new WeakMap<HTMLElement, SavedStyles>();
 const styles: Styles = {
     'font-family': 'Tahoma, Verdana, Arial, sans-serif',
     'font-size': '14px',
@@ -23,8 +18,6 @@ const darkmodeStyles: Styles = {
     '--discovery-background-color': '#242424',
     '--discovery-color': '#cccccc'
 };
-const knowContainer = new WeakSet<HTMLElement>();
-const containerBeforeSetStyle = new WeakMap<HTMLElement, SavedStyles>();
 
 function saveContainerStyleProp(container: HTMLElement, prop: string, styles: SavedStyles) {
     if (prop in styles === false) {
@@ -35,18 +28,32 @@ function saveContainerStyleProp(container: HTMLElement, prop: string, styles: Sa
     }
 }
 
-export function applyContainerStyles(container: HTMLElement, options: ApplyContainerStylesOptions) {
-    options = options || {};
+function resolveDarkmode(darkmode: boolean | 'false' | 'light' | 'true' | 'dark'| 'auto') {
+    switch (darkmode) {
+        case 'auto':
+            return matchMedia('(prefers-color-scheme:dark)').matches;
 
-    if (!containerBeforeSetStyle.has(container)) {
-        containerBeforeSetStyle.set(container, Object.create(null));
+        case 'dark':
+        case 'true':
+        case true:
+            return true;
+
+        case 'light':
+        case 'false':
+        case false:
+            return false;
     }
 
-    const darkmode = resolveDarkmodeValue(options.darkmode, options.darkmodePersistent);
-    const containerStyles = containerBeforeSetStyle.get(container) ?? {};
+    // bad value
+    return false;
+}
+
+export function applyContainerStyles(container: HTMLElement, darkmode: boolean | 'false' | 'light' | 'true' | 'dark'| 'auto') {
+    const containerStyles = stylesBeforeApply.get(container) || Object.create(null);
+    const resolvedDarkmode = resolveDarkmode(darkmode);
 
     for (const [prop, value] of Object.entries(styles)) {
-        if (knowContainer.has(container) || !/^transition/.test(prop)) {
+        if (stylesBeforeApply.has(container) || !/^transition/.test(prop)) {
             saveContainerStyleProp(container, prop, containerStyles);
             container.style.setProperty(prop, value);
         }
@@ -55,27 +62,26 @@ export function applyContainerStyles(container: HTMLElement, options: ApplyConta
     for (const [prop, value] of Object.entries(darkmodeStyles)) {
         saveContainerStyleProp(container, prop, containerStyles);
 
-        if (darkmode) {
+        if (resolvedDarkmode) {
             container.style.setProperty(prop, value);
         } else {
             container.style.removeProperty(prop);
         }
     }
 
-    knowContainer.add(container);
+    stylesBeforeApply.set(container, containerStyles);
 
-    return darkmode;
+    return resolvedDarkmode;
 }
 
 export function rollbackContainerStyles(container: HTMLElement) {
-    if (containerBeforeSetStyle.has(container)) {
-        const containerStyles = containerBeforeSetStyle.get(container) ?? {};
+    const containerStyles = stylesBeforeApply.get(container);
 
+    if (containerStyles !== undefined) {
         for (const [prop, value] of Object.entries(containerStyles)) {
             container.style.setProperty(prop, ...value);
         }
-
-        containerBeforeSetStyle.delete(container);
-        knowContainer.delete(container);
     }
+
+    stylesBeforeApply.delete(container);
 }

@@ -3,6 +3,7 @@ import type { InjectStyle } from './core/utils/inject-styles.js';
 import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from './core/utils/load-data.js';
 import { hasOwn } from './core/utils/object-utils.js';
 import { randomId } from './core/utils/id.js';
+import { resolveDarkmodeValue } from './core/darkmode.js';
 import { applyContainerStyles } from './core/utils/container-styles.js';
 import { injectStyles } from './core/utils/inject-styles.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
@@ -29,23 +30,32 @@ function createProgressbar(domReady: Promise<void>) {
     });
 }
 
-export function preloader(options: Partial<PreloaderOptions>) {
-    options = options || {};
-    const dataSourceType = options.dataSource;
-
+function validateDataSourceType(dataSourceType: any) {
     if (dataSourceType && !hasOwn(dataSource, dataSourceType)) {
         throw new Error(`dataSource "${dataSourceType}" is not supported`);
     }
+}
 
-    const container = options.container || document.body;
-    const el = document.createElement('div');
-    const shadowRoot = el.attachShadow({ mode: 'open' });
+function applyStyles(el: HTMLElement, container: HTMLElement, options: Partial<PreloaderOptions>) {
+    const darkmode = resolveDarkmodeValue(options.darkmode, options.darkmodePersistent);
 
-    const darkmode = applyContainerStyles(container, options);
+    applyContainerStyles(container, darkmode);
 
     if (darkmode) {
         el.setAttribute('darkmode', '');
     }
+}
+
+export function preloader(options: Partial<PreloaderOptions>) {
+    options = options || {};
+
+    const container = options.container || document.body;
+    const el = document.createElement('div');
+    const shadowRoot = el.attachShadow({ mode: 'open' });
+    const dataSourceType = options.dataSource;
+
+    validateDataSourceType(dataSourceType);
+    applyStyles(el, container, options);
 
     const optionsData = options.data;
     const loading = optionsData

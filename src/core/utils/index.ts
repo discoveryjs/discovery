@@ -1,6 +1,5 @@
 export * as base64 from './base64.js';
 export { equal, deepEqual } from './compare.js';
-export type { ApplyContainerStylesOptions } from './container-styles.js';
 export { applyContainerStyles, rollbackContainerStyles } from './container-styles.js';
 export { copyText } from './copy-text.js';
 export { debounce } from './debounce.js';
