@@ -1,3 +1,7 @@
+## next
+
+- Fixed `ViewModel#setPageParams()` to normalize the `hash` by ensuring it starts with `#`, preventing unnecessary events; for example, passing `#page` and `page` into the method will now consistently result in `#page` being stored in `ViewModel#pageHash`
+
 ## 1.0.0-beta.90 (15-11-2024)
 
 - Added `@discoveryjs/discovery/embed` export

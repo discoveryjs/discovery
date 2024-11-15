@@ -552,6 +552,10 @@ export class ViewModel<
     }
 
     setPageHash(hash: string, replace = false) {
+        if (!hash.startsWith('#')) {
+            hash = '#' + hash;
+        }
+
         const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
 
         // TODO: remove sometime in the future
