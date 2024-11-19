@@ -3,6 +3,7 @@ import type { App } from '../main/app.js';
 import type { NavItemConfig } from '../nav/index.js';
 import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToClientPostponeMessage } from './embed-message.types.js';
 import type { LoadDataFromPush } from '../core/utils/load-data.js';
+import type { Mode } from '../core/darkmode.js';
 import { randomId } from '../core/utils/id.js';
 import { loadDataFromPush, loadDataFromStream } from '../core/utils/load-data.js';
 
@@ -27,7 +28,7 @@ const noop = () => {};
 const navSection = ['primary', 'secondary', 'menu'];
 const navAction = ['insert', 'prepend', 'append', 'before', 'after', 'replace', 'remove'];
 
-function darkmodeValue({ mode, value }) {
+function darkmodeValue({ mode, value }: { mode: Mode, value: boolean }) {
     return mode === 'auto' ? 'auto' : value ? 'dark' : 'light';
 }
 

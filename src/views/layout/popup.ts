@@ -86,7 +86,7 @@ export default function(host: ViewModel) {
             host.addHostElEventListener('mouseenter', ({ target }) => {
                 for (const instance of hoverTriggerInstances) {
                     const targetRelatedPopup = findTargetRelatedPopup(instance, target as Node);
-                    const triggerEl = targetRelatedPopup
+                    const triggerEl: HTMLElement | null = targetRelatedPopup
                         ? targetRelatedPopup.el
                         // cast to string since hoverTriggerInstances contains only popup's with hoverTriggers
                         : (target as HTMLElement).closest(instance.hoverTriggers as string);
@@ -181,7 +181,7 @@ export default function(host: ViewModel) {
         openedPopups.slice().forEach(popup => popup.hideOnResize());
     }
 
-    function findTargetRelatedPopup(popup: Popup, target: Node) {
+    function findTargetRelatedPopup(popup: Popup, target: Node): Popup | null {
         if (popup.el.contains(target)) {
             return popup;
         }

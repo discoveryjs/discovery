@@ -1,8 +1,10 @@
 import { isRegExp } from './is-type.js';
 
+export type PatternMatch = { offset: number, length: number };
+
 const stopSymbol = Symbol('stop-match');
 
-function matchWithRx(str: string, pattern: RegExp, lastIndex = 0) {
+function matchWithRx(str: string, pattern: RegExp, lastIndex = 0): PatternMatch | null {
     const offset = lastIndex !== 0
         ? str.slice(lastIndex).search(pattern)
         : str.search(pattern);
@@ -10,13 +12,13 @@ function matchWithRx(str: string, pattern: RegExp, lastIndex = 0) {
     return offset !== -1 ? { offset: lastIndex + offset, length: RegExp.lastMatch.length } : null;
 };
 
-function matchWithString(str: string, pattern: string, lastIndex: number) {
+function matchWithString(str: string, pattern: string, lastIndex: number): PatternMatch | null {
     const offset = str.indexOf(pattern, lastIndex);
 
     return offset !== -1 ? { offset, length: pattern.length } : null;
 };
 
-export function match(text: string, pattern: RegExp | string | null, ignoreCase = false) {
+export function match(text: string, pattern: RegExp | string | null, ignoreCase = false): boolean {
     if (isRegExp(pattern)) {
         return ignoreCase && !pattern.ignoreCase
             ? new RegExp(pattern, pattern.flags + 'i').test(text)
@@ -25,8 +27,8 @@ export function match(text: string, pattern: RegExp | string | null, ignoreCase 
 
     if (typeof pattern === 'string') {
         return ignoreCase
-            ? String(text).toLowerCase().indexOf(pattern.toLowerCase())
-            : String(text).indexOf(pattern) !== -1;
+            ? String(text).toLowerCase().includes(pattern.toLowerCase())
+            : String(text).includes(pattern);
     }
 
     return false;
@@ -60,7 +62,7 @@ export function matchAll(
     let lastIndex = 0;
     let stopMatch = false;
     do {
-        const match = stopMatch
+        const match: PatternMatch | null = stopMatch
             ? null
             : typeof pattern === 'string'
                 ? matchWithString(matchText, pattern, lastIndex)

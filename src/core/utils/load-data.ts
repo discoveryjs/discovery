@@ -566,11 +566,11 @@ export function getReadableStreamFromSource(source: unknown) {
 
     return new ReadableStream<Uint8Array>({
         start() {
-            const generator = source
+            const generator = source !== null && typeof source === 'object' && Symbol.asyncIterator in source
                 ? source[Symbol.asyncIterator]
                 : undefined;
 
-            if (!generator) {
+            if (typeof generator !== 'function') {
                 throw new Error('Bad value type (can\'t convert to a stream)');
             }
 

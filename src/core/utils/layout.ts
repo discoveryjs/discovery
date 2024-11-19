@@ -94,8 +94,8 @@ export function getViewportRect(
     let { top, left } = element === topViewport && !relElement
         ? getPageOffset()
         : getBoundingRect(element, relElement);
-    let width;
-    let height;
+    let width = 0;
+    let height = 0;
 
     if (!element || element instanceof Window) {
         width = window.innerWidth || 0;

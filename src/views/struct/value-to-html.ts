@@ -33,7 +33,7 @@ type RenderValueHtmlOptions = {
     allowedExcessStringLength: number;
 };
 
-export default function value2html(value: unknown, compact: boolean, options: RenderValueHtmlOptions) {
+export default function value2html(value: unknown, compact: boolean, options: RenderValueHtmlOptions): string {
     switch (typeof value) {
         case 'boolean':
         case 'undefined':
