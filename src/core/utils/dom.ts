@@ -66,7 +66,7 @@ export function createFragment(...children: (Node | string)[]) {
     return fragment;
 }
 
-export const passiveSupported = (() => {
+export const passiveSupported = /* @__PURE__ */ (() => {
     let passiveSupported = false;
 
     try {
@@ -87,7 +87,7 @@ export const passiveSupported = (() => {
     return passiveSupported;
 })();
 
-export const passiveCaptureOptions = !passiveSupported ? true : Object.freeze({
+export const passiveCaptureOptions = !passiveSupported ? true : /* @__PURE__ */ Object.freeze({
     passive: true,
     capture: true
 });

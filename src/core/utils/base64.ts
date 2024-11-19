@@ -1,17 +1,22 @@
 /* eslint-env browser */
 
-const base64alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-const base64encodeMap = new Uint8Array(64);
-const base64decodeMap = new Uint8Array(256);
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
+const encoder = /* @__PURE__ */ new TextEncoder();
+const decoder = /* @__PURE__ */ new TextDecoder();
 
-for (let i = 0; i < base64alphabet.length; i++) {
-    const charCode = base64alphabet.charCodeAt(i);
+const [base64encodeMap, base64decodeMap] = /* @__PURE__ */ (() => {
+    const base64alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const base64encodeMap = new Uint8Array(64);
+    const base64decodeMap = new Uint8Array(256);
 
-    base64decodeMap[charCode] = i;
-    base64encodeMap[i] = charCode;
-}
+    for (let i = 0; i < base64alphabet.length; i++) {
+        const charCode = base64alphabet.charCodeAt(i);
+
+        base64decodeMap[charCode] = i;
+        base64encodeMap[i] = charCode;
+    }
+
+    return [base64encodeMap, base64decodeMap];
+})();
 
 export function encode(input: string | number[] | Uint8Array): string {
     return decoder.decode(encodeBytes(input));
