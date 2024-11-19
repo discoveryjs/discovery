@@ -1,0 +1,487 @@
+import type { PageParams, PageRef } from '../main/model.js';
+import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToPreinitMessage, EmbedPreinitToHostMessage, NavInsertPosition, NavSection } from './embed-message.types.js';
+import type { NavItemConfig } from '../nav/index.js';
+import type { EventMap } from '../core/emitter.js';
+import type { LoadDataState } from '../core/utils/load-data.js';
+import type { ProgressbarState } from '../core/utils/progressbar.js';
+import { Emitter } from '../core/emitter.js';
+import { Observer } from '../core/observer.js';
+import { randomId } from '../core/utils/id.js';
+import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
+import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
+
+export interface BaseAppEvents extends EventMap {
+    destroy: [];
+};
+export interface EmbedPreinitAppEvents extends BaseAppEvents {
+    loadingStateChanged: [state: LoadDataState];
+};
+export interface EmbedAppEvents extends BaseAppEvents {
+    loadingStateChanged: [state: ProgressbarState];
+    pageHashChanged: [hash: string, replace: boolean];
+    unloadData: [];
+    data: [];
+};
+export type onDisconnectCallback = () => void;
+export type onPreinitCallback = (api: typeof EmbedPreinitApp.prototype.publicApi) => onDisconnectCallback | void;
+export type onConnectCallback = (api: typeof EmbedApp.prototype.publicApi) => onDisconnectCallback | void;
+export type ActionsMap = Map<string, (...args: unknown[]) => unknown>;
+
+const logPrefix = '[Discovery/embed-host]';
+const noop = () => {};
+const isStreamTransferable = (() => {
+    try {
+        const stream = new ReadableStream();
+        new MessageChannel().port1.postMessage(stream, [stream]);
+        return true;
+    } catch {
+        return false;
+    }
+})();
+
+class BaseApp<
+    Events extends BaseAppEvents,
+    Message extends EmbedHostToPreinitMessage | EmbedHostToClientMessage
+> extends Emitter<Events> {
+    window: Window;
+    id: string;
+    actions: ActionsMap;
+    dataLoadToken: string | null;
+
+    constructor(window: Window, id: string, actions: ActionsMap) {
+        super();
+
+        this.window = window;
+        this.id = id;
+        this.actions = actions;
+        this.dataLoadToken = null;
+    }
+    sendMessage<T extends Message['type']>(
+        type: T,
+        payload: Extract<Message, { type: T }>['payload'],
+        transfer?: Transferable[]
+    ) {
+        const message: Message = {
+            id: this.id,
+            from: 'discoveryjs-app',
+            type,
+            payload: payload || null
+        } as Message;
+
+        this.window.postMessage(message, '*', transfer);
+    }
+    destroy() {
+        this.destroy = noop;
+        this.emit('destroy');
+        this.dataLoadToken = null;
+        this.window = null as unknown as Window;
+        this.sendMessage = noop;
+    }
+}
+
+class EmbedPreinitApp extends BaseApp<EmbedPreinitAppEvents, EmbedHostToPreinitMessage> {
+    publicApi: ReturnType<typeof EmbedPreinitApp.createPublicApi>;
+
+    static createPublicApi(app: EmbedPreinitApp) {
+        return Object.freeze({
+            on: app.on.bind(app),
+            once: app.once.bind(app),
+            off: app.off.bind(app),
+
+            defineAction(name: string, fn: (...args: unknown[]) => unknown) {
+                app.actions.set(name, fn);
+                app.sendMessage('defineAction', name);
+            },
+
+            setPageHash(hash: string, replace = false) {
+                app.sendMessage('setPageHash', { hash, replace });
+            },
+
+            setRouterPreventLocationUpdate(allow = true) {
+                app.sendMessage('setRouterPreventLocationUpdate', allow);
+            }
+        });
+    }
+
+    constructor(window: Window, id: string, actions: ActionsMap) {
+        super(window, id, actions);
+
+        this.publicApi = EmbedPreinitApp.createPublicApi(this);
+    }
+
+    processMessage(message: EmbedPreinitToHostMessage) {
+        switch (message.type) {
+            case 'loadingState': {
+                this.emit('loadingStateChanged', message.payload);
+                break;
+            }
+        }
+    }
+}
+
+class EmbedApp extends BaseApp<EmbedAppEvents, EmbedHostToClientMessage> {
+    commandMap: Map<string, (...args: unknown[]) => unknown>;
+    dataLoadToken: string | null;
+
+    pageHash: Observer<string>;
+    pageId: Observer<string>;
+    pageRef: Observer<PageRef>;
+    pageParams: Observer<PageParams>;
+    darkmode: Observer<{ mode: string; value: string; }>; // FIXME
+    publicApi: ReturnType<typeof EmbedApp.createPublicApi>;
+
+    static createPublicApi(app: EmbedApp) {
+        const nav = {
+            primary: createNavSection('primary', app.sendMessage.bind(app), app.commandMap),
+            secondary: createNavSection('secondary', app.sendMessage.bind(app), app.commandMap),
+            menu: createNavSection('menu', app.sendMessage.bind(app), app.commandMap)
+        };
+
+        return Object.freeze({
+            pageHash: app.pageHash.readonly,
+            pageId: app.pageId.readonly,
+            pageRef: app.pageRef.readonly,
+            pageParams: app.pageParams.readonly,
+            darkmode: app.darkmode.readonly,
+
+            on: app.on.bind(app),
+            once: app.once.bind(app),
+            off: app.off.bind(app),
+
+            nav: Object.assign(nav.secondary, nav),
+
+            defineAction(name: string, fn: (...args: unknown[]) => unknown) {
+                app.actions.set(name, fn);
+                app.sendMessage('defineAction', name);
+            },
+
+            setPageHash(hash: string, replace = false) {
+                app.sendMessage('setPageHash', { hash, replace });
+            },
+            setPage(id: string, ref: PageRef, params: PageParams, replace = false) {
+                app.sendMessage('setPage', { id, ref, params, replace });
+            },
+            setPageRef(ref: PageRef, replace = false) {
+                app.sendMessage('setPageRef', { ref, replace });
+            },
+            setPageParams(params: PageParams, replace = false) {
+                app.sendMessage('setPageParams', { params, replace });
+            },
+
+            setDarkmode(value: 'auto' | 'light' | 'dark') {
+                app.sendMessage('setDarkmode', value);
+            },
+            setRouterPreventLocationUpdate(allow = true) {
+                app.sendMessage('setRouterPreventLocationUpdate', allow);
+            },
+
+            unloadData() {
+                app.sendMessage('unloadData', null);
+            },
+            async uploadData(source: unknown, getResourceMetadataFromSource: typeof extractResourceMetadata) {
+                const dataLoadToken = randomId();
+
+                app.dataLoadToken = dataLoadToken;
+
+                try {
+                    return await uploadData(app, source, getResourceMetadataFromSource);
+                } finally {
+                    if (app.dataLoadToken === dataLoadToken) {
+                        app.dataLoadToken = null;
+                    }
+                }
+            }
+        });
+    }
+
+    constructor(window: Window, id: string, actions: ActionsMap) {
+        super(window, id, actions);
+
+        this.commandMap = new Map();
+        this.dataLoadToken = null;
+
+        this.pageHash = new Observer('#');
+        this.pageId = new Observer('');
+        this.pageRef = new Observer('');
+        this.pageParams = new Observer({});
+        this.darkmode = new Observer({ mode: 'unknown', value: 'unknown' },
+            (prev, next) => prev.mode !== next.mode || prev.value !== next.value
+        );
+
+        this.publicApi = EmbedApp.createPublicApi(this);
+    }
+    async processMessage(message: EmbedClientToHostMessage) {
+        switch (message.type) {
+            case 'destroy': {
+                this.destroy();
+                break;
+            }
+
+            case 'action': {
+                const { callId, name, args } = message.payload;
+                const fn = this.actions.get(name);
+
+                if (typeof fn === 'function') {
+                    try {
+                        this.sendMessage('actionResult', { callId, value: await fn(...args) });
+                    } catch (error) {
+                        this.sendMessage('actionResult', { callId, error });
+                    }
+                } else {
+                    console.warn(`${logPrefix} Action "${name}" was not found`);
+                }
+
+                break;
+            }
+
+            case 'navMethod': {
+                const fn = this.commandMap.get(message.payload);
+
+                if (typeof fn === 'function') {
+                    fn();
+                } else {
+                    console.warn(`${logPrefix} Nav command "${message.payload}" was not found`);
+                }
+
+                break;
+            }
+
+            case 'pageHashChanged': {
+                const { replace, hash, id, ref, params } = message.payload || {};
+                const hash_ = String(hash).startsWith('#') ? hash : '#' + hash;
+
+                this.pageHash.set(hash_);
+                this.pageId.set(id);
+                this.pageRef.set(ref);
+                this.pageParams.set(params);
+                this.emit('pageHashChanged', hash_, replace);
+
+                break;
+            }
+
+            case 'darkmodeChanged': {
+                const value = message.payload;
+
+                this.darkmode.set(value);
+                this.emit('darkmodeChanged', value);
+
+                break;
+            }
+
+            case 'unloadData': {
+                this.emit('unloadData');
+                break;
+            }
+
+            case 'data': {
+                this.emit('data');
+                break;
+            }
+
+            case 'loadingState': {
+                this.emit('loadingStateChanged', message.payload);
+                break;
+            }
+
+            default:
+                console.error(`${logPrefix} Unknown embed message type "${message.type}"`);
+        }
+    }
+    destroy() {
+        super.destroy();
+    }
+}
+
+export { loadStages, decodeStageProgress };
+export function connectToEmbedApp(iframe: HTMLIFrameElement, onConnect: onConnectCallback): onDisconnectCallback;
+export function connectToEmbedApp(iframe: HTMLIFrameElement, onPreinit: onPreinitCallback | void, onConnect: onConnectCallback): onDisconnectCallback;
+export function connectToEmbedApp(
+    iframe: HTMLIFrameElement,
+    onPreinit: onPreinitCallback | onConnectCallback | void,
+    onConnect?: onConnectCallback
+): onDisconnectCallback {
+    const actions: ActionsMap & { id: string; } = Object.assign(new Map(), { id: '' });
+    let embedApp: EmbedApp | EmbedPreinitApp | null = null;
+    let onDisconnect: onDisconnectCallback | void = undefined;
+    const callbacks: {
+        onPreinit?: onPreinitCallback,
+        onConnect: onConnectCallback
+    } = typeof onPreinit === 'function' && typeof onConnect !== 'function'
+        ? { onPreinit: undefined, onConnect: onPreinit }
+        : { onPreinit: onPreinit as onPreinitCallback, onConnect: onConnect as onConnectCallback };
+
+    addEventListener('message', handleIncomingMessages);
+
+    return () => {
+        removeEventListener('message', handleIncomingMessages);
+        resetIfNeeded();
+    };
+
+    function resetIfNeeded() {
+        if (embedApp !== null) {
+            embedApp.destroy();
+
+            if (typeof onDisconnect === 'function') {
+                onDisconnect();
+            }
+
+            embedApp = null;
+            onDisconnect = undefined;
+        }
+    }
+
+    async function handleIncomingMessages(e: MessageEvent<EmbedClientToHostMessage | EmbedPreinitToHostMessage>) {
+        const data = e.data || {};
+
+        // Event "source" will be null in case message was sent on page unload
+        if (e.isTrusted && (e.source === iframe.contentWindow || e.source === null) && data.from === 'discoveryjs-app') {
+            if (data.type === 'ready') {
+                resetIfNeeded();
+
+                if (actions.id !== data.id) {
+                    actions.clear();
+                    actions.id = data.id;
+                }
+
+                embedApp = new EmbedApp(iframe.contentWindow!, data.id, actions);
+                embedApp.pageHash.set(data.payload.page.hash);
+                embedApp.pageId.set(data.payload.page.id);
+                embedApp.pageRef.set(data.payload.page.ref);
+                embedApp.pageParams.set(data.payload.page.params);
+                embedApp.darkmode.set(data.payload.darkmode);
+                embedApp.once('destroy', resetIfNeeded);
+
+                onDisconnect = callbacks.onConnect(embedApp.publicApi);
+
+                return;
+            }
+
+            if (data.type === 'preinit') {
+                resetIfNeeded();
+
+                if (typeof callbacks.onPreinit === 'function') {
+                    if (actions.id !== data.id) {
+                        actions.clear();
+                        actions.id = data.id;
+                    }
+
+                    embedApp = new EmbedPreinitApp(iframe.contentWindow!, data.id, actions);
+                    embedApp.once('destroy', resetIfNeeded);
+                    onDisconnect = callbacks.onPreinit(embedApp.publicApi);
+                }
+
+                return;
+            }
+
+            if (embedApp?.id === data.id) {
+                embedApp.processMessage(data as any);
+                return;
+            }
+        }
+    }
+}
+
+async function uploadData(app: EmbedApp, data: unknown, getResourceMetadataFromSource = extractResourceMetadata) {
+    const acceptToken = app.dataLoadToken;
+    const maybeAbort = () => {
+        if (app?.dataLoadToken !== acceptToken) {
+            throw new Error('Data upload aborted');
+        }
+    };
+
+    if (!acceptToken) {
+        throw new Error('No acceptToken specified');
+    }
+
+    const source = typeof data === 'function'
+        ? await data()
+        : await data;
+
+    maybeAbort();
+
+    const resource = typeof getResourceMetadataFromSource === 'function'
+        ? getResourceMetadataFromSource(source) || {}
+        : {};
+    const stream = getReadableStreamFromSource(source);
+
+    if (isStreamTransferable) {
+        app.sendMessage('dataStream', { stream, resource }, [stream]);
+    } else {
+        const reader = stream.getReader();
+
+        app.sendMessage('startChunkedDataUpload', { acceptToken, resource });
+
+        try {
+            while (true) {
+                // await new Promise(resolve => setTimeout(resolve, 1000));
+                const { value, done } = await reader.read();
+
+                maybeAbort();
+                app.sendMessage(
+                    'dataChunk',
+                    { acceptToken, value, done },
+                    typeof value !== 'string' && value?.buffer ? [value.buffer] : undefined
+                );
+
+                if (done) {
+                    break;
+                }
+            }
+        } catch (error) {
+            app.sendMessage('cancelChunkedDataUpload', { acceptToken, error });
+            throw error;
+        } finally {
+            reader.releaseLock();
+        }
+    }
+}
+
+function createNavSection(
+    section: NavSection,
+    sendMessage: EmbedApp['sendMessage'],
+    commandMap: Map<string, (...args: unknown[]) => unknown>
+) {
+    function prepareConfig(config: NavItemConfig) {
+        const commands: string[] = [];
+
+        return {
+            commands,
+            config: JSON.parse(JSON.stringify(config, (key, value) => {
+                if (typeof value === 'function') {
+                    const id = 'nav-command-' + randomId();
+
+                    commands.push(id);
+                    commandMap.set(id, value);
+
+                    return id;
+                }
+
+                return value;
+            }))
+        };
+    }
+
+    return {
+        insert(config: NavItemConfig, position: NavInsertPosition, name: string) {
+            sendMessage('changeNavButtons', { section, action: 'insert', name, position, ...prepareConfig(config) });
+        },
+        prepend(config: NavItemConfig) {
+            sendMessage('changeNavButtons', { section, action: 'prepend', ...prepareConfig(config) });
+        },
+        append(config: NavItemConfig) {
+            sendMessage('changeNavButtons', { section, action: 'append', ...prepareConfig(config) });
+        },
+        before(name: string, config: NavItemConfig) {
+            sendMessage('changeNavButtons', { section, action: 'before', name, ...prepareConfig(config) });
+        },
+        after(name: string, config: NavItemConfig) {
+            sendMessage('changeNavButtons', { section, action: 'after', name, ...prepareConfig(config) });
+        },
+        replace(name: string, config: NavItemConfig) {
+            sendMessage('changeNavButtons', { section, action: 'replace', name, ...prepareConfig(config) });
+        },
+        remove(name: string) {
+            sendMessage('changeNavButtons', { section, action: 'remove', name });
+        }
+    };
+}

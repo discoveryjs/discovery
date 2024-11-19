@@ -1,6 +1,7 @@
 import type { InitValue } from './core/darkmode.js';
 import type { InjectStyle } from './core/utils/inject-styles.js';
-import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from './core/utils/load-data.js';
+import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataFromPush, LoadDataResult } from './core/utils/load-data.js';
+import type { EmbedHostToClientPostponeMessage, EmbedHostToPreinitMessage, EmbedPreinitToHostMessage } from './extensions/embed-message.types.js';
 import { hasOwn } from './core/utils/object-utils.js';
 import { randomId } from './core/utils/id.js';
 import { resolveDarkmodeValue } from './core/darkmode.js';
@@ -9,7 +10,6 @@ import { injectStyles } from './core/utils/inject-styles.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
 import { Progressbar } from './core/utils/progressbar.js';
 
-type PushDataLoading = ReturnType<typeof dataSource['push']>;
 export type PreloaderOptions = {
     dataSource: keyof typeof dataSource;
     container: HTMLElement;
@@ -68,7 +68,7 @@ export function preloader(options: Partial<PreloaderOptions>) {
         };
 
     if (optionsData && dataSourceType === 'push') {
-        const { start, push, finish } = loading as PushDataLoading;
+        const { start, push, finish } = loading as LoadDataFromPush;
 
         globalThis.discoveryLoader = {
             start,
@@ -100,19 +100,24 @@ export function preloader(options: Partial<PreloaderOptions>) {
 function initPreloadEmbedApi(loadingState?: LoadDataResult['state']) {
     const hostId = randomId();
     const parentWindow = window.parent;
-    const postponeMessages: unknown[] = [];
-    const sendMessage = (type: string, payload: any = null) => {
+    const postponeMessages: EmbedHostToClientPostponeMessage[] = [];
+    const sendMessage = <T extends EmbedPreinitToHostMessage['type']>(
+        type: T,
+        payload: Extract<EmbedPreinitToHostMessage, { type: T }>['payload']
+    ) => {
         // console.log('[post-message]', type, payload);
-        parentWindow.postMessage({
+        const message: EmbedPreinitToHostMessage = {
             from: 'discoveryjs-app',
             id: hostId,
             type,
             payload
-        }, '*');
+        } as EmbedPreinitToHostMessage;
+
+        parentWindow.postMessage(message, '*');
     };
 
-    const sendDestroyMessage = () => sendMessage('destroy');
-    const processIncomingMessage = (event: MessageEvent) => {
+    const sendDestroyMessage = () => sendMessage('destroy', null);
+    const processIncomingMessage = (event: MessageEvent<EmbedHostToPreinitMessage>) => {
         const { id, type } = event.data || {};
 
         if (id === hostId) {

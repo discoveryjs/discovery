@@ -25,7 +25,7 @@ export type AppLoadingStateOptions<T> =
     undefined;
 
 export interface AppEvents extends ViewModelEvents {
-    startLoadData: [subscribe: Parameters<Progressbar['subscribe']>];
+    startLoadData: [subscribe: Progressbar['subscribeSync']];
 }
 export interface AppOptions<T = ViewModel> extends ViewModelOptions<T> {
     mode: 'modelfree';
@@ -205,7 +205,7 @@ export class App<
         const progressbar = this.progressbar({ title: loadDataResult.title });
 
         this.setLoadingState('init', { progressbar });
-        this.emit('startLoadData', progressbar.subscribe.bind(progressbar));
+        this.emit('startLoadData', progressbar.subscribeSync.bind(progressbar));
 
         syncLoaderWithProgressbar(loadDataResult, progressbar).then(
             dataset => this.setDataProgress(dataset.data, null, { dataset, progressbar }),

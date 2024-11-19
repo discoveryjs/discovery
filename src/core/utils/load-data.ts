@@ -12,7 +12,8 @@ import type {
     LoadDataFetchOptions,
     ExtractResourceOptions,
     LoadDataStateProgress,
-    DatasetResource
+    DatasetResource,
+    LoadDataFromPush
 } from './load-data.types.js';
 import { Observer } from '../observer.js';
 import { normalizeEncodings } from '../encodings/utils.js';
@@ -401,9 +402,9 @@ export function loadDataFromUrl(url: string, options?: LoadDataFetchOptions) {
     );
 }
 
-export function loadDataFromPush(options?: LoadDataBaseOptions) {
-    let controller: ReadableStreamDefaultController | null;
-    const stream = new ReadableStream({
+export function loadDataFromPush(options?: LoadDataBaseOptions): LoadDataFromPush {
+    let controller: ReadableStreamDefaultController<Uint8Array> | null;
+    const stream = new ReadableStream<Uint8Array>({
         start(controller_) {
             controller = controller_;
         },
@@ -544,9 +545,9 @@ export function convertToBlobIfPossible(source: any) {
     return source;
 }
 
-export function getReadableStreamFromSource(source: any) {
+export function getReadableStreamFromSource(source: unknown) {
     if (source instanceof ReadableStream) {
-        return source;
+        return source as ReadableStream<Uint8Array>;
     }
 
     if (source instanceof Response) {
@@ -563,7 +564,7 @@ export function getReadableStreamFromSource(source: any) {
         return source.stream();
     }
 
-    return new ReadableStream({
+    return new ReadableStream<Uint8Array>({
         start() {
             const generator = source
                 ? source[Symbol.asyncIterator]

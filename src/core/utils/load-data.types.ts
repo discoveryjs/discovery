@@ -27,6 +27,7 @@ export type LoadDataState =
         stage: 'error';
         error: Error;
     };
+
 export type LoadDataStateProgress = {
     done: boolean;
     elapsed: number;
@@ -47,13 +48,13 @@ export type LoadDataResourceMetadata = {
 };
 export type LoadDataRequestOptions = {
     encodings?: Encoding[];
-}
+};
 export type LoadDataBaseOptions = LoadDataRequestOptions & {
     resource?: LoadDataResourceMetadata;
-}
+};
 export type LoadDataFetchOptions = LoadDataBaseOptions & ExtractResourceOptions & {
     fetch?: RequestInit;
-}
+};
 export type ExtractResourceOptions = {
     isResponseOk?: (response: Response) => boolean;
     getContentSize?: (response: Response) => string | undefined;
@@ -67,7 +68,13 @@ export type LoadDataRequestResult = {
     resource?: LoadDataResourceMetadata;
     options?: LoadDataRequestOptions;
     data?: any;
-}
+};
+
+export type LoadDataFromPush = LoadDataResult & {
+    start(resource: LoadDataResourceMetadata): void;
+    push(chunk: Uint8Array): void;
+    finish(encodedSize?: number): void;
+};
 
 export type Dataset = {
     loadMethod: LoadDataMethod;

@@ -46,7 +46,7 @@
         "build": "npm run build:js && npm run build:css && npm run build:preloader && npm run build:embed-host",
         "build:js": "esbuild src/lib.ts --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
-        "build:embed-host": "esbuild src/extensions/embed-host.js --outfile=dist/discovery-embed-host.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
+        "build:embed-host": "esbuild src/extensions/embed-host.ts --outfile=dist/discovery-embed-host.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:preloader": "npm run build:preloader:js && npm run build:preloader:css",
         "build:preloader:js": "esbuild src/preloader.ts --outfile=dist/discovery-preloader.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:preloader:css": "esbuild src/preloader.css --outfile=dist/discovery-preloader.css --bundle --minify --loader:.svg=dataurl",

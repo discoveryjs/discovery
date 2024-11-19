@@ -1,47 +1,73 @@
+import type { ViewModel } from '../main/view-model.js';
+import type { App } from '../main/app.js';
+import type { NavItemConfig } from '../nav/index.js';
+import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToClientPostponeMessage } from './embed-message.types.js';
+import type { LoadDataFromPush } from '../core/utils/load-data.js';
 import { randomId } from '../core/utils/id.js';
 import { loadDataFromPush, loadDataFromStream } from '../core/utils/load-data.js';
+
+export type EmbedClientOptions = {
+    hostId: string;
+    postponeMessages: EmbedHostToClientPostponeMessage[];
+};
+
+export type LoadDataChunkedStatus = LoadDataFromPush & {
+    acceptToken: string;
+};
+
+export type SendMessage = <T extends EmbedClientToHostMessage['type']>(
+    type: T,
+    payload: Extract<EmbedClientToHostMessage, { type: T }>['payload']
+) => void;
 
 // export an integration with default settings
 export default Object.assign(setup(), { setup });
 
 const noop = () => {};
 const navSection = ['primary', 'secondary', 'menu'];
-const navAction = new Map([
-    ['insert', 0],
-    ['prepend', 0],
-    ['append', 0],
-    ['before', 1],
-    ['after', 1],
-    ['replace', 1],
-    ['remove']
-]);
+const navAction = ['insert', 'prepend', 'append', 'before', 'after', 'replace', 'remove'];
 
 function darkmodeValue({ mode, value }) {
     return mode === 'auto' ? 'auto' : value ? 'dark' : 'light';
 }
 
-function setup(options) {
-    options = options || {};
+function createNavItemConfig(rawConfig: unknown, sendMessage: SendMessage, rawCommands?: string[]): NavItemConfig {
+    const commands: string[] = Array.isArray(rawCommands) ? rawCommands : [];
+    return JSON.parse(JSON.stringify(rawConfig), (_, value: unknown) =>
+        typeof value === 'string' && commands.includes(value)
+            ? () => sendMessage('navMethod', value)
+            : value
+    );
+}
 
-    return function(host) {
-        let loadChunkedDataStatus = null;
+function setup(options?: Partial<EmbedClientOptions>) {
+    const hostId = options?.hostId || randomId();
+    const postponeMessages = options?.postponeMessages;
+
+    return function(host: ViewModel) {
+        let loadChunkedDataStatus: LoadDataChunkedStatus | null = null;
         let loadDataUnsubscribe = noop;
-        const cancelLoadChunkedDataApi = () => {
+        const cancelLoadChunkedDataApi = (error?: unknown) => {
             loadChunkedDataStatus?.finish();
             loadChunkedDataStatus = null;
+
+            if (error) {
+                host.log('debug', 'Cancel chunked data load from host with error:', error);
+            }
         };
-        const hostId = options.hostId || randomId();
         const parentWindow = window.parent;
         const actionCalls = new Map();
-        const sendMessage = (type, payload = null) => {
-            parentWindow.postMessage({
+        const sendMessage: SendMessage = (type, payload) => {
+            const message: EmbedClientToHostMessage = {
                 from: 'discoveryjs-app',
                 id: hostId,
                 type,
                 payload
-            }, '*');
+            } as EmbedClientToHostMessage;
+
+            parentWindow.postMessage(message, '*');
         };
-        const setLoadDataUnsubscribe = (fn) => {
+        const setLoadDataUnsubscribe = (fn: () => void) => {
             loadDataUnsubscribe = () => {
                 if (fn !== null) {
                     loadDataUnsubscribe = noop;
@@ -49,7 +75,7 @@ function setup(options) {
                 }
             };
         };
-        const trackDataLoading = (loadDataStatus) => {
+        const trackDataLoading = (loadDataStatus: ReturnType<typeof loadDataFromStream>) => {
             const result = typeof host.trackLoadDataProgress === 'function'
                 ? host.trackLoadDataProgress(loadDataStatus)
                 : loadDataStatus.dataset
@@ -58,8 +84,8 @@ function setup(options) {
             // do nothing
             result.catch(() => {});
         };
-        const processIncomingMessage = (event) => {
-            const { id, type, payload } = event.data || {};
+        const processIncomingMessage = ({ data }: { data: EmbedHostToClientMessage }) => {
+            const { id, type, payload } = data || {};
 
             if (id === hostId) {
                 switch (type) {
@@ -83,7 +109,7 @@ function setup(options) {
                         break;
                     }
                     case 'actionResult': {
-                        const { callId, value, error } = payload;
+                        const { callId } = payload;
 
                         if (!actionCalls.has(callId)) {
                             host.log('error', `[Discovery.js] Unknown action call id "${callId}"`);
@@ -92,10 +118,10 @@ function setup(options) {
 
                         const { resolve, reject } = actionCalls.get(callId);
 
-                        if (error) {
-                            reject(error);
+                        if ('error' in payload) {
+                            reject(payload.error);
                         } else {
-                            resolve(value);
+                            resolve(payload.value);
                         }
                         break;
                     }
@@ -143,43 +169,41 @@ function setup(options) {
                     case 'changeNavButtons': {
                         const {
                             section = 'primary',
-                            action = 'append',
-                            name,
-                            position,
-                            commands: rawCommands,
-                            config: rawConfig
-                        } = payload || {};
+                            action = 'unknown'
+                        } = payload;
 
                         if (!navSection.includes(section)) {
                             host.log('warn', `Wrong value for nav button place "${section}", supported values: ${navSection.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
-                        const commands = rawCommands || {};
-                        const config = JSON.parse(JSON.stringify(rawConfig), (_, value) => commands.includes(value)
-                            ? () => sendMessage('navMethod', value)
-                            : value
-                        );
-
-                        switch (action) {
-                            case 'insert':
-                                host.nav[section].insert(config, position, name);
+                        switch (payload.action) {
+                            case 'insert': {
+                                const { name, position, config, commands } = payload;
+                                host.nav[section].insert(createNavItemConfig(config, sendMessage, commands), position, name);
                                 break;
+                            }
 
                             case 'prepend':
-                            case 'append':
-                                host.nav[section][action](config);
+                            case 'append': {
+                                const { config, commands } = payload;
+                                host.nav[section][payload.action](createNavItemConfig(config, sendMessage, commands));
                                 break;
+                            }
 
                             case 'before':
                             case 'after':
-                            case 'replace':
-                                host.nav[section][action](name, config);
+                            case 'replace': {
+                                const { name, config, commands } = payload;
+                                host.nav[section][payload.action](name, createNavItemConfig(config, sendMessage, commands));
                                 break;
+                            }
 
-                            case 'remove':
+                            case 'remove': {
+                                const { name } = payload;
                                 host.nav[section].remove(name);
                                 break;
+                            }
 
                             default:
                                 host.log('warn', `Wrong value for nav button action "${action}", supported values: ${navAction.map(value => JSON.stringify(value)).join(', ')}`);
@@ -223,7 +247,7 @@ function setup(options) {
                     }
 
                     case 'dataChunk': {
-                        const { acceptToken, value, done } = payload;
+                        const { acceptToken } = payload;
 
                         if (loadChunkedDataStatus === null) {
                             host.log('warn', 'Loading data is not inited');
@@ -235,11 +259,11 @@ function setup(options) {
                             break;
                         }
 
-                        if (value) {
-                            loadChunkedDataStatus.push(value);
+                        if ('value' in payload && payload.value !== undefined) {
+                            loadChunkedDataStatus.push(payload.value);
                         }
 
-                        if (done) {
+                        if ('done' in payload && payload.done) {
                             cancelLoadChunkedDataApi();
                         }
 
@@ -258,17 +282,17 @@ function setup(options) {
         }
 
         // bind to app's state changes
-        host.on('pageHashChange', (replace) =>
+        host.on('pageHashChange', (replace) => {
             sendMessage('pageHashChanged', {
                 replace,
                 hash: host.pageHash || '#',
                 id: host.pageId,
                 ref: host.pageRef,
                 params: host.pageParams
-            })
-        );
+            });
+        });
 
-        host.on('startLoadData', (subscribe) => {
+        (host as App).on('startLoadData', (subscribe) => {
             loadDataUnsubscribe();
             setLoadDataUnsubscribe(subscribe(state => sendMessage('loadingState', state)));
         });
@@ -278,13 +302,13 @@ function setup(options) {
             setLoadDataUnsubscribe(subscribe(state => sendMessage('loadingState', state)));
         });
 
-        host.on('unloadData', () => {
-            loadDataUnsubscribe();
-            sendMessage('unloadData');
+        host.on('data', () => {
+            sendMessage('data', null);
         });
 
-        host.on('data', () => {
-            sendMessage('data');
+        host.on('unloadData', () => {
+            loadDataUnsubscribe();
+            sendMessage('unloadData', null);
         });
 
         host.darkmode.subscribe((value, mode) =>
@@ -295,9 +319,9 @@ function setup(options) {
         );
 
         // apply captured messages if any
-        if (options.postponeMessages) {
+        if (Array.isArray(postponeMessages)) {
             Promise.resolve().then(() => {
-                for (let message of options.postponeMessages) {
+                for (const message of postponeMessages) {
                     processIncomingMessage({ data: message });
                 }
             });
@@ -305,7 +329,7 @@ function setup(options) {
 
         // main life cycle handlers
         addEventListener('message', processIncomingMessage, false); // TODO: remove on destroy
-        addEventListener('unload', () => sendMessage('destroy'), false); // TODO: send on destroy
+        addEventListener('unload', () => sendMessage('destroy', null), false); // TODO: send on destroy
         sendMessage('ready', {
             page: {
                 hash: host.pageHash || '#',

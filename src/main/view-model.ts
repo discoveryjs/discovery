@@ -58,7 +58,7 @@ function getPageMethod<K extends PageOptionName>(host: ViewModel, pageId: string
 }
 
 export interface ViewModelEvents extends ModelEvents {
-    startSetData: [subscribe: (...args: Parameters<Progressbar['subscribeSync']>) => void];
+    startSetData: [subscribe: Progressbar['subscribeSync']];
     pageStateChange: [prev: {
         id: string;
         ref: PageRef;
@@ -236,7 +236,7 @@ export class ViewModel<
         } = options || {};
 
         this.emit('startSetData', (...args: Parameters<Progressbar['subscribeSync']>) =>
-            progressbar?.subscribeSync(...args)
+            progressbar?.subscribeSync(...args) || (() => {})
         );
 
         // set new data & context

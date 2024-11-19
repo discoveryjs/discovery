@@ -1,3 +1,4 @@
+import type { LoadDataStateProgress } from './load-data.types.js';
 import { Observer } from '../observer.js';
 import { createElement } from './dom.js';
 
@@ -16,13 +17,7 @@ export type ProgressbarOptions = Partial<{
 }>;
 export type ProgressbarState = {
     stage: ProgressbarStage;
-    progress: {
-        done: boolean;
-        elapsed: number;
-        units?: 'bytes';
-        completed: number;
-        total?: number;
-    } | null;
+    progress: LoadDataStateProgress | null;
     error: Error | null;
 };
 

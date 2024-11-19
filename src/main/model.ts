@@ -102,7 +102,7 @@ export interface ModelOptions<T = Model> {
     encodings: Encoding[];
     setup(api: SetupMethods): void;
 }
-type ModelOptionsBind = ModelOptions<Model>; // to fix: Type parameter 'Options' has a circular default.
+type ModelOptionsBind = ModelOptions<Model>; // FIXME: Type parameter 'Options' has a circular default.
 
 const noopQuery = () => void 0;
 const noopLogger = new Proxy({}, { get: () => () => {} });
