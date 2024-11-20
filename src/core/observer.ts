@@ -18,9 +18,12 @@ export class Observer<T> {
         const host = this;
 
         return {
-            subscribe: this.subscribe.bind(this),
-            subscribeSync: this.subscribeSync.bind(this),
-            unsubscribe: this.unsubscribe.bind(this),
+            // FIXME: TS should infer types for subscribe/subscribeSync/unsubscribe,
+            // however it doesn't and produces `any` instead. Used `as Observer<T>[method]`
+            // as a workaround.
+            subscribe: this.subscribe.bind(this) as Observer<T>['subscribe'],
+            subscribeSync: this.subscribeSync.bind(this) as Observer<T>['subscribeSync'],
+            unsubscribe: this.unsubscribe.bind(this) as Observer<T>['unsubscribe'],
             get value() {
                 return host.value;
             }

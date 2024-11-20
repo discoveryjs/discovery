@@ -1,22 +1,26 @@
 import type { PageParams, PageRef } from '../main/model.js';
 import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToPreinitMessage, EmbedPreinitToHostMessage, NavInsertPosition, NavSection } from './embed-message.types.js';
 import type { NavItemConfig } from '../nav/index.js';
-import type { EventMap } from '../core/emitter.js';
 import type { LoadDataState } from '../core/utils/load-data.js';
 import type { ProgressbarState } from '../core/utils/progressbar.js';
+import type { Mode as DarkmodeMode } from '../core/darkmode.js';
 import { Emitter } from '../core/emitter.js';
 import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';
 import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
 import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
 
-export interface BaseAppEvents extends EventMap {
+export type BaseAppEvents = {
     destroy: [];
 };
 export interface EmbedPreinitAppEvents extends BaseAppEvents {
     loadingStateChanged: [state: LoadDataState];
 };
 export interface EmbedAppEvents extends BaseAppEvents {
+    darkmodeChanged: [value: {
+        mode: DarkmodeMode & string;
+        value: 'auto' | 'dark' | 'light';
+    }];
     loadingStateChanged: [state: ProgressbarState];
     pageHashChanged: [hash: string, replace: boolean];
     unloadData: [];
@@ -40,8 +44,8 @@ const isStreamTransferable = (() => {
 })();
 
 class BaseApp<
-    Events extends BaseAppEvents,
-    Message extends EmbedHostToPreinitMessage | EmbedHostToClientMessage
+    Message extends EmbedHostToPreinitMessage | EmbedHostToClientMessage,
+    Events extends BaseAppEvents = BaseAppEvents
 > extends Emitter<Events> {
     window: Window;
     id: string;
@@ -79,14 +83,16 @@ class BaseApp<
     }
 }
 
-class EmbedPreinitApp extends BaseApp<EmbedPreinitAppEvents, EmbedHostToPreinitMessage> {
+class EmbedPreinitApp extends BaseApp<EmbedHostToPreinitMessage, EmbedPreinitAppEvents> {
     publicApi: ReturnType<typeof EmbedPreinitApp.createPublicApi>;
 
     static createPublicApi(app: EmbedPreinitApp) {
         return Object.freeze({
-            on: app.on.bind(app),
-            once: app.once.bind(app),
-            off: app.off.bind(app),
+            // FIXME: TS should infer types for on/once/off, however it doesn't
+            // and produces `any` instead. Used `as EmbedPreinitApp[method]` as a workaround.
+            on: app.on.bind(app) as EmbedPreinitApp['on'],
+            once: app.once.bind(app) as EmbedPreinitApp['once'],
+            off: app.off.bind(app) as EmbedPreinitApp['off'],
 
             defineAction(name: string, fn: (...args: unknown[]) => unknown) {
                 app.actions.set(name, fn);
@@ -119,7 +125,7 @@ class EmbedPreinitApp extends BaseApp<EmbedPreinitAppEvents, EmbedHostToPreinitM
     }
 }
 
-class EmbedApp extends BaseApp<EmbedAppEvents, EmbedHostToClientMessage> {
+class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
     commandMap: Map<string, (...args: unknown[]) => unknown>;
     dataLoadToken: string | null;
 
@@ -127,7 +133,10 @@ class EmbedApp extends BaseApp<EmbedAppEvents, EmbedHostToClientMessage> {
     pageId: Observer<string>;
     pageRef: Observer<PageRef>;
     pageParams: Observer<PageParams>;
-    darkmode: Observer<{ mode: string; value: string; }>; // FIXME
+    darkmode: Observer<{
+        mode: DarkmodeMode & string | 'unknown';
+        value: 'auto' | 'dark' | 'light' | 'unknown';
+    }>;
     publicApi: ReturnType<typeof EmbedApp.createPublicApi>;
 
     static createPublicApi(app: EmbedApp) {
@@ -144,9 +153,11 @@ class EmbedApp extends BaseApp<EmbedAppEvents, EmbedHostToClientMessage> {
             pageParams: app.pageParams.readonly,
             darkmode: app.darkmode.readonly,
 
-            on: app.on.bind(app),
-            once: app.once.bind(app),
-            off: app.off.bind(app),
+            // FIXME: TS should infer types for on/once/off, however it doesn't
+            // and produces `any` instead. Used `as EmbedApp[method]` as a workaround.
+            on: app.on.bind(app) as EmbedApp['on'],
+            once: app.once.bind(app) as EmbedApp['once'],
+            off: app.off.bind(app) as EmbedApp['off'],
 
             nav: Object.assign(nav.secondary, nav),
 
@@ -307,7 +318,7 @@ export function connectToEmbedApp(
         onPreinit?: onPreinitCallback,
         onConnect: onConnectCallback
     } = typeof onPreinit === 'function' && typeof onConnect !== 'function'
-        ? { onPreinit: undefined, onConnect: onPreinit }
+        ? { onPreinit: undefined, onConnect: onPreinit as onConnectCallback }
         : { onPreinit: onPreinit as onPreinitCallback, onConnect: onConnect as onConnectCallback };
 
     addEventListener('message', handleIncomingMessages);

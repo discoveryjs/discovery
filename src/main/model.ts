@@ -1,5 +1,4 @@
 import jora from 'jora';
-import type { EventMap } from '../core/emitter.js';
 import type { ObjectMarker, ObjectMarkerConfig, ObjectMarkerDescriptor } from '../core/object-marker.js';
 import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from '../core/utils/load-data.js';
 import { normalizeEncodings } from '../core/encodings/utils.js';
@@ -86,7 +85,7 @@ export interface LegacyPrepareContextApi {
     query(query: Query, ...args: unknown[]): any;
 }
 
-export interface ModelEvents extends EventMap {
+export type ModelEvents = {
     data: [];
     unloadData: [];
 }
