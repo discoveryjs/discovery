@@ -29,7 +29,8 @@
         },
         "./embed": {
             "discovery-dev": "./src/extensions/embed-host.js",
-            "default": "./lib/extensions/embed-host.js"
+            "types": "./dist/discovery-embed-host.d.ts",
+            "default": "./dist/discovery-embed-host.js"
         },
         "./dist/*": "./dist/*",
         "./lib/*": "./lib/*",
@@ -42,7 +43,8 @@
     "scripts": {
         "lint": "eslint cypress models src",
         "typecheck": "tsc --noEmit",
-        "emit:types": "tsc --emitDeclarationOnly",
+        "emit:types": "tsc --emitDeclarationOnly && npm run emit:embed-types",
+        "emit:embed-types": "dts-bundle-generator -o dist/discovery-embed-host.d.ts lib/extensions/embed-host.d.ts --export-referenced-types=0",
         "build": "npm run build:js && npm run build:css && npm run build:preloader && npm run build:embed-host",
         "build:js": "esbuild src/lib.ts --outfile=dist/discovery.js --bundle --define:global=window --format=esm --minify --sourcemap=external",
         "build:css": "esbuild src/lib.css --outfile=dist/discovery.css --bundle --minify --loader:.svg=dataurl",
@@ -76,6 +78,7 @@
         "@typescript-eslint/eslint-plugin": "^7.18.0",
         "@typescript-eslint/parser": "^7.18.0",
         "cypress": "^13.3.0",
+        "dts-bundle-generator": "^9.5.1",
         "esbuild": "~0.24.0",
         "eslint": "^8.50.0",
         "eslint-plugin-cypress": "^2.15.1",
