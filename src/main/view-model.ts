@@ -95,7 +95,7 @@ export class ViewModel<
     nav: ViewModelNavigation;
     preset: PresetRenderer;
     page: PageRenderer;
-    #renderScheduler: Set<RenderSubject> & { timer?: Promise<void> | null };
+    #renderScheduler: Set<RenderSubject> & { timer?: ReturnType<typeof setTimeout> | null };
 
     defaultPageId: string;
     discoveryPageId: string;
@@ -435,34 +435,44 @@ export class ViewModel<
             return;
         }
 
-        const scheduledRenders = this.#renderScheduler;
+        this.#renderScheduler.add(subject);
 
-        if (scheduledRenders.has(subject)) {
-            return;
+        // Previously, we would exit here if nothing changed in the scheduled render list
+        // or if some renders were already scheduled. However, this approach led to scenarios
+        // where a render would occur behind events on the event loop. Now, if `scheduleRender()`
+        // is called, we assume that some events are pending on the event loop and that a render
+        // should await until they are processed. Therefore, we reschedule the render to the end
+        // of the event loop.
+        if (this.#renderScheduler.timer) {
+            clearTimeout(this.#renderScheduler.timer);
         }
 
-        scheduledRenders.add(subject);
+        // Use `setTimeout()` to ensure that everything on the event loop is processed;
+        // previously, `Promise.resolve()` was used, but this proved suboptimal,
+        // especially in embed scenario, where rendering occurs with every new `postMessage()`.
+        // Since messages are queued on the event loop and `Promise.resolve()` is processed
+        // in a micro-task batch, each "defineAction" (which is usually called several times
+        // on the host side) produces a separate message, and rendering occurs with every such message.
+        this.#renderScheduler.timer = setTimeout(() => this.enforceScheduledRenders(), 0);
+    }
 
-        if (scheduledRenders.timer) {
-            return;
-        }
+    enforceScheduledRenders() {
+        const renders = [...this.#renderScheduler];
 
-        scheduledRenders.timer = Promise.resolve().then(async () => {
-            for (const subject of scheduledRenders) {
-                switch (subject) {
-                    case 'sidebar':
-                        await this.renderSidebar();
-                        break;
-                    case 'page':
-                        await this.renderPage();
-                        break;
-                }
+        // ensure the timer will not fire and scheduled renders are cleaned up
+        this.cancelScheduledRender();
+
+        // trigger renders
+        for (const subject of renders) {
+            switch (subject) {
+                case 'sidebar':
+                    this.renderSidebar();
+                    break;
+                case 'page':
+                    this.renderPage();
+                    break;
             }
-
-            scheduledRenders.timer = null;
-        });
-
-        return scheduledRenders.timer;
+        }
     }
 
     cancelScheduledRender(subject?: RenderSubject) {
@@ -470,6 +480,11 @@ export class ViewModel<
             this.#renderScheduler.delete(subject);
         } else {
             this.#renderScheduler.clear();
+        }
+
+        if (this.#renderScheduler.size === 0 && this.#renderScheduler.timer) {
+            clearTimeout(this.#renderScheduler.timer);
+            this.#renderScheduler.timer = null;
         }
     }
 
@@ -492,7 +507,7 @@ export class ViewModel<
 
     renderSidebar() {
         // cancel scheduled renderSidebar
-        this.#renderScheduler.delete('sidebar');
+        this.cancelScheduledRender('sidebar');
 
         if (this.hasDatasets() && this.view.isDefined('sidebar')) {
             const renderStartTime = Date.now();
@@ -590,7 +605,7 @@ export class ViewModel<
 
     renderPage() {
         // cancel scheduled renderPage
-        this.#renderScheduler.delete('page');
+        this.cancelScheduledRender('page');
 
         const data = this.data;
         const context = this.getRenderContext();
