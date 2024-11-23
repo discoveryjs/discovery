@@ -1,3 +1,5 @@
+const delimRegExp = /\.\d+(?:eE[-+]?\d+)?|\B(?=(?:\d{3})+(?:\D|$))/g;
+
 export function escapeHtml(str: string) {
     return str
         .replace(/&/g, '&amp;')
@@ -6,14 +8,26 @@ export function escapeHtml(str: string) {
         .replace(/>/g, '&gt;');
 }
 
-export function numDelim(value: any, escape = true) {
+export function numDelimOffsets(value: unknown) {
+    const strValue = String(value);
+    const offsets: number[] = [];
+    let match: RegExpExecArray | null = null;
+
+    while ((match = delimRegExp.exec(strValue)) !== null) {
+        offsets.push(match.index);
+    }
+
+    return offsets;
+}
+
+export function numDelim(value: unknown, escape = true) {
     const strValue = escape && typeof value !== 'number'
         ? escapeHtml(String(value))
         : String(value);
 
     if (strValue.length > 3) {
         return strValue.replace(
-            /\.\d+(eE[-+]?\d+)?|\B(?=(\d{3})+(\D|$))/g,
+            delimRegExp,
             m => m || '<span class="num-delim"></span>'
         );
     }
