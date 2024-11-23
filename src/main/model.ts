@@ -1,6 +1,7 @@
 import jora from 'jora';
 import type { ObjectMarker, ObjectMarkerConfig, ObjectMarkerDescriptor } from '../core/object-marker.js';
 import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, LoadDataResult } from '../core/utils/load-data.js';
+import type { ConsoleLike, LogLevel } from '../core/utils/logger.js';
 import { normalizeEncodings } from '../core/encodings/utils.js';
 import { loadDataFromEvent, loadDataFromFile, loadDataFromStream, loadDataFromUrl } from '../core/utils/load-data.js';
 import { Emitter } from '../core/emitter.js';
@@ -9,17 +10,13 @@ import { ObjectMarkerManager } from '../core/object-marker.js';
 import { createExtensionApi, setupModel } from './model-extension-api.js';
 import { createLegacyExtensionApi } from './model-legacy-extension-api.js';
 import { querySuggestions } from './query-suggestions.js';
+import { Logger } from '../core/utils/logger.js';
 
-export type LogLevel = 'silent' | 'error' | 'warn' | 'info' | 'perf' | 'debug';
 export type LogOptions = {
     level: LogLevel;
     lazy?: () => any[];
     message?: string;
     collapsed?: null | Iterable<any> | (() => Iterable<any>);
-};
-export type ConsoleMethods = 'log' | 'error' | 'warn' | 'info' | 'debug' | 'groupCollapsed' | 'groupEnd';
-export type ConsoleLike = {
-    [key in ConsoleMethods]: (...args: any[]) => void;
 };
 
 export type ExtensionFunction<T> = (host: T) => void;
@@ -104,8 +101,6 @@ export interface ModelOptions<T = Model> {
 type ModelOptionsBind = ModelOptions<Model>; // FIXME: Type parameter 'Options' has a circular default.
 
 const noopQuery = () => void 0;
-const noopLogger = new Proxy({}, { get: () => () => {} });
-const logLevels: LogLevel[] = ['silent', 'error', 'warn', 'info', 'perf', 'debug'];
 const logPrefix = '[Discovery]';
 
 const isJoraIdentifier = (value: string) =>
@@ -135,8 +130,7 @@ export class Model<
         icon: string | null;
     };
 
-    logger: ConsoleLike;
-    logLevel: LogLevel;
+    logger: Logger;
 
     action: ActionManager;
     objectMarkers: ObjectMarkerManager;
@@ -182,11 +176,10 @@ export class Model<
             icon: icon || null
         };
 
-        this.logger = logger || noopLogger;
-        this.logLevel = logLevels.includes(logLevel) ? logLevel : 'warn';
+        this.logger = new Logger(logPrefix, logLevel, logger);
 
         this.action = new ActionManager();
-        this.objectMarkers = new ObjectMarkerManager(this.log.bind(this));
+        this.objectMarkers = new ObjectMarkerManager(this.logger);
         this.linkResolvers = [];
 
         this.datasets = [];
@@ -234,31 +227,29 @@ export class Model<
 
     // logging
     log(levelOrOpts: LogOptions | LogLevel, ...args: unknown[]) {
+        // console.warn(`${logPrefix} Model#log() is deprecated, use Model#logger interface instead`);
         const {
             level,
             lazy = null,
             message = null,
             collapsed = null
         } = typeof levelOrOpts === 'object' && levelOrOpts !== null ? levelOrOpts : { level: levelOrOpts };
-        const levelIndex = logLevels.indexOf(level);
 
-        if (levelIndex > 0 && level !== 'silent' && levelIndex <= logLevels.indexOf(this.logLevel)) {
+        if (this.logger.shouldLogLevel(level)) {
             const method = level === 'perf' ? 'log' : level;
 
             if (collapsed) {
-                this.logger.groupCollapsed(`${logPrefix} ${message ?? args[0]}`);
+                console.groupCollapsed(`${logPrefix} ${message ?? args[0]}`);
 
                 const entries = typeof collapsed === 'function' ? collapsed() : collapsed;
                 for (const entry of Array.isArray(entries) ? entries : [entries]) {
-                    this.logger[method](...Array.isArray(entry) ? entry : [entry]);
+                    console[method](logPrefix, ...Array.isArray(entry) ? entry : [entry]);
                 }
 
-                this.logger.groupEnd();
+                console.groupEnd();
             } else {
-                this.logger[method](logPrefix, ...typeof lazy === 'function' ? lazy() : args);
+                console[method](logPrefix, ...typeof lazy === 'function' ? lazy() : args);
             }
-        } else if (levelIndex === -1) {
-            this.logger.error(`${logPrefix} Bad log level "${level}", supported: ${logLevels.slice(1).join(', ')}`);
         }
     }
 
@@ -308,7 +299,7 @@ export class Model<
                 prepareApi.after?.(this);
 
                 this.emit('data');
-                this.log('perf', `Data prepared in ${Date.now() - startTime}ms`);
+                this.logger.perf(`Data prepared in ${Date.now() - startTime}ms`);
             });
 
         return setDataPromise;
@@ -318,7 +309,7 @@ export class Model<
         const startTime = Date.now();
         const dataset = await loadDataResult.dataset;
 
-        this.log('perf', `Data loaded in ${Date.now() - startTime}ms`);
+        this.logger.perf(`Data loaded in ${Date.now() - startTime}ms`);
 
         return this.setData(dataset.data, { dataset });
     }

@@ -1,10 +1,9 @@
 /* eslint-env browser */
 
-import type { Model } from '../main/model.js';
 import { hasOwn } from './utils/object-utils.js';
+import { Logger } from './utils/logger.js';
 import { Dictionary } from './dict.js';
 
-export type LogCallback = Model['log'];
 export type GetterFunction<T> = ((object: T) => any) & { getterFromString?: string };
 export type Getter<T> = GetterFunction<T> | keyof T;
 export type LookupRefFunction<T> = ((object: LookupValue<T>) => LookupValue<T> | null | undefined) & { getterFromString?: string };
@@ -46,21 +45,17 @@ export type ObjectMarker<T> = {
 const warnings = new Map<string, any[][]>();
 let groupWarningsTimer: ReturnType<typeof setTimeout> | null = null;
 
-function flushWarnings(logger: LogCallback) {
+function flushWarnings(logger: Logger) {
     groupWarningsTimer = null;
 
     for (const [caption, messages] of warnings.entries()) {
-        logger({
-            level: 'warn',
-            message: `${caption} (${messages.length})`,
-            collapsed: messages
-        });
+        logger.warn.groupCollapsed(`${caption} (${messages.length})`, messages);
     }
 
     warnings.clear();
 }
 
-function groupWarning(logger: LogCallback, caption: string, ...details: any[]) {
+function groupWarning(logger: Logger, caption: string, ...details: any[]) {
     if (groupWarningsTimer === null && warnings.size === 0) {
         groupWarningsTimer = setTimeout(() => flushWarnings(logger), 1);
     }
@@ -129,7 +124,7 @@ function isLookupValue<T>(value: unknown, objectsOnly = false): value is LookupV
         : typeof value === 'object' || typeof value === 'number' || typeof value === 'string';
 }
 
-function createObjectMarker<T extends object>(logger: LogCallback, config: NormalizedObjectMarkerConfig<T>): ObjectMarker<T> {
+function createObjectMarker<T extends object>(logger: Logger, config: NormalizedObjectMarkerConfig<T>): ObjectMarker<T> {
     const {
         name,
         indexRefs,
@@ -145,7 +140,7 @@ function createObjectMarker<T extends object>(logger: LogCallback, config: Norma
     }
 
     if (page && getRef === null) {
-        logger('warn', `Option "ref" for "${name}" marker must be specified when "page" options is defined ("page" option ignored)`);
+        logger.warn(`Option "ref" for "${name}" marker must be specified when "page" options is defined ("page" option ignored)`);
     }
 
     if (indexRefs.length > 0) {
@@ -165,7 +160,7 @@ function createObjectMarker<T extends object>(logger: LogCallback, config: Norma
     };
     const mark = (object: T) => {
         if (object === null || typeof object !== 'object') {
-            logger('warn', `Invalid value used for "${name}" marker (should be an object)`);
+            logger.warn(`Invalid value used for "${name}" marker (should be an object)`);
             return;
         }
 
@@ -278,7 +273,7 @@ function createObjectMarker<T extends object>(logger: LogCallback, config: Norma
 export class ObjectMarkerManager extends Dictionary<ObjectMarker<object>> {
     #preventDefine = false;
 
-    constructor(private logger: LogCallback = () => {}) {
+    constructor(private logger: Logger) {
         super();
     }
 

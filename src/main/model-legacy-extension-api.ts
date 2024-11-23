@@ -6,7 +6,7 @@ import { hasOwn } from '../core/utils/object-utils.js';
 import jora from 'jora';
 
 export function createLegacyExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
-    const objectMarkers = new ObjectMarkerManager();
+    const objectMarkers = new ObjectMarkerManager(host.logger);
     const linkResolvers: Model['linkResolvers'] = [];
     const annotations: ValueAnnotation[] = [];
     const contextApi: LegacyPrepareContextApi = {

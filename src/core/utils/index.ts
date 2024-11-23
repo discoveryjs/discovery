@@ -15,6 +15,8 @@ export { jsonStringifyAsJavaScript, jsonStringifyInfo } from './json.js';
 export { getBoundingRect, getOffsetParent, getOverflowParent, getPageOffset, getViewportRect } from './layout.js';
 export type * from './load-data.js';
 export * from './load-data.js';
+export type * from './logger.js';
+export { Logger } from './logger.js';
 export { objectToString, hasOwn } from './object-utils.js';
 export { match, matchAll } from './pattern.js';
 export { localStorageEntry, sessionStorageEntry } from './persistent.js';

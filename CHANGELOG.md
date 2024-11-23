@@ -3,6 +3,13 @@
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders
 - Fixed `ViewModel#setPageParams()` to normalize the `hash` by ensuring it starts with `#`, preventing unnecessary events; for example, passing `#page` and `page` into the method will now consistently result in `#page` being stored in `ViewModel#pageHash`
+- Redesigned logging API:
+    - Added `Logger` class to utils
+    - Changed `Model#logger` to hold a `Logger` instance
+    - Removed `Model#logLevel`, use `Model#logger.logLevel` to get or set value
+    - Deprecated `Model#log()` method, which do nothing but display warning
+        - Use `Model#logger[level](...args)` instead of `Model#log('level', ...args)`. This approach allows to see the correct loaction of logging method call instead of a location inside of the `Model#log()` method
+        - Use `Model#logger[level].group(message, fn | array)` or `Model#logger[level].groupCollapsed(message, fn | array)` instead of `Model#logger({ level, message, collapsed: fn | array })`
 
 ## 1.0.0-beta.90 (15-11-2024)
 

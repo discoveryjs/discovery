@@ -104,7 +104,13 @@ function isSameSuggestions(api: QueryStatApi, pos1: number, pos2: number) {
     return true;
 }
 
-export function querySuggestions(host: Model, query: string, offset: number, data: unknown, context: unknown) {
+export function querySuggestions(
+    host: Model,
+    query: string,
+    offset: number,
+    data: unknown,
+    context: unknown
+): Suggestion[] | null {
     try {
         let stat = lastQuerySuggestionsStat.get(host);
 
@@ -166,11 +172,7 @@ export function querySuggestions(host: Model, query: string, offset: number, dat
 
         return stat.suggestions;
     } catch (e) {
-        host.log({
-            level: 'error',
-            message: 'Error while attempting to retrieve suggestions for the query',
-            collapsed: e
-        });
-        return;
+        host.logger.error('Error while attempting to retrieve suggestions for the query:', e.message);
+        return null;
     }
 }

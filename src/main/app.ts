@@ -189,14 +189,13 @@ export class App<
     progressbar(options: ProgressbarOptions & { title?: string }) {
         return new Progressbar({
             domReady: this.dom.ready,
-            onFinish: (timings) => this.log({
-                level: 'perf',
-                message: `${options.title || 'Load data'} (${timings[timings.length - 1].duration}ms)`,
-                collapsed: () => [
+            onFinish: timings => this.logger.perf.groupCollapsed(
+                `${options.title || 'Load data'} (${timings[timings.length - 1].duration}ms)`,
+                () => [
                     ...timings.map(timing => `${timing.title}: ${timing.duration}ms`),
                     `(await repaint: ${timings.awaitRepaintPenaltyTime}ms)`
                 ]
-            }),
+            ),
             ...options
         });
     }
