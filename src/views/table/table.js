@@ -99,7 +99,7 @@ function getOrder(host, data, sorting) {
             prev = current;
         }
     } catch (e) {
-        host.log('error', 'Error on column order detection in table view', e);
+        host.logger.error('Error on column order detection in table view', e);
         return 0;
     }
 

@@ -164,7 +164,7 @@ export class App<
                 });
 
                 this.view.render(loadingOverlayEl, renderConfig, renderData, renderContext).then(() => {
-                    this.log('error', error);
+                    this.logger.error(error);
                     progressbar?.setState({ error });
                 });
 

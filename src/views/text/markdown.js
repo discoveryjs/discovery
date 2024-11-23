@@ -147,7 +147,7 @@ export default function(host) {
                 try {
                     interpolationValues[index] = host.query(query, data, context);
                 } catch (e) {
-                    host.log('error', 'Interpolation query error in markdown:', e);
+                    host.logger.error('Interpolation query error in markdown:', e.message);
                 }
             }
 

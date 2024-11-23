@@ -87,7 +87,7 @@ export default function(host, updateParams) {
                             view: jsonStringifyAsJavaScript(json)
                         });
                     } catch (e) {
-                        host.log('error', 'View editor prettify failed:', e);
+                        host.logger.error('View editor prettify failed:', e);
                     }
                 }
             }),
@@ -195,7 +195,7 @@ export default function(host, updateParams) {
                     host.view.render(discoveryContentEl, el => {
                         el.className = 'discovery-error render-error';
                         el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
-                        host.log('error', e);
+                        host.logger.error(e);
                     });
                 }
 

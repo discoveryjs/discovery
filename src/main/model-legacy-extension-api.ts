@@ -69,7 +69,7 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
 
         if (page !== null) {
             if (!(host as any).page?.isDefined(page)) { // FIXME: temporary solution
-                host.log('error', `Page reference "${page}" doesn't exist`);
+                host.logger.error(`Page reference "${page}" doesn't exist`);
                 return () => {};
             }
 

@@ -299,8 +299,7 @@ export default function(host) {
                 const config = host.query(query, value, queryContext);
 
                 if (debug) {
-                    host.log(
-                        'info',
+                    host.logger.info(
                         `Compute struct view annotation${typeof debug === 'string' ? ` "${debug}"` : ''}:`,
                         { data: value, context: queryContext, query, queryResult: config }
                     );
@@ -320,7 +319,7 @@ export default function(host) {
                     );
                 }
             } catch (e) {
-                host.log('error', e);
+                host.logger.error(e.message);
             }
         }
 

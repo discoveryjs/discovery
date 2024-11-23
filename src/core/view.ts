@@ -373,7 +373,7 @@ function createRenderContext(viewRenderer: ViewRenderer, name: string) {
             if (el && el.nodeType === 1) {
                 attachTooltip(viewRenderer.host, el, config, data, context);
             } else {
-                viewRenderer.host.log('warn', 'A tooltip can be attached to a HTML element only');
+                viewRenderer.host.logger.warn('A tooltip can be attached to a HTML element only');
             }
         }
     };
@@ -541,7 +541,7 @@ async function render(
             ? 'View `' + config.view + '` is not found'
             : 'Render is not a function';
 
-        viewRenderer.host.log('error', errorMsg, config);
+        viewRenderer.host.logger.error(errorMsg, config);
         return renderError(viewRenderer, errorMsg, placeholder, config);
     }
 
@@ -571,7 +571,7 @@ async function render(
             }
         }
     } catch (e) {
-        viewRenderer.host.log('error', 'View render error:', e);
+        viewRenderer.host.logger.error('View render error:', e.message);
         return renderError(viewRenderer, String(e), placeholder, STUB_CONFIG);
     }
 }
@@ -687,7 +687,7 @@ export class ViewRenderer extends Dictionary<View> {
     badConfig(config: any, error: Error): SingleViewConfig {
         const errorMsg = error?.message || 'Unknown error';
 
-        this.host.log('error', errorMsg, { config, error });
+        this.host.logger.error(errorMsg, { config, error });
 
         return {
             view: this.defaultRenderErrorRenderer.render,

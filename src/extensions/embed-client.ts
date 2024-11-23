@@ -53,7 +53,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
             loadChunkedDataStatus = null;
 
             if (error) {
-                host.log('debug', 'Cancel chunked data load from host with error:', error);
+                host.logger.debug('Cancel chunked data load from host with error:', error);
             }
         };
         const parentWindow = window.parent;
@@ -113,7 +113,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
                         const { callId } = payload;
 
                         if (!actionCalls.has(callId)) {
-                            host.log('error', `[Discovery.js] Unknown action call id "${callId}"`);
+                            host.logger.error(`[Discovery.js] Unknown action call id "${callId}"`);
                             break;
                         }
 
@@ -153,7 +153,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
                         const supportedValues = ['auto', 'light', 'dark'];
 
                         if (!supportedValues.includes(mode)) {
-                            host.log('warn', `Wrong value for darkmode "${mode}", supported values: ${supportedValues.map(value => JSON.stringify(value)).join(', ')}`);
+                            host.logger.warn(`Wrong value for darkmode "${mode}", supported values: ${supportedValues.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
@@ -174,7 +174,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
                         } = payload;
 
                         if (!navSection.includes(section)) {
-                            host.log('warn', `Wrong value for nav button place "${section}", supported values: ${navSection.map(value => JSON.stringify(value)).join(', ')}`);
+                            host.logger.warn(`Wrong value for nav button place "${section}", supported values: ${navSection.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
@@ -207,7 +207,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
                             }
 
                             default:
-                                host.log('warn', `Wrong value for nav button action "${action}", supported values: ${navAction.map(value => JSON.stringify(value)).join(', ')}`);
+                                host.logger.warn(`Wrong value for nav button action "${action}", supported values: ${navAction.map(value => JSON.stringify(value)).join(', ')}`);
                         }
 
                         break;
@@ -251,12 +251,12 @@ function setup(options?: Partial<EmbedClientOptions>) {
                         const { acceptToken } = payload;
 
                         if (loadChunkedDataStatus === null) {
-                            host.log('warn', 'Loading data is not inited');
+                            host.logger.warn('Loading data is not inited');
                             break;
                         }
 
                         if (loadChunkedDataStatus.acceptToken !== acceptToken) {
-                            host.log('warn', 'Bad accept token');
+                            host.logger.warn('Bad accept token');
                             break;
                         }
 
@@ -272,7 +272,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
                     }
 
                     default:
-                        host.log('warn', `Got a post-message addressed to discovery app but with unknown "${type}" type`);
+                        host.logger.warn(`Got a post-message addressed to discovery app but with unknown "${type}" type`);
                 }
             }
         };
