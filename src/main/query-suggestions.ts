@@ -1,11 +1,55 @@
-const lastQuerySuggestionsStat = new WeakMap();
-const typeOrder = ['variable', 'property', 'value', 'method'];
-const sortByType = (a, b) =>
+import type { Model } from './model.js';
+
+type SuggestionType = 'property' | 'value' | 'variable' | 'assertion' | 'method';
+type QueryStatApi = {
+    stat(pos: number, includeEmpty?: boolean): QueryStatApiSourcePosRange[];
+    suggestion(pos: number, options?: Partial<QueryStatApiSuggestionOptions>): QueryStatApiSuggestion[] | null;
+}
+type QueryStatApiSourcePosRange = {
+    context: any;
+    from: any;
+    to: any;
+    text: any;
+    values: any;
+    related: any;
+};
+type QueryStatApiSuggestionOptions = {
+    limit: number;
+    sort: ((a: unknown, b: unknown) => 0 | 1 | -1) | true;
+    filter: (pattern: string) => (value: unknown) => boolean;
+};
+type QueryStatApiSuggestion = {
+    type: SuggestionType;
+    from: number;
+    to: number;
+    text: string;
+    suggestions: string[];
+};
+
+type Suggestion = {
+    type: SuggestionType;
+    from: number;
+    to: number;
+    text: string;
+    value: string;
+};
+type SuggestionStat = {
+    query: string;
+    data: unknown;
+    context: unknown;
+    offset: number;
+    suggestions: Suggestion[] | null;
+    api: QueryStatApi | null
+};
+
+const lastQuerySuggestionsStat = new WeakMap<Model, SuggestionStat>();
+const typeOrder: SuggestionType[] = ['variable', 'property', 'value', 'assertion', 'method'];
+const sortByType = (a: QueryStatApiSuggestion, b: QueryStatApiSuggestion) =>
     typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
-const suggestionValueFilter = pattern => {
+const suggestionValueFilter = (pattern: string) => {
     const patternLowerCased = pattern.toLowerCase();
 
-    return value =>
+    return (value: unknown) =>
         value !== pattern &&
         // 2022-04-08
         // v8: includes() is 20-30% slower than indexOf() !== -1
@@ -13,7 +57,7 @@ const suggestionValueFilter = pattern => {
         (typeof value === 'string' ? value : String(value)).toLowerCase().indexOf(patternLowerCased) !== -1;
 };
 
-function stringifyValue(value, text) {
+function stringifyValue(value: string, text: string) {
     if (typeof value !== 'string') {
         return String(value);
     }
@@ -34,7 +78,7 @@ function stringifyValue(value, text) {
     )}'`;
 }
 
-function isSameSuggestions(api, pos1, pos2) {
+function isSameSuggestions(api: QueryStatApi, pos1: number, pos2: number) {
     if (pos1 === pos2) {
         return true;
     }
@@ -60,7 +104,7 @@ function isSameSuggestions(api, pos1, pos2) {
     return true;
 }
 
-export function querySuggestions(host, query, offset, data, context) {
+export function querySuggestions(host: Model, query: string, offset: number, data: unknown, context: unknown) {
     try {
         let stat = lastQuerySuggestionsStat.get(host);
 
@@ -79,7 +123,7 @@ export function querySuggestions(host, query, offset, data, context) {
                 api: null
             });
 
-            stat.api = host.queryFnFromString(query, options)(data, context);
+            stat.api = host.queryFnFromString(query, options)(data, context) as QueryStatApi;
         }
 
         // there is no api in case of query compilation error
