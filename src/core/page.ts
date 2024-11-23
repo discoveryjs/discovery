@@ -37,6 +37,7 @@ const BUILDIN_NOT_FOUND: Page = {
 export class PageRenderer extends Dictionary<Page> {
     #host: ViewModel;
     #view: ViewRenderer;
+    #lastRenderPageEl: HTMLElement | null;
     lastPage: string | null;
     lastPageRef: string | number | null;
     pageOverscrolled: Observer<boolean>;
@@ -47,6 +48,7 @@ export class PageRenderer extends Dictionary<Page> {
 
         this.#host = host;
         this.#view = view;
+        this.#lastRenderPageEl = null;
         this.lastPage = null;
         this.lastPageRef = null;
 
@@ -104,9 +106,7 @@ export class PageRenderer extends Dictionary<Page> {
     }
 
     render(prevPageEl: HTMLElement, name: string, data: any, context: any) {
-        const renderStartTime = Date.now();
         let page = this.get(name);
-        let rendered: ReturnType<Page['render']>;
 
         if (!page) {
             page = this.get('not-found') || BUILDIN_NOT_FOUND;
@@ -117,44 +117,51 @@ export class PageRenderer extends Dictionary<Page> {
         const pageRef = this.#host.pageRef;
         const pageChanged = this.lastPage !== name;
         const pageRefChanged = this.lastPageRef !== pageRef;
-        const newPageEl = reuseEl && !pageChanged ? prevPageEl : document.createElement('article');
-        const parentEl = prevPageEl.parentNode;
+        const newPageEl = reuseEl && !pageChanged
+            ? prevPageEl
+            : createElement('article', `page page-${CSS.escape(name)}`);
 
+        this.#lastRenderPageEl = newPageEl;
         this.lastPage = name;
         this.lastPageRef = pageRef;
-        newPageEl.id = prevPageEl.id;
-        newPageEl.classList.add('page', 'page-' + name);
 
         if (pageChanged && typeof init === 'function') {
             init(newPageEl);
         }
 
-        try {
-            rendered = page.render(newPageEl, data, context);
-        } catch (e) {
-            // FIXME: Should not to use a view (alert-danger) since it may to be undefined. Replace render with onError hook?
-            newPageEl.replaceChildren();
-            rendered = this.#view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
-            this.#host.log('error', 'Page render error:', e);
-        }
+        const renderState = new Promise<void>(async (resolve, reject) => {
+            try {
+                await page.render(newPageEl, data, context);
 
-        if (parentEl !== null && (pageChanged || pageRefChanged || !keepScrollOffset)) {
-            (parentEl as HTMLElement).scrollTop = 0;
-        }
+                if (this.#lastRenderPageEl !== newPageEl) {
+                    reject(new Error('Aborted by new page render'));
+                    return;
+                }
 
-        if (newPageEl !== prevPageEl) {
-            prevPageEl.replaceWith(newPageEl);
-            this.setPageOverscroll(newPageEl);
-        }
+                if (newPageEl !== prevPageEl) {
+                    prevPageEl.replaceWith(newPageEl);
+                    this.setPageOverscroll(newPageEl);
+                }
+
+                const parentEl = newPageEl.parentNode;
+
+                if (parentEl !== null && (pageChanged || pageRefChanged || !keepScrollOffset)) {
+                    (parentEl as HTMLElement).scrollTop = 0;
+                }
+
+                resolve();
+            } catch (e) {
+                newPageEl.replaceChildren();
+                // FIXME: Should not to use a view (alert-danger) since it may to be undefined. Replace render with onError hook?
+                this.#view.render(newPageEl, 'alert-danger', String(e) + ' (see details in console)');
+                reject(e);
+            }
+        });
 
         return {
             pageEl: newPageEl,
             config: page[CONFIG],
-            renderState: Promise.resolve(rendered)
-                .finally(() => this.#host.log(
-                    'perf',
-                    `Page "${page.name}" rendered in ${(Date.now() - renderStartTime)}ms`
-                ))
+            renderState
         };
     }
 }

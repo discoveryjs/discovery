@@ -2,6 +2,8 @@
 
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders
+- Changed `ViewModel` initialization to minimize unnecessary renders
+- Marked `ViewModel#renderPage()`, `ViewModel#renderSidebar()`, and `ViewModel#renderPage()` as private methods, as they are not intended for direct invocation.
 - Fixed `ViewModel#setPageParams()` to normalize the `hash` by ensuring it starts with `#`, preventing unnecessary events; for example, passing `#page` and `page` into the method will now consistently result in `#page` being stored in `ViewModel#pageHash`
 - Redesigned logging API:
     - Added `Logger` class to utils

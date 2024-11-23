@@ -28,7 +28,8 @@ export type SetDataProgressOptions = Partial<{
     progressbar: Progressbar;
 }>;
 
-const renderSubjects = ['sidebar', 'page'] as const;
+const renderSubjects = ['nav', 'sidebar', 'page'] as const;
+const noop = () => {};
 
 const defaultEncodeParams = (params: [string, unknown][]) => params;
 const defaultDecodeParams = (pairs: [string, unknown][]) => Object.fromEntries(pairs);
@@ -151,8 +152,6 @@ export class ViewModel<
         this.page = new PageRenderer(this, this.view);
         this.#renderScheduler = new Set();
 
-        this.initRenderTriggers();
-
         this.defaultPageId = defaultPageId || 'default';
         this.discoveryPageId = discoveryPageId || 'discovery';
         this.reportToDiscoveryRedirect = Boolean(reportToDiscoveryRedirect); // TODO: to make bookmarks work, remove sometime in the future
@@ -161,9 +160,9 @@ export class ViewModel<
         this.pageParams = {};
         this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
 
+        // extend with default views & pages
         this.apply(views);
         this.apply(pages);
-        this.apply(extensions);
 
         if (defaultPage) {
             this.page.define(this.defaultPageId, defaultPage);
@@ -173,14 +172,21 @@ export class ViewModel<
             this.apply(inspector);
         }
 
-        this.nav.render(this.dom.nav, this.data, this.getRenderContext());
+        // custom extensions
+        this.apply(extensions);
+
+        // re-set pageHash to update pageParams in case the current page was changed
+        // or redefined, and it includes custom decodeParams
+        this.setPageHash(this.pageHash);
+
+        // append DOM structure to a container
         this.setContainer(container);
 
         // check if all page values used in markers (defined during setup) exist;
         // this ensures early warnings to avoid broken links
         for (const { name, page } of this.objectMarkers.values) {
             if (page && !this.page.isDefined(page)) {
-                this.log('error', `Page reference "${page}" in object marker "${name}" doesn't exist`);
+                this.logger.error(`Page reference "${page}" in object marker "${name}" doesn't exist`);
             }
         }
     }
@@ -190,24 +196,15 @@ export class ViewModel<
         this.on('pageStateChange', () => this.scheduleRender());
 
         this.action
-            .on('define', () => {
-                if (this.context) {
-                    this.scheduleRender();
-                }
-            })
-            .on('revoke', () => {
-                if (this.context) {
-                    this.scheduleRender();
-                }
-            });
+            .on('define', () => this.scheduleRender())
+            .on('revoke', () => this.scheduleRender());
 
-        // FIXME: temporary solution to avoid missed custom page's `decodeParams` method call on initial render
         this.page.on('define', (pageId) => {
-            if (this.pageId === pageId && this.pageHash !== '#') {
-                const hash = this.pageHash;
-                this.pageHash = '#';
-                this.setPageHash(hash);
-                this.cancelScheduledRender();
+            if (this.pageId === pageId) {
+                this.setPageHash(this.pageHash);
+
+                // enforce page render, since page's definition was changed
+                this.scheduleRender('page');
             }
         });
     }
@@ -252,7 +249,7 @@ export class ViewModel<
         this.scheduleRender();
         await Promise.all([
             this.dom.wrapper.parentNode ? this.dom.ready : true,
-            this.#renderScheduler.timer
+            this.enforceScheduledRenders()
         ]);
 
         // finish progress
@@ -428,14 +425,11 @@ export class ViewModel<
     //
 
     scheduleRender(subject?: RenderSubject) {
-        if (subject === undefined) {
-            for (const subject of renderSubjects) {
-                this.scheduleRender(subject);
-            }
-            return;
-        }
+        const subjects = subject ? [subject] : renderSubjects;
 
-        this.#renderScheduler.add(subject);
+        for (const subject of subjects) {
+            this.#renderScheduler.add(subject);
+        }
 
         // Previously, we would exit here if nothing changed in the scheduled render list
         // or if some renders were already scheduled. However, this approach led to scenarios
@@ -454,9 +448,11 @@ export class ViewModel<
         // in a micro-task batch, each "defineAction" (which is usually called several times
         // on the host side) produces a separate message, and rendering occurs with every such message.
         this.#renderScheduler.timer = setTimeout(() => this.enforceScheduledRenders(), 0);
+
+        this.logger.debug(`Scheduled renders: ${[...this.#renderScheduler].join(', ')} (requested: ${subject || 'all'})`);
     }
 
-    enforceScheduledRenders() {
+    async enforceScheduledRenders() {
         const renders = [...this.#renderScheduler];
 
         // ensure the timer will not fire and scheduled renders are cleaned up
@@ -465,17 +461,28 @@ export class ViewModel<
         // trigger renders
         for (const subject of renders) {
             switch (subject) {
+                case 'nav':
+                    await this.renderNav();
+                    break;
                 case 'sidebar':
-                    this.renderSidebar();
+                    await this.renderSidebar();
                     break;
                 case 'page':
-                    this.renderPage();
+                    await this.renderPage();
                     break;
             }
+        }
+
+        // add event handlers to trigger render after the first render
+        if (this.initRenderTriggers !== noop) {
+            this.initRenderTriggers();
+            this.initRenderTriggers = noop;
         }
     }
 
     cancelScheduledRender(subject?: RenderSubject) {
+        const scheduledRenders = [...this.#renderScheduler];
+
         if (subject) {
             this.#renderScheduler.delete(subject);
         } else {
@@ -485,6 +492,10 @@ export class ViewModel<
         if (this.#renderScheduler.size === 0 && this.#renderScheduler.timer) {
             clearTimeout(this.#renderScheduler.timer);
             this.#renderScheduler.timer = null;
+        }
+
+        if (this.#renderScheduler.size !== scheduledRenders.length) {
+            this.logger.debug(`Canceled renders: ${scheduledRenders.join(', ')}`);
         }
     }
 
@@ -502,10 +513,21 @@ export class ViewModel<
     }
 
     //
+    // Nav
+    //
+
+    protected renderNav() {
+        // cancel scheduled renderNav
+        this.cancelScheduledRender('nav');
+
+        return this.nav.render(this.dom.nav, this.data, this.getRenderContext());
+    }
+
+    //
     // Sidebar
     //
 
-    renderSidebar() {
+    protected renderSidebar() {
         // cancel scheduled renderSidebar
         this.cancelScheduledRender('sidebar');
 
@@ -518,7 +540,7 @@ export class ViewModel<
             this.dom.sidebar.innerHTML = '';
 
             return this.view.render(this.dom.sidebar, 'sidebar', data, context)
-                .finally(() => this.log('perf', `Sidebar rendered in ${Date.now() - renderStartTime}ms`));
+                .finally(() => this.logger.perf(`Sidebar rendered in ${Date.now() - renderStartTime}ms`));
         }
     }
 
@@ -603,20 +625,24 @@ export class ViewModel<
         return false;
     }
 
-    renderPage() {
+    protected renderPage() {
         // cancel scheduled renderPage
         this.cancelScheduledRender('page');
 
-        const data = this.data;
+        const { data, pageId, pageParams, compact } = this;
         const context = this.getRenderContext();
+
+        this.logger.debug(`Start page "${pageId}" rendering...`);
+
+        const renderStartTime = Date.now();
         const { pageEl, renderState, config } = this.page.render(
             this.dom.pageContent,
-            this.pageId,
+            pageId,
             data,
             context
         );
 
-        this.view.setViewRoot(pageEl, 'Page: ' + this.pageId, {
+        this.view.setViewRoot(pageEl, `Page: ${pageId}`, {
             inspectable: false,
             config,
             data,
@@ -624,28 +650,30 @@ export class ViewModel<
         });
 
         this.dom.pageContent = pageEl;
-        this.nav.render(this.dom.nav, data, context);
 
-        setDatasetValue(this.dom.container, 'page', this.pageId);
-        setDatasetValue(this.dom.container, 'dzen', Boolean(this.pageParams.dzen));
-        setDatasetValue(this.dom.container, 'compact', Boolean(this.compact));
+        setDatasetValue(this.dom.container, 'page', pageId);
+        setDatasetValue(this.dom.container, 'dzen', Boolean(pageParams.dzen));
+        setDatasetValue(this.dom.container, 'compact', Boolean(compact));
 
-        renderState.then(() => {
+        renderState.then(async () => {
             if (this.pageParams['!anchor']) {
-                const el: HTMLElement | null = pageEl.querySelector('#' + CSS.escape('!anchor:' + this.pageParams['!anchor']));
+                const el: HTMLElement | null = pageEl.querySelector('#' + CSS.escape('!anchor:' + pageParams['!anchor']));
 
                 if (el) {
                     const pageHeaderEl: HTMLElement | null = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
 
+                    await this.dom.ready;
+
                     el.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
-                    // FIXME: Broken for some reason. In previous versions (including 1.0.0-beta.89)
-                    // it worked just fine. But now it requires a next tick. Don't know what changed.
-                    // el.scrollIntoView(true);
-                    setTimeout(() => el.scrollIntoView(true), 0);
+                    el.scrollIntoView(true);
                 }
             }
+        }).catch((e) => {
+            this.logger.error(`Page "${pageId}" render error:`, e);
         });
 
-        return renderState;
+        return renderState.finally(() => {
+            this.logger.perf(`Page "${pageId}" render finished in ${(Date.now() - renderStartTime)}ms`);
+        });
     }
 }
