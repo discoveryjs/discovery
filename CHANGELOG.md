@@ -6,19 +6,20 @@
     - Added `context` event to `Model`, with `prevContext` and `nextContext` parameters, triggered when the context changes
     - Changed `Model#context` to be an accessor property, where the setter calls `Model#setContext(value, true)`
     - Changed `ViewModel#setData()` to no longer accept a `context` argument or change the context
+    - Changed `ViewModel#setDataProgress()` to no longer change the context, despite accepting `context` argument
     - Updated `ViewModel` to trigger a render when the `context` event is fired
 - Added the `EmbedApp#publicApi.setLocationSync()` method to simplify sync between the embed app and the host location, preventing potential pitfalls
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders
 - Changed `ViewModel` initialization to minimize unnecessary renders
-- Marked `ViewModel#renderPage()`, `ViewModel#renderSidebar()`, and `ViewModel#renderPage()` as private methods, as they are not intended for direct invocation.
+- Marked `ViewModel#renderPage()`, `ViewModel#renderSidebar()`, and `ViewModel#renderPage()` as private methods, as they are not intended for direct invocation anymore
 - Fixed `ViewModel#setPageParams()` to normalize the `hash` by ensuring it starts with `#`, preventing unnecessary events; for example, passing `#page` and `page` into the method will now consistently result in `#page` being stored in `ViewModel#pageHash`
-- Redesigned logging API:
+- Redesigned logging API, the changes allow to see the correct loaction of logging method call instead of a location inside of the `Model#log()` method:
     - Added `Logger` class to utils
     - Changed `Model#logger` to hold a `Logger` instance
-    - Removed `Model#logLevel`, use `Model#logger.logLevel` to get or set value
-    - Deprecated `Model#log()` method, which do nothing but display warning
-        - Use `Model#logger[level](...args)` instead of `Model#log('level', ...args)`. This approach allows to see the correct loaction of logging method call instead of a location inside of the `Model#log()` method
+    - Removed `Model#logLevel`, use `Model#logger.logLevel` for getting or setting the log level
+    - Deprecated `Model#log()` method, which do nothing but display an error:
+        - Use `Model#logger[level](...args)` instead of `Model#log('level', ...args)`
         - Use `Model#logger[level].group(message, fn | array)` or `Model#logger[level].groupCollapsed(message, fn | array)` instead of `Model#logger({ level, message, collapsed: fn | array })`
 
 ## 1.0.0-beta.90 (15-11-2024)

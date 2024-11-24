@@ -233,31 +233,8 @@ export class Model<
     }
 
     // logging
-    log(levelOrOpts: LogOptions | LogLevel, ...args: unknown[]) {
-        // console.warn(`${logPrefix} Model#log() is deprecated, use Model#logger interface instead`);
-        const {
-            level,
-            lazy = null,
-            message = null,
-            collapsed = null
-        } = typeof levelOrOpts === 'object' && levelOrOpts !== null ? levelOrOpts : { level: levelOrOpts };
-
-        if (this.logger.shouldLogLevel(level)) {
-            const method = level === 'perf' ? 'log' : level;
-
-            if (collapsed) {
-                console.groupCollapsed(`${logPrefix} ${message ?? args[0]}`);
-
-                const entries = typeof collapsed === 'function' ? collapsed() : collapsed;
-                for (const entry of Array.isArray(entries) ? entries : [entries]) {
-                    console[method](logPrefix, ...Array.isArray(entry) ? entry : [entry]);
-                }
-
-                console.groupEnd();
-            } else {
-                console[method](logPrefix, ...typeof lazy === 'function' ? lazy() : args);
-            }
-        }
+    log() {
+        this.logger.error('Model#log() is deprecated, use Model#logger interface instead');
     }
 
     // ==========
