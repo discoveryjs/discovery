@@ -28,14 +28,14 @@ Additioanal callback can be passed to handle a pre-init phase of an app (e.g. a 
 import { connectToEmbedApp } from "@discoveryjs/discovery/dist/discovery-embed.js";
     
 const disconnect = connectToEmbedApp(iframe,
-    (preinit) => {
+    (embedPpreinit) => {
         // do something when app's preloader is connected and ready
 
         return () => {
             // do something on preloader destroy
         };
     },
-    (app) => {
+    (embedApp) => {
         // do something when app is connected and ready
 
         return () => {
@@ -48,16 +48,31 @@ const disconnect = connectToEmbedApp(iframe,
 The app loaded into an iframe should enable `embed` feature to allow communication with a host.
 
 ```js
-import { App, Widget, embed } from '@discoveryjs/discovery';
+import { App, ViewModel, embed } from '@discoveryjs/discovery';
 
 // App
-const myapp = new App({ embed: true }); // or the same as for Widget
+const myapp = new App({ embed: true }); // or the same as for ViewModel
 
-// Widget
-const myapp = new Widget({
+// ViewModel
+const myapp = new ViewModel({
     extensions: [
         embed
     ]
+});
+```
+
+## Syncing host location with embed app
+
+```js
+import { connectToEmbedApp } from "@discoveryjs/discovery/dist/discovery-embed.js";
+    
+const disconnect = connectToEmbedApp(iframe, (embedApp) => {
+    // ... any other setup
+
+    // recomended order of API calls to sync location state with embed app
+    embedApp.setRouterPreventLocationUpdate(true);
+    embedApp.setPageHash(location.hash);
+    embedApp.setLocationSync(true);
 });
 ```
 
@@ -65,8 +80,6 @@ const myapp = new Widget({
 
 - Events:
     * loadingStateChanged({ stage, progress, error })
-- Publishers (reactive values):
-    * (none)
 - Methods:
     * on(eventName, fn)
     * once(eventName, fn)
@@ -83,7 +96,7 @@ const myapp = new Widget({
     * loadingStateChanged({ stage, progress, error })
     * data()
     * unloadData()
-- Publishers (reactive values):
+- Observers (reactive values):
     * pageHash: string
     * pageId: string
     * pageRef: string
@@ -100,6 +113,7 @@ const myapp = new Widget({
     * setPageParams(params, replace)
     * setDarkmode(value)
     * setRouterPreventLocationUpdate(allow)
+    * setLocationSync(enabled)
     * unloadData()
     * loadData(dataLoader)
     * nav {primary, secondary, menu}
