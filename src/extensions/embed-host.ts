@@ -9,6 +9,7 @@ import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';
 import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
 import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
+import { createLocationSync, LocationSync } from '../core/utils/location-sync.js';
 
 export type BaseAppEvents = {
     destroy: [];
@@ -133,6 +134,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
     pageId: Observer<string>;
     pageRef: Observer<PageRef>;
     pageParams: Observer<PageParams>;
+    locationSync: LocationSync | null;
     darkmode: Observer<{
         mode: DarkmodeMode & string | 'unknown';
         value: 'auto' | 'dark' | 'light' | 'unknown';
@@ -185,6 +187,16 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
             setRouterPreventLocationUpdate(allow = true) {
                 app.sendMessage('setRouterPreventLocationUpdate', allow);
             },
+            setLocationSync(enabled = true) {
+                if (enabled && !app.locationSync) {
+                    app.locationSync = createLocationSync((hash) => app.publicApi.setPageHash(hash));
+                    app.on('pageHashChanged', app.locationSync.set);
+                } else if (!enabled && app.locationSync) {
+                    app.off('pageHashChanged', app.locationSync.set);
+                    app.locationSync.dispose();
+                    app.locationSync = null;
+                }
+            },
 
             unloadData() {
                 app.sendMessage('unloadData', null);
@@ -215,6 +227,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
         this.pageId = new Observer('');
         this.pageRef = new Observer('');
         this.pageParams = new Observer({});
+        this.locationSync = null;
         this.darkmode = new Observer({ mode: 'unknown', value: 'unknown' },
             (prev, next) => prev.mode !== next.mode || prev.value !== next.value
         );
@@ -299,6 +312,11 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
         }
     }
     destroy() {
+        if (this.locationSync) {
+            this.locationSync.dispose();
+            this.locationSync = null;
+        }
+
         super.destroy();
     }
 }

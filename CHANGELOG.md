@@ -1,5 +1,6 @@
 ## next
 
+- Added the `EmbedApp#publicApi.setLocationSync()` method to simplify sync between the embed app and the host location, preventing potential pitfalls
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders
 - Changed `ViewModel` initialization to minimize unnecessary renders
