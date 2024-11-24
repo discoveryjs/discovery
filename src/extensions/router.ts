@@ -1,8 +1,14 @@
 /* eslint-env browser */
 import type { ViewModel } from '../main/view-model.js';
+import type { LocationSync } from '../core/utils/location-sync.js';
+import { createLocationSync } from '../core/utils/location-sync.js';
 
 export default function(host: ViewModel) {
-    let preventLocationUpdate = false;
+    function createHostLocationSync() {
+        return createLocationSync(hash => host.setPageHash(hash), host.logger);
+    }
+
+    let locationSync: LocationSync | null = createHostLocationSync();
 
     // init
     host.setPageHash(location.hash);
@@ -11,26 +17,14 @@ export default function(host: ViewModel) {
     // register action
     host.action.define('permalink', (hash: string) => new URL(hash, String(location)).href);
     host.action.define('setPreventLocationUpdate', (prevent: boolean = true) => {
-        preventLocationUpdate = prevent;
+        if (prevent) {
+            locationSync?.dispose();
+            locationSync = null;
+        } else if (locationSync === null) {
+            locationSync = createHostLocationSync();
+        }
     });
 
     // sync
-    window.addEventListener('hashchange', () => host.setPageHash(location.hash), false);
-    host.on('pageHashChange', function(replace) {
-        const newPageHash = host.pageHash || '#';
-
-        if (preventLocationUpdate) {
-            return;
-        }
-
-        if (newPageHash === '#' && !location.hash) {
-            return;
-        }
-
-        if (replace) {
-            location.replace(newPageHash);
-        } else {
-            location.hash = newPageHash;
-        }
-    });
+    host.on('pageHashChange', (replace) => locationSync?.set(host.pageHash, replace));
 }
