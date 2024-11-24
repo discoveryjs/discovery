@@ -97,6 +97,7 @@ export class ViewModel<
     preset: PresetRenderer;
     page: PageRenderer;
     #renderScheduler: Set<RenderSubject> & { timer?: ReturnType<typeof setTimeout> | null };
+    #renderSchedulerTimeout: number;
 
     defaultPageId: string;
     discoveryPageId: string;
@@ -151,6 +152,7 @@ export class ViewModel<
         this.preset = new PresetRenderer(this.view);
         this.page = new PageRenderer(this, this.view);
         this.#renderScheduler = new Set();
+        this.#renderSchedulerTimeout = 16; // for the first render, following will be with 0
 
         this.defaultPageId = defaultPageId || 'default';
         this.discoveryPageId = discoveryPageId || 'discovery';
@@ -181,6 +183,9 @@ export class ViewModel<
 
         // append DOM structure to a container
         this.setContainer(container);
+
+        // schedule rendering
+        this.scheduleRender();
 
         // check if all page values used in markers (defined during setup) exist;
         // this ensures early warnings to avoid broken links
@@ -214,14 +219,14 @@ export class ViewModel<
     //
 
     async setData(data: unknown, context: unknown, options?: SetDataOptions & { render?: boolean }) {
-        options = options || {};
+        const { render = true } = options || {};
 
         await super.setData(data, options);
 
         this.context = context || {};
 
         // run after data is prepared and set
-        if ('render' in options === false || options.render) {
+        if (render) {
             this.scheduleRender();
         }
     }
@@ -232,6 +237,7 @@ export class ViewModel<
             progressbar
         } = options || {};
 
+        this.cancelScheduledRender();
         this.emit('startSetData', (...args: Parameters<Progressbar['subscribeSync']>) =>
             progressbar?.subscribeSync(...args) || (() => {})
         );
@@ -447,13 +453,18 @@ export class ViewModel<
         // Since messages are queued on the event loop and `Promise.resolve()` is processed
         // in a micro-task batch, each "defineAction" (which is usually called several times
         // on the host side) produces a separate message, and rendering occurs with every such message.
-        this.#renderScheduler.timer = setTimeout(() => this.enforceScheduledRenders(), 0);
+        this.#renderScheduler.timer = setTimeout(
+            () => this.enforceScheduledRenders(),
+            this.#renderSchedulerTimeout
+        );
 
         this.logger.debug(`Scheduled renders: ${[...this.#renderScheduler].join(', ')} (requested: ${subject || 'all'})`);
     }
 
     async enforceScheduledRenders() {
         const renders = [...this.#renderScheduler];
+
+        this.logger.debug(`Enforce scheduled renders: ${renders.join(', ') || 'none'}`);
 
         // ensure the timer will not fire and scheduled renders are cleaned up
         this.cancelScheduledRender();
@@ -477,6 +488,7 @@ export class ViewModel<
         if (this.initRenderTriggers !== noop) {
             this.initRenderTriggers();
             this.initRenderTriggers = noop;
+            this.#renderSchedulerTimeout = 0;
         }
     }
 
@@ -673,7 +685,7 @@ export class ViewModel<
         });
 
         return renderState.finally(() => {
-            this.logger.perf(`Page "${pageId}" render finished in ${(Date.now() - renderStartTime)}ms`);
+            this.logger.perf(`Page "${pageId}" render done in ${(Date.now() - renderStartTime)}ms`);
         });
     }
 }

@@ -203,6 +203,7 @@ export class App<
     async trackLoadDataProgress(loadDataResult: LoadDataResult) {
         const progressbar = this.progressbar({ title: loadDataResult.title });
 
+        this.cancelScheduledRender();
         this.setLoadingState('init', { progressbar });
         this.emit('startLoadData', progressbar.subscribeSync.bind(progressbar));
 
