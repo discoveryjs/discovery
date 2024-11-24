@@ -77,10 +77,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
             };
         };
         const trackDataLoading = (loadDataStatus: ReturnType<typeof loadDataFromStream>) => {
-            const result = typeof host.trackLoadDataProgress === 'function'
-                ? host.trackLoadDataProgress(loadDataStatus)
-                : loadDataStatus.dataset
-                    .then(dataset => host.setData(dataset.data, null, { dataset }));
+            const result = host.trackLoadDataProgress(loadDataStatus);
 
             // do nothing
             result.catch(() => {});

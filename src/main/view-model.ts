@@ -197,6 +197,7 @@ export class ViewModel<
     }
 
     initRenderTriggers() {
+        this.on('context', () => this.scheduleRender());
         this.on('unloadData', () => this.scheduleRender());
         this.on('pageStateChange', () => this.scheduleRender());
 
@@ -218,12 +219,10 @@ export class ViewModel<
     // Data
     //
 
-    async setData(data: unknown, context: unknown, options?: SetDataOptions & { render?: boolean }) {
+    async setData(data: unknown, options?: SetDataOptions & { render?: boolean }) {
         const { render = true } = options || {};
 
         await super.setData(data, options);
-
-        this.context = context || {};
 
         // run after data is prepared and set
         if (render) {
@@ -244,7 +243,7 @@ export class ViewModel<
 
         // set new data & context
         await progressbar?.setState({ stage: 'prepare' });
-        await this.setData(data, context, {
+        await this.setData(data, {
             dataset,
             setPrepareWorkTitle: progressbar?.setStateStep.bind(progressbar),
             render: false

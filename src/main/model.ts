@@ -11,6 +11,7 @@ import { createExtensionApi, setupModel } from './model-extension-api.js';
 import { createLegacyExtensionApi } from './model-legacy-extension-api.js';
 import { querySuggestions } from './query-suggestions.js';
 import { Logger } from '../core/utils/logger.js';
+import { equal } from '../core/utils/compare.js';
 
 export type LogOptions = {
     level: LogLevel;
@@ -84,6 +85,7 @@ export interface LegacyPrepareContextApi {
 
 export type ModelEvents = {
     data: [];
+    context: [prevContext: unknown, nextContext: unknown];
     unloadData: [];
 }
 export interface ModelOptions<T = Model> {
@@ -94,8 +96,10 @@ export interface ModelOptions<T = Model> {
 
     logger: ConsoleLike;
     logLevel: LogLevel;
+
     extensions: Extension<T>;
     encodings: Encoding[];
+    context: any;
     setup(api: SetupMethods): void;
 }
 type ModelOptionsBind = ModelOptions<Model>; // FIXME: Type parameter 'Options' has a circular default.
@@ -139,7 +143,7 @@ export class Model<
     encodings: Encoding[];
     datasets: ModelDataset[];
     data: any;
-    context: any;
+    #context: any;
     prepare: PrepareFunction;
     #legacyPrepare: boolean;
     #lastSetData: symbol | undefined;
@@ -164,8 +168,11 @@ export class Model<
 
             logLevel = 'warn',
             logger = console,
+
             extensions,
+
             encodings,
+            context,
             setup
         } = options || {};
 
@@ -185,7 +192,7 @@ export class Model<
         this.datasets = [];
         this.encodings = normalizeEncodings(encodings);
         this.data = undefined;
-        this.context = undefined;
+        this.#context = context;
         this.prepare = data => data;
         this.#legacyPrepare = true;
 
@@ -254,7 +261,7 @@ export class Model<
     }
 
     // ==========
-    // Data
+    // Data & context
     //
 
     setPrepare(fn: PrepareFunction) {
@@ -263,6 +270,33 @@ export class Model<
         }
 
         this.prepare = fn;
+    }
+
+    get context(): any {
+        return this.#context;
+    }
+    set context(context: unknown) {
+        this.setContext(context, true);
+    }
+    setContext(context: unknown, replace = false) {
+        const prevContext = this.#context;
+
+        if (replace) {
+            this.#context = context;
+        } else {
+            const newContext = {
+                ...this.#context,
+                ...context as any
+            };
+
+            if (!equal(newContext, prevContext)) {
+                this.#context = newContext;
+            }
+        }
+
+        if (!Object.is(this.#context, prevContext)) {
+            this.emit('context', prevContext, this.#context);
+        }
     }
 
     setData(data: unknown, options?: SetDataOptions) {

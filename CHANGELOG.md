@@ -1,5 +1,12 @@
 ## next
 
+- Changes related to `Model#context`:
+    - Added `context` to `Model` options, allowing the model's context to be set and accessible from the beginning (available during setup and in extensions)
+    - Added `Model#setContext(context, replace)` method, which extends the current context with the provided value or replaces it if `replace` is `true`
+    - Added `context` event to `Model`, with `prevContext` and `nextContext` parameters, triggered when the context changes
+    - Changed `Model#context` to be an accessor property, where the setter calls `Model#setContext(value, true)`
+    - Changed `ViewModel#setData()` to no longer accept a `context` argument or change the context
+    - Updated `ViewModel` to trigger a render when the `context` event is fired
 - Added the `EmbedApp#publicApi.setLocationSync()` method to simplify sync between the embed app and the host location, preventing potential pitfalls
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders
