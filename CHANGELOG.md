@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.91 (24-11-2024)
 
 - Changes related to `Model#context`:
     - Added `context` to `Model` options, allowing the model's context to be set and accessible from the beginning (available during setup and in extensions)
