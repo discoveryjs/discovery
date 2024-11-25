@@ -36,39 +36,50 @@ type RenderAnnotationConfig = {
 const styles = ['none', 'default', 'badge'];
 const annotationsElByEl = new WeakMap<HTMLElement, HTMLElement>();
 
-export function getDefaultAnnotations(host: ViewModel) {
-    const annotations: ValueAnnotation[] = [];
-
-    for (const { name, lookup } of host.objectMarkers.values) {
-        annotations.push({
-            query(value: unknown, context: ValueAnnotationContext) {
-                const marker = lookup(value, true);
-
-                if (marker !== null && marker.object !== context.host) {
-                    return {
-                        place: 'before',
-                        style: 'badge',
-                        text: name,
-                        href: marker.href
-                    };
-                }
-            }
-        });
+export function concatAnnotations(a: ValueAnnotation[] | false, b: ValueAnnotation[] | false) {
+    if (Array.isArray(a)) {
+        return Array.isArray(b)
+            ? a.concat(b)
+            : a;
     }
 
-    return annotations.length > 0 ? annotations : false;
+    return b;
 }
 
-export function prepareAnnotations(annotations: unknown[], hostAnnotations: ValueAnnotation[]) {
+export function preprocessAnnotations(annotations: unknown[]) {
     if (Array.isArray(annotations) && annotations.length > 0) {
-        return hostAnnotations.concat(annotations.map(annotation =>
+        return annotations.map((annotation) =>
             typeof annotation === 'string' || typeof annotation === 'function'
                 ? { query: annotation as Query }
                 : annotation as ValueAnnotation
-        ));
+        );
     }
 
-    return hostAnnotations;
+    return false;
+}
+
+export function getDefaultAnnotations(host: ViewModel) {
+    return preprocessAnnotations([...host.objectMarkers.values].map(({ name, lookup }) =>
+        (value: unknown, context: ValueAnnotationContext) => {
+            const marker = lookup(value, true);
+
+            if (marker !== null && marker.object !== context.host) {
+                return {
+                    place: 'before',
+                    style: 'badge',
+                    text: name,
+                    href: marker.href
+                };
+            }
+        }
+    ));
+}
+
+export function prepareAnnotations(
+    viewAnnotations: unknown[],
+    customAnnotations: ValueAnnotation[]
+) {
+    return concatAnnotations(customAnnotations, preprocessAnnotations(viewAnnotations));
 }
 
 function isValidStyle(value: unknown): value is RenderAnnotationConfig['style'] {

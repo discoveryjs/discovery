@@ -6,7 +6,7 @@ import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
 import value2html, { stringifyIfNeeded } from './value-to-html.js';
-import { getDefaultAnnotations, prepareAnnotations, renderAnnotations } from './render-annotations.js';
+import { concatAnnotations, getDefaultAnnotations, prepareAnnotations, preprocessAnnotations, renderAnnotations } from './render-annotations.js';
 import usage from './struct.usage.js';
 import {
     stringValueProto,
@@ -343,8 +343,9 @@ export default function(host) {
     const elementContext = new WeakMap();
     const elementOptions = new WeakMap();
     const structViewRoots = new WeakSet();
-    const defaultAnnotations = getDefaultAnnotations(host);
     const annotationsToRender = [];
+    const defaultAnnotations = getDefaultAnnotations(host);
+    let customAnnotations = defaultAnnotations;
     let annotationsTimer = null;
 
     const valueActionsPopup = createValueActionsPopup(host, elementData, elementContext, buildPathForElement);
@@ -362,6 +363,16 @@ export default function(host) {
     // single event handler for all `struct` view instances
     host.addHostElEventListener('click', clickHandler, false);
 
+    // define an action to set custom annotations
+    if (!host.legacyPrepare) {
+        host.action.define('setStructViewAnnotations', (newAnnotations) => {
+            customAnnotations = concatAnnotations(
+                defaultAnnotations,
+                preprocessAnnotations(newAnnotations)
+            );
+        });
+    }
+
     host.view.define('struct', function(el, config, data, context) {
         const {
             annotations,
@@ -378,10 +389,11 @@ export default function(host) {
         } = config;
         const normalizedAnnotations = prepareAnnotations(
             annotations,
-            defaultAnnotations ||
-            // FIXME: that's a fallback to work with legacy prepare,
-            // remove when discard model-legacy-extension-api
-            host.annotations
+            !host.legacyPrepare
+                ? customAnnotations
+                // FIXME: that's a fallback to work with legacy prepare,
+                // remove when discard model-legacy-extension-api
+                : host.annotations
         );
 
         const options = {
