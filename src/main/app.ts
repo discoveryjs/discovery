@@ -5,6 +5,7 @@ import type { LoadDataResult } from '../core/utils/load-data.js';
 import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { ProgressbarOptions } from '../core/utils/progressbar.js';
 import type { UploadOptions } from '../extensions/upload.js';
+import type { EmbedClientOptions } from '../extensions/embed-client.js';
 import { hasOwn } from '../core/utils/object-utils.js';
 import { createElement } from '../core/utils/dom.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
@@ -30,8 +31,8 @@ export interface AppEvents extends ViewModelEvents {
 export interface AppOptions<T = ViewModel> extends ViewModelOptions<T> {
     mode: 'modelfree';
     router: boolean;
-    upload: UploadOptions
-    embed: boolean;
+    upload: Partial<UploadOptions> | boolean;
+    embed: Partial<EmbedClientOptions> | boolean;
 }
 type AppOptionsBind = AppOptions; // to fix: Type parameter 'Options' has a circular default.
 
@@ -59,7 +60,7 @@ export class App<
         }
 
         if (coalesceOption(options.upload, false)) {
-            extensions.push(upload.setup(options.upload));
+            extensions.push(options.upload === true ? upload : upload.setup(options.upload || {}));
             extensions.push(navButtons.uploadFile);
         }
 
@@ -68,7 +69,7 @@ export class App<
         }
 
         if (coalesceOption(options.embed, false)) {
-            extensions.push(embed);
+            extensions.push(options.embed === true ? embed : embed.setup(options.embed || {}));
         }
 
         super({
