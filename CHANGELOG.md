@@ -8,6 +8,7 @@
     - Changed `ViewModel#setData()` to no longer accept a `context` argument or change the context
     - Changed `ViewModel#setDataProgress()` to no longer change the context, despite accepting `context` argument
     - Updated `ViewModel` to trigger a render when the `context` event is fired
+- Added `Model#legacyPrepare` readonly property to indicate whether the legacy `prepare` method is used or the new `setup()` method
 - Added the `EmbedApp#publicApi.setLocationSync()` method to simplify sync between the embed app and the host location, preventing potential pitfalls
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders

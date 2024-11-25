@@ -241,6 +241,9 @@ export class Model<
     // Data & context
     //
 
+    get legacyPrepare() {
+        return this.#legacyPrepare;
+    }
     setPrepare(fn: PrepareFunction) {
         if (typeof fn !== 'function') {
             throw new Error('An argument should be a function');
