@@ -42,6 +42,7 @@ export type EmbedHostToClientPostponeMessage = Extract<EmbedHostToPreinitMessage
 
 export type EmbedHostToClientMessage = CreateMessageType<{
     defineAction: string;
+    notification: { name: string; details: any; };
     setPageHash: { hash: string; replace?: boolean; };
     setPage: Omit<PageState, 'hash'> & { replace?: boolean; };
     setPageRef: { ref: PageRef; replace?: boolean; };

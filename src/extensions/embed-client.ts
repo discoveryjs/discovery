@@ -10,6 +10,7 @@ import { loadDataFromPush, loadDataFromStream } from '../core/utils/load-data.js
 export type EmbedClientOptions = {
     hostId: string;
     postponeMessages: EmbedHostToClientPostponeMessage[];
+    onNotify: (name: string, details: any) => void;
 };
 
 export type LoadDataChunkedStatus = LoadDataFromPush & {
@@ -44,6 +45,9 @@ function createNavItemConfig(rawConfig: unknown, sendMessage: SendMessage, rawCo
 function setup(options?: Partial<EmbedClientOptions>) {
     const hostId = options?.hostId || randomId();
     const postponeMessages = options?.postponeMessages;
+    const onNotify = typeof options?.onNotify === 'function'
+        ? options.onNotify
+        : () => {};
 
     return function(host: ViewModel) {
         let loadChunkedDataStatus: LoadDataChunkedStatus | null = null;
@@ -87,6 +91,14 @@ function setup(options?: Partial<EmbedClientOptions>) {
 
             if (id === hostId) {
                 switch (type) {
+                    case 'notification': {
+                        const { name, details } = payload;
+
+                        onNotify(name, details);
+
+                        break;
+                    }
+
                     case 'defineAction': {
                         const name = payload;
                         host.action.define(name, (...args) =>

@@ -11,6 +11,8 @@
 - Added `Model#legacyPrepare` readonly property to indicate whether the legacy `prepare` method is used or the new `setup()` method
 - Updated `struct` view to define the `setStructViewAnnotations` action when using the new `setup()` method, allowing custom annotations to be specified across all `struct` views
 - Updated `embed` option of `App` to accept a config
+- Added `EmbedApp#publicApi.notify(name, details)` method for sending notifications
+- Introduced `onNotify(name, details)` option in the embed extension to define a callback for handling `notification` messages from the embed host
 - Added `EmbedApp#publicApi.setLocationSync()` method to simplify sync between the embed app and the host location, preventing potential pitfalls
 - Added `ViewModel#enforceScheduledRenders()` to immediately execute scheduled renders
 - Changed `ViewModel#scheduleRender()` to use `setTimeout()` instead of `Promise.resolve()` to ensure proper processing of event loop tasks, eliminating unnecessary renders

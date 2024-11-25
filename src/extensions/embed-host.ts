@@ -163,6 +163,10 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
 
             nav: Object.assign(nav.secondary, nav),
 
+            notify(name: string, details: any) {
+                app.sendMessage('notification', { name, details });
+            },
+
             defineAction(name: string, fn: (...args: unknown[]) => unknown) {
                 app.actions.set(name, fn);
                 app.sendMessage('defineAction', name);
