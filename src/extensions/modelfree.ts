@@ -16,9 +16,8 @@ export default (host: ViewModel) => {
     });
     host.on('unloadData', () => {
         if (defaultPageId !== host.defaultPageId) {
-            host.defaultPageId = defaultPageId as string;
+            host.defaultPageId = defaultPageId;
             host.setPageHash(host.pageHash, true);
-            host.cancelScheduledRender();
         }
     });
 };

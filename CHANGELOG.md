@@ -1,3 +1,7 @@
+## next
+
+- Fixed missed render on `unloadData` event when `modelfree` extension is used
+
 ## 1.0.0-beta.91 (24-11-2024)
 
 - Changes related to `Model#context`:
