@@ -125,6 +125,17 @@ export default function(host) {
             prelude,
             postlude
         } = props;
+        const nestedViewRenderData = typeof data === 'string' ? { source: data } : data;
+        const nestedViewRenderContext = {
+            ...context,
+            sourceViewProps: {
+                source,
+                syntax,
+                lineNum,
+                refs,
+                maxSourceSizeToHighlight
+            }
+        };
 
         if (typeof source !== 'string') {
             return;
@@ -193,7 +204,7 @@ export default function(host) {
                 btnEl.classList.add('copied');
                 btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
             } }
-        ], data, context);
+        ], nestedViewRenderData, nestedViewRenderContext);
 
         // tooltips
         for (const refEl of contentEl.querySelectorAll(':scope [data-tooltip-id]')) {
@@ -204,11 +215,11 @@ export default function(host) {
         }
 
         if (prelude) {
-            await host.view.render(preludeEl, prelude, data, context);
+            await host.view.render(preludeEl, prelude, nestedViewRenderData, nestedViewRenderContext);
         }
 
         if (postlude) {
-            await host.view.render(postludeEl, postlude, data, context);
+            await host.view.render(postludeEl, postlude, nestedViewRenderData, nestedViewRenderContext);
         }
     }, {
         props,
