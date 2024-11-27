@@ -187,7 +187,7 @@ export default function(host) {
         contentEl.prepend(actionButtonsEl);
         await host.view.render(actionButtonsEl, [
             actionButtons,
-            { view: 'button', className: 'copy', async onClick(btnEl) {
+            { view: 'button', className: 'copy', content: [], async onClick(btnEl) {
                 clearTimeout(btnEl.copiedTimer);
                 await copyText(source);
                 btnEl.classList.add('copied');
