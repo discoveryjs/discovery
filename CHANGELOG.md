@@ -1,6 +1,7 @@
 ## next
 
 - Fixed missed render on `unloadData` event when `modelfree` extension is used
+- Added visual guide lines for expanded objects in `signature` view, similar to `struct` view
 
 ## 1.0.0-beta.91 (24-11-2024)
 

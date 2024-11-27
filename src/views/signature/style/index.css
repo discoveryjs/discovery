@@ -43,6 +43,15 @@
     color: rgba(148, 148, 148, 0.8);
 }
 
+.view-signature .object-entries {
+    background-image: linear-gradient(to bottom, rgba(187, 187, 187, 0.15), rgba(187, 187, 187, 0.15));
+    background-size: 1px calc(100% - 3px);
+    background-position: calc(3px + 1.15ex * var(--object-entries-offset, 0)) 1px;
+    background-repeat: no-repeat;
+    background-attachment: local;
+    background-origin: content-box;
+}
+
 .view-signature .property {
     padding: 2px;
     margin: 0 -2px;

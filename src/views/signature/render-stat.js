@@ -53,6 +53,10 @@ export function renderStat(el, stat, elementToData, context, path = [], offset =
                             'data-action': 'collapse'
                         })
                     ]));
+                    const objectEntriesEl = createElement('div', {
+                        class: 'object-entries',
+                        style: `--object-entries-offset: ${offset.length}`
+                    });
 
                     if (properties.size > 1) {
                         contentEl.appendChild(
@@ -72,6 +76,10 @@ export function renderStat(el, stat, elementToData, context, path = [], offset =
                                 })
                             );
                         }
+
+                        if (sortKeys) {
+                            entries.sort(([a], [b]) => a < b ? -1 : (a > b ? 1 : 0));
+                        }
                     }
 
                     elementToData.set(contentEl, {
@@ -86,10 +94,6 @@ export function renderStat(el, stat, elementToData, context, path = [], offset =
                         contentEl.appendChild(createElement('span', 'count')).dataset.value = String(valuesCount);
                     }
 
-                    if (sortKeys) {
-                        entries.sort(([a], [b]) => a < b ? -1 : (a > b ? 1 : 0));
-                    }
-
                     for (const [name, { count, map }] of entries) {
                         const propertyEl = createElement('span', 'property', [name]); // NOTE: name w/o brackets inserted as HTML
 
@@ -102,23 +106,20 @@ export function renderStat(el, stat, elementToData, context, path = [], offset =
                             map
                         });
 
-                        contentEl.append(`\n${propertyOffset}`);
-                        contentEl.appendChild(propertyEl);
+                        objectEntriesEl.append(propertyOffset);
+                        objectEntriesEl.append(propertyEl);
 
                         if (count !== valuesCount && dictMode === null) {
-                            propertyEl.appendChild(createElement('span', 'optional', '?'));
+                            propertyEl.append(createElement('span', 'optional', '?'));
                         }
 
-                        contentEl.append(': ');
-                        renderStat(contentEl, map, elementToData, context, path.concat(dictMode ? '*' : name), propertyOffset);
-                        contentEl.append(';');
+                        objectEntriesEl.append(': ');
+                        renderStat(objectEntriesEl, map, elementToData, context, path.concat(dictMode ? '*' : name), propertyOffset);
+                        objectEntriesEl.append(';\n');
                     }
 
-                    if (contentEl.lastChild.nodeValue === ';') {
-                        contentEl.append(`\n${offset}`);
-                    }
-
-                    contentEl.append('}');
+                    contentEl.append(objectEntriesEl);
+                    contentEl.append(offset, '}');
 
                     break;
                 }
