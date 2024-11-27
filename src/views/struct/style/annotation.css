@@ -8,10 +8,10 @@
 .view-struct .value-annotation {
     display: inline-block;
     vertical-align: middle;
-    padding: 1px 4px;
-    margin-top: -2px;
-    font-size: 10px;
-    line-height: 14px;
+    padding: 0 .4em;
+    margin-top: calc(-1em / 6);
+    font-size: .85em;
+    line-height: 1.6;
     border-radius: 3px;
     color: #aaa;
 }

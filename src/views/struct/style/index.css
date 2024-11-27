@@ -8,8 +8,8 @@
     padding: 7px 8px;
     overflow: auto;
     font-family: var(--discovery-monospace-font-family);
-    font-size: 12px;
-    line-height: 18px;
+    font-size: var(--discovery-monospace-font-size, 12px);
+    line-height: var(--discovery-monospace-line-height, 1.5); /* 18px */
     background-color: rgba(205, 205, 205, 0.1);
     color: var(--discovery-fmt-color);
     white-space: nowrap;

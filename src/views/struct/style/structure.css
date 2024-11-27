@@ -51,11 +51,13 @@
 }
 .view-struct .value-size,
 .view-struct .string-length {
+    display: inline-block;
+    vertical-align: middle;
     padding-left: 6px;
+    padding-bottom: 2px;
     color: rgba(153, 153, 153, 0.5);
-    font-size: 11px;
-    line-height: 14px;
-    vertical-align: text-top;
+    font-size: .916em; /* 11px */
+    line-height: 1;
 }
 .view-struct .value-size:hover,
 .view-struct .string-length:hover {

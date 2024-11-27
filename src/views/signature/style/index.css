@@ -7,8 +7,8 @@
     padding: 7px 32px 7px 8px;
     overflow: auto;
     font-family: var(--discovery-monospace-font-family);
-    font-size: 12px;
-    line-height: 18px;
+    font-size: var(--discovery-monospace-font-size, 12px);
+    line-height: var(--discovery-monospace-line-height, 1.5); /* 18px */
     background: rgba(205, 205, 205, 0.1);
     color: var(--discovery-fmt-color);
     white-space: pre;
@@ -31,16 +31,17 @@
 .view-signature .count {
     display: inline-block;
     vertical-align: middle;
-    margin-top: -2px;
-    padding-left: 4px;
-    font-size: 90%;
-    color: rgba(157, 157, 157, 0.35);
+    padding-left: 6px;
+    padding-bottom: 2px;
+    color: rgba(153, 153, 153, 0.5);
+    font-size: .916em; /* 11px */
+    line-height: 1;
 }
 .view-signature .count::before {
     content: attr(data-value);
 }
 .view-signature .count:hover {
-    color: rgba(148, 148, 148, 0.8);
+    color: inherit;
 }
 
 .view-signature .object-entries {

@@ -4,6 +4,10 @@
 - Added visual guide lines for expanded objects in `signature` view, similar to `struct` view
 - Fixed rendering of copy source button in `source` view when a string is passed as data
 - Added propagation of meaningful `source` view props into nested views rendering (action buttons, prelude, and postlude) through the context as `sourceViewProps`
+- Standardized monospace font size and line height in `struct`, `signature` and `source` views to relay on root settings
+- Added root CSS properties:
+    - `--discovery-monospace-font-size`
+    - `--discovery-monospace-line-height`
 
 ## 1.0.0-beta.91 (24-11-2024)
 

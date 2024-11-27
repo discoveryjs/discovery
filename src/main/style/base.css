@@ -23,6 +23,8 @@
     --discovery-app-icon: url('../../logo.svg');
     --discovery-font-family: Tahoma, Verdana, Arial, sans-serif;
     --discovery-monospace-font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    --discovery-monospace-font-size: 12px;
+    --discovery-monospace-line-height: 1.5;
     --discovery-ui-font-family: system-ui, Arial, sans-serif;
 
     --discovery-background-color: white;

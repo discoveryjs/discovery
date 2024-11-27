@@ -111,8 +111,8 @@
     border-right: 1px solid rgba(170, 170, 170, 0.4);
     color: rgba(150, 150, 150, 0.65);
     font-family: var(--discovery-monospace-font-family);
-    font-size: 12px;
-    line-height: 18px;
+    font-size: var(--discovery-monospace-font-size, 12px);
+    line-height: var(--discovery-monospace-line-height, 1.5); /* 18px */
 }
 .view-source__lines > span {
     display: block;
@@ -121,8 +121,8 @@
 .view-source__source {
     flex-grow: 1;
     font-family: var(--discovery-monospace-font-family);
-    font-size: 12px;
-    line-height: 18px;
+    font-size: var(--discovery-monospace-font-size, 12px);
+    line-height: var(--discovery-monospace-line-height, 1.5); /* 18px */
     color: var(--discovery-fmt-color);
 }
 
