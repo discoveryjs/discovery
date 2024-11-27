@@ -8,6 +8,8 @@
 - Added root CSS properties:
     - `--discovery-monospace-font-size`
     - `--discovery-monospace-line-height`
+- Changes in `input` view:
+    - Added `htmlStep` option
 
 ## 1.0.0-beta.91 (24-11-2024)
 

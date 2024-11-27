@@ -20,6 +20,7 @@ export default function(host) {
             htmlType = 'text',
             htmlMin,
             htmlMax,
+            htmlStep,
             debounce
         } = config;
         const factory = factories[type] || factories.text;
@@ -30,13 +31,6 @@ export default function(host) {
             lastInput = '';
         }
 
-        inputEl.type = htmlType;
-        inputEl.value = lastInput;
-        inputEl.placeholder = [
-            placeholder || '',
-            factory !== factories.text ? '(' + type + ')' : ''
-        ].filter(Boolean).join(' ');
-
         if (typeof htmlMin !== 'undefined') {
             inputEl.min = htmlMin;
         }
@@ -44,6 +38,17 @@ export default function(host) {
         if (htmlMax) {
             inputEl.max = htmlMax;
         }
+
+        if (typeof htmlStep !== 'undefined') {
+            inputEl.step = htmlStep;
+        }
+
+        inputEl.type = htmlType;
+        inputEl.value = lastInput; // set the value once min, max, and step are established; otherwise, the value might be normalized using default settings
+        inputEl.placeholder = [
+            placeholder || '',
+            factory !== factories.text ? '(' + type + ')' : ''
+        ].filter(Boolean).join(' ');
 
         inputEl.addEventListener('input', debounceFn(() => {
             const newInput = inputEl.value.trim();
