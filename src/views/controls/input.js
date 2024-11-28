@@ -3,6 +3,20 @@ import { safeFilterRx } from '../../core/utils/safe-filter-rx.js';
 import { debounce as debounceFn } from '../../core/utils/debounce.js';
 import usage from './input.usage.js';
 
+const props = `#.props | {
+    name,
+    value: $ has no 'value' and name is string ? #.context[name] : value | is (string or number) ?: '',
+    type ?: 'text',
+    placeholder,
+    onInit,
+    onChange,
+    htmlType ?: 'text',
+    htmlMin,
+    htmlMax,
+    htmlStep,
+    debounce
+}`;
+
 export default function(host) {
     const factories = {
         regexp: pattern => pattern ? safeFilterRx(pattern) : null,
@@ -13,11 +27,11 @@ export default function(host) {
         const {
             name,
             value,
-            type = 'text',
+            type,
             placeholder,
             onInit,
             onChange,
-            htmlType = 'text',
+            htmlType,
             htmlMin,
             htmlMax,
             htmlStep,
@@ -25,39 +39,35 @@ export default function(host) {
         } = config;
         const factory = factories[type] || factories.text;
         const inputEl = el.appendChild(document.createElement('input'));
-        let lastInput = value ? host.query(value, data, context) : context[name];
+        let lastValue = value;
 
-        if (typeof lastInput !== 'string') {
-            lastInput = '';
-        }
-
-        if (typeof htmlMin !== 'undefined') {
+        if (Number.isFinite(htmlMin)) {
             inputEl.min = htmlMin;
         }
 
-        if (htmlMax) {
+        if (Number.isFinite(htmlMax)) {
             inputEl.max = htmlMax;
         }
 
-        if (typeof htmlStep !== 'undefined') {
+        if (Number.isFinite(htmlStep)) {
             inputEl.step = htmlStep;
         }
 
         inputEl.type = htmlType;
-        inputEl.value = lastInput; // set the value once min, max, and step are established; otherwise, the value might be normalized using default settings
+        inputEl.value = lastValue; // set the value once min, max, and step are established; otherwise, the value might be normalized using default settings
         inputEl.placeholder = [
             placeholder || '',
             factory !== factories.text ? '(' + type + ')' : ''
         ].filter(Boolean).join(' ');
 
         inputEl.addEventListener('input', debounceFn(() => {
-            const newInput = inputEl.value.trim();
+            const newValue = inputEl.value.trim();
 
-            if (lastInput !== newInput) {
-                lastInput = newInput;
+            if (lastValue !== newValue) {
+                lastValue = newValue;
 
                 if (typeof onChange === 'function') {
-                    onChange(factory(newInput), name, data, context);
+                    onChange(factory(newValue), name, data, context);
                 }
             }
         }, debounce));
@@ -65,5 +75,5 @@ export default function(host) {
         if (typeof onInit === 'function') {
             onInit(factory(inputEl.value.trim()), name, data, context);
         }
-    }, { usage });
+    }, { usage, props });
 }

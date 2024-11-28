@@ -10,6 +10,8 @@
     - `--discovery-monospace-line-height`
 - Changes in `input` view:
     - Added `htmlStep` option
+    - Added props normalization
+    - Changed `value` option to no longer be interpreted as a query
 
 ## 1.0.0-beta.91 (24-11-2024)
 
