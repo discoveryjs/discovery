@@ -3,7 +3,7 @@ import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToPre
 import type { NavItemConfig } from '../nav/index.js';
 import type { LoadDataState } from '../core/utils/load-data.js';
 import type { ProgressbarState } from '../core/utils/progressbar.js';
-import type { Mode as DarkmodeMode } from '../core/darkmode.js';
+import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/darkmode.js';
 import { Emitter } from '../core/emitter.js';
 import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';
@@ -19,8 +19,8 @@ export interface EmbedPreinitAppEvents extends BaseAppEvents {
 };
 export interface EmbedAppEvents extends BaseAppEvents {
     darkmodeChanged: [value: {
-        mode: DarkmodeMode & string;
-        value: 'auto' | 'dark' | 'light';
+        state: ColorSchemeState;
+        value: SerializedColorSchemeValue;
     }];
     loadingStateChanged: [state: ProgressbarState];
     pageHashChanged: [hash: string, replace: boolean];
@@ -136,8 +136,8 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
     pageParams: Observer<PageParams>;
     locationSync: LocationSync | null;
     darkmode: Observer<{
-        mode: DarkmodeMode & string | 'unknown';
-        value: 'auto' | 'dark' | 'light' | 'unknown';
+        state: ColorSchemeState | 'unknown';
+        value: SerializedColorSchemeValue | 'unknown';
     }>;
     publicApi: ReturnType<typeof EmbedApp.createPublicApi>;
 
@@ -185,7 +185,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
                 app.sendMessage('setPageParams', { params, replace });
             },
 
-            setDarkmode(value: 'auto' | 'light' | 'dark') {
+            setDarkmode(value: ColorSchemeState) {
                 app.sendMessage('setDarkmode', value);
             },
             setRouterPreventLocationUpdate(allow = true) {
@@ -232,8 +232,8 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
         this.pageRef = new Observer('');
         this.pageParams = new Observer({});
         this.locationSync = null;
-        this.darkmode = new Observer({ mode: 'unknown', value: 'unknown' },
-            (prev, next) => prev.mode !== next.mode || prev.value !== next.value
+        this.darkmode = new Observer({ state: 'unknown', value: 'unknown' },
+            (prev, next) => prev.state !== next.state || prev.value !== next.value
         );
 
         this.publicApi = EmbedApp.createPublicApi(this);

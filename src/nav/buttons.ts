@@ -1,5 +1,7 @@
 import type { ViewModel } from '../main/view-model.js';
 import type { ViewPopup } from '../core/view.js';
+import type { SerializedColorSchemeValue } from '../core/darkmode.js';
+import { serializeColorSchemeState } from '../core/darkmode.js';
 
 export function indexPage(host: ViewModel) {
     host.nav.append({
@@ -43,13 +45,13 @@ export function darkmodeToggle(host: ViewModel) {
         view: 'block',
         className: ['toggle-menu-item', 'dark-mode-switcher'],
         name: 'dark-mode',
-        when: '#.widget | darkmode.mode not in ["disabled", "only"]',
+        when: '#.widget | darkmode.mode != "only"',
         postRender(el: HTMLElement, opts: any, data: any, { widget, hide }: { widget: ViewModel, hide: ViewPopup['hide'] }) {
-            let selfValue: boolean | 'auto';
+            let selfValue: SerializedColorSchemeValue;
 
             detachToggleDarkMode();
-            detachToggleDarkMode = widget.darkmode.subscribe((value, mode) => {
-                const newValue = mode === 'auto' ? 'auto' : value;
+            detachToggleDarkMode = widget.darkmode.subscribe((value, state) => {
+                const newValue = serializeColorSchemeState(state);
 
                 if (newValue === selfValue) {
                     return;
@@ -60,17 +62,17 @@ export function darkmodeToggle(host: ViewModel) {
                 widget.view.render(el, {
                     view: 'toggle-group',
                     beforeToggles: 'text:"Color schema"',
-                    onChange(value: boolean | 'auto') {
+                    onChange(value: SerializedColorSchemeValue) {
                         selfValue = value;
                         widget.darkmode.set(value);
                         hide();
                     },
                     value: newValue,
                     data: () => [
-                        { value: false, text: 'Light' },
-                        { value: true, text: 'Dark' },
+                        { value: 'light', text: 'Light' },
+                        { value: 'dark', text: 'Dark' },
                         { value: 'auto', text: 'Auto' }
-                    ]
+                    ] satisfies { value: SerializedColorSchemeValue; text: string; }[]
                 }, null, { widget });
             }, true);
         }

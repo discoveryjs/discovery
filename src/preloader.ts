@@ -1,10 +1,10 @@
-import type { InitValue } from './core/darkmode.js';
+import type { ColorSchemeState } from './core/darkmode.js';
 import type { InjectStyle } from './core/utils/inject-styles.js';
 import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataFromPush, LoadDataResult } from './core/utils/load-data.js';
 import type { EmbedHostToClientPostponeMessage, EmbedHostToPreinitMessage, EmbedPreinitToHostMessage } from './extensions/embed-message.types.js';
 import { hasOwn } from './core/utils/object-utils.js';
 import { randomId } from './core/utils/id.js';
-import { resolveDarkmodeValue } from './core/darkmode.js';
+import { resolveColorSchemeValue } from './core/darkmode.js';
 import { applyContainerStyles } from './core/utils/container-styles.js';
 import { injectStyles } from './core/utils/inject-styles.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
@@ -14,7 +14,7 @@ export type PreloaderOptions = {
     dataSource: keyof typeof dataSource;
     container: HTMLElement;
     styles: InjectStyle[];
-    darkmode: InitValue;
+    darkmode: ColorSchemeState;
     darkmodePersistent: boolean;
     embed: boolean;
     progressbar: Progressbar;
@@ -37,7 +37,7 @@ function validateDataSourceType(dataSourceType: any) {
 }
 
 function applyStyles(el: HTMLElement, container: HTMLElement, options: Partial<PreloaderOptions>) {
-    const darkmode = resolveDarkmodeValue(options.darkmode, options.darkmodePersistent);
+    const darkmode = resolveColorSchemeValue(options.darkmode, options.darkmodePersistent);
 
     applyContainerStyles(container, darkmode);
 

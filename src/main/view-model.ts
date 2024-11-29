@@ -12,7 +12,7 @@ import { deepEqual } from '../core/utils/compare.js';
 import { hasOwn } from '../core/utils/object-utils.js';
 import { Model } from './model.js';
 import { Observer } from '../core/observer.js';
-import { DarkModeController, InitValue } from '../core/darkmode.js';
+import { ColorScheme, ColorSchemeState } from '../core/darkmode.js';
 import { ViewModelNavigation } from '../nav/index.js';
 import { PageRenderer } from '../core/page.js';
 import { ViewRenderer } from '../core/view.js';
@@ -72,7 +72,7 @@ export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
     styles: InjectStyle[];
 
     compact: boolean;
-    darkmode: InitValue;
+    darkmode: ColorSchemeState;
     darkmodePersistent: boolean;
 
     defaultPage: string;
@@ -89,7 +89,7 @@ export class ViewModel<
     Events extends ViewModelEvents = ViewModelEvents
 > extends Model<Options, Events> {
     compact: boolean;
-    darkmode: DarkModeController;
+    darkmode: ColorScheme;
     inspectMode: Observer<boolean>;
 
     view: ViewRenderer;
@@ -127,7 +127,7 @@ export class ViewModel<
             extensions,
             logLevel,
             compact,
-            darkmode = 'disabled',
+            darkmode = 'light-only',
             darkmodePersistent = false,
             defaultPage,
             defaultPageId,
@@ -143,7 +143,7 @@ export class ViewModel<
         });
 
         this.compact = Boolean(compact);
-        this.darkmode = new DarkModeController(darkmode, darkmodePersistent);
+        this.darkmode = new ColorScheme(darkmode, darkmodePersistent);
         this.inspectMode = new Observer(false);
         this.initDom(styles);
 
@@ -357,7 +357,7 @@ export class ViewModel<
             content,
             pageContent,
             detachDarkMode: this.darkmode.subscribe(
-                dark => container.classList.toggle('discovery-root-darkmode', dark),
+                colorScheme => container.classList.toggle('discovery-root-darkmode', colorScheme === 'dark'),
                 true
             )
         };

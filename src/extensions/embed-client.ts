@@ -3,7 +3,7 @@ import type { App } from '../main/app.js';
 import type { NavItemConfig } from '../nav/index.js';
 import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToClientPostponeMessage } from './embed-message.types.js';
 import type { LoadDataFromPush } from '../core/utils/load-data.js';
-import type { Mode } from '../core/darkmode.js';
+import { colorSchemeSetValues, serializeColorSchemeState } from '../core/darkmode.js';
 import { randomId } from '../core/utils/id.js';
 import { loadDataFromPush, loadDataFromStream } from '../core/utils/load-data.js';
 
@@ -28,10 +28,6 @@ export default Object.assign(setup(), { setup });
 const noop = () => {};
 const navSection = ['primary', 'secondary', 'menu'];
 const navAction = ['insert', 'prepend', 'append', 'before', 'after', 'replace', 'remove'];
-
-function darkmodeValue({ mode, value }: { mode: Mode, value: boolean }) {
-    return mode === 'auto' ? 'auto' : value ? 'dark' : 'light';
-}
 
 function createNavItemConfig(rawConfig: unknown, sendMessage: SendMessage, rawCommands?: string[]): NavItemConfig {
     const commands: string[] = Array.isArray(rawCommands) ? rawCommands : [];
@@ -158,15 +154,14 @@ function setup(options?: Partial<EmbedClientOptions>) {
                     }
 
                     case 'setDarkmode': {
-                        const mode = payload;
-                        const supportedValues = ['auto', 'light', 'dark'];
+                        const value = payload;
 
-                        if (!supportedValues.includes(mode)) {
-                            host.logger.warn(`Wrong value for darkmode "${mode}", supported values: ${supportedValues.map(value => JSON.stringify(value)).join(', ')}`);
+                        if (!colorSchemeSetValues.includes(value)) {
+                            host.logger.warn(`Wrong value for darkmode "${value}", supported values: ${colorSchemeSetValues.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
-                        host.darkmode.set(mode === 'auto' ? 'auto' : mode === 'dark');
+                        host.darkmode.set(value);
 
                         break;
                     }
@@ -321,10 +316,10 @@ function setup(options?: Partial<EmbedClientOptions>) {
             sendMessage('unloadData', null);
         });
 
-        host.darkmode.subscribe((value, mode) =>
+        host.darkmode.subscribe((_, state) =>
             sendMessage('darkmodeChanged', {
-                mode,
-                value: darkmodeValue({ mode, value })
+                state,
+                value: serializeColorSchemeState(state)
             })
         );
 
@@ -348,8 +343,8 @@ function setup(options?: Partial<EmbedClientOptions>) {
                 params: host.pageParams
             },
             darkmode: {
-                mode: host.darkmode.mode,
-                value: darkmodeValue(host.darkmode)
+                state: host.darkmode.state,
+                value: host.darkmode.serializedValue
             }
         });
     };

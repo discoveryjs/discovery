@@ -1,5 +1,5 @@
 import type { PageParams, PageRef  } from '../main/model.js';
-import type { Mode as DarkmodeMode } from '../core/darkmode.js';
+import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/darkmode.js';
 import { ProgressbarState } from '../core/utils/progressbar.js';
 import { LoadDataResourceMetadata, LoadDataState } from '../core/utils/load-data.types.js';
 import { NavItemConfig } from '../nav/index.js';
@@ -47,7 +47,7 @@ export type EmbedHostToClientMessage = CreateMessageType<{
     setPage: Omit<PageState, 'hash'> & { replace?: boolean; };
     setPageRef: { ref: PageRef; replace?: boolean; };
     setPageParams: { params: PageParams; replace: boolean; };
-    setDarkmode: 'auto' | 'light' | 'dark';
+    setDarkmode: ColorSchemeState;
     setRouterPreventLocationUpdate: boolean;
     unloadData: null;
     actionResult:
@@ -86,14 +86,14 @@ export type EmbedClientToHostMessage = CreateMessageType<{
     ready: {
         page: PageState;
         darkmode: {
-            mode: DarkmodeMode;
-            value: 'auto' | 'dark' | 'light';
+            value: SerializedColorSchemeValue;
+            state: ColorSchemeState;
         };
     };
     pageHashChanged: PageState & { replace: boolean; };
     darkmodeChanged: {
-        mode: DarkmodeMode;
-        value: 'auto' | 'dark' | 'light';
+        value: SerializedColorSchemeValue;
+        state: ColorSchemeState;
     };
     action: {
         callId: string;

@@ -6,10 +6,10 @@ export type StorageMap = Map<string, PersistentKey> & {
     getOrCreate: PersistentKeyGetOrCreate;
 };
 export type PersistentValue = string | null;
-export type PersistentKey = {
+export type PersistentKey<V extends string = string> = {
     readonly value: PersistentValue,
     get(): PersistentValue,
-    set(value: any): void;
+    set(value: V): void;
     delete(): void;
     forceSync(): PersistentValue;
     on(fn: (value: PersistentValue) => void, fire?: boolean): () => void;
@@ -108,7 +108,7 @@ function createPersistentKey(key: string, map: StorageMap) {
             return currentValue;
         },
         set(value) {
-            if (map.storage) {
+            if (map.storage && value !== currentValue) {
                 map.storage.setItem(key, value);
                 updateCurrentValue();
             }
