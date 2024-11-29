@@ -1,27 +1,37 @@
-import { Emitter } from '../emitter.js';
+import { Observer } from '../observer.js';
 
 export type StorageType = 'localStorage' | 'sessionStorage';
-export type StorageMap = Map<string, PersistentKey> & {
-    storage: Storage | null;
-    getOrCreate: PersistentKeyGetOrCreate;
-};
-export type PersistentValue = string | null;
-export type PersistentKey<V extends string = string> = {
-    readonly value: PersistentValue,
-    get(): PersistentValue,
-    set(value: V): void;
-    delete(): void;
-    forceSync(): PersistentValue;
-    on(fn: (value: PersistentValue) => void, fire?: boolean): () => void;
-    off(fn: (value: PersistentValue) => void): void;
-};
-export type PersistentKeyEvents = {
-    change: [value: PersistentValue];
-    foo: [];
+export const getSessionStorageEntry = /* #__PURE__ */ createStorageEntryFactory('sessionStorage');
+export const getSessionStorageValue = /* #__PURE__ */ createStorageReader('sessionStorage');
+export const getLocalStorageEntry = /* #__PURE__ */ createStorageEntryFactory('localStorage');
+export const getLocalStorageValue = /* #__PURE__ */ createStorageReader('localStorage');
+
+const storageMaps = new Map();
+
+function createStorageEntryFactory(type: StorageType) {
+    const storage = getStorage(type);
+    const map = new Map<string, PersistentStorageEntry>();
+
+    return function getOrCreateStorageEntry<T extends string>(key: string) {
+        let persistentKey = map.get(key);
+
+        if (persistentKey === undefined) {
+            persistentKey = new PersistentStorageEntry<T>(storage, key);
+            map.set(key, persistentKey);
+            registerStorageMap(storage, map);
+        }
+
+        return persistentKey as PersistentStorageEntry<T>;
+    };
 }
-export type PersistentKeyGetOrCreate = ((key: string) => PersistentKey) & {
-    available: boolean;
-};
+
+function createStorageReader(type: StorageType) {
+    const storage = getStorage(type);
+
+    return function getStorageValue(key: string) {
+        return storage?.getItem(key) ?? null;
+    };
+}
 
 function getStorage(type: StorageType): Storage | null {
     const key = '__storage_test__' + Math.random();
@@ -58,91 +68,76 @@ function getStorage(type: StorageType): Storage | null {
     return storage;
 }
 
-function getStorageMap(type: StorageType): StorageMap {
-    const storage = getStorage(type);
-    const map = Object.assign(new Map(), {
-        storage,
-        getOrCreate: Object.assign((key: string) => map.get(key) || createPersistentKey(key, map), {
-            available: storage !== null
-        })
-    });
+function registerStorageMap(storage: Storage | null, map: Map<string, PersistentStorageEntry>) {
+    if (storage !== null && !storageMaps.has(storage)) {
+        storageMaps.set(storage, map);
 
-    return map;
-}
+        if (storageMaps.size === 1) {
+            addEventListener('storage', (e) => {
+                const map = storageMaps.get(e.storageArea);
 
-const sessionStorageMap = getStorageMap('sessionStorage');
-const localStorageMap = getStorageMap('localStorage');
-const storages = new Map([
-    ['session', sessionStorageMap],
-    ['local', localStorageMap]
-]);
+                if (map !== undefined) {
+                    const persistentKey = map.get(e.key as string);
 
-export const sessionStorageEntry = sessionStorageMap.getOrCreate;
-export const localStorageEntry = localStorageMap.getOrCreate;
-
-addEventListener('storage', (e) => {
-    for (const [, map] of storages) {
-        if (map.storage === e.storageArea) {
-            const persistentKey = map.get(e.key as string);
-
-            if (persistentKey) {
-                persistentKey.forceSync();
-            }
+                    if (persistentKey) {
+                        persistentKey.forceSync();
+                    }
+                }
+            });
         }
     }
-});
-
-function createPersistentKey(key: string, map: StorageMap) {
-    let currentValue: PersistentValue = null;
-    const emitter = new Emitter<PersistentKeyEvents>(); // TODO: Change for Publisher
-    const updateCurrentValue = (newValue: PersistentValue = map.storage?.getItem(key) ?? null) => {
-        if (currentValue !== newValue) {
-            emitter.emit('change', currentValue = newValue);
-        }
-    };
-    const api: PersistentKey = {
-        get value() {
-            return this.get();
-        },
-        get() {
-            return currentValue;
-        },
-        set(value) {
-            if (map.storage && value !== currentValue) {
-                map.storage.setItem(key, value);
-                updateCurrentValue();
-            }
-        },
-        delete() {
-            if (map.storage) {
-                map.storage.removeItem(key);
-                updateCurrentValue();
-            }
-        },
-        forceSync() {
-            if (map.storage) {
-                updateCurrentValue();
-            }
-
-            return this.get();
-        },
-        on(fn, fire) {
-            emitter.on('change', fn);
-
-            if (fire) {
-                fn(currentValue);
-            }
-
-            return () => emitter.off('change', fn);
-        },
-        off(fn) {
-            emitter.off('change', fn);
-        }
-    };
-
-    map.set(key, api);
-    api.forceSync();
-
-    return api;
 }
 
+export class PersistentStorageEntry<V extends string = string> extends Observer<V | null> {
+    #storage: Storage | null;
+    #key: string;
+
+    constructor(storage: Storage | null, key: string) {
+        super(storage?.getItem(key) as V ?? null);
+
+        this.#storage = storage;
+        this.#key = key;
+    }
+
+    #readStorageValue(): V | null {
+        return (this.#storage?.getItem(this.#key) as V) ?? null;
+    }
+
+    get storage() {
+        return this.#storage;
+    }
+
+    get key() {
+        return this.#key;
+    }
+
+    get() {
+        return this.value;
+    }
+    set(value: V) {
+        if (this.#storage) {
+            const storageValue = this.#readStorageValue();
+
+            if (value !== storageValue) {
+                this.#storage.setItem(this.#key, value);
+                return super.set(value);
+            }
+        }
+
+        return false;
+    }
+
+    delete() {
+        if (this.#storage) {
+            this.#storage.removeItem(this.#key);
+        }
+    }
+
+    forceSync() {
+        if (this.#storage) {
+            return super.set(this.#readStorageValue());
+        }
+
+        return false;
+    }
+}

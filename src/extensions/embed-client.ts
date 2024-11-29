@@ -3,7 +3,7 @@ import type { App } from '../main/app.js';
 import type { NavItemConfig } from '../nav/index.js';
 import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToClientPostponeMessage } from './embed-message.types.js';
 import type { LoadDataFromPush } from '../core/utils/load-data.js';
-import { colorSchemeSetValues, serializeColorSchemeState } from '../core/darkmode.js';
+import { colorSchemeStateValues, serializeColorSchemeState } from '../core/color-scheme.js';
 import { randomId } from '../core/utils/id.js';
 import { loadDataFromPush, loadDataFromStream } from '../core/utils/load-data.js';
 
@@ -156,12 +156,12 @@ function setup(options?: Partial<EmbedClientOptions>) {
                     case 'setDarkmode': {
                         const value = payload;
 
-                        if (!colorSchemeSetValues.includes(value)) {
-                            host.logger.warn(`Wrong value for darkmode "${value}", supported values: ${colorSchemeSetValues.map(value => JSON.stringify(value)).join(', ')}`);
+                        if (!colorSchemeStateValues.includes(value)) {
+                            host.logger.warn(`Wrong value for darkmode "${value}", supported values: ${colorSchemeStateValues.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
-                        host.darkmode.set(value);
+                        host.colorScheme.set(value);
 
                         break;
                     }
@@ -316,7 +316,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
             sendMessage('unloadData', null);
         });
 
-        host.darkmode.subscribe((_, state) =>
+        host.colorScheme.subscribe((_, state) =>
             sendMessage('darkmodeChanged', {
                 state,
                 value: serializeColorSchemeState(state)
@@ -343,8 +343,8 @@ function setup(options?: Partial<EmbedClientOptions>) {
                 params: host.pageParams
             },
             darkmode: {
-                state: host.darkmode.state,
-                value: host.darkmode.serializedValue
+                state: host.colorScheme.state,
+                value: host.colorScheme.serializedValue
             }
         });
     };

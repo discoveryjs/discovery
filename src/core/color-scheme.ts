@@ -1,9 +1,9 @@
 /* eslint-env browser */
-import { localStorageEntry, PersistentKey } from './utils/persistent.js';
+import { getLocalStorageEntry, getLocalStorageValue, type PersistentStorageEntry } from './utils/persistent.js';
 
-export type SerializedColorSchemeValue = 'auto' | 'light' | 'dark';
+export type SerializedColorSchemeValue = typeof colorSchemeSerializedValues[number];
 export type ColorSchemeValue = 'light' | 'dark';
-export type ColorSchemeState = 'auto' | 'light' | 'light-only' | 'dark' | 'dark-only';
+export type ColorSchemeState = typeof colorSchemeStateValues[number];
 export type ColorSchemeStateWithLegacy =
     | ColorSchemeState
     | true       // -> 'dark'
@@ -18,56 +18,31 @@ export type ColorSchemeMode =
     | 'only';    // fixed value, can't be changed (when init value is 'light-only' or 'dark-only')
 export type ColorSchemeChangeHandler = (value: ColorSchemeValue, state: ColorSchemeState) => void;
 
-export const colorSchemeSetValues = Object.freeze(['auto', 'light', 'dark', 'light-only', 'dark-only'] satisfies ColorSchemeState[]);
-const instances = new Set<ColorScheme>();
-const prefersDarkModeMedia = matchMedia('(prefers-color-scheme:dark)');
-const persistentStorage = localStorageEntry('discoveryjs:darkmode');
-let persistentStorageValue: SerializedColorSchemeValue = 'auto';
+export const persistentKey = 'discoveryjs:color-scheme';
+export const colorSchemeSerializedValues = /* #__PURE__ */ Object.freeze([
+    'auto',
+    'light',
+    'dark'
+] as const);
+export const colorSchemeStateValues = /* #__PURE__ */ Object.freeze([
+    'auto',
+    'light',
+    'dark',
+    'light-only',
+    'dark-only'
+] as const);
 
-function applyPrefersColorScheme() {
-    for (const instance of instances) {
-        if (instance.state === 'auto') {
-            instance.set('auto');
-        }
-    }
+function isSerializedValue(value: unknown): value is SerializedColorSchemeValue {
+    return colorSchemeSerializedValues.includes(value as SerializedColorSchemeValue);
 }
 
-function applyLocalStorageValue(value: string | null) {
-    let newValue: SerializedColorSchemeValue | null = null;
-
-    switch (value) {
-        case 'false': // legacy
-        case 'light':
-            newValue = 'light';
-            break;
-
-        case 'true': // legacy
-        case 'dark':
-            newValue = 'dark';
-            break;
-
-        case 'auto':
-        default:
-            newValue = 'auto';
-    }
-
-    if (persistentStorageValue !== newValue) {
-        persistentStorageValue = newValue;
-
-        for (const instance of instances) {
-            if (instance.persistent && instance.mode !== 'only') {
-                instance.set(newValue);
-            }
-        }
-    }
+function isColorSchemeDark() {
+    return matchMedia('(prefers-color-scheme:dark)');
 }
-
-// attach to changes
-applyLocalStorageValue(persistentStorage.value);
-persistentStorage.on(applyLocalStorageValue);
-prefersDarkModeMedia.addListener(applyPrefersColorScheme); // Safari doesn't support for addEventListener()
 
 function resolveState(value: ColorSchemeStateWithLegacy, persistent: boolean): ColorSchemeState {
+    const inputValue = value;
+
     // remap legacy values
     switch (value) {
         case true:
@@ -89,9 +64,17 @@ function resolveState(value: ColorSchemeStateWithLegacy, persistent: boolean): C
             break;
     }
 
+    if (inputValue !== value) {
+        console.warn(`Used legacy value "${inputValue}" for ColorShemeController, value replaced for "${value}"`);
+    }
+
     // use value from a storage when persistent and switching values is not disabled
-    if (value !== 'light-only' && value !== 'dark-only' && persistent && persistentStorageValue !== null) {
-        value = persistentStorageValue;
+    if (value !== 'light-only' && value !== 'dark-only' && persistent) {
+        const persistentValue = getLocalStorageValue(persistentKey);
+
+        if (isSerializedValue(persistentValue)) {
+            value = persistentValue;
+        }
     }
 
     return value;
@@ -112,7 +95,7 @@ function resolveMode(value: ColorSchemeState): ColorSchemeMode {
 
         default:
             const check: never = value;
-            return check || 'auto';
+            return check;
     }
 
 }
@@ -121,7 +104,7 @@ function resolveValue(state: ColorSchemeState): ColorSchemeValue {
     const serializedState = serializeColorSchemeState(state);
 
     if (serializedState === 'auto') {
-        return prefersDarkModeMedia.matches ? 'dark' : 'light';
+        return isColorSchemeDark().matches ? 'dark' : 'light';
     }
 
     return serializedState;
@@ -143,7 +126,7 @@ export function serializeColorSchemeState(state: ColorSchemeState): SerializedCo
     }
 }
 
-export function resolveColorSchemeValue(value: ColorSchemeStateWithLegacy = 'auto', persistent = false) {
+export function resolveColorSchemeValue(value: ColorSchemeState = 'auto', persistent = false) {
     return resolveValue(resolveState(value, persistent));
 }
 
@@ -165,7 +148,9 @@ export function resolveColorSchemeValue(value: ColorSchemeStateWithLegacy = 'aut
 // true         | dark       | manual   | 'dark'
 
 export class ColorScheme {
-    #persistent: PersistentKey<SerializedColorSchemeValue> | null;
+    #persistent: PersistentStorageEntry<SerializedColorSchemeValue> | null;
+    #persistentUnsubscribe: (() => void) | undefined;
+    #mediaQueryUnsubscribe: (() => void) | undefined;
     #handlers: Array<{ fn: ColorSchemeChangeHandler }>;
     #state: ColorSchemeState;
     #value: ColorSchemeValue;
@@ -177,7 +162,7 @@ export class ColorScheme {
     mode: ColorSchemeMode;
 
     constructor(value: ColorSchemeState = 'auto', persistent = false) {
-        this.#persistent = persistent ? persistentStorage : null;
+        this.#persistent = persistent ? getLocalStorageEntry(persistentKey) : null;
         this.#handlers = [];
         this.#state = resolveState(value, persistent);
         this.#value = resolveValue(this.#state);
@@ -191,7 +176,23 @@ export class ColorScheme {
             mode: { get: () => resolveMode(this.#state) }
         });
 
-        instances.add(this);
+        // attach to changes
+        this.#persistentUnsubscribe = this.#persistent?.subscribe((value) => {
+            if (isSerializedValue(value) && value !== this.serializedValue && this.mode !== 'only') {
+                this.set(value);
+            }
+        });
+        this.#mediaQueryUnsubscribe = () => {
+            const mediaQuery = isColorSchemeDark();
+            const mediaQueryListener = () => { // Safari doesn't support for addEventListener()
+                if (this.state === 'auto') {
+                    this.set('auto');
+                }
+            };
+
+            mediaQuery.addEventListener('change', mediaQueryListener);
+            return () => mediaQuery.removeEventListener('change', mediaQueryListener);
+        };
     }
 
     subscribe(fn: ColorSchemeChangeHandler, fire = false) {
@@ -213,30 +214,35 @@ export class ColorScheme {
     }
 
     destroy() {
-        instances.delete(this);
+        this.#persistentUnsubscribe?.();
+        this.#persistentUnsubscribe = undefined;
+        this.#mediaQueryUnsubscribe?.();
+        this.#mediaQueryUnsubscribe = undefined;
     }
 
     set(state: ColorSchemeState) {
+        const prevSerializedValue = this.serializedValue;
+        const prevValue = this.#value;
         const prevState = this.#state;
 
         if (prevState === 'light-only' || prevState === 'dark-only') {
-            console.warn(`DarkModeController is locked for changes (state=${prevState})`);
+            console.warn(`ColorScheme is locked for changes (state=${prevState})`);
             return;
         }
 
-        if (!colorSchemeSetValues.includes(state)) {
-            console.warn(`Bad value "${state}" for darkmode, value ignored`);
+        if (!colorSchemeStateValues.includes(state)) {
+            console.warn(`Bad value "${state}" for ColorScheme#state, value ignored`);
             return;
         }
 
-        if (this.#state !== state) {
-            this.#state = state;
-            this.#value = resolveValue(state);
+        this.#state = state;
+        this.#value = resolveValue(state);
 
-            if (this.#persistent) {
-                this.#persistent.set(serializeColorSchemeState(this.#state));
-            }
+        if (this.serializedValue !== prevSerializedValue) {
+            this.#persistent?.set(this.serializedValue);
+        }
 
+        if (this.#state !== prevState || this.#value !== prevValue) {
             this.#handlers.forEach(({ fn }) => fn(this.#value, this.#state));
         }
     }
@@ -244,18 +250,18 @@ export class ColorScheme {
     toggle(useAutoForManual = false) {
         switch (this.#state) {
             case 'auto':
-                this.set(prefersDarkModeMedia.matches ? 'dark' : 'light');
+                this.set(isColorSchemeDark().matches ? 'dark' : 'light');
                 return;
 
             case 'dark':
-                this.set(useAutoForManual && !prefersDarkModeMedia.matches ? 'auto' : 'light');
+                this.set(useAutoForManual && !isColorSchemeDark().matches ? 'auto' : 'light');
                 return;
 
             case 'light':
-                this.set(useAutoForManual && prefersDarkModeMedia.matches ? 'auto' : 'dark');
+                this.set(useAutoForManual && isColorSchemeDark().matches ? 'auto' : 'dark');
                 return;
         }
 
-        console.warn(`DarkModeController is locked for changes (mode=${this.#state})`);
+        console.warn(`ColorScheme is locked for changes (mode=${this.#state})`);
     }
 }

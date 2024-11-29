@@ -21,7 +21,7 @@ export type * from './logger.js';
 export { Logger } from './logger.js';
 export { objectToString, hasOwn } from './object-utils.js';
 export { match, matchAll } from './pattern.js';
-export { localStorageEntry, sessionStorageEntry } from './persistent.js';
+export { getLocalStorageEntry, getLocalStorageValue, getSessionStorageEntry, getSessionStorageValue, PersistentStorageEntry } from './persistent.js';
 export { pointerXY } from './pointer.js';
 export type * from './progressbar.js';
 export { Progressbar } from './progressbar.js';

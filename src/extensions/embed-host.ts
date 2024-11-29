@@ -3,7 +3,7 @@ import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToPre
 import type { NavItemConfig } from '../nav/index.js';
 import type { LoadDataState } from '../core/utils/load-data.js';
 import type { ProgressbarState } from '../core/utils/progressbar.js';
-import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/darkmode.js';
+import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/color-scheme.js';
 import { Emitter } from '../core/emitter.js';
 import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';

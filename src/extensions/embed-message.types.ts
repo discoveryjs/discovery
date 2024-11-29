@@ -1,5 +1,5 @@
 import type { PageParams, PageRef  } from '../main/model.js';
-import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/darkmode.js';
+import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/color-scheme.js';
 import { ProgressbarState } from '../core/utils/progressbar.js';
 import { LoadDataResourceMetadata, LoadDataState } from '../core/utils/load-data.types.js';
 import { NavItemConfig } from '../nav/index.js';

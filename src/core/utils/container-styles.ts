@@ -1,3 +1,5 @@
+import { ColorSchemeState, resolveColorSchemeValue } from '../color-scheme.js';
+
 type Styles = Record<string, string>;
 type SavedStyles = Record<string, [string, string]>;
 
@@ -11,7 +13,7 @@ const styles: Styles = {
     'background-color': 'var(--discovery-background-color, white)',
     'color': 'var(--discovery-color, black)'
 };
-const darkmodeStyles: Styles = {
+const darkStyles: Styles = {
     '--discovery-background-color': '#242424',
     '--discovery-color': '#cccccc'
 };
@@ -25,39 +27,19 @@ function saveContainerStyleProp(container: HTMLElement, prop: string, styles: Sa
     }
 }
 
-function resolveDarkmode(darkmode: boolean | 'false' | 'light' | 'true' | 'dark'| 'auto') {
-    switch (darkmode) {
-        case 'auto':
-            return matchMedia('(prefers-color-scheme:dark)').matches;
-
-        case 'dark':
-        case 'true':
-        case true:
-            return true;
-
-        case 'light':
-        case 'false':
-        case false:
-            return false;
-    }
-
-    // bad value
-    return false;
-}
-
-export function applyContainerStyles(container: HTMLElement, darkmode: boolean | 'false' | 'light' | 'true' | 'dark'| 'auto') {
+export function applyContainerStyles(container: HTMLElement, colorScheme: ColorSchemeState) {
     const containerStyles = stylesBeforeApply.get(container) || Object.create(null);
-    const resolvedDarkmode = resolveDarkmode(darkmode);
+    const isDarkColorScheme = resolveColorSchemeValue(colorScheme) === 'dark';
 
     for (const [prop, value] of Object.entries(styles)) {
         saveContainerStyleProp(container, prop, containerStyles);
         container.style.setProperty(prop, value);
     }
 
-    for (const [prop, value] of Object.entries(darkmodeStyles)) {
+    for (const [prop, value] of Object.entries(darkStyles)) {
         saveContainerStyleProp(container, prop, containerStyles);
 
-        if (resolvedDarkmode) {
+        if (isDarkColorScheme) {
             container.style.setProperty(prop, value);
         } else {
             container.style.removeProperty(prop);
@@ -66,7 +48,7 @@ export function applyContainerStyles(container: HTMLElement, darkmode: boolean |
 
     stylesBeforeApply.set(container, containerStyles);
 
-    return resolvedDarkmode;
+    return isDarkColorScheme;
 }
 
 export function rollbackContainerStyles(container: HTMLElement) {

@@ -12,7 +12,7 @@ import { deepEqual } from '../core/utils/compare.js';
 import { hasOwn } from '../core/utils/object-utils.js';
 import { Model } from './model.js';
 import { Observer } from '../core/observer.js';
-import { ColorScheme, ColorSchemeState } from '../core/darkmode.js';
+import { ColorScheme, ColorSchemeState } from '../core/color-scheme.js';
 import { ViewModelNavigation } from '../nav/index.js';
 import { PageRenderer } from '../core/page.js';
 import { ViewRenderer } from '../core/view.js';
@@ -89,7 +89,7 @@ export class ViewModel<
     Events extends ViewModelEvents = ViewModelEvents
 > extends Model<Options, Events> {
     compact: boolean;
-    darkmode: ColorScheme;
+    colorScheme: ColorScheme;
     inspectMode: Observer<boolean>;
 
     view: ViewRenderer;
@@ -116,7 +116,7 @@ export class ViewModel<
         sidebar: HTMLElement;
         content: HTMLElement;
         pageContent: HTMLElement;
-        detachDarkMode: null | (() => void);
+        detachColorScheme: null | (() => void);
     };
     queryExtensions: Record<string, (...args: unknown[]) => any>;
 
@@ -143,7 +143,7 @@ export class ViewModel<
         });
 
         this.compact = Boolean(compact);
-        this.darkmode = new ColorScheme(darkmode, darkmodePersistent);
+        this.colorScheme = new ColorScheme(darkmode, darkmodePersistent);
         this.inspectMode = new Observer(false);
         this.initDom(styles);
 
@@ -356,7 +356,7 @@ export class ViewModel<
             sidebar,
             content,
             pageContent,
-            detachDarkMode: this.darkmode.subscribe(
+            detachColorScheme: this.colorScheme.subscribe(
                 colorScheme => container.classList.toggle('discovery-root-darkmode', colorScheme === 'dark'),
                 true
             )
@@ -396,9 +396,9 @@ export class ViewModel<
     }
 
     disposeDom() {
-        if (typeof this.dom.detachDarkMode === 'function') {
-            this.dom.detachDarkMode();
-            this.dom.detachDarkMode = null;
+        if (typeof this.dom.detachColorScheme === 'function') {
+            this.dom.detachColorScheme();
+            this.dom.detachColorScheme = null;
         }
 
         this.dom.container.remove();

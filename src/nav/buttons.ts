@@ -1,7 +1,7 @@
 import type { ViewModel } from '../main/view-model.js';
 import type { ViewPopup } from '../core/view.js';
-import type { SerializedColorSchemeValue } from '../core/darkmode.js';
-import { serializeColorSchemeState } from '../core/darkmode.js';
+import type { SerializedColorSchemeValue } from '../core/color-scheme.js';
+import { serializeColorSchemeState } from '../core/color-scheme.js';
 
 export function indexPage(host: ViewModel) {
     host.nav.append({
@@ -40,17 +40,17 @@ export function unloadData(host: ViewModel) {
 }
 
 export function darkmodeToggle(host: ViewModel) {
-    let detachToggleDarkMode = () => {};
+    let detachToggleColorScheme = () => {};
     host.nav.menu.append({
         view: 'block',
         className: ['toggle-menu-item', 'dark-mode-switcher'],
         name: 'dark-mode',
-        when: '#.widget | darkmode.mode != "only"',
+        when: '#.widget | colorScheme.mode != "only"',
         postRender(el: HTMLElement, opts: any, data: any, { widget, hide }: { widget: ViewModel, hide: ViewPopup['hide'] }) {
             let selfValue: SerializedColorSchemeValue;
 
-            detachToggleDarkMode();
-            detachToggleDarkMode = widget.darkmode.subscribe((value, state) => {
+            detachToggleColorScheme();
+            detachToggleColorScheme = widget.colorScheme.subscribe((value, state) => {
                 const newValue = serializeColorSchemeState(state);
 
                 if (newValue === selfValue) {
@@ -64,7 +64,7 @@ export function darkmodeToggle(host: ViewModel) {
                     beforeToggles: 'text:"Color schema"',
                     onChange(value: SerializedColorSchemeValue) {
                         selfValue = value;
-                        widget.darkmode.set(value);
+                        widget.colorScheme.set(value);
                         hide();
                     },
                     value: newValue,

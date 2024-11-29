@@ -12,21 +12,19 @@
     - Added `htmlStep` option
     - Added props normalization
     - Changed `value` option to no longer be interpreted as a query
-- Reworked color scheme API (darkmode), to make it more simplier and aligned with recent changes in CSS and with embed API:
-    - Renamed `DarkModeController` class into `ColorScheme`
-    - Changed `ColorScheme#value` from `boolean` into `'light'` and `'dark'`
-    - Changed `ColorScheme#mode` into `'auto'`, `'manual'` and `'only'`
-    - Added `ColorScheme#state` with `'auto'`, `'light'`, `'light-only'`, `'dark'` and `'dark-ony'` values
-    - Changed change hanlder from `(value: boolean, mode: Mode) => void` into `(value: ColorSchemeValue, mode: ColorSchemeState) => void`
-    - Aligned with embed API
-- Reworked color scheme API (`darkmode`) for simplicity and alignment with recent CSS updates and the embed API:  
-    - Renamed the `DarkModeController` class to `ColorScheme`
+- Reworked color scheme API (`darkmode`) for simplicity and alignment with recent CSS updates and the embed API:
+    - Renamed `DarkModeController` class to `ColorScheme`
+    - Renamed `ViewModel#darkmode` to `ViewModel#colorScheme`
     - Changed `ColorScheme#value` from `boolean` to `'light'` or `'dark'`
     - Changed `ColorScheme#mode` values to `'auto'`, `'manual'` and `'only'`
     - Changed `ColorScheme#persistent` to store a boolean, indicating whether `ColorScheme` is backed by a persistent store
     - Added `ColorScheme#state` with possible values: `'auto'`, `'light'`, `'light-only'`, `'dark'` and `'dark-only'`
     - Changed change handler signature from `(value: boolean, mode: Mode) => void` to `(value: ColorSchemeValue, mode: ColorSchemeState) => void`
     - Aligned with embed API
+- Reworked persistent API:
+    - Renamed `localStorageEntry()` to `getLocalStorageEntry()`
+    - Renamed `sessionStorageEntry()` to `getSessionStorageEntry()`
+    - Changed storage entry to be an instance of `PersistentStorageEntry` class derived from `Observer`
 
 ## 1.0.0-beta.91 (24-11-2024)
 

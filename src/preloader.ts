@@ -1,10 +1,10 @@
-import type { ColorSchemeState } from './core/darkmode.js';
+import type { ColorSchemeState } from './core/color-scheme.js';
 import type { InjectStyle } from './core/utils/inject-styles.js';
 import type { LoadDataBaseOptions, LoadDataFetchOptions, LoadDataFromPush, LoadDataResult } from './core/utils/load-data.js';
 import type { EmbedHostToClientPostponeMessage, EmbedHostToPreinitMessage, EmbedPreinitToHostMessage } from './extensions/embed-message.types.js';
 import { hasOwn } from './core/utils/object-utils.js';
 import { randomId } from './core/utils/id.js';
-import { resolveColorSchemeValue } from './core/darkmode.js';
+import { resolveColorSchemeValue } from './core/color-scheme.js';
 import { applyContainerStyles } from './core/utils/container-styles.js';
 import { injectStyles } from './core/utils/inject-styles.js';
 import { dataSource, syncLoaderWithProgressbar } from './core/utils/load-data.js';
