@@ -12,18 +12,21 @@
     - Added `htmlStep` option
     - Added props normalization
     - Changed `value` option to no longer be interpreted as a query
-- Reworked color scheme API (`darkmode`) for simplicity and alignment with recent CSS updates and the embed API:
+- Reworked color scheme API (`darkmode`) for simplicity and alignment with recent CSS updates and the Embed API:
     - Renamed `DarkModeController` class to `ColorScheme`
+    - Renamed `ViewModel` options `darkmode` and `darkmodePersistent` to `colorScheme` and `colorSchemePersistent` (old options are still supported as fallbacks with a warning if the new options are not specified)
     - Renamed `ViewModel#darkmode` to `ViewModel#colorScheme`
+    - Renamed `navbuttons.darkmodeToggle` to `navbuttons.colorSchemeToggle`
     - Changed `ColorScheme#value` from `boolean` to `'light'` or `'dark'`
     - Changed `ColorScheme#mode` values to `'auto'`, `'manual'` and `'only'`
     - Changed `ColorScheme#persistent` to store a boolean, indicating whether `ColorScheme` is backed by a persistent store
     - Added `ColorScheme#state` with possible values: `'auto'`, `'light'`, `'light-only'`, `'dark'` and `'dark-only'`
     - Changed change handler signature from `(value: boolean, mode: Mode) => void` to `(value: ColorSchemeValue, mode: ColorSchemeState) => void`
-    - Aligned with embed API
+    - Aligned Embed API with the changes
 - Reworked persistent API:
     - Renamed `localStorageEntry()` to `getLocalStorageEntry()`
     - Renamed `sessionStorageEntry()` to `getSessionStorageEntry()`
+    - Added `getLocalStorageValue(key)` and `getSessionStorageValue(key)` methods to read values directly from storage; these methods return `null` if no entry exists for the specified `key` or if the storage is unavailable
     - Changed storage entry to be an instance of `PersistentStorageEntry` class derived from `Observer`
 
 ## 1.0.0-beta.91 (24-11-2024)

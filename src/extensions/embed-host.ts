@@ -18,7 +18,7 @@ export interface EmbedPreinitAppEvents extends BaseAppEvents {
     loadingStateChanged: [state: LoadDataState];
 };
 export interface EmbedAppEvents extends BaseAppEvents {
-    darkmodeChanged: [value: {
+    colorSchemeChanged: [value: {
         state: ColorSchemeState;
         value: SerializedColorSchemeValue;
     }];
@@ -135,7 +135,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
     pageRef: Observer<PageRef>;
     pageParams: Observer<PageParams>;
     locationSync: LocationSync | null;
-    darkmode: Observer<{
+    colorScheme: Observer<{
         state: ColorSchemeState | 'unknown';
         value: SerializedColorSchemeValue | 'unknown';
     }>;
@@ -153,7 +153,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
             pageId: app.pageId.readonly,
             pageRef: app.pageRef.readonly,
             pageParams: app.pageParams.readonly,
-            darkmode: app.darkmode.readonly,
+            colorScheme: app.colorScheme.readonly,
 
             // FIXME: TS should infer types for on/once/off, however it doesn't
             // and produces `any` instead. Used `as EmbedApp[method]` as a workaround.
@@ -185,8 +185,8 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
                 app.sendMessage('setPageParams', { params, replace });
             },
 
-            setDarkmode(value: ColorSchemeState) {
-                app.sendMessage('setDarkmode', value);
+            setColorSchemeState(value: ColorSchemeState) {
+                app.sendMessage('setColorSchemeState', value);
             },
             setRouterPreventLocationUpdate(allow = true) {
                 app.sendMessage('setRouterPreventLocationUpdate', allow);
@@ -232,7 +232,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
         this.pageRef = new Observer('');
         this.pageParams = new Observer({});
         this.locationSync = null;
-        this.darkmode = new Observer({ state: 'unknown', value: 'unknown' },
+        this.colorScheme = new Observer({ state: 'unknown', value: 'unknown' },
             (prev, next) => prev.state !== next.state || prev.value !== next.value
         );
 
@@ -287,11 +287,11 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
                 break;
             }
 
-            case 'darkmodeChanged': {
+            case 'colorSchemeChanged': {
                 const value = message.payload;
 
-                this.darkmode.set(value);
-                this.emit('darkmodeChanged', value);
+                this.colorScheme.set(value);
+                this.emit('colorSchemeChanged', value);
 
                 break;
             }
@@ -381,7 +381,7 @@ export function connectToEmbedApp(
                 embedApp.pageId.set(data.payload.page.id);
                 embedApp.pageRef.set(data.payload.page.ref);
                 embedApp.pageParams.set(data.payload.page.params);
-                embedApp.darkmode.set(data.payload.darkmode);
+                embedApp.colorScheme.set(data.payload.colorScheme);
                 embedApp.once('destroy', resetIfNeeded);
 
                 onDisconnect = callbacks.onConnect(embedApp.publicApi);

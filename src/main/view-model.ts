@@ -72,8 +72,8 @@ export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
     styles: InjectStyle[];
 
     compact: boolean;
-    darkmode: ColorSchemeState;
-    darkmodePersistent: boolean;
+    colorScheme: ColorSchemeState;
+    colorSchemePersistent: boolean;
 
     defaultPage: string;
     defaultPageId: string;
@@ -81,6 +81,11 @@ export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
     reportToDiscoveryRedirect: boolean;
 
     inspector: boolean;
+
+    /** @deprecated Legacy option, use colorScheme instead */
+    darkmode: ColorSchemeState;
+    /** @deprecated Legacy option, use colorSchemePersistent instead */
+    darkmodePersistent: boolean;
 }
 type ViewModelOptionsBind = ViewModelOptions; // to fix: Type parameter 'Options' has a circular default.
 
@@ -127,8 +132,10 @@ export class ViewModel<
             extensions,
             logLevel,
             compact,
-            darkmode = 'light-only',
-            darkmodePersistent = false,
+            darkmode = 'light-only', // for backward compatibility
+            darkmodePersistent = false, // for backward compatibility
+            colorScheme = darkmode,
+            colorSchemePersistent = darkmodePersistent,
             defaultPage,
             defaultPageId,
             discoveryPageId,
@@ -142,8 +149,14 @@ export class ViewModel<
             extensions: undefined
         });
 
+        console.log({ darkmode, colorScheme });
+
+        if ('darkmode' in options || 'darkmodePersistent' in options) {
+            this.logger.warn('ViewModel "darkmode" option is deprecated, use "colorScheme" instead');
+        }
+
         this.compact = Boolean(compact);
-        this.colorScheme = new ColorScheme(darkmode, darkmodePersistent);
+        this.colorScheme = new ColorScheme(colorScheme, colorSchemePersistent);
         this.inspectMode = new Observer(false);
         this.initDom(styles);
 
@@ -357,7 +370,7 @@ export class ViewModel<
             content,
             pageContent,
             detachColorScheme: this.colorScheme.subscribe(
-                colorScheme => container.classList.toggle('discovery-root-darkmode', colorScheme === 'dark'),
+                value => container.classList.toggle('discovery-root-darkmode', value === 'dark'),
                 true
             )
         };

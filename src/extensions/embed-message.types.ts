@@ -47,7 +47,7 @@ export type EmbedHostToClientMessage = CreateMessageType<{
     setPage: Omit<PageState, 'hash'> & { replace?: boolean; };
     setPageRef: { ref: PageRef; replace?: boolean; };
     setPageParams: { params: PageParams; replace: boolean; };
-    setDarkmode: ColorSchemeState;
+    setColorSchemeState: ColorSchemeState;
     setRouterPreventLocationUpdate: boolean;
     unloadData: null;
     actionResult:
@@ -85,13 +85,13 @@ export type EmbedHostToClientMessage = CreateMessageType<{
 export type EmbedClientToHostMessage = CreateMessageType<{
     ready: {
         page: PageState;
-        darkmode: {
+        colorScheme: {
             value: SerializedColorSchemeValue;
             state: ColorSchemeState;
         };
     };
     pageHashChanged: PageState & { replace: boolean; };
-    darkmodeChanged: {
+    colorSchemeChanged: {
         value: SerializedColorSchemeValue;
         state: ColorSchemeState;
     };

@@ -153,15 +153,15 @@ function setup(options?: Partial<EmbedClientOptions>) {
                         break;
                     }
 
-                    case 'setDarkmode': {
-                        const value = payload;
+                    case 'setColorSchemeState': {
+                        const colorSchemeState = payload;
 
-                        if (!colorSchemeStateValues.includes(value)) {
-                            host.logger.warn(`Wrong value for darkmode "${value}", supported values: ${colorSchemeStateValues.map(value => JSON.stringify(value)).join(', ')}`);
+                        if (!colorSchemeStateValues.includes(colorSchemeState)) {
+                            host.logger.warn(`Wrong value for colorScheme "${colorSchemeState}", supported values: ${colorSchemeStateValues.map(value => JSON.stringify(value)).join(', ')}`);
                             break;
                         }
 
-                        host.colorScheme.set(value);
+                        host.colorScheme.set(colorSchemeState);
 
                         break;
                     }
@@ -317,7 +317,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
         });
 
         host.colorScheme.subscribe((_, state) =>
-            sendMessage('darkmodeChanged', {
+            sendMessage('colorSchemeChanged', {
                 state,
                 value: serializeColorSchemeState(state)
             })
@@ -342,7 +342,7 @@ function setup(options?: Partial<EmbedClientOptions>) {
                 ref: host.pageRef,
                 params: host.pageParams
             },
-            darkmode: {
+            colorScheme: {
                 state: host.colorScheme.state,
                 value: host.colorScheme.serializedValue
             }

@@ -49,7 +49,7 @@ export class App<
 
         extensions.push(navButtons.indexPage);
         extensions.push(navButtons.discoveryPage);
-        extensions.push(navButtons.darkmodeToggle);
+        extensions.push(navButtons.colorSchemeToggle);
 
         if (coalesceOption(options.router, true)) {
             extensions.push(router);
@@ -78,8 +78,8 @@ export class App<
             extensions: options.extensions
                 ? [extensions, options.extensions]
                 : extensions,
-            darkmode: coalesceOption(options.darkmode, 'auto'),
-            darkmodePersistent: coalesceOption(options.darkmodePersistent, true)
+            colorScheme: coalesceOption(options.colorScheme ?? options.darkmode, 'auto'),
+            colorSchemePersistent: coalesceOption(options.colorSchemePersistent ?? options.darkmodePersistent, true)
         });
     }
 

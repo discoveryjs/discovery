@@ -14,12 +14,17 @@ export type PreloaderOptions = {
     dataSource: keyof typeof dataSource;
     container: HTMLElement;
     styles: InjectStyle[];
-    darkmode: ColorSchemeState;
-    darkmodePersistent: boolean;
+    colorScheme: ColorSchemeState;
+    colorSchemePersistent: boolean;
     embed: boolean;
     progressbar: Progressbar;
     loadDataOptions: LoadDataBaseOptions | LoadDataFetchOptions;
     data: any;
+
+    /** @deprecated Legacy option, use colorScheme instead */
+    darkmode: ColorSchemeState;
+    /** @deprecated Legacy option, use colorSchemePersistent instead */
+    darkmodePersistent: boolean;
 };
 
 function createProgressbar(domReady: Promise<void>) {
@@ -37,15 +42,22 @@ function validateDataSourceType(dataSourceType: any) {
 }
 
 function applyStyles(el: HTMLElement, container: HTMLElement, options: Partial<PreloaderOptions>) {
-    const darkmode = resolveColorSchemeValue(options.darkmode, options.darkmodePersistent);
+    const {
+        // legacy options, for backward compatibility
+        darkmode,
+        darkmodePersistent,
+        // new options
+        colorScheme = darkmode,
+        colorSchemePersistent = darkmodePersistent
+    } = options;
+    const colorSchemeValue = resolveColorSchemeValue(colorScheme, colorSchemePersistent);
 
-    applyContainerStyles(container, darkmode);
-
-    if (darkmode) {
+    if (applyContainerStyles(container, colorSchemeValue)) {
         el.setAttribute('darkmode', '');
     }
 }
 
+preloader.colorScheme = true;
 export function preloader(options: Partial<PreloaderOptions>) {
     options = options || {};
 

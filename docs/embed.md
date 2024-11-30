@@ -92,7 +92,7 @@ const disconnect = connectToEmbedApp(iframe, (embedApp) => {
 
 - Events:
     * pageHashChanged(hash, replace)
-    * darkmodeChanged({ mode: string, value: string })
+    * colorSchemeChanged({ state: ColorSchemeState, value: SerializedColorSchemeValue })
     * loadingStateChanged({ stage, progress, error })
     * data()
     * unloadData()
@@ -101,7 +101,7 @@ const disconnect = connectToEmbedApp(iframe, (embedApp) => {
     * pageId: string
     * pageRef: string
     * pageParams: Record
-    * darkmode: { mode: string, value: string }
+    * colorScheme: { state: ColorSchemeState, value: SerializedColorSchemeValue }
 - Methods:
     * on(eventName, fn)
     * once(eventName, fn)
@@ -111,7 +111,7 @@ const disconnect = connectToEmbedApp(iframe, (embedApp) => {
     * setPage(id, ref, params, replace)
     * setPageRef(ref, replace)
     * setPageParams(params, replace)
-    * setDarkmode(value)
+    * setColorSchemeState(value)
     * setRouterPreventLocationUpdate(allow)
     * setLocationSync(enabled)
     * unloadData()

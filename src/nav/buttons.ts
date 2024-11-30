@@ -39,7 +39,7 @@ export function unloadData(host: ViewModel) {
     });
 }
 
-export function darkmodeToggle(host: ViewModel) {
+export function colorSchemeToggle(host: ViewModel) {
     let detachToggleColorScheme = () => {};
     host.nav.menu.append({
         view: 'block',
