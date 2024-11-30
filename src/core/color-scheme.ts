@@ -65,7 +65,7 @@ function resolveState(value: ColorSchemeStateWithLegacy, persistent: boolean): C
     }
 
     if (inputValue !== value) {
-        console.warn(`Used legacy value "${inputValue}" for ColorShemeController, value replaced for "${value}"`);
+        console.warn(`Used legacy value "${inputValue}" for ColorSheme, value replaced for "${value}"`);
     }
 
     // use value from a storage when persistent and switching values is not disabled

@@ -149,8 +149,6 @@ export class ViewModel<
             extensions: undefined
         });
 
-        console.log({ darkmode, colorScheme });
-
         if ('darkmode' in options || 'darkmodePersistent' in options) {
             this.logger.warn('ViewModel "darkmode" option is deprecated, use "colorScheme" instead');
         }
