@@ -225,11 +225,6 @@ export class ColorScheme {
         const prevValue = this.#value;
         const prevState = this.#state;
 
-        if (prevState === 'light-only' || prevState === 'dark-only') {
-            console.warn(`ColorScheme is locked for changes (state=${prevState})`);
-            return;
-        }
-
         if (!colorSchemeStateValues.includes(state)) {
             console.warn(`Bad value "${state}" for ColorScheme#state, value ignored`);
             return;
