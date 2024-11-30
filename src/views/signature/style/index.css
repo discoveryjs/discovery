@@ -71,7 +71,7 @@
 .view-signature .type {
     padding: 2px;
     margin: 0 -2px 0 -2px;
-    color: var(--discovery-fmt-atom-color);
+    color: var(--discovery-fmt-type-color);
     cursor: pointer;
 }
 .view-signature .type.discovery-view-popup-active,

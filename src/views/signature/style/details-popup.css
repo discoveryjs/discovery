@@ -49,7 +49,7 @@
     color: var(--discovery-fmt-property-color);
 }
 .discovery-view-popup.signature-details .view-h1.type {
-    color: var(--discovery-fmt-atom-color);
+    color: var(--discovery-fmt-type-color);
     margin-bottom: 8px;
 }
 .discovery-view-popup.signature-details :is(.path, .signature-action-buttons) + .view-h1,
