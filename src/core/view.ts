@@ -273,6 +273,14 @@ function computeClassName(host: ViewModel, className: any, data: any, context: a
     return null;
 }
 
+function applyComputedClassName(host: ViewModel, el: HTMLElement, className: any, data: any, context: any) {
+    const classNames = className ? computeClassName(host, className, data, context) : null;
+
+    if (classNames !== null) {
+        el.classList.add(...classNames);
+    }
+}
+
 async function renderDom(
     viewRenderer: ViewRenderer,
     renderer: View,
@@ -311,13 +319,7 @@ async function renderDom(
             el.classList.add(`view-${renderer.name}`);
         }
 
-        if (config.className) {
-            const classNames = computeClassName(viewRenderer.host, config.className, data, context);
-
-            if (classNames !== null) {
-                el.classList.add(...classNames);
-            }
-        }
+        applyComputedClassName(viewRenderer.host, el, config.className, data, context);
 
         if (config.tooltip) {
             attachTooltip(viewRenderer.host, el, config.tooltip, data, context);
@@ -364,6 +366,8 @@ function createRenderContext(viewRenderer: ViewRenderer, name: string) {
         ensureValidConfig: viewRenderer.ensureValidConfig.bind(viewRenderer),
         composeConfig: viewRenderer.composeConfig.bind(viewRenderer),
         propsFromConfig: viewRenderer.propsFromConfig.bind(viewRenderer),
+        computeClassName: computeClassName.bind(null, viewRenderer),
+        applyComputedClassName: applyComputedClassName.bind(null, viewRenderer),
         render: viewRenderer.render.bind(viewRenderer),
         listLimit: viewRenderer.listLimit.bind(viewRenderer),
         renderList: viewRenderer.renderList.bind(viewRenderer),
