@@ -391,6 +391,7 @@ export class ViewModel<
             }
 
             event.preventDefault();
+            event.stopPropagation();
 
             if (!linkEl.classList.contains('ignore-href')) {
                 this.setPageHash(linkEl.hash);
