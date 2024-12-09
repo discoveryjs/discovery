@@ -220,13 +220,14 @@ export default function(host) {
                 ? getOrder(host, rows, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
                 : 0;
 
-            const headerCellEl = headEl.appendChild(createElement('th'));
+            const headerCellEl = headEl.appendChild(createElement('th', 'view-table-header-cell'));
             const headerCell = {
                 el: headerCellEl
             };
 
             headerCells.push(headerCell);
             headerCellEl.textContent = col.header;
+            this.applyComputedClassName(headerCellEl, col.headerClassName, data, context);
 
             if (defaultOrder !== 0) {
                 headerCell.sorting = sorting;

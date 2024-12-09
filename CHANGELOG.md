@@ -9,6 +9,9 @@
 - Added root CSS properties:
     - `--discovery-monospace-font-size`
     - `--discovery-monospace-line-height`
+- Changes in `table` view:
+    - Added `headerClassName` option in col config which behaves the same way as `className` but applies to header cell
+    - Added `view-table-header-cell` class to header cell elements
 - Changes in `input` view:
     - Added `htmlStep` option
     - Added props normalization

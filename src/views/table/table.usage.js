@@ -35,12 +35,13 @@ export default {
     examples: [
         {
             title: 'Columns setup',
-            highlightProps: ['cols'],
             beforeDemo: { view: 'md', source: [
                 'To set up columns, the `cols` property is used. When an array of objects is used for `cols`, it specifies the exact set of columns. Each object contains a configuration for the `table-cell` view with additional properties that apply at the table level:\n',
                 '- `header` – a text for the column header\n',
+                '- `headerClassName` - specifies className for a header cell, works as `className` for any view (i.e. can be a string, an array, a function, etc.)\n',
                 '- `sorting` – a sorting function or query for the column\n'
             ] },
+            highlightProps: ['cols', 'header', 'headerClassName', 'sorting'],
             demo: {
                 view: 'table',
                 cols: [
@@ -51,6 +52,7 @@ export default {
                     },
                     {
                         header: 'Age',
+                        headerClassName: 'age',
                         className: 'number',
                         content: 'text:age + " y.o."'
                     }
