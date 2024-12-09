@@ -1,4 +1,4 @@
-import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions } from './model.js';
+import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions, PageAnchor } from './model.js';
 import type { ValueAnnotation, ValueAnnotationContext } from '../views/struct/render-annotations.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 import { ObjectMarkerManager } from '../core/object-marker.js';
@@ -33,8 +33,8 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
     let queryCustomMethods = {
         query: host.query.bind(host),
         overrideProps,
-        pageLink: (pageRef: PageRef, pageId: string, pageParams: PageParams) =>
-            host.encodePageHash(pageId, pageRef, pageParams),
+        pageLink: (pageRef: PageRef, pageId?: string, pageParams?: PageParams, pageAnchor?: PageAnchor) =>
+            host.encodePageHash(pageId, pageRef, pageParams, pageAnchor),
         marker: lookupObjectMarker,
         markerAll: lookupObjectMarkerAll,
         callAction,

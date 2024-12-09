@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import type { ModelEvents, ModelOptions, PageParams, PageRef, SetDataOptions } from './model.js';
+import type { ModelEvents, ModelOptions, PageAnchor, PageParams, PageRef, PageHashState, PageHashStateWithAnchor, SetDataOptions } from './model.js';
 import type { Dataset } from '../core/utils/load-data.js';
 import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { PageOptionName, PageOptions } from '../core/page.js';
@@ -60,11 +60,8 @@ function getPageMethod<K extends PageOptionName>(host: ViewModel, pageId: string
 
 export interface ViewModelEvents extends ModelEvents {
     startSetData: [subscribe: Progressbar['subscribeSync']];
-    pageStateChange: [prev: {
-        id: string;
-        ref: PageRef;
-        params: Record<string, any>;
-    }];
+    pageStateChange: [prev: PageHashState];
+    pageAnchorChange: [prev: string | null];
     pageHashChange: [replace: boolean];
 }
 export interface ViewModelOptions<T = ViewModel> extends ModelOptions<T> {
@@ -110,6 +107,7 @@ export class ViewModel<
     pageId: string;
     pageRef: PageRef;
     pageParams: Record<string, any>;
+    pageAnchor: PageAnchor;
     pageHash: string;
 
     dom: {
@@ -171,7 +169,8 @@ export class ViewModel<
         this.pageId = this.defaultPageId;
         this.pageRef = null;
         this.pageParams = {};
-        this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams);
+        this.pageAnchor = null;
+        this.pageHash = this.encodePageHash(this.pageId, this.pageRef, this.pageParams, this.pageAnchor);
 
         // extend with default views & pages
         this.apply(views);
@@ -211,6 +210,7 @@ export class ViewModel<
         this.on('context', () => this.scheduleRender());
         this.on('unloadData', () => this.scheduleRender());
         this.on('pageStateChange', () => this.scheduleRender());
+        this.on('pageAnchorChange', () => this.applyPageAnchor());
 
         this.action
             .on('define', () => this.scheduleRender())
@@ -571,7 +571,7 @@ export class ViewModel<
     // Page
     //
 
-    encodePageHash(pageId: string, pageRef: PageRef = null, pageParams?: PageParams) {
+    encodePageHash(pageId: string, pageRef: PageRef = null, pageParams?: PageParams, pageAnchor: string | null = null) {
         const encodedPageId = pageId || this.defaultPageId;
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
         const encodedParams: [string, any][] | string = encodeParams(pageParams || {});
@@ -579,12 +579,13 @@ export class ViewModel<
         return super.encodePageHash(
             encodedPageId !== this.defaultPageId ? encodedPageId : '',
             pageRef,
-            encodedParams
+            encodedParams,
+            pageAnchor
         );
     }
 
     decodePageHash(hash: string) {
-        const { pageId, pageRef, pageParams } = super.decodePageHash(
+        const { pageId, pageRef, pageParams, pageAnchor } = super.decodePageHash(
             hash,
             pageId => getPageMethod(this, pageId || this.defaultPageId, 'decodeParams', defaultDecodeParams)
         );
@@ -592,50 +593,97 @@ export class ViewModel<
         return {
             pageId: pageId || this.defaultPageId,
             pageRef,
-            pageParams
+            pageParams,
+            pageAnchor
         };
     }
 
-    setPage(pageId: string, pageRef: PageRef = null, pageParams?: PageParams, replace = false) {
+    setPageHashState(pageState: Partial<PageHashState> = {}, replace = false) {
+        return this.setPageHashStateWithAnchor({ ...pageState, anchor: null }, replace);
+    }
+    overridePageHashState(pageState: Partial<PageHashState>, replace = false) {
+        return this.setPageHashState({ ...this.getPageHashState(), ...pageState }, replace);
+    }
+    getPageHashState(): PageHashState {
+        return {
+            id: this.pageId,
+            ref: this.pageRef,
+            params: this.pageParams
+        };
+    }
+    setPageHashStateWithAnchor(pageStateWithAnchor: Partial<PageHashStateWithAnchor>, replace = false) {
+        const {
+            id: pageId = null,
+            ref: pageRef = null,
+            params: pageParams = {},
+            anchor: pageAnchor = null
+        } = pageStateWithAnchor;
+
         return this.setPageHash(
-            this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams),
+            this.encodePageHash(pageId || this.defaultPageId, pageRef, pageParams, pageAnchor),
             replace
         );
     }
+    overridePageHashStateWithAnchor(pageState: Partial<PageHashStateWithAnchor>, replace = false) {
+        return this.setPageHashStateWithAnchor({ ...this.getPageHashStateWithAnchor(), ...pageState }, replace);
+    }
+    getPageHashStateWithAnchor(): PageHashStateWithAnchor {
+        return { ...this.getPageHashState(), anchor: this.pageAnchor };
+    }
 
+    setPage(pageId: string, pageRef?: PageRef, pageParams?: PageParams, replace = false) {
+        return this.setPageHashState({
+            id: pageId,
+            ref: pageRef,
+            params: pageParams
+        }, replace);
+    }
     setPageRef(pageRef: PageRef = null, replace = false) {
-        return this.setPage(this.pageId, pageRef, this.pageParams, replace);
+        return this.overridePageHashStateWithAnchor({ ref: pageRef }, replace);
     }
-
     setPageParams(pageParams: PageParams, replace = false) {
-        return this.setPage(this.pageId, this.pageRef, pageParams, replace);
+        return this.overridePageHashStateWithAnchor({ params: pageParams }, replace);
     }
-
+    setPageAnchor(pageAnchor: string | null, replace = false) {
+        return this.overridePageHashStateWithAnchor({ anchor: pageAnchor }, replace);
+    }
     setPageHash(hash: string, replace = false) {
         if (!hash.startsWith('#')) {
             hash = '#' + hash;
         }
 
-        const { pageId, pageRef, pageParams } = this.decodePageHash(hash);
+        if (hash.startsWith('#!')) {
+            hash = this.pageHash + '&!anchor=' + hash.slice(2);
+        }
+
+        const { pageId, pageRef, pageParams, pageAnchor } = this.decodePageHash(hash);
 
         // TODO: remove sometime in the future
-        if (this.reportToDiscoveryRedirect && pageId === 'report') {
-            setTimeout(() => this.pageId === 'report' && this.setPage('discovery', this.pageRef, this.pageParams, true));
+        if (this.reportToDiscoveryRedirect && pageId === 'report' && this.discoveryPageId !== 'report') {
+            setTimeout(() => this.pageId === 'report' && this.setPageHashStateWithAnchor({
+                id: this.discoveryPageId,
+                ref: pageRef,
+                params: pageParams,
+                anchor: pageAnchor
+            }, true));
         }
 
         if (this.pageId !== pageId ||
             this.pageRef !== pageRef ||
             !deepEqual(this.pageParams, pageParams)) {
-            const prev = {
-                id: this.pageId,
-                ref: this.pageRef,
-                params: this.pageParams
-            };
+            const prev = this.getPageHashState();
 
             this.pageId = pageId;
             this.pageRef = pageRef;
             this.pageParams = pageParams;
             this.emit('pageStateChange', prev);
+        }
+
+        if (pageAnchor !== this.pageAnchor) {
+            const prev = this.pageAnchor;
+
+            this.pageAnchor = pageAnchor;
+            this.emit('pageAnchorChange', prev);
         }
 
         if (hash !== this.pageHash) {
@@ -646,6 +694,23 @@ export class ViewModel<
         }
 
         return false;
+    }
+
+    applyPageAnchor(onlyIfPageAnchorPresent = false) {
+        const pageEl = this.dom.pageContent;
+
+        if (this.pageAnchor) {
+            const anchorEl: HTMLElement | null = pageEl.querySelector('#' + CSS.escape('!anchor:' + this.pageAnchor));
+
+            if (anchorEl) {
+                const pageHeaderEl: HTMLElement | null = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
+
+                anchorEl.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
+                anchorEl.scrollIntoView(true);
+            }
+        } else if (!onlyIfPageAnchorPresent) {
+            this.dom.content.scrollTop = 0;
+        }
     }
 
     protected renderPage() {
@@ -679,18 +744,8 @@ export class ViewModel<
         setDatasetValue(this.dom.container, 'compact', Boolean(compact));
 
         renderState.then(async () => {
-            if (this.pageParams['!anchor']) {
-                const el: HTMLElement | null = pageEl.querySelector('#' + CSS.escape('!anchor:' + pageParams['!anchor']));
-
-                if (el) {
-                    const pageHeaderEl: HTMLElement | null = pageEl.querySelector('.view-page-header'); // TODO: remove, should be abstract
-
-                    await this.dom.ready;
-
-                    el.style.scrollMargin = pageHeaderEl ? pageHeaderEl.offsetHeight + 'px' : '';
-                    el.scrollIntoView(true);
-                }
-            }
+            await this.dom.ready;
+            this.applyPageAnchor(true);
         }).catch((e) => {
             this.logger.error(`Page "${pageId}" render error:`, e);
         });

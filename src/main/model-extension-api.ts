@@ -1,4 +1,4 @@
-import type { Model, ModelOptions, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods } from './model.js';
+import type { Model, ModelOptions, PageAnchor, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 import { hasOwn } from '../core/utils/object-utils.js';
 import jora from 'jora';
@@ -33,8 +33,8 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
     let queryCustomMethods = {
         query: host.query.bind(host),
         overrideProps,
-        pageLink: (pageRef: PageRef, pageId: string, pageParams: PageParams) =>
-            host.encodePageHash(pageId, pageRef, pageParams),
+        pageLink: (pageRef: PageRef, pageId: string, pageParams: PageParams, pageAnchor: PageAnchor) =>
+            host.encodePageHash(pageId, pageRef, pageParams, pageAnchor),
         marker: objectMarkers.lookup.bind(objectMarkers),
         markerAll: objectMarkers.lookupAll.bind(objectMarkers),
         callAction,

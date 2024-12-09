@@ -6,9 +6,47 @@
 - Added propagation of meaningful `source` view props into nested views rendering (action buttons, prelude, and postlude) through the context as `sourceViewProps`
 - Standardized monospace font size and line height in `struct`, `signature` and `source` views to relay on root settings
 - Added `computeClassName()` and `applyComputedClassName()` methods to view render context API
-- Added root CSS properties:
-    - `--discovery-monospace-font-size`
-    - `--discovery-monospace-line-height`
+- Added root CSS properties: `--discovery-monospace-font-size` and `--discovery-monospace-line-height`
+- Changes in page hash state API:
+    - Changed processing of page params to process `!anchor` as `pageAnchor`, previously `!anchor` parameter of page hash was included into `pageParams`, now it's a separate value with a dedicated property and event on `ViewModel` instance.
+    - Changed `pageStateChange` event to not fire when `!anchor` in page hash changed; it also means that `ViewModel` doesn't initiate a render on `!anchor` hash param changes
+    - Changed `pageParams` to not include `!anchor` 
+    - Added `ViewModel#pageAnchor` to store page's anchor value (`!anchor` hash parameter) if any, or `null`
+    - Added `pageAnchorChange` event for `ViewModel` which fires when `pageAnchor` changes
+    - Changed `Model#encodePageHash()` to take `pageAnchor` as 4th parameter
+    - Changed `Model#decodePageHash()` to return `pageAnchor`
+    - Changed `ViewModel#setPage()`, `ViewModel#setPageRef()` and `ViewModel#setParams()` to reset anchor
+    - Added `ViewModel#setPageHashState(pageState, replace)` method
+    - Added `ViewModel#setPageHashStateWithAnchor(pageStateWithAnchor, replace)` method
+    - Added `ViewModel#overridePageHashState(pageState, replace)` method
+    - Added `ViewModel#overridePageHashStateWithAnchor(pageStateWithAnchor, replace)` method
+    - Added `ViewModel#getPageHashState()`
+    - Added `ViewModel#getPageHashStateWithAnchor()` method
+    - Extended `ViewModel#setPageHash()` method, to transform passed hash starting with `#!` (i.e. `#!{value}`) to `#{current-hash}&!anchor={value}`; note that `#!` hash will just reset anchor (set it to `null`) but will keep the rest values in a hash (the same behaviour for `#&!anchor` and `#&!anchor=`). The changes should not clash with existed logic since valid encoded anchor is `#&!anchor=...`, i.e. preceding with `&`
+    - Changed `pageLink` jora query helper to accept `pageAnchor` parameter
+    - Embed API:
+        - Added `EmbedApp#setPageHashState()` and `EmbedApp#setPageHashStateWithAnchor()` methods
+        - Added `EmbedApp#setPageAnchor()` method
+        - Added `EmbedApp#pageAnchor` observer
+- Updated the page hash state API:
+    - Changed processing of page parameters so `!anchor` is now treated as `pageAnchor`. Previously, `!anchor` was included in `pageParams`, now it’s a separate value with its own property and event on the `ViewModel` instance
+    - Updated `pageStateChange` event to no longer fire when `!anchor` in the page hash changes, meaning `ViewModel` will not initiate a render on `!anchor` hash parameter changes
+    - Removed `!anchor` from `ViewModel#pageParams`
+    - Added `ViewModel#pageAnchor` to store the page’s anchor value (`!anchor`) or `null`
+    - Added a `pageAnchorChange` event for `ViewModel`, which fires when `pageAnchor` changes
+    - Changed `Model#encodePageHash()` to accept `pageAnchor` as the 4th parameter
+    - Changed `Model#decodePageHash()` to return `pageAnchor`
+    - Changed `ViewModel#setPage()` and `ViewModel#setParams()` to reset the anchor (`pageAnchor`) since `pageParams` can hold `!anchor` anymore
+    - Added `ViewModel#setPageHashState(pageState, replace)` and `ViewModel#setPageHashStateWithAnchor(pageStateWithAnchor, replace)` methods
+    - Added `ViewModel#overridePageHashState(pageState, replace)` and `ViewModel#overridePageHashStateWithAnchor(pageStateWithAnchor, replace)` methods
+    - Added `ViewModel#getPageHashState()` and `ViewModel#getPageHashStateWithAnchor()` methods
+    - Extended `ViewModel#setPageHash()` to transform hashes starting with `#!` (e.g. `#!{value}`) into `#{current-hash}&!anchor={value}`. Note that a `#!` hash will reset the anchor (set to `null`) but keep other values intact. This change doesn’t conflict with existing logic since a valid encoded anchor uses `#&!anchor=...`
+    - Added `ViewModel#applyPageAnchor()` method to apply current `pageAnchor` to rendered page content
+    - Updated the `pageLink()` jora query helper to accept a `pageAnchor` parameter
+    - Embed API changes:
+        - Added `EmbedApp#setPageHashState()` and `EmbedApp#setPageHashStateWithAnchor()` methods
+        - Added `EmbedApp#setPageAnchor()` method
+        - Added `EmbedApp#pageAnchor` observer      
 - Changes in `table` view:
     - Added `headerClassName` option in col config which behaves the same way as `className` but applies to header cell
     - Added `view-table-header-cell` class to header cell elements

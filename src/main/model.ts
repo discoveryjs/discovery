@@ -25,8 +25,17 @@ export type ExtensionArray<T> = Extension<T>[];
 export type ExtensionObject<T> = { [key: string]: Extension<T>; };
 export type Extension<T> = ExtensionFunction<T> | ExtensionArray<T> | ExtensionObject<T>;
 
+export type PageId = string;
 export type PageRef = string | number | null;
 export type PageParams = Record<string, unknown> | [string, unknown][] | string;
+export type PageAnchor = string | null;
+export type PageHashStateWithAnchor = PageHashState & { anchor: PageAnchor; }
+export type PageHashState = {
+    id: PageId;
+    ref: PageRef;
+    params: PageParams;
+};
+
 export type LinkResolver = (value: unknown) => null | ResolvedLink;
 export type ResolvedLink = {
     type: string;
@@ -435,17 +444,22 @@ export class Model<
     // Links
     //
 
-    encodePageHash(pageId: string, pageRef: PageRef = null, pageParams?: PageParams) {
+    encodePageHash(pageId: string | null = null, pageRef: PageRef = null, pageParams?: PageParams, pageAnchor: PageAnchor = null) {
         let encodedParams = pageParams;
 
-        if (encodedParams && typeof encodedParams !== 'string') {
-            if (!Array.isArray(encodedParams)) {
-                encodedParams = Object.entries(encodedParams);
-            }
+        if (encodedParams) {
+            if (typeof encodedParams !== 'string') {
+                if (!Array.isArray(encodedParams)) {
+                    encodedParams = Object.entries(encodedParams);
+                }
 
-            encodedParams = encodedParams
-                .map(pair => pair.map(encodeURIComponent).join('='))
-                .join('&');
+                encodedParams = encodedParams
+                    .filter(([name]) => name !== '!anchor')
+                    .map(pair => pair.map(encodeURIComponent).join('='))
+                    .join('&');
+            } else {
+                encodedParams = encodedParams.replace(/(^|&)!anchor(=[^&]+|(?=&|$))/g, '');
+            }
         }
 
         return `#${
@@ -454,23 +468,44 @@ export class Model<
             (typeof pageRef === 'string' && pageRef) || (typeof pageRef === 'number') ? ':' + encodeURIComponent(pageRef) : ''
         }${
             encodedParams ? '&' + encodedParams : ''
+        }${
+            pageAnchor ? '&!anchor=' + encodeURIComponent(pageAnchor) : ''
         }`;
     }
 
     decodePageHash(hash: string, getDecodeParams: GetDecodeParams = () => Object.fromEntries) {
         const delimIndex = (hash.indexOf('&') + 1 || hash.length + 1) - 1;
         const [pageId, pageRef = null] = hash.substring(hash[0] === '#' ? 1 : 0, delimIndex).split(':').map(decodeURIComponent);
-        const pairs: [string, string | boolean][] = hash.slice(delimIndex + 1).split('&').filter(Boolean).map(pair => {
+        const paramsTuples: [string, string | boolean][] = [];
+        let pageAnchor: string | null = null;
+
+        for (const pair of hash.slice(delimIndex + 1).split('&').filter(Boolean)) {
             const eqIndex = pair.indexOf('=');
-            return eqIndex !== -1
-                ? [decodeURIComponent(pair.slice(0, eqIndex)), decodeURIComponent(pair.slice(eqIndex + 1))]
-                : [decodeURIComponent(pair), true];
-        });
+            let name: string;
+            let value: string | boolean;
+
+            if (eqIndex !== -1) {
+                name = decodeURIComponent(pair.slice(0, eqIndex));
+                value = decodeURIComponent(pair.slice(eqIndex + 1));
+            } else {
+                name = decodeURIComponent(pair);
+                value = true;
+            }
+
+            if (name === '!anchor') {
+                pageAnchor = value && value !== true
+                    ? value
+                    : null;
+            } else {
+                paramsTuples.push([name, value]);
+            }
+        }
 
         return {
             pageId,
             pageRef,
-            pageParams: getDecodeParams(pageId)(pairs)
+            pageParams: getDecodeParams(pageId)(paramsTuples) as Record<string, unknown>,
+            pageAnchor
         };
     }
 

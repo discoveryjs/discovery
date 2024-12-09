@@ -24,7 +24,8 @@ export class CustomMarkedRenderer extends Renderer {
             const href = host.encodePageHash(
                 host.pageId,
                 host.pageRef,
-                { ...host.pageParams, '!anchor': slug }
+                host.pageParams,
+                slug
             );
 
             anchor = `<a class="view-header__anchor" id="!anchor:${escapeHtml(slug)}" href="${href}"></a>`;

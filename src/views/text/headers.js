@@ -16,7 +16,8 @@ export default function(host) {
             const href = host.encodePageHash(
                 host.pageId,
                 host.pageRef,
-                { ...host.pageParams, '!anchor': slug }
+                host.pageParams,
+                slug
             );
 
             el.prepend(createElement('a', {

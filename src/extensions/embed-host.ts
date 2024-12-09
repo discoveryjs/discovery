@@ -1,4 +1,4 @@
-import type { PageParams, PageRef } from '../main/model.js';
+import type { PageParams, PageRef, PageHashState, PageHashStateWithAnchor, PageAnchor } from '../main/model.js';
 import type { EmbedClientToHostMessage, EmbedHostToClientMessage, EmbedHostToPreinitMessage, EmbedPreinitToHostMessage, NavInsertPosition, NavSection } from './embed-message.types.js';
 import type { NavItemConfig } from '../nav/index.js';
 import type { LoadDataState } from '../core/utils/load-data.js';
@@ -134,6 +134,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
     pageId: Observer<string>;
     pageRef: Observer<PageRef>;
     pageParams: Observer<PageParams>;
+    pageAnchor: Observer<PageAnchor>;
     locationSync: LocationSync | null;
     colorScheme: Observer<{
         state: ColorSchemeState | 'unknown';
@@ -152,6 +153,7 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
             pageHash: app.pageHash.readonly,
             pageId: app.pageId.readonly,
             pageRef: app.pageRef.readonly,
+            pageAnchor: app.pageAnchor.readonly,
             pageParams: app.pageParams.readonly,
             colorScheme: app.colorScheme.readonly,
 
@@ -175,6 +177,12 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
             setPageHash(hash: string, replace = false) {
                 app.sendMessage('setPageHash', { hash, replace });
             },
+            setPageHashState(pageState: Partial<PageHashState>, replace = false) {
+                app.sendMessage('setPageHashState', { ...pageState, replace });
+            },
+            setPageHashStateWithAnchor(pageStateWithAnchor: Partial<PageHashStateWithAnchor>, replace = false) {
+                app.sendMessage('setPageHashStateWithAnchor', { ...pageStateWithAnchor, replace });
+            },
             setPage(id: string, ref: PageRef, params: PageParams, replace = false) {
                 app.sendMessage('setPage', { id, ref, params, replace });
             },
@@ -183,6 +191,9 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
             },
             setPageParams(params: PageParams, replace = false) {
                 app.sendMessage('setPageParams', { params, replace });
+            },
+            setPageAnchor(anchor: PageAnchor, replace = false) {
+                app.sendMessage('setPageAnchor', { anchor, replace });
             },
 
             setColorSchemeState(value: ColorSchemeState) {
@@ -229,8 +240,9 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
 
         this.pageHash = new Observer('#');
         this.pageId = new Observer('');
-        this.pageRef = new Observer('');
+        this.pageRef = new Observer(null);
         this.pageParams = new Observer({});
+        this.pageAnchor = new Observer(null);
         this.locationSync = null;
         this.colorScheme = new Observer({ state: 'unknown', value: 'unknown' },
             (prev, next) => prev.state !== next.state || prev.value !== next.value
@@ -275,13 +287,14 @@ class EmbedApp extends BaseApp<EmbedHostToClientMessage, EmbedAppEvents> {
             }
 
             case 'pageHashChanged': {
-                const { replace, hash, id, ref, params } = message.payload || {};
+                const { replace, hash, id, ref, params, anchor } = message.payload || {};
                 const hash_ = String(hash).startsWith('#') ? hash : '#' + hash;
 
                 this.pageHash.set(hash_);
                 this.pageId.set(id);
                 this.pageRef.set(ref);
                 this.pageParams.set(params);
+                this.pageAnchor.set(anchor);
                 this.emit('pageHashChanged', hash_, replace);
 
                 break;
@@ -376,12 +389,15 @@ export function connectToEmbedApp(
                     actions.id = data.id;
                 }
 
+                const { colorScheme, page: pageHashState } = data.payload;
+
                 embedApp = new EmbedApp(iframe.contentWindow!, data.id, actions);
-                embedApp.pageHash.set(data.payload.page.hash);
-                embedApp.pageId.set(data.payload.page.id);
-                embedApp.pageRef.set(data.payload.page.ref);
-                embedApp.pageParams.set(data.payload.page.params);
-                embedApp.colorScheme.set(data.payload.colorScheme);
+                embedApp.pageHash.set(pageHashState.hash);
+                embedApp.pageId.set(pageHashState.id);
+                embedApp.pageRef.set(pageHashState.ref);
+                embedApp.pageParams.set(pageHashState.params);
+                embedApp.pageAnchor.set(pageHashState.anchor);
+                embedApp.colorScheme.set(colorScheme);
                 embedApp.once('destroy', resetIfNeeded);
 
                 onDisconnect = callbacks.onConnect(embedApp.publicApi);

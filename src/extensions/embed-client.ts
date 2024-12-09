@@ -137,6 +137,16 @@ function setup(options?: Partial<EmbedClientOptions>) {
                         host.setPageHash(hash || '', replace || false);
                         break;
                     }
+                    case 'setPageHashState': {
+                        const { replace, id, ref, params } = payload || {};
+                        host.setPageHashState({ id, ref, params }, replace);
+                        break;
+                    }
+                    case 'setPageHashStateWithAnchor': {
+                        const { replace, id, ref, params, anchor } = payload || {};
+                        host.setPageHashStateWithAnchor({ id, ref, params, anchor }, replace);
+                        break;
+                    }
                     case 'setPage': {
                         const { replace, id, ref, params } = payload || {};
                         host.setPage(id, ref, params, replace);
@@ -150,6 +160,11 @@ function setup(options?: Partial<EmbedClientOptions>) {
                     case 'setPageParams': {
                         const { replace, params } = payload || {};
                         host.setPageParams(params, replace);
+                        break;
+                    }
+                    case 'setPageAnchor': {
+                        const { replace, anchor } = payload || {};
+                        host.setPageAnchor(anchor, replace);
                         break;
                     }
 
@@ -293,7 +308,8 @@ function setup(options?: Partial<EmbedClientOptions>) {
                 hash: host.pageHash || '#',
                 id: host.pageId,
                 ref: host.pageRef,
-                params: host.pageParams
+                params: host.pageParams,
+                anchor: host.pageAnchor
             });
         });
 
@@ -340,7 +356,8 @@ function setup(options?: Partial<EmbedClientOptions>) {
                 hash: host.pageHash || '#',
                 id: host.pageId,
                 ref: host.pageRef,
-                params: host.pageParams
+                params: host.pageParams,
+                anchor: host.pageAnchor
             },
             colorScheme: {
                 state: host.colorScheme.state,

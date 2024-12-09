@@ -1,4 +1,4 @@
-import type { PageParams, PageRef  } from '../main/model.js';
+import type { PageParams, PageRef, PageHashState, PageHashStateWithAnchor, PageAnchor  } from '../main/model.js';
 import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/color-scheme.js';
 import { ProgressbarState } from '../core/utils/progressbar.js';
 import { LoadDataResourceMetadata, LoadDataState } from '../core/utils/load-data.types.js';
@@ -12,13 +12,6 @@ export type CreateMessageType<T extends Record<string, any>> = {
         payload: T[K];
     };
 }[keyof T];
-
-type PageState = {
-    hash: string;
-    id: string;
-    ref: PageRef;
-    params: PageParams;
-};
 
 export type NavSection = 'primary' | 'secondary' | 'menu';
 export type NavInsertPosition = 'before' | 'after' | number;
@@ -44,9 +37,12 @@ export type EmbedHostToClientMessage = CreateMessageType<{
     defineAction: string;
     notification: { name: string; details: any; };
     setPageHash: { hash: string; replace?: boolean; };
-    setPage: Omit<PageState, 'hash'> & { replace?: boolean; };
+    setPageHashState: Partial<PageHashState> & { replace?: boolean; };
+    setPageHashStateWithAnchor: Partial<PageHashStateWithAnchor> & { replace?: boolean; };
+    setPage: PageHashState & { replace?: boolean; };
     setPageRef: { ref: PageRef; replace?: boolean; };
     setPageParams: { params: PageParams; replace: boolean; };
+    setPageAnchor: { anchor: PageAnchor; replace: boolean; };
     setColorSchemeState: ColorSchemeState;
     setRouterPreventLocationUpdate: boolean;
     unloadData: null;
@@ -84,13 +80,13 @@ export type EmbedHostToClientMessage = CreateMessageType<{
 
 export type EmbedClientToHostMessage = CreateMessageType<{
     ready: {
-        page: PageState;
+        page: PageHashStateWithAnchor & { hash: string; };
         colorScheme: {
             value: SerializedColorSchemeValue;
             state: ColorSchemeState;
         };
     };
-    pageHashChanged: PageState & { replace: boolean; };
+    pageHashChanged: PageHashStateWithAnchor & { hash: string; replace: boolean; };
     colorSchemeChanged: {
         value: SerializedColorSchemeValue;
         state: ColorSchemeState;
