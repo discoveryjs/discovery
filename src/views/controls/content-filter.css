@@ -1,6 +1,4 @@
 .view-content-filter > .view-input {
-    position: relative;
-    z-index: 9;
     line-height: 1;
     margin-bottom: 1em;
 }
