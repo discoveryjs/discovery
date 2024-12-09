@@ -130,9 +130,10 @@ export class CustomMarkedRenderer extends Renderer {
 
     tablecell({ tokens, header, align }: Tokens.TableCell) {
         const type = header ? 'th' : 'td';
+        const className = header ? 'view-table-header-cell' : 'view-table-cell';
 
         return (
-            `<${type} class="view-table-cell"${align ? ` align="${align}"` : ''}>` +
+            `<${type} class="${className}"${align ? ` align="${align}"` : ''}>` +
             this.parser.parseInline(tokens) +
             `</${type}>\n`
         );
