@@ -53,14 +53,10 @@ export class CustomMarkedRenderer extends Renderer {
             return text;
         }
 
-        let out = '<a class="view-link" href="' + escapeHtml(href) + '"';
+        let out = '<a class="view-link md-rendered-link" href="' + escapeHtml(href) + '"';
 
         if (title) {
             out += ' title="' + escapeHtml(title) + '"';
-        }
-
-        if (!href.startsWith('#')) {
-            out += ' target="_blank"';
         }
 
         out += '>' + text + '</a>';

@@ -3,8 +3,13 @@ import { Marked } from 'marked';
 import { CustomMarkedRenderer } from './markdown-marked-renderer.js';
 import usage from './markdown.usage.js';
 
-function applyTextInterpolation(value, values) {
-    return value.replace(/{{(\d+)}}/gs, (_, index) => values[index]);
+function applyTextInterpolation(node, values) {
+    const { nodeValue } = node;
+    const newValue = nodeValue.replace(/{{(\d+)}}/gs, (_, index) => values[index]);
+
+    if (newValue !== nodeValue) {
+        node.nodeValue = newValue;
+    }
 }
 
 function applyInterpolations(el, values) {
@@ -15,13 +20,13 @@ function applyInterpolations(el, values) {
                     applyInterpolations(child, values);
 
                     for (const attribute of child.attributes) {
-                        attribute.nodeValue = applyTextInterpolation(attribute.nodeValue, values);
+                        applyTextInterpolation(attribute, values);
                     }
                 }
                 break;
 
             case document.TEXT_NODE:
-                child.nodeValue = applyTextInterpolation(child.nodeValue, values);
+                applyTextInterpolation(child, values);
                 break;
         }
     }
@@ -152,6 +157,14 @@ export default function(host) {
             }
 
             applyInterpolations(el, interpolationValues);
+        }
+
+        // add target="_blank" for external links
+        // Note: check the link's href after rendering, since the href value can be an interpolated value
+        for (const linkEl of el.querySelectorAll('.md-rendered-link')) {
+            if (!linkEl.getAttribute('href').startsWith('#')) {
+                linkEl.setAttribute('target', '_blank');
+            }
         }
 
         // index sections if needed

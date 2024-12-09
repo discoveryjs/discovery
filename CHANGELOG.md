@@ -3,6 +3,7 @@
 - Fixed missed render on `unloadData` event when `modelfree` extension is used
 - Added visual guide lines for expanded objects in `signature` view, similar to `struct` view
 - Fixed rendering of copy source button in `source` view when a string is passed as data
+- Fixed `markdown` views to correctly set `target="_blank"` for links when the `href` attribute contains an interpolated value
 - Added propagation of meaningful `source` view props into nested views rendering (action buttons, prelude, and postlude) through the context as `sourceViewProps`
 - Standardized monospace font size and line height in `struct`, `signature` and `source` views to relay on root settings
 - Added `computeClassName()` and `applyComputedClassName()` methods to view render context API
