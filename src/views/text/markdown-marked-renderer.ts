@@ -17,7 +17,7 @@ export class CustomMarkedRenderer extends Renderer {
 
     heading({ tokens, depth, text }: Tokens.Heading) {
         const { discoveryjs: { host, useAnchors } } = this.options;
-        const slug = generateSlug(text);
+        const slug = generateSlug(text.replace(/<!--.*?-->/g, ''));
         let anchor = '';
 
         if (useAnchors) {

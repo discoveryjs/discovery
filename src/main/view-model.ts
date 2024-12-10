@@ -394,7 +394,9 @@ export class ViewModel<
             event.stopPropagation();
 
             if (!linkEl.classList.contains('ignore-href')) {
-                this.setPageHash(linkEl.hash);
+                if (!this.setPageHash(linkEl.hash)) {
+                    this.applyPageAnchor();
+                };
             }
         }, true);
     }
@@ -653,7 +655,7 @@ export class ViewModel<
         }
 
         if (hash.startsWith('#!')) {
-            hash = this.pageHash + '&!anchor=' + hash.slice(2);
+            hash = this.stripAnchorFromHash(this.pageHash) + (hash.length > 2 ? '&!anchor=' + hash.slice(2) : '');
         }
 
         const { pageId, pageRef, pageParams, pageAnchor } = this.decodePageHash(hash);

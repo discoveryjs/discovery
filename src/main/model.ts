@@ -444,6 +444,12 @@ export class Model<
     // Links
     //
 
+    stripAnchorFromHash(hash: string) {
+        return typeof hash === 'string'
+            ? hash.replace(/(^|&)!anchor(=[^&]+|(?=&|$))/g, '')
+            : hash;
+    }
+
     encodePageHash(pageId: string | null = null, pageRef: PageRef = null, pageParams?: PageParams, pageAnchor: PageAnchor = null) {
         let encodedParams = pageParams;
 
@@ -458,7 +464,7 @@ export class Model<
                     .map(pair => pair.map(encodeURIComponent).join('='))
                     .join('&');
             } else {
-                encodedParams = encodedParams.replace(/(^|&)!anchor(=[^&]+|(?=&|$))/g, '');
+                encodedParams = this.stripAnchorFromHash(encodedParams);
             }
         }
 
