@@ -24,7 +24,7 @@ export const propsConfigView = {
             content: [
                 {
                     view: 'struct',
-                    expanded: 2,
+                    expanded: 1,
                     data: 'props'
                 },
                 {
