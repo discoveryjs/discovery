@@ -76,47 +76,43 @@ export default function(host) {
 
         if ((details || (details === undefined && isDataObject)) && host.queryBool(detailsWhen, data, context)) {
             el.classList.add('details');
-            el.addEventListener('click', (e) => {
-                let node = e.target;
+            el.addEventListener('click', () => {
+                const rowEl = el.parentNode;
+                const bodyEl = rowEl.parentNode;
+                const currentDetailsEl = Array
+                    .from(bodyEl.querySelectorAll('.view-table-cell.details-expanded'))
+                    .find(td => td.parentNode.parentNode === bodyEl);
+                let detailsEl = null;
 
-                if (node === el) {
-                    const rowEl = node.parentNode;
-                    const bodyEl = rowEl.parentNode;
-                    const currentDetailsEl = Array
-                        .from(bodyEl.querySelectorAll('.view-table-cell.details-expanded'))
-                        .find(td => td.parentNode.parentNode === bodyEl);
-                    let detailsEl = null;
+                if (currentDetailsEl) {
+                    const currentDetailsRowEl = currentDetailsEl.parentNode;
 
-                    if (currentDetailsEl) {
-                        const currentDetailsRowEl = currentDetailsEl.parentNode;
+                    currentDetailsEl.classList.remove('details-expanded');
 
-                        currentDetailsEl.classList.remove('details-expanded');
-
-                        if (currentDetailsEl === el) {
-                            rowEl.nextSibling.remove();
-                            return;
-                        }
-
-                        if (currentDetailsRowEl !== rowEl) {
-                            currentDetailsRowEl.nextSibling.remove();
-                        } else {
-                            detailsEl = rowEl.nextSibling.firstChild;
-                            detailsEl.innerHTML = '';
-                        }
+                    if (currentDetailsEl === el) {
+                        rowEl.nextSibling.remove();
+                        return;
                     }
 
-                    if (detailsEl === null) {
-                        detailsEl = rowEl.parentNode
-                            .insertBefore(document.createElement('tr'), rowEl.nextSibling)
-                            .appendChild(document.createElement('td'));
-                        detailsEl.parentNode.className = 'view-table-cell-details-row';
-                        detailsEl.className = 'view-cell-details-content';
-                        detailsEl.colSpan = 1000;
+                    if (currentDetailsRowEl !== rowEl) {
+                        currentDetailsRowEl.nextSibling.remove();
+                    } else {
+                        detailsEl = rowEl.nextSibling.firstChild;
+                        detailsEl.innerHTML = '';
                     }
-
-                    el.classList.add('details-expanded');
-                    host.view.render(detailsEl, details || defaultDetailsRender, data, context);
                 }
+
+                if (detailsEl === null) {
+                    detailsEl = rowEl.parentNode
+                        .insertBefore(document.createElement('tr'), rowEl.nextSibling)
+                        .appendChild(document.createElement('td'));
+                    detailsEl.parentNode.className = 'view-table-cell-details-row';
+                    detailsEl.className = 'view-cell-details-content';
+                    detailsEl.colSpan = 1000;
+                }
+
+                el.classList.add('details-expanded');
+                host.view.render(detailsEl, details || defaultDetailsRender, data, context);
             });
         }
 

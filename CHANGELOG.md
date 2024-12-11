@@ -30,6 +30,7 @@
 - Changes in `table` view:
     - Added `headerClassName` option in col config which behaves the same way as `className` but applies to header cell
     - Added `view-table-header-cell` class to header cell elements
+    - Fixed detail cells to toggle their state when clicked anywhere within the cell, including nested elements, unless the click event's propagation is stopped
 - Changes in `input` view:
     - Added `htmlStep` option
     - Added props normalization
