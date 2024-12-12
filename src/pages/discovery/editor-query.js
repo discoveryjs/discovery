@@ -169,8 +169,10 @@ export default function(host, updateHostParams) {
     let computationCache = [];
     const defaultGraph = {};
 
+    let queryEditorSuggestionsEl;
     let queryEditorLiveEditEl;
-    const getQuerySuggestions = (query, offset, data, context) => host.querySuggestions(query, offset, data, context);
+    const getQuerySuggestions = (query, offset, data, context) =>
+        queryEditorSuggestionsEl.checked && host.querySuggestions(query, offset, data, context);
     const queryEditor = new host.view.QueryEditor(getQuerySuggestions).on('change', value =>
         queryEditorLiveEditEl.checked && updateHostParams({ query: value }, true)
     );
@@ -206,11 +208,11 @@ export default function(host, updateHostParams) {
     );
 
     // FIXME: temporary until full migration on discovery render
-    const hintTooltip = (text, textRoot = text) => ({
+    const hintTooltip = (text) => ({
         position: 'trigger',
         className: 'hint-tooltip',
         showDelay: true,
-        content: { view: 'context', data: () => currentGraph.current.length < 2 ? textRoot : text, content: 'text' }
+        content: { view: 'context', data: typeof text === 'function' ? text : () => text, content: 'md' }
     });
 
     function createSubquery(query = '') {
@@ -241,7 +243,10 @@ export default function(host, updateHostParams) {
         {
             view: 'button',
             className: 'stash',
-            tooltip: hintTooltip('Stash current query and create a new empty query for current parent', 'Stash current query and create a new empty query'),
+            tooltip: hintTooltip(() => currentGraph.current.length < 2
+                ? 'Stash current query and create a new empty query'
+                : 'Stash current query and create a new empty query for current parent'
+            ),
             onClick() {
                 mutateGraph(({ nextGraph, last, preLast }) => {
                     last.query = currentQuery;
@@ -302,12 +307,32 @@ export default function(host, updateHostParams) {
         }
     ]);
     queryEditorButtonsEl.append(
-        createElement('label', 'view-checkbox', [
+        createElement('label', {
+            class: 'view-checkbox suggestions',
+            tabindex: 0
+        }, [
+            queryEditorSuggestionsEl = createElement('input', {
+                class: 'live-update',
+                type: 'checkbox',
+                checked: true,
+                onchange() {
+                    queryEditor.focus();
+                    queryEditor.cm.showHint();
+                }
+            }),
+            createElement('span', 'view-checkbox__label', 'suggestions')
+        ]),
+        createElement('label', {
+            class: 'view-checkbox live-update',
+            tabindex: 0
+        }, [
             queryEditorLiveEditEl = createElement('input', {
                 class: 'live-update',
                 type: 'checkbox',
                 checked: true,
-                onchange: (e) => {
+                onchange(e) {
+                    queryEditor.focus();
+
                     if (e.target.checked) {
                         updateHostParams({
                             query: queryEditor.getValue()
@@ -318,6 +343,14 @@ export default function(host, updateHostParams) {
             createElement('span', 'view-checkbox__label', 'process on input')
         ])
     );
+    host.view.attachTooltip(queryEditorSuggestionsEl.parentNode, hintTooltip(() => queryEditorSuggestionsEl.checked
+        ? 'Query suggestions enabled<br>(click to disable)'
+        : 'Query suggestions disabled<br>(click to enable)'
+    ));
+    host.view.attachTooltip(queryEditorLiveEditEl.parentNode, hintTooltip(() => queryEditorLiveEditEl.checked
+        ? 'Auto-perform query enabled<br>(click to disable)'
+        : 'Auto-perform query disabled<br>(click to enable)'
+    ));
     host.view.render(queryEditorButtonsEl, {
         view: 'button-primary',
         content: 'text:"Process"',
@@ -403,6 +436,7 @@ export default function(host, updateHostParams) {
         queryEditorInputEl.append(
             createElement('div', {
                 class: 'query-input-data',
+                tabindex: -1,
                 onclick() {
                     expandQueryInput = expandQueryInput === 'data' ? false : 'data';
                     syncExpandInputData(computation);
@@ -417,6 +451,7 @@ export default function(host, updateHostParams) {
             ]),
             createElement('div', {
                 class: 'query-input-context',
+                tabindex: -1,
                 onclick() {
                     expandQueryInput = expandQueryInput === 'context' ? false : 'context';
                     syncExpandInputData(computation);
@@ -484,6 +519,7 @@ export default function(host, updateHostParams) {
         queryEditorResultEl.replaceChildren(
             createElement('div', {
                 class: 'query-result-data' + (computation.state === 'failed' ? ' error' : ''),
+                tabindex: -1,
                 onclick() {
                     expandQueryResults = !expandQueryResults;
                     syncExpandOutputData(computation);

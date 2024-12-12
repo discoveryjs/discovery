@@ -125,6 +125,9 @@
     font-size: 12px;
     padding: 1px 6px;
 }
+.discovery-buildin-view-tooltip.hint-tooltip > .view-markdown {
+    padding: 2px 4px;
+}
 
 .query-graph-tooltip {
     /* padding: 0 !important; */
@@ -302,17 +305,43 @@
 }
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-button {
     font-size: 12px;
-    padding: 3px 8px 4px;
+    padding: 3px 16px 4px;
     border-radius: 0px;
 }
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox {
-    padding: 2px 8px 2px 22px;
+    padding: 2px 6px;
+    align-content: center;
     background-color: rgba(192, 192, 192, .175);
     font-size: 12px;
+    cursor: pointer;
+}
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox input {
+    display: none;
 }
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox .view-checkbox__label {
-    margin-right: 0;
+    margin: 0;
 }
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox .view-checkbox__label {
+    content: '';
+    display: block;
+    width: 16px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    color: transparent;
+    background-color: light-dark(#c8c8c8, #6b6b6b);
+    mask: no-repeat center;
+    mask-size: 16px;
+}
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox.suggestions .view-checkbox__label {
+    mask-image: url(./img/suggestions.svg);
+}
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox.live-update .view-checkbox__label {
+    mask-image: url(./img/perform.svg);
+}
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox :checked + .view-checkbox__label {
+    background-color: light-dark(rgba(0, 141, 255, 0.75), #aaa);
+}
+
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox:hover {
     background-color: rgba(165, 165, 165, .3);
 }

@@ -6,6 +6,7 @@
 - Fixed `markdown` views to correctly set `target="_blank"` for links when the `href` attribute contains an interpolated value
 - Added propagation of meaningful `source` view props into nested views rendering (action buttons, prelude, and postlude) through the context as `sourceViewProps`
 - Standardized monospace font size and line height in `struct`, `signature` and `source` views to relay on root settings
+- Added suggestions toggle in query editor
 - Added `computeClassName()` and `applyComputedClassName()` methods to view render context API
 - Added root CSS properties: `--discovery-monospace-font-size` and `--discovery-monospace-line-height`
 - Changes in page hash state API:
