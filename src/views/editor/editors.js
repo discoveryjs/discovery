@@ -55,11 +55,11 @@ function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) 
 
 class Editor extends Emitter {
     static CodeMirror = CodeMirror;
-    constructor({ hint, mode }) {
+    constructor({ hint, mode, placeholder }) {
         super();
 
         this.el = document.createElement('div');
-        this.el.className = 'discovery-view-editor';
+        this.el.className = 'discovery-view-editor empty-value';
 
         const self = this;
         const cm = CodeMirror(this.el, {
@@ -75,7 +75,13 @@ class Editor extends Emitter {
             }
         });
 
-        cm.on('change', () => this.emit('change', cm.getValue()));
+        cm.display.lineDiv.parentNode.dataset.placeholder = placeholder;
+        cm.on('change', () => {
+            const newValue = cm.getValue();
+
+            this.el.classList.toggle('empty-value', newValue === '');
+            this.emit('change', newValue);
+        });
 
         if (typeof hint === 'function') {
             // patch prepareSelection to inject a context hint
@@ -137,7 +143,7 @@ class Editor extends Emitter {
 
 class QueryEditor extends Editor {
     constructor(getSuggestions) {
-        super({ mode: 'discovery-query', hint: (cm) => {
+        super({ mode: 'discovery-query', placeholder: 'Enter a jora query', hint: (cm) => {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),

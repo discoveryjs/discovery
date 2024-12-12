@@ -44,6 +44,12 @@
     cursor: text;
 }
 
+.discovery-view-editor.empty-value:not(:focus-within) .CodeMirror .CodeMirror-lines > div[role="presentation"]::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    color: #666;
+}
+
 .discovery-view-editor .CodeMirror .CodeMirror-line,
 .discovery-view-editor .CodeMirror .CodeMirror-line-like {
     padding: 0;
