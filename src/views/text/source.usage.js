@@ -118,6 +118,25 @@ export default {
             }
         },
         {
+            title: 'Customise copy source button',
+            beforeDemo: [
+                'md:"By default, the `source` view includes a \\"copy to clipboard\\" button. To customize its behavior use the `actionCopySource` option, which accepts the following values:\\n- `true` (default) – displays a button that copies the entire source to the clipboard;\\n- A function `({ source, syntax, lineNum, refs, ... }) => string` – displays a button that calls the provided function on click to determine the text to copy;\\n- Anything else – hides the copy button, i.e. the button is not rendered."'
+            ],
+            highlightProps: ['actionCopySource'],
+            demo: [
+                {
+                    view: 'source',
+                    actionCopySource: '==> source[0:10]',
+                    source: '// In this example, the copy button copies only the first 10 characters of the source'
+                },
+                {
+                    view: 'source',
+                    actionCopySource: false,
+                    source: '// This example demonstrates how to disable the default copy button'
+                }
+            ]
+        },
+        {
             title: 'Additional action buttons',
             highlightProps: ['actionButtons'],
             demo: {
@@ -129,10 +148,8 @@ export default {
                         onClick: helloWorld
                     }
                 ],
-                data: {
-                    content: codeExample,
-                    syntax: 'js'
-                }
+                source: codeExample,
+                syntax: 'js'
             }
         },
         {

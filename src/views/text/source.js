@@ -104,6 +104,7 @@ const props = `is not array? | {
     refs is array ?: null,
     maxSourceSizeToHighlight is number ?: 250 * 1024, // 250Kb
     actionButtons: undefined,
+    actionCopySource is undefined ? true,
     prelude: undefined,
     postlude: undefined
 } | overrideProps()`;
@@ -122,6 +123,7 @@ export default function(host) {
             refs,
             maxSourceSizeToHighlight,
             actionButtons,
+            actionCopySource,
             prelude,
             postlude
         } = props;
@@ -194,16 +196,27 @@ export default function(host) {
 
         // action buttons
         const actionButtonsEl = createElement('div', 'view-source__action-buttons');
+        const actionCopyFn = actionCopySource !== true
+            ? (typeof actionCopySource === 'function' ? actionCopySource : null)
+            : (_, { sourceViewProps: { source } }) => source;
+        const actionCopyButton = typeof actionCopyFn === 'function'
+            ? {
+                view: 'button',
+                className: 'copy',
+                content: [],
+                async onClick(btnEl) {
+                    clearTimeout(btnEl.copiedTimer);
+                    await copyText(String(actionCopyFn(nestedViewRenderContext.sourceViewProps)));
+                    btnEl.classList.add('copied');
+                    btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
+                }
+            }
+            : null;
 
         contentEl.prepend(actionButtonsEl);
         await host.view.render(actionButtonsEl, [
             actionButtons,
-            { view: 'button', className: 'copy', content: [], async onClick(btnEl) {
-                clearTimeout(btnEl.copiedTimer);
-                await copyText(source);
-                btnEl.classList.add('copied');
-                btnEl.copiedTimer = setTimeout(() => btnEl.classList.remove('copied'), 1250);
-            } }
+            actionCopyButton
         ], nestedViewRenderData, nestedViewRenderContext);
 
         // tooltips

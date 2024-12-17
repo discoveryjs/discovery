@@ -84,6 +84,7 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel) {
                 view: 'source',
                 syntax: '=query ? "jora" : false',
                 source: '=query or "<empty query>"',
+                actionCopySource: false,
                 lineNumber: false
             }
         }, { query: node.query });
