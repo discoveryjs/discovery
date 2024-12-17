@@ -875,7 +875,7 @@ export class ViewRenderer extends Dictionary<View> {
         container.appendChild(moreButton);
     }
 
-    attachTooltip(el: HTMLElement, config: TooltipConfig | RawViewConfig, data: any, context: any) {
+    attachTooltip(el: HTMLElement, config: TooltipConfig | RawViewConfig, data?: any, context?: any) {
         attachTooltip(this.host, el, config, data, context);
     }
 

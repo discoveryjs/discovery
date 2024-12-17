@@ -1,14 +1,32 @@
+import type { TooltipConfig } from '../../core/view.js';
+import type { ViewModel } from '../../main/view-model.js';
+import type { Computation, Graph, GraphNode, KnownParams, Params } from './types.js';
+import type { QueryEditor } from '../../views/editor/editors.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { getBoundingRect } from '../../core/utils/layout.js';
 import { contextWithoutEditorParams } from './params.js';
 
+type GraphNodePath = [graph: Graph, ...GraphNode[]];
+type GraphMutator = (graphState: {
+    nextGraph: Graph;
+    currentPath: GraphNodePath;
+    last: GraphNode;
+    preLast: GraphNode;
+}) => { query?: string; view?: string; graph: Graph; };
+type ScheduledCompute = {
+    computation: Computation;
+    cancel(): void;
+};
+type EditorErrorMarker = {
+    clear(): void;
+};
 
-function count(value, one, many) {
+function count(value: unknown[], one: string, many: string): string {
     return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
 }
 
-function valueDescriptor(value) {
+function valueDescriptor(value: unknown) {
     if (Array.isArray(value)) {
         return `Array (${count(value, 'element', 'elements')})`;
     }
@@ -20,24 +38,24 @@ function valueDescriptor(value) {
     return `Scalar (${value === null ? 'null' : typeof value})`;
 }
 
-function svg(tagName, attributes) {
+function svg(tagName: string, attributes?: Record<string, unknown>) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tagName);
 
     if (attributes) {
         for (const [k, v] of Object.entries(attributes)) {
-            el.setAttribute(k, v);
+            el.setAttribute(k, String(v));
         }
     }
 
     return el;
 }
 
-function buildQueryGraph(el, graph, host) {
+function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel) {
     function createBox() {
         return el.appendChild(createElement('div', 'query-graph-box'));
     }
 
-    function walk(box, node, path, currentPath) {
+    function walk(box: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
         if (!Array.isArray(currentPath)) {
             currentPath = [];
         }
@@ -50,6 +68,7 @@ function buildQueryGraph(el, graph, host) {
         const isCurrent = currentPath.length > 1;
         const nodeEl = box.appendChild(createElement('div', {
             'data-path': path.join(' '),
+            tabindex: -1,
             class: `query-graph-node${
                 isTarget
                     ? ' target'
@@ -63,18 +82,16 @@ function buildQueryGraph(el, graph, host) {
             className: 'query-graph-tooltip',
             content: isTarget ? 'badge:"Current query"' : {
                 view: 'source',
-                data: !node.query ? { content: '<empty query>', lineNum: false } : {
-                    syntax: 'jora',
-                    content: node.query || '',
-                    lineNum: false
-                }
+                syntax: '=query ? "jora" : false',
+                source: '=query or "<empty query>"',
+                lineNumber: false
             }
-        });
+        }, { query: node.query });
 
         if (Array.isArray(node.children)) {
             for (let i = 0; i < node.children.length; i++) {
                 const childEl = walk(
-                    box.nextSibling,
+                    box.nextSibling as HTMLElement,
                     node.children[i],
                     path.concat(i),
                     currentPath[1] === i ? currentPath.slice(1) : []
@@ -87,9 +104,9 @@ function buildQueryGraph(el, graph, host) {
         return nodeEl;
     }
 
-    let connections = [];
+    const connections: [from: HTMLElement, to: HTMLElement][] = [];
     for (let i = 0; i < graph.children.length; i++) {
-        walk(el.firstChild, graph.children[i], [i], graph.current[0] === i ? graph.current : []);
+        walk(el.firstChild as HTMLElement, graph.children[i], [i], graph.current[0] === i ? graph.current : []);
     }
 
     requestAnimationFrame(() => {
@@ -125,55 +142,59 @@ function buildQueryGraph(el, graph, host) {
     });
 }
 
-function normalizeGraph(graph) {
-    if (!Array.isArray(graph.current)) {
-        graph.current = [];
-    }
+function normalizeGraph(inputGraph: Partial<Graph>): Graph {
+    const graph = {
+        current: Array.isArray(inputGraph.current)
+            ? inputGraph.current
+            : [],
+        children: Array.isArray(inputGraph.children)
+            ? inputGraph.children
+            : []
+    };
 
     if (graph.current.length === 0) {
         graph.current.push(0);
     }
 
-    if (!Array.isArray(graph.children)) {
-        graph.children = [];
-    }
-
     if (graph.children.length === 0) {
         graph.children.push({});
     }
+
+    return graph;
 }
 
-function getPathInGraph(graph, path) {
-    const result = [graph];
-    let cursor = graph;
+function getPathInGraph(graph: Graph, path: number[]) {
+    const result: GraphNodePath = [graph];
+    let cursor: Graph | GraphNode = graph;
 
     for (let i = 0; i < path.length; i++) {
-        cursor = cursor.children[path[i]];
+        cursor = cursor.children?.[path[i]] as GraphNode;
         result.push(cursor);
     }
 
     return result;
 }
 
-export default function(host, updateHostParams) {
-    let expandQueryInput = false;
-    let expandQueryInputData = NaN;
-    let expandQueryResults = false;
-    let expandQueryResultData = NaN;
-    let currentQuery;
-    let currentView;
-    let currentGraph = null;
-    let currentContext;
-    let errorMarker = null;
-    let scheduledCompute = null;
-    let computationCache = [];
+export default function(host: ViewModel, updateHostParams: (patch: Partial<Params>, replace: boolean) => void) {
+    const QueryEditorView = (host.view as any).QueryEditor as typeof QueryEditor;
     const defaultGraph = {};
+    let expandQueryInput: undefined | 'data' | 'context';
+    let expandQueryInputData: unknown = NaN;
+    let expandQueryResults = false;
+    let expandQueryResultData: unknown = NaN;
+    let currentQuery: string | undefined;
+    let currentView: string | undefined;
+    let currentGraph = normalizeGraph({});
+    let currentContext: unknown;
+    let errorMarker: EditorErrorMarker | null = null;
+    let scheduledCompute: ScheduledCompute | null = null;
+    let computationCache: Computation[] = [];
 
-    let queryEditorSuggestionsEl;
-    let queryEditorLiveEditEl;
-    const getQuerySuggestions = (query, offset, data, context) =>
-        queryEditorSuggestionsEl.checked && host.querySuggestions(query, offset, data, context);
-    const queryEditor = new host.view.QueryEditor(getQuerySuggestions).on('change', value =>
+    let queryEditorSuggestionsEl: HTMLInputElement;
+    let queryEditorLiveEditEl: HTMLInputElement;
+    const getQuerySuggestions = (query: string, offset: number, data: unknown, context: unknown) =>
+        queryEditorSuggestionsEl.checked ? host.querySuggestions(query, offset, data, context) : null;
+    const queryEditor = new QueryEditorView(getQuerySuggestions).on('change', (value: string) =>
         queryEditorLiveEditEl.checked && updateHostParams({ query: value }, true)
     );
     const queryEngineInfo = host.getQueryEngineInfo();
@@ -208,11 +229,15 @@ export default function(host, updateHostParams) {
     );
 
     // FIXME: temporary until full migration on discovery render
-    const hintTooltip = (text) => ({
+    const hintTooltip = (text: string | (() => string)): TooltipConfig => ({
         position: 'trigger',
         className: 'hint-tooltip',
         showDelay: true,
-        content: { view: 'context', data: typeof text === 'function' ? text : () => text, content: 'md' }
+        content: {
+            view: 'context',
+            data: typeof text === 'function' ? text : () => text,
+            content: 'md'
+        }
     });
 
     function createSubquery(query = '') {
@@ -249,9 +274,11 @@ export default function(host, updateHostParams) {
             ),
             onClick() {
                 mutateGraph(({ nextGraph, last, preLast }) => {
+                    const preLastChildren = preLast.children || [];
+
                     last.query = currentQuery;
                     last.view = currentView;
-                    nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
+                    nextGraph.current[nextGraph.current.length - 1] = preLastChildren.push({}) - 1;
 
                     return {
                         query: '',
@@ -267,9 +294,11 @@ export default function(host, updateHostParams) {
             tooltip: hintTooltip('Clone current query'),
             onClick() {
                 mutateGraph(({ nextGraph, last, preLast }) => {
+                    const preLastChildren = preLast.children || [];
+
                     last.query = currentQuery;
                     last.view = currentView;
-                    nextGraph.current[nextGraph.current.length - 1] = preLast.children.push({}) - 1;
+                    nextGraph.current[nextGraph.current.length - 1] = preLastChildren.push({}) - 1;
 
                     return {
                         graph: nextGraph
@@ -283,11 +312,11 @@ export default function(host, updateHostParams) {
             tooltip: hintTooltip('Delete current query and all the descendants'),
             onClick() {
                 mutateGraph(({ nextGraph, last, preLast }) => {
-                    const index = preLast.children.indexOf(last);
+                    const index = preLast.children?.indexOf(last) ?? -1;
                     let nextQuery = preLast.query;
 
-                    preLast.children.splice(index, 1);
-                    if (preLast.children.length === 0) {
+                    preLast.children?.splice(index, 1);
+                    if (!preLast.children?.length) {
                         preLast.children = undefined;
                     }
 
@@ -330,10 +359,10 @@ export default function(host, updateHostParams) {
                 class: 'live-update',
                 type: 'checkbox',
                 checked: true,
-                onchange(e) {
+                onchange({ target }) {
                     queryEditor.focus();
 
-                    if (e.target.checked) {
+                    if ((target as HTMLInputElement).checked) {
                         updateHostParams({
                             query: queryEditor.getValue()
                         }, true);
@@ -343,11 +372,11 @@ export default function(host, updateHostParams) {
             createElement('span', 'view-checkbox__label', 'process on input')
         ])
     );
-    host.view.attachTooltip(queryEditorSuggestionsEl.parentNode, hintTooltip(() => queryEditorSuggestionsEl.checked
+    host.view.attachTooltip(queryEditorSuggestionsEl.parentNode as HTMLElement, hintTooltip(() => queryEditorSuggestionsEl.checked
         ? 'Query suggestions enabled<br>(click to disable)'
         : 'Query suggestions disabled<br>(click to enable)'
     ));
-    host.view.attachTooltip(queryEditorLiveEditEl.parentNode, hintTooltip(() => queryEditorLiveEditEl.checked
+    host.view.attachTooltip(queryEditorLiveEditEl.parentNode as HTMLElement, hintTooltip(() => queryEditorLiveEditEl.checked
         ? 'Auto-perform query enabled<br>(click to disable)'
         : 'Auto-perform query disabled<br>(click to enable)'
     ));
@@ -363,8 +392,9 @@ export default function(host, updateHostParams) {
         }
     });
 
-    queryPathEl.addEventListener('click', (e) => {
-        const idx = [...queryPathEl.children].indexOf(e.target.closest('.query-path > *'));
+    queryPathEl.addEventListener('click', ({ target }) => {
+        const closestQueryPathEl = (target as Element).closest('.query-path > *') as Element;
+        const idx = [...queryPathEl.children].indexOf(closestQueryPathEl);
 
         if (idx !== -1) {
             mutateGraph(({ nextGraph, currentPath, last }) => {
@@ -372,20 +402,21 @@ export default function(host, updateHostParams) {
 
                 nextGraph.current = nextGraph.current.slice(0, idx + 1);
 
-                updateHostParams({
-                    query: currentPath[idx + 1].query,
+                return {
+                    query: (currentPath[idx + 1] as GraphNode).query,
                     graph: nextGraph
-                });
+                };
             });
         }
     });
-    queryGraphEl.addEventListener('click', (e) => {
-        const path = e.target.dataset.path;
+    queryGraphEl.addEventListener('click', ({ target }) => {
+        const path = (target as HTMLElement).dataset.path;
+
         if (typeof path === 'string' && path !== currentGraph.current.join(' ')) {
             mutateGraph(({ nextGraph, last }) => {
                 const nextPath = path.split(' ').map(Number);
                 const nextGraphPath = getPathInGraph(nextGraph, nextPath);
-                const nextTarget = nextGraphPath[nextGraphPath.length - 1];
+                const nextTarget: GraphNode = nextGraphPath[nextGraphPath.length - 1];
 
                 const nextQuery = nextTarget.query;
                 const nextView = nextTarget.view;
@@ -404,8 +435,8 @@ export default function(host, updateHostParams) {
         }
     });
 
-    function updateParams(delta, autofocus = true, replace = false) {
-        updateHostParams(delta, replace);
+    function updateParams(patch: Record<string, unknown>, autofocus = true, replace = false) {
+        updateHostParams(patch, replace);
 
         if (autofocus) {
             setTimeout(() => {
@@ -415,8 +446,8 @@ export default function(host, updateHostParams) {
         }
     }
 
-    function mutateGraph(fn) {
-        const nextGraph = JSON.parse(JSON.stringify(currentGraph));
+    function mutateGraph(fn: GraphMutator) {
+        const nextGraph = JSON.parse(JSON.stringify(currentGraph)); // accept only serializable data, clean up undefined
         const currentPath = getPathInGraph(nextGraph, nextGraph.current);
         const last = currentPath[currentPath.length - 1];
         const preLast = currentPath[currentPath.length - 2];
@@ -426,19 +457,19 @@ export default function(host, updateHostParams) {
         updateParams(params, true);
     }
 
-    function scheduleCompute(fn) {
+    function scheduleCompute(fn: () => void) {
         const id = setTimeout(fn, 16);
         return () => clearTimeout(id);
     }
 
-    function syncInputData(computation) {
+    function syncInputData(computation: Computation) {
         queryEditorInputEl.innerHTML = '';
         queryEditorInputEl.append(
             createElement('div', {
                 class: 'query-input-data',
                 tabindex: -1,
                 onclick() {
-                    expandQueryInput = expandQueryInput === 'data' ? false : 'data';
+                    expandQueryInput = expandQueryInput === 'data' ? undefined : 'data';
                     syncExpandInputData(computation);
                 }
             }, [
@@ -453,7 +484,7 @@ export default function(host, updateHostParams) {
                 class: 'query-input-context',
                 tabindex: -1,
                 onclick() {
-                    expandQueryInput = expandQueryInput === 'context' ? false : 'context';
+                    expandQueryInput = expandQueryInput === 'context' ? undefined : 'context';
                     syncExpandInputData(computation);
                 }
             }, [
@@ -469,8 +500,8 @@ export default function(host, updateHostParams) {
         syncExpandInputData(computation);
     }
 
-    function syncExpandInputData(computation) {
-        queryEditor.inputPanelEl.classList.toggle('details-expanded', expandQueryInput);
+    function syncExpandInputData(computation: Computation) {
+        queryEditor.inputPanelEl.classList.toggle('details-expanded', expandQueryInput !== undefined);
         queryEditorInputEl.dataset.details = expandQueryInput;
 
         if (expandQueryInput) {
@@ -502,12 +533,7 @@ export default function(host, updateHostParams) {
         }
     }
 
-    function renderOutputExpander(computation, prelude, message) {
-        if (!message) {
-            message = prelude;
-            prelude = null;
-        }
-
+    function renderOutputExpander(computation: Computation, prelude: string | null, message: (string | Node)[] | string) {
         const content = [
             createElement('span', 'query-output-message', Array.isArray(message) ? message : [message])
         ];
@@ -542,12 +568,12 @@ export default function(host, updateHostParams) {
             }
             case 'awaiting': {
                 queryEditor.setValue(computation.query);
-                renderOutputExpander(computation, 'Avaiting...');
+                renderOutputExpander(computation, null, 'Avaiting...');
                 break;
             }
             case 'computing': {
                 queryEditor.setValue(computation.query, computation.data, computation.context);
-                renderOutputExpander(computation, 'Computing...');
+                renderOutputExpander(computation, null, 'Computing...');
                 break;
             }
             case 'successful': {
@@ -592,7 +618,7 @@ export default function(host, updateHostParams) {
         syncExpandOutputData(computation);
     }
 
-    function syncExpandOutputData(computation) {
+    function syncExpandOutputData(computation: Computation) {
         queryEditor.outputPanelEl.classList.toggle('details-expanded', expandQueryResults);
 
         if (expandQueryResults) {
@@ -613,7 +639,7 @@ export default function(host, updateHostParams) {
                     case 'failed':
                         queryEditorResultDetailsEl.innerHTML =
                             '<div class="discovery-error query-error">' +
-                            escapeHtml(computation.error.message) +
+                            escapeHtml(computation.error?.message || '') +
                             '</div>';
                         break;
                     case 'successful':
@@ -628,9 +654,9 @@ export default function(host, updateHostParams) {
         }
     }
 
-    function syncComputeState(computation) {
+    function syncComputeState(computation: Computation) {
         const path = computation.path.join(' ');
-        const graphNodeEl = queryGraphEl.querySelector(`[data-path="${path}"]`);
+        const graphNodeEl: HTMLElement | null = queryGraphEl.querySelector(`[data-path="${path}"]`);
 
         if (graphNodeEl) {
             graphNodeEl.dataset.state = computation.state;
@@ -642,7 +668,7 @@ export default function(host, updateHostParams) {
         }
     }
 
-    function compute(computeIndex, computeData, computeContext, first) {
+    function compute(computeIndex: number, computeData: unknown, computeContext: unknown, first = false) {
         if (scheduledCompute) {
             scheduledCompute.cancel();
             scheduledCompute.computation.state = 'canceled';
@@ -693,7 +719,7 @@ export default function(host, updateHostParams) {
                 scheduledCompute = {
                     computation,
                     cancel: scheduleCompute(() => {
-                        let startTime = Date.now();
+                        const startTime = Date.now();
 
                         scheduledCompute = null;
 
@@ -717,18 +743,20 @@ export default function(host, updateHostParams) {
                 };
             });
         }
+
+        return Promise.reject('No computation found');
     }
 
-    function makeComputationPlan(computeData, computeContext) {
+    function makeComputationPlan(computeData: unknown, computeContext: unknown) {
         const graphPath = getPathInGraph(currentGraph, currentGraph.current).slice(1);
         let firstComputation = -1;
-        let computeError = null;
+        let computeError: Error | null = null;
 
         for (let i = 0; i < currentGraph.current.length; i++) {
             const graphNode = graphPath[i];
             const cache = computationCache[i] || {};
             const isTarget = i === currentGraph.current.length - 1;
-            const computeQuery = isTarget ? currentQuery : graphNode.query;
+            const computeQuery = isTarget ? currentQuery : (graphNode as GraphNode).query;
             const computePath = currentGraph.current.slice(0, i + 1);
 
             if (firstComputation === -1 &&
@@ -741,10 +769,10 @@ export default function(host, updateHostParams) {
                 continue;
             }
 
-            const computation = computationCache[i] = {
+            const computation: Computation = computationCache[i] = {
                 state: 'awaiting',
                 path: currentGraph.current.slice(0, i + 1),
-                query: computeQuery,
+                query: computeQuery || '',
                 data: undefined,
                 context: undefined,
                 computed: undefined,
@@ -775,19 +803,20 @@ export default function(host, updateHostParams) {
         el: queryEditorFormEl,
         createSubquery,
         appendToQuery(query) {
-            const newQuery = currentQuery.trimRight() !== ''
+            const newQuery = typeof currentQuery === 'string' && currentQuery.trimRight() !== ''
                 ? currentQuery.replace(/(\n[ \t]*)*$/, () => '\n| ' + query)
                 : query;
 
             updateParams({ query: newQuery }, true, true);
         },
-        perform(data, context) {
+        perform(data: unknown, context: unknown) {
             const queryContext = contextWithoutEditorParams(context, currentContext);
-            const pageQuery = context.params.query;
-            const pageView = context.params.view;
-            const pageGraph = { ...context.params.graph || defaultGraph };
-
-            normalizeGraph(pageGraph);
+            const pageParams = context && typeof context === 'object' && 'params' in context
+                ? context.params as Partial<KnownParams>
+                : {} as Partial<KnownParams>;
+            const pageQuery = pageParams.query;
+            const pageView = pageParams.view;
+            const pageGraph = normalizeGraph({ ...pageParams.graph || defaultGraph });
 
             queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
             queryGraphEl.innerHTML = '';
@@ -795,7 +824,7 @@ export default function(host, updateHostParams) {
 
             queryPathEl.innerHTML = '';
             for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(1, -1)) {
-                queryPathEl.append(createElement('div', 'query', node.query || ''));
+                queryPathEl.append(createElement('div', 'query', (node as GraphNode).query || ''));
             }
 
             currentGraph = pageGraph;

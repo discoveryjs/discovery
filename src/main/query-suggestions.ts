@@ -26,7 +26,7 @@ type QueryStatApiSuggestion = {
     suggestions: string[];
 };
 
-type Suggestion = {
+export type Suggestion = {
     type: SuggestionType;
     from: number;
     to: number;

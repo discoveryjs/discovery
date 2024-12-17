@@ -30,7 +30,7 @@ export function getOverflowParent(node: HTMLElement) {
     return overflowParent || documentElement;
 }
 
-export function getPageOffset(element: HTMLElement | null = null) {
+export function getPageOffset(element: Element | null = null) {
     let top = 0;
     let left = 0;
 
@@ -64,7 +64,7 @@ export function getPageOffset(element: HTMLElement | null = null) {
 
 export function getBoundingRect(
     element: HTMLElement | Window,
-    relElement: HTMLElement | null = null
+    relElement: Element | null = null
 ) {
     const offset = getPageOffset(relElement);
     let top = 0;

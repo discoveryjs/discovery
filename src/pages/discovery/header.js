@@ -115,17 +115,17 @@ export default function(host, updateParams) {
             titleInputEl = createElement('input', {
                 class: 'discovery-hidden-in-dzen',
                 placeholder: 'Untitled discovery',
-                oninput: ({ target }) => {
+                oninput({ target }) {
                     updateHeaderTitle(target);
                 },
-                onchange: ({ target }) => {
+                onchange({ target }) {
                     updateHeaderTitle(target);
                     updateParams({
                         title: target.value
                     }, true);
                 },
-                onkeypress: (e) => {
-                    if (e.charCode === 13 || e.keyCode === 13) {
+                onkeypress(e) {
+                    if (e.key === 'Enter') {
                         e.target.blur();
                     }
                 }

@@ -76,7 +76,7 @@ const renderQueryAutocompleteItem: EditorHintSuggestion['render'] = (el, _, { en
     el.appendChild(createElement('span', 'name', value));
 };
 
-class Editor extends Emitter<{
+export class Editor extends Emitter<{
     change: [newValue: string];
 }> {
     static CodeMirror = CodeMirror;
@@ -174,7 +174,7 @@ class Editor extends Emitter<{
     }
 }
 
-class QueryEditor extends Editor {
+export class QueryEditor extends Editor {
     private queryData: unknown;
     private queryContext: unknown;
     inputPanelEl: HTMLElement;
@@ -228,7 +228,7 @@ class QueryEditor extends Editor {
     }
 }
 
-class ViewEditor extends Editor {
+export class ViewEditor extends Editor {
     constructor() {
         super({
             mode: {
