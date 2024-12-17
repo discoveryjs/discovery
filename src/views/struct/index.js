@@ -17,7 +17,7 @@ import {
     objectKeyProtoEl,
     matchProtoEl
 } from './el-proto.js';
-import { createSignaturePopup } from './poup-signature.js';
+import { createSignaturePopup } from './popup-signature.js';
 import { matchAll } from '../../core/utils/pattern.js';
 
 const defaultExpandedItemsLimit = 50;
