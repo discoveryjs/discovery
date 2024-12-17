@@ -11,6 +11,7 @@ import { encoding as jsonxl } from './core/encodings/jsonxl.js';
 import * as utils from './core/utils/index.js';
 
 export type * from './main/index.js';
+export type * from './views/editor/editors.js';
 export {
     version,
     Model,

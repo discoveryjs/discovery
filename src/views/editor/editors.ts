@@ -1,5 +1,7 @@
 /* eslint-env browser */
 
+import type { ViewModel } from '../../main/view-model.js';
+import type { Suggestion } from '../../main/query-suggestions.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { ContentRect } from '../../core/utils/size.js';
@@ -10,14 +12,35 @@ import modeView from './editor-mode-view.js';
 import 'codemirror/mode/javascript/javascript.js';
 import './editors-hint.js';
 
+type CodeMirrorChange = {
+    origin: string;
+};
+export type EditorOptions = {
+    mode: string | { name: string; isDiscoveryViewDefined?: (name: string) => boolean; };
+    placeholder: string;
+    hint: EditorHintOptions['hint'];
+};
+export type EditorHintOptions = {
+    closeOnUnfocus: boolean;
+    container: HTMLElement;
+    hint(cm: CodeMirror): null | EditorHintResult;
+};
+export type EditorHintResult = { list: EditorHintSuggestion[]; };
+export type EditorHintSuggestion = {
+    entry: Suggestion;
+    text: string;
+    render(el: HTMLElement, result: EditorHintResult, suggestion: EditorHintSuggestion): void;
+    from: number;
+    to: number;
+};
+
 // Workaround to prevent warning in Chrome: [Violation] Added non-passive event listener to a scroll-blocking <some> event. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
 // GitHub issue: https://github.com/codemirror/codemirror5/issues/6735
 Object.defineProperty(CodeMirror.prototype, 'display', {
     configurable: true,
     set(value) {
-        const _addEventListener = value.scroller.addEventListener;
-        value.scroller.addEventListener = function (eventName, cb, options) {
-            _addEventListener.call(this, eventName, cb, typeof options !== 'boolean' ? options : {
+        value.scroller.addEventListener = function(eventName: string, cb: () => void, options: any) {
+            EventTarget.prototype.addEventListener.call(this, eventName, cb, typeof options !== 'boolean' ? options : {
                 capture: options,
                 passive: ['touchstart', 'touchmove', 'wheel', 'mousewheel'].includes(eventName)
             });
@@ -33,7 +56,7 @@ Object.defineProperty(CodeMirror.prototype, 'display', {
     }
 });
 
-function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) {
+const renderQueryAutocompleteItem: EditorHintSuggestion['render'] = (el, _, { entry: { type, text, value } }) => {
     const startChar = text[0];
     const lastChar = text[text.length - 1];
     const start = startChar === '"' || startChar === "'" ? 1 : 0;
@@ -44,18 +67,28 @@ function renderQueryAutocompleteItem(el, self, { entry: { type, text, value }}) 
     if (offset !== -1) {
         value = (
             escapeHtml(value.substring(0, offset)) +
-            '<span class="match">' + escapeHtml(value.substr(offset, pattern.length)) + '</span>' +
-            escapeHtml(value.substr(offset + pattern.length))
+            '<span class="match">' + escapeHtml(value.slice(offset, offset + pattern.length)) + '</span>' +
+            escapeHtml(value.slice(offset + pattern.length))
         );
     }
 
     el.classList.add('type-' + type);
     el.appendChild(createElement('span', 'name', value));
-}
+};
 
-class Editor extends Emitter {
+class Editor extends Emitter<{
+    change: [newValue: string];
+}> {
     static CodeMirror = CodeMirror;
-    constructor({ hint, mode, placeholder }) {
+
+    el: HTMLElement;
+    cm: CodeMirror;
+
+    get container(): HTMLElement | null {
+        return null;
+    }
+
+    constructor({ hint, mode, placeholder }: Partial<EditorOptions>) {
         super();
 
         this.el = document.createElement('div');
@@ -94,12 +127,12 @@ class Editor extends Emitter {
             //     return selection;
             // };
 
-            cm.on('cursorActivity', cm => {
+            cm.on('cursorActivity', (cm: CodeMirror) => {
                 if (cm.state.completionEnabled && cm.state.focused) {
                     cm.showHint();
                 }
             });
-            cm.on('focus', cm => {
+            cm.on('focus', (cm: CodeMirror) => {
                 if (cm.getValue() === '') {
                     cm.state.completionEnabled = true;
                 }
@@ -108,7 +141,7 @@ class Editor extends Emitter {
                     cm.showHint();
                 }
             });
-            cm.on('change', (_, change) => {
+            cm.on('change', (_, change: CodeMirrorChange) => {
                 if (change.origin !== 'complete') {
                     cm.state.completionEnabled = true;
                 }
@@ -126,7 +159,7 @@ class Editor extends Emitter {
         return this.cm.getValue();
     }
 
-    setValue(value) {
+    setValue(value: string) {
         // call refresh() method to update sizes and content
         // use a microtask to call as soon as possible after current code frame
         requestAnimationFrame(() => this.cm.refresh());
@@ -142,8 +175,13 @@ class Editor extends Emitter {
 }
 
 class QueryEditor extends Editor {
-    constructor(getSuggestions) {
-        super({ mode: 'discovery-query', placeholder: 'Enter a jora query', hint: (cm) => {
+    private queryData: unknown;
+    private queryContext: unknown;
+    inputPanelEl: HTMLElement;
+    outputPanelEl: HTMLElement;
+
+    constructor(getSuggestions: (value: string, offset: number, data: unknown, context: unknown) => Suggestion[] | null) {
+        super({ mode: 'discovery-query', placeholder: 'Enter a jora query', hint: (cm: CodeMirror) => {
             const cursor = cm.getCursor();
             const suggestions = getSuggestions(
                 cm.getValue(),
@@ -153,7 +191,7 @@ class QueryEditor extends Editor {
             );
 
             if (!suggestions) {
-                return;
+                return null;
             }
 
             return {
@@ -173,7 +211,8 @@ class QueryEditor extends Editor {
         this.outputPanelEl = createElement('div', 'discovery-view-editor__output-panel');
         this.el.append(this.inputPanelEl, this.outputPanelEl);
     }
-    setValue(value, data, context) {
+
+    setValue(value: string, data?: unknown, context?: unknown) {
         const valueChanged = typeof value === 'string' && this.getValue() !== value;
         const dataChanged = this.queryData !== data || this.queryContext !== context;
 
@@ -194,9 +233,14 @@ class ViewEditor extends Editor {
         super({
             mode: {
                 name: 'discovery-view',
-                isDiscoveryViewDefined: name => this.isViewDefined(name)
+                isDiscoveryViewDefined: (name: string) => this.isViewDefined(name)
             }
         });
+    }
+
+    isViewDefined(name: string): boolean;
+    isViewDefined() {
+        return false;
     }
 }
 
@@ -204,7 +248,7 @@ CodeMirror.defineMode('jora', modeQuery);
 CodeMirror.defineMode('discovery-query', modeQuery);
 CodeMirror.defineMode('discovery-view', modeView);
 
-export default function(host) {
+export default function(host: ViewModel) {
     Object.assign(host.view, {
         QueryEditor: class extends QueryEditor {
             get container() {
@@ -212,7 +256,7 @@ export default function(host) {
             }
         },
         ViewEditor: class extends ViewEditor {
-            isViewDefined(name) {
+            isViewDefined(name: string) {
                 return host.view.isDefined(name);
             }
         }
