@@ -1,12 +1,20 @@
+import type { ViewModel } from '../../lib.js';
+import type { ViewEditor } from '../../views/editor/editors.js';
+import type { UpdateHostParams } from './types.js';
 import { debounce } from '../../core/utils/debounce.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
-import { contextWithoutEditorParams } from './params.js';
+import { contextWithoutEditorParams, getParamsFromContext } from './params.js';
 import renderUsage from '../../views/_usage.js';
 
+type ViewPreset = {
+    name: string;
+    content: string;
+};
+
 export const defaultViewSource = '{\n    view: \'struct\',\n    expanded: 1\n}';
-const defaultViewPresets = [
+const defaultViewPresets: ViewPreset[] = [
     {
         name: 'Table',
         content: jsonStringifyAsJavaScript({
@@ -29,7 +37,7 @@ const defaultViewPresets = [
     }
 ];
 
-function createPresetTab(name, content, updateParams) {
+function createPresetTab(name: string, content: string, updateParams: UpdateHostParams) {
     return createElement('div', {
         class: 'discovery-editor-tab',
         onclick: () => updateParams({
@@ -38,18 +46,23 @@ function createPresetTab(name, content, updateParams) {
     }, name || 'Untitled preset');
 }
 
-export default function(host, updateParams) {
+export default function(host: ViewModel, updateParams: UpdateHostParams) {
+    const ViewEditorClass = (host.view as any).ViewEditor as typeof ViewEditor;
     const viewPresets = defaultViewPresets;
-    let lastView = {};
+    let lastView: Partial<{
+        data: unknown;
+        context: unknown;
+        view: string | undefined;
+    }> = {};
 
-    let viewSetupEl;
-    let availableViewsEl;
-    let availableViewsTextEl;
-    let availableViewsListEl;
+    let viewSetupEl: HTMLElement;
+    let availableViewsEl: HTMLElement;
+    let availableViewsTextEl: HTMLElement;
+    let availableViewsListEl: HTMLElement;
     // let availablePresetListEl;
-    let viewModeTabsEls;
-    let viewLiveEditEl;
-    const viewEditor = new host.view.ViewEditor(host).on('change', value =>
+    let viewModeTabsEls: HTMLElement[];
+    let viewLiveEditEl: HTMLInputElement;
+    const viewEditor = new ViewEditorClass().on('change', value =>
         viewLiveEditEl.checked && updateParams({ view: value }, true)
     );
     const viewEditorButtonsEl = createElement('div', 'buttons');
@@ -96,7 +109,7 @@ export default function(host, updateParams) {
                 availableViewsEl = createElement('div', 'view-expand', [
                     createElement('div', {
                         class: 'header',
-                        onclick: () => {
+                        onclick() {
                             availableViewsEl.classList.toggle('expanded');
                             availableViewsListEl.classList.toggle('visible');
                         }
@@ -111,8 +124,8 @@ export default function(host, updateParams) {
                         class: 'live-update',
                         type: 'checkbox',
                         checked: true,
-                        onchange: (e) => {
-                            if (e.target.checked) {
+                        onchange() {
+                            if (this.checked) {
                                 updateParams({ view: viewEditor.getValue() }, true);
                             }
                         }
@@ -128,7 +141,7 @@ export default function(host, updateParams) {
     host.view.render(viewEditorButtonsEl, {
         view: 'button-primary',
         content: 'text:"Build"',
-        onClick: () => {
+        onClick() {
             lastView = {};
             updateParams({
                 view: viewEditor.getValue()
@@ -140,8 +153,8 @@ export default function(host, updateParams) {
         className: 'view-editor-view-list-hint',
         hoverTriggers: '.view-editor-view-list .item.with-usage',
         // hoverPin: 'trigger-click',
-        render: function(popupEl, triggerEl) {
-            host.view.render(popupEl, renderUsage(host), host.view.get(triggerEl.textContent), {});
+        render(popupEl, triggerEl) {
+            host.view.render(popupEl, renderUsage(host), host.view.get(triggerEl?.textContent as string), {});
         }
     });
 
@@ -165,13 +178,14 @@ export default function(host, updateParams) {
 
     return {
         el: viewEditorFormEl,
-        render(data, context, discoveryContentEl) {
+        render(data: unknown, context: unknown, discoveryContentEl: HTMLElement) {
             const viewContext = contextWithoutEditorParams(context, lastView.context);
-            const viewMode = typeof context.params.view === 'string' ? 'custom' : 'default';
-            let pageView = context.params.view;
+            const params = getParamsFromContext(context);
+            const viewMode = typeof params.view === 'string' ? 'custom' : 'default';
+            let pageView = params.view;
             let view = null;
 
-            // update editors
+            // update editor
             viewEditor.setValue(pageView);
 
             // update view form
@@ -190,9 +204,9 @@ export default function(host, updateParams) {
 
                 try {
                     view = Function('return ' + (pageView ? '0,' + pageView : 'null'))();
-                    host.view.render(discoveryContentEl, view, data, viewContext);
+                    host.view.render(discoveryContentEl, view as any, data, viewContext);
                 } catch (e) {
-                    host.view.render(discoveryContentEl, el => {
+                    host.view.render(discoveryContentEl, (el: HTMLElement) => {
                         el.className = 'discovery-error render-error';
                         el.innerHTML = escapeHtml(String(e)) + '<br>(see details in console)';
                         host.logger.error(e);

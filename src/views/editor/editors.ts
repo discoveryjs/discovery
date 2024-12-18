@@ -108,7 +108,10 @@ export class Editor extends Emitter<{
             }
         });
 
-        cm.display.lineDiv.parentNode.dataset.placeholder = placeholder;
+        if (placeholder) {
+            cm.display.lineDiv.parentNode.dataset.placeholder = placeholder;
+        }
+
         cm.on('change', () => {
             const newValue = cm.getValue();
 
@@ -159,14 +162,17 @@ export class Editor extends Emitter<{
         return this.cm.getValue();
     }
 
-    setValue(value: string) {
+    setValue(value: string | undefined) {
         // call refresh() method to update sizes and content
         // use a microtask to call as soon as possible after current code frame
         requestAnimationFrame(() => this.cm.refresh());
 
         if (typeof value === 'string' && this.getValue() !== value) {
             this.cm.setValue(value || '');
+            return true;
         }
+
+        return false;
     }
 
     focus() {
@@ -212,19 +218,23 @@ export class QueryEditor extends Editor {
         this.el.append(this.inputPanelEl, this.outputPanelEl);
     }
 
-    setValue(value: string, data?: unknown, context?: unknown) {
-        const valueChanged = typeof value === 'string' && this.getValue() !== value;
+    setValue(value: string | undefined, data?: unknown, context?: unknown) {
         const dataChanged = this.queryData !== data || this.queryContext !== context;
 
         this.queryData = data;
         this.queryContext = context;
-        super.setValue(value);
 
-        if (dataChanged && !valueChanged) {
+        if (super.setValue(value)) {
+            return true;
+        }
+
+        if (dataChanged) {
             if (this.cm.state.completionEnabled && this.cm.state.focused) {
                 this.cm.showHint();
             }
         }
+
+        return false;
     }
 }
 

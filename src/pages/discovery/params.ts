@@ -107,3 +107,9 @@ export function contextWithoutEditorParams(newContext: any, currentContext: any 
 
     return currentContext;
 }
+
+export function getParamsFromContext(context: unknown) {
+    return context && typeof context === 'object' && 'params' in context
+        ? context.params as Partial<KnownParams>
+        : {} as Partial<KnownParams>;
+}

@@ -9,11 +9,10 @@ import { Preset } from './preset.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
-type ViewRenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
 type NormalizedViewPropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
-type DefineViewRender = ViewRenderFunction | RawViewConfig;
+type DefineViewRender = RenderFunction | RawViewConfig;
 type ViewUsage = any; // TODO: define a type
-export type RawViewConfig = SingleViewConfig | string | RawViewConfig[];
+export type RawViewConfig = SingleViewConfig | RenderFunction | string | RawViewConfig[];
 export type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
 type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
 type queryFn = (data: any, context: any) => any;
@@ -640,16 +639,27 @@ export class ViewRenderer extends Dictionary<View> {
         } satisfies View));
     }
 
-    normalizeConfig(config: RawViewConfig): SingleViewConfig | SingleViewConfig[] | null {
+    normalizeConfig(config: RawViewConfig | RenderFunction): SingleViewConfig | SingleViewConfig[] | null {
         if (!config) {
             return null;
         }
 
         if (Array.isArray(config)) {
-            return config.reduce(
-                (res, item) => res.concat(this.normalizeConfig(item) || []),
-                []
-            );
+            const arrayOfConfigs: SingleViewConfig[] = [];
+
+            for (const configElement of config) {
+                const normalizedConfig = this.normalizeConfig(configElement);
+
+                if (normalizedConfig !== null) {
+                    if (Array.isArray(normalizedConfig)) {
+                        arrayOfConfigs.push(...normalizedConfig);
+                    } else {
+                        arrayOfConfigs.push(normalizedConfig);
+                    }
+                }
+            }
+
+            return arrayOfConfigs;
         }
 
         if (typeof config === 'string') {

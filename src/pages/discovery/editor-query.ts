@@ -1,11 +1,11 @@
 import type { TooltipConfig } from '../../core/view.js';
 import type { ViewModel } from '../../main/view-model.js';
-import type { Computation, Graph, GraphNode, KnownParams, Params } from './types.js';
 import type { QueryEditor } from '../../views/editor/editors.js';
+import type { Computation, Graph, GraphNode, UpdateHostParams } from './types.js';
 import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { getBoundingRect } from '../../core/utils/layout.js';
-import { contextWithoutEditorParams } from './params.js';
+import { contextWithoutEditorParams, getParamsFromContext } from './params.js';
 
 type GraphNodePath = [graph: Graph, ...GraphNode[]];
 type GraphMutator = (graphState: {
@@ -176,8 +176,8 @@ function getPathInGraph(graph: Graph, path: number[]) {
     return result;
 }
 
-export default function(host: ViewModel, updateHostParams: (patch: Partial<Params>, replace: boolean) => void) {
-    const QueryEditorView = (host.view as any).QueryEditor as typeof QueryEditor;
+export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
+    const QueryEditorClass = (host.view as any).QueryEditor as typeof QueryEditor;
     const defaultGraph = {};
     let expandQueryInput: undefined | 'data' | 'context';
     let expandQueryInputData: unknown = NaN;
@@ -195,7 +195,7 @@ export default function(host: ViewModel, updateHostParams: (patch: Partial<Param
     let queryEditorLiveEditEl: HTMLInputElement;
     const getQuerySuggestions = (query: string, offset: number, data: unknown, context: unknown) =>
         queryEditorSuggestionsEl.checked ? host.querySuggestions(query, offset, data, context) : null;
-    const queryEditor = new QueryEditorView(getQuerySuggestions).on('change', (value: string) =>
+    const queryEditor = new QueryEditorClass(getQuerySuggestions).on('change', value =>
         queryEditorLiveEditEl.checked && updateHostParams({ query: value }, true)
     );
     const queryEngineInfo = host.getQueryEngineInfo();
@@ -812,9 +812,7 @@ export default function(host: ViewModel, updateHostParams: (patch: Partial<Param
         },
         perform(data: unknown, context: unknown) {
             const queryContext = contextWithoutEditorParams(context, currentContext);
-            const pageParams = context && typeof context === 'object' && 'params' in context
-                ? context.params as Partial<KnownParams>
-                : {} as Partial<KnownParams>;
+            const pageParams = getParamsFromContext(context);
             const pageQuery = pageParams.query;
             const pageView = pageParams.view;
             const pageGraph = normalizeGraph({ ...pageParams.graph || defaultGraph });

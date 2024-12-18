@@ -45,7 +45,7 @@ const specialValueTypes = new Set([
     '[object Date]'
 ]);
 
-export function jsonStringifyAsJavaScript(value: any, replacer: Replacer, space = 4) {
+export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer, space = 4) {
     const specials: any[] = [];
     const jsReplacer = function(key: string, value: any) {
         if (typeof value === 'string' && objectToString(this[key]) === '[object Date]') {

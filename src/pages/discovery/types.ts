@@ -9,6 +9,7 @@ export type KnownParams = {
 export type Params = KnownParams & {
     [key: string]: unknown;
 };
+export type UpdateHostParams = (patch: Partial<Params>, replace?: boolean) => void;
 export type Graph = {
     current: number[];
     children: GraphNode[];

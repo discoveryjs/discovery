@@ -1,8 +1,11 @@
 /* eslint-env browser */
 import { createElement } from '../../core/utils/dom.js';
 import { copyText } from '../../core/utils/copy-text.js';
+import { KnownParams, UpdateHostParams } from './types.js';
+import { ViewModel } from '../../lib.js';
+import { getParamsFromContext } from './params.js';
 
-function quote(str) {
+function quote(str: string) {
     return str
         .replace(/\\/g, '\\\\')
         .replace(/\t/g, '\\t')
@@ -11,29 +14,31 @@ function quote(str) {
         .replace(/'/g, '\\\'');
 }
 
-function exportStateAsJson(pageParams) {
-    let { title, query, view } = pageParams;
+function exportStateAsJson(pageParams: Partial<KnownParams>) {
+    const { title, query, view } = pageParams;
     const res = { title, query, view };
 
     return `{\n${
         Object.keys(res).reduce(
-            (props, k) => props.concat(res[k] ? `    ${k}: \'${quote(res[k])}\'` : []),
-            []
+            (props, k) => typeof res[k] === 'string'
+                ? props.concat(`    ${k}: \'${quote(res[k])}\'`)
+                : props,
+            [] as string[]
         ).join(',\n')
     }\n}`;
 }
 
-function toDate(value) {
+function toDate(value: number | string | Date) {
     if (value && (typeof value === 'number' || typeof value === 'string')) {
         const date = new Date(value);
 
-        return !isNaN(date) ? date : null;
+        return !isNaN(Number(date)) ? date : null;
     }
 
     return value instanceof Date ? value : null;
 }
 
-function formatDate(value) {
+function formatDate(value: number | string | Date) {
     const date = toDate(value);
 
     if (date) {
@@ -45,20 +50,20 @@ function formatDate(value) {
     return null;
 }
 
-export default function(host, updateParams) {
-    let titleInputEl;
-    let dataDateTimeEl;
-    let viewDateTimeEl;
-    let noeditToggleEl;
+export default function(host: ViewModel, updateParams: UpdateHostParams) {
+    let titleInputEl: HTMLInputElement;
+    let dataDateTimeEl: HTMLElement;
+    let viewDateTimeEl: HTMLElement;
+    let noeditToggleEl: HTMLElement;
 
     const shareOptionsPopup = new host.view.Popup({
         render: (popupEl, _, hide) => host.view.render(popupEl, {
             view: 'menu',
-            data: [
+            data: () => [
                 {
                     text: 'Copy page permalink',
                     disabled: !host.action.has('permalink'),
-                    action: async () => copyText(await host.action.call('permalink', host.pageHash))
+                    action: async () => copyText(await host.action.call('permalink', host.pageHash) as string)
                 },
                 {
                     text: 'Copy page hash',
@@ -69,7 +74,7 @@ export default function(host, updateParams) {
                     action: () => copyText(exportStateAsJson(host.pageParams))
                 }
             ],
-            onClick(item) {
+            onClick(item: { action: () => void }) {
                 hide();
                 item.action();
             }
@@ -80,8 +85,8 @@ export default function(host, updateParams) {
         noeditToggleEl = createElement('button', {
             class: 'edit-mode discovery-hidden-in-dzen',
             title: 'Toggle edit mode',
-            onclick: ({ target }) => {
-                target.blur();
+            onclick(this) {
+                this.blur();
                 updateParams({
                     noedit: !host.pageParams.noedit
                 });
@@ -90,16 +95,16 @@ export default function(host, updateParams) {
         createElement('button', {
             class: 'share',
             title: 'Sharing',
-            onclick: ({ target }) => {
-                target.blur();
-                shareOptionsPopup.show(target);
+            onclick() {
+                this.blur();
+                shareOptionsPopup.show(this);
             }
         }),
         createElement('button', {
             class: 'toggle-fullscreen',
             title: 'Toggle full page mode',
-            onclick: ({ target }) => {
-                target.blur();
+            onclick() {
+                this.blur();
                 updateParams({
                     dzen: !host.pageParams.dzen
                 });
@@ -107,26 +112,26 @@ export default function(host, updateParams) {
         })
     ]);
 
-    const updateHeaderTitle = target => {
-        target.parentNode.dataset.title = target.value || target.placeholder;
+    const updateHeaderTitle = (target: HTMLInputElement) => {
+        (target.parentNode as HTMLElement).dataset.title = target.value || target.placeholder;
     };
     const headerEl = createElement('div', 'discovery-header', [
         createElement('div', { class: 'discovery-header-text', 'data-title': '\xA0' }, [
             titleInputEl = createElement('input', {
                 class: 'discovery-hidden-in-dzen',
                 placeholder: 'Untitled discovery',
-                oninput({ target }) {
-                    updateHeaderTitle(target);
+                oninput() {
+                    updateHeaderTitle(this);
                 },
-                onchange({ target }) {
-                    updateHeaderTitle(target);
+                onchange() {
+                    updateHeaderTitle(this);
                     updateParams({
-                        title: target.value
+                        title: this.value
                     }, true);
                 },
                 onkeypress(e) {
                     if (e.key === 'Enter') {
-                        e.target.blur();
+                        this.blur();
                     }
                 }
             }),
@@ -142,11 +147,11 @@ export default function(host, updateParams) {
             actionsPanel,
             headerEl
         ],
-        render(data, context) {
-            const { title, noedit } = context.params;
-            const createdAt = formatDate(context.datasets?.[0]?.resource?.createdAt);
+        render(data: unknown, context: unknown) {
+            const { title, noedit } = getParamsFromContext(context);
+            const createdAt = formatDate((context as any)?.datasets?.[0]?.resource?.createdAt);
 
-            titleInputEl.value = title;
+            titleInputEl.value = title || '';
             updateHeaderTitle(titleInputEl);
 
             noeditToggleEl.classList.toggle('disabled', noedit);
