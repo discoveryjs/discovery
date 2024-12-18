@@ -156,6 +156,7 @@ export default (host) => {
             syncOverlayTimer = setInterval(syncOverlayState, 500);
             host.dom.container.append(overlayLayerEl);
             syncOverlayState();
+            host.inspectMode.set(true);
         }
     };
     const disableInspect = () => {
@@ -168,7 +169,10 @@ export default (host) => {
             inspectByQuick = false;
             delete cancelHintEl.dataset.alt;
             overlayLayerEl.remove();
+            overlayLayerEl.replaceChildren(cancelHintEl); // remove all overlay DOM nodes
+            overlayByViewNode.clear(); // reset all overlay nodes
             hide();
+            host.inspectMode.set(false);
         }
     };
     const selectTreeViewLeaf = (leaf) => {
