@@ -43,6 +43,25 @@
     grid-template-columns: minmax(290px, 25%) 4fr 6fr;
 }
 
+.discovery-inspect-details-popup:not(.frozen) {
+    padding-bottom: 21px;
+}
+.discovery-inspect-details-popup:not(.frozen)::after {
+    content: 'Cmd+Click (Mac) or Ctrl+Click (Win) opens the view description in a documentation';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: .4em 1ex;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 11px;
+    line-height: 1;
+    border-top: 1px solid var(--discovery-background-color);
+    background-color: color-mix(in srgb, var(--discovery-background-color), light-dark(#000, #fff) 10%);
+    color: #888;
+}
+
 @supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)) {
     .discovery-inspect-details-popup {
         --discovery-background-alpha: .65;

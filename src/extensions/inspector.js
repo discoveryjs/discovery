@@ -36,9 +36,20 @@ export default (host) => {
     const cancelHintEl = createElement('div', 'cancel-hint view-alert view-alert-warning');
     const overlayLayerEl = createElement('div', {
         class: 'discovery-view-inspector-overlay',
-        onclick: () => selectTreeViewLeaf(
-            lastHoverViewTreeLeaf && !selectedTreeViewLeaf ? lastHoverViewTreeLeaf : null
-        )
+        onclick: (e) => {
+            if ((e.metaKey || e.ctrlKey) && lastHoverViewTreeLeaf) {
+                const view = lastHoverViewTreeLeaf.view.config.view;
+
+                disableInspect();
+                host.setPage('views-showcase', view);
+
+                return;
+            }
+
+            selectTreeViewLeaf(
+                lastHoverViewTreeLeaf && !selectedTreeViewLeaf ? lastHoverViewTreeLeaf : null
+            );
+        }
     }, [cancelHintEl]);
     const syncOverlayState = debounce(() => {
         // don't sync change a view selected
