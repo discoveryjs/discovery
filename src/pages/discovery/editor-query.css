@@ -339,7 +339,7 @@
     mask-image: url(./img/perform.svg);
 }
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox :checked + .view-checkbox__label {
-    background-color: light-dark(rgba(0, 141, 255, 0.75), #aaa);
+    background-color: light-dark(rgba(0, 141, 255, 0.75), #b8b8b8);
 }
 
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel > .buttons .view-checkbox:hover {

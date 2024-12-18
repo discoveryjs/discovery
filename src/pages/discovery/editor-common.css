@@ -22,6 +22,7 @@
     padding: 2px 12px;
     background: rgba(200, 200, 200, 0.2);
     font-size: 12px;
+    user-select: none;
     cursor: pointer;
 }
 .page-discovery > .discovery-editor .discovery-editor-tab.active {
