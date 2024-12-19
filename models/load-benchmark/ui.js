@@ -1,4 +1,3 @@
-import { loadDataFromUrl } from '../../src/core/utils/load-data.ts';
 import { utils } from '../../src/lib.ts';
 
 function prettySize(size, signed, pad) {
