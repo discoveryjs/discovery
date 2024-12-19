@@ -14,7 +14,7 @@ export function createElement<TagName extends keyof HTMLElementTagNameMap>(
     tag: TagName,
     attrs?: CreateElementAttrs<TagName> | string | null,
     children?: (Node | string)[] | string
-) {
+): HTMLElementTagNameMap[TagName] {
     const el = document.createElement(tag);
 
     if (typeof attrs === 'string') {

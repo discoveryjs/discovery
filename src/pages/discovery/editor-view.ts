@@ -55,7 +55,6 @@ export default function(host: ViewModel, updateParams: UpdateHostParams) {
         view: string | undefined;
     }> = {};
 
-    let viewSetupEl: HTMLElement;
     let availableViewsEl: HTMLElement;
     let availableViewsTextEl: HTMLElement;
     let availableViewsListEl: HTMLElement;
@@ -72,20 +71,29 @@ export default function(host: ViewModel, updateParams: UpdateHostParams) {
                 createElement('div', {
                     class: 'discovery-editor-tab',
                     'data-mode': viewMode.toLowerCase(),
-                    onclick: () => updateParams({
-                        view: viewMode === 'Default' ? undefined : defaultViewSource
-                    }, true)
-                }, viewMode)
+                    onclick() {
+                        if (!this.classList.contains('active')) {
+                            updateParams({
+                                view: viewMode === 'Default' ? undefined : defaultViewSource,
+                                viewEditorHidden: false
+                            }, true);
+                        } else {
+                            updateParams({
+                                viewEditorHidden: !viewEditorFormEl.classList.contains('hide-editor')
+                            }, true);
+                        }
+                    }
+                }, viewMode === 'Custom'
+                    ? [viewMode, createElement('span', 'show-view-editor-toggle')]
+                    : viewMode
+                )
             )),
             /* availablePresetListEl = */createElement('div', 'discovery-editor-tabs presets', viewPresets.map(({ name, content }) =>
                 createPresetTab(name, content, updateParams)
             )),
             createElement('div', 'view-editor-form-header-links', '<a href="#views-showcase" class="view-link">Views showcase</a>')
         ]),
-        viewSetupEl = createElement('div', {
-            class: 'view-editor-form-content',
-            hidden: true
-        }, [
+        createElement('div', 'view-editor-form-content', [
             createElement('button', {
                 class: 'view-button formatting',
                 title: 'Prettify (input should be a JSON)',
@@ -182,6 +190,7 @@ export default function(host: ViewModel, updateParams: UpdateHostParams) {
             const viewContext = contextWithoutEditorParams(context, lastView.context);
             const params = getParamsFromContext(context);
             const viewMode = typeof params.view === 'string' ? 'custom' : 'default';
+            const viewEditorHidden = viewMode === 'default' || params.viewEditorHidden === true;
             let pageView = params.view;
             let view = null;
 
@@ -189,7 +198,7 @@ export default function(host: ViewModel, updateParams: UpdateHostParams) {
             viewEditor.setValue(pageView);
 
             // update view form
-            viewSetupEl.hidden = viewMode !== 'custom';
+            viewEditorFormEl.classList.toggle('hide-editor', viewEditorHidden);
             viewModeTabsEls.forEach(el =>
                 el.classList.toggle('active', el.dataset.mode === viewMode)
             );

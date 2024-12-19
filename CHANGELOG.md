@@ -8,6 +8,7 @@
 - Added propagation of meaningful `source` view props into nested views rendering (action buttons, prelude, and postlude) through the context as `sourceViewProps`
 - Standardized monospace font size and line height in `struct`, `signature` and `source` views to relay on root settings
 - Added suggestions toggle in query editor on "discovery" page
+- Added view editor visibility toggle when in "custom" mode on "discovery" page
 - Added `Cmd+Click` or `Ctrl+Click` in inspect mode to open hovered view page in view's showcase
 - Added `computeClassName()` and `applyComputedClassName()` methods to view render context API
 - Added root CSS properties: `--discovery-monospace-font-size` and `--discovery-monospace-line-height`

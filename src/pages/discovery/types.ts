@@ -5,6 +5,7 @@ export type KnownParams = {
     query: string;
     graph: Graph;
     view: string | undefined;
+    viewEditorHidden: boolean;
 };
 export type Params = KnownParams & {
     [key: string]: unknown;

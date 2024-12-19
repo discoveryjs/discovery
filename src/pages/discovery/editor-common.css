@@ -26,7 +26,6 @@
     cursor: pointer;
 }
 .page-discovery > .discovery-editor .discovery-editor-tab.active {
-    padding-bottom: 3px;
     margin-bottom: 0;
     background: rgba(108, 188, 241, 0.15);
     cursor: default;
@@ -36,16 +35,10 @@
 }
 .page-discovery > .discovery-editor .discovery-editor-tab:first-child {
     border-top-left-radius: 4px;
-}
-.page-discovery > .discovery-editor .discovery-editor-tab.active:first-child {
     border-bottom-left-radius: 4px;
-    padding-bottom: 2px;
-    margin-bottom: 1px;
 }
 .page-discovery > .discovery-editor .discovery-editor-tab:last-child {
     border-top-right-radius: 4px;
-}
-.page-discovery > .discovery-editor .discovery-editor-tab:not(.active):last-child {
     border-bottom-right-radius: 4px;
 }
 

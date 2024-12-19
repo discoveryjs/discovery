@@ -5,12 +5,12 @@ function ensureString(value: unknown, fallback = '') {
     return typeof value === 'string' ? value : fallback;
 }
 
-export const decodedSpecialParams: (keyof KnownParams)[] = ['query', 'graph', 'view', 'title', 'dzen', 'noedit'] as const;
-export const encodedSpecialParams = ['q', 'graph', 'v', 'title', 'dzen', 'noedit'];
+export const decodedSpecialParams: (keyof KnownParams)[] = ['query', 'graph', 'view', 'viewEditorHidden', 'title', 'dzen', 'noedit'] as const;
+export const encodedSpecialParams = ['q', 'graph', 'v', 'vh', 'title', 'dzen', 'noedit'];
 
 export function encodeParams(params: Partial<Params> | string) {
     const normalizedParams = typeof params === 'string' ? { query: params } : params;
-    const { query, graph, view, title, dzen, noedit, ...extra } = normalizedParams;
+    const { query, graph, view, viewEditorHidden, title, dzen, noedit, ...extra } = normalizedParams;
     const pairs: [name: string, value?: string][] = [];
 
     if (dzen) {
@@ -37,6 +37,10 @@ export function encodeParams(params: Partial<Params> | string) {
         pairs.push(view ? ['v', base64.encode(view)] : ['v']);
     }
 
+    if (viewEditorHidden) {
+        pairs.push(['vh']);
+    }
+
     for (const [name, value] of Object.keys(extra || {}).sort()) {
         if (!decodedSpecialParams.includes(name as keyof KnownParams)) {
             pairs.push([name, name.endsWith('-b64') && typeof value === 'string'
@@ -56,6 +60,7 @@ export function decodeParams(pairs: [name: string, value: unknown][]): Params {
         query: base64.decode(ensureString(params.q)),
         graph: JSON.parse(base64.decode(ensureString(params.graph)) || 'null'),
         view: 'v' in params ? base64.decode(ensureString(params.v)) : undefined,
+        viewEditorHidden: 'vh' in params,
         dzen: 'dzen' in params,
         noedit: 'noedit' in params
     };
