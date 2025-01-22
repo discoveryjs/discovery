@@ -47,6 +47,7 @@
     color: #d85a5a;
     background: #ff00002e;
     overflow: auto;
+    min-height: 6.2em;
 }
 .discovery > .loading-overlay.error > .warning-message {
     color: #856404;
