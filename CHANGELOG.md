@@ -1,6 +1,7 @@
 ## next
 
 - Added `navbuttons.uploadFromClipboard` button
+- Fixed default copy text button action in `source` view
 
 ## 1.0.0-beta.92 (18-12-2024)
 

@@ -198,7 +198,7 @@ export default function(host) {
         const actionButtonsEl = createElement('div', 'view-source__action-buttons');
         const actionCopyFn = actionCopySource !== true
             ? (typeof actionCopySource === 'function' ? actionCopySource : null)
-            : (_, { sourceViewProps: { source } }) => source;
+            : ({ source }) => source;
         const actionCopyButton = typeof actionCopyFn === 'function'
             ? {
                 view: 'button',
