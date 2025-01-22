@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import { numDelim } from '../../core/utils/html.js';
-import { isArray, isRegExp, isSet } from '../../core/utils/is-type.js';
+import { isArray, isRegExp, isSet, isTypedArray } from '../../core/utils/is-type.js';
 import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
 import { createClickHandler } from './click-handler.js';
 import { createValueActionsPopup } from './popup-value-actions.js';
@@ -68,6 +68,19 @@ function isValueExpandable(value, options) {
     }
 
     return false;
+}
+
+function shouldAutoExpand(value) {
+    if (typeof value === 'string') {
+        return false;
+    }
+
+    // array of numbers
+    if (isTypedArray(value) || (isArray(value) && value.every(el => typeof el === 'number'))) {
+        return false;
+    }
+
+    return true;
 }
 
 function appendText(el, text) {
@@ -202,7 +215,7 @@ export default function(host) {
         elementContext.set(valueEl, context);
         elementOptions.set(valueEl, options);
 
-        if (expandable && typeof value !== 'string' && autoExpandLimit) {
+        if (expandable && shouldAutoExpand(value) && autoExpandLimit) {
             // expanded
             container.classList.add('struct-expanded-value');
             expandValue(valueEl, autoExpandLimit - 1);
@@ -420,7 +433,7 @@ export default function(host) {
         });
         scheduleApplyAnnotations();
 
-        if ((!expanded || typeof data === 'string') && isValueExpandable(data, options)) {
+        if ((!expanded || !shouldAutoExpand(data)) && isValueExpandable(data, options)) {
             el.classList.add('struct-expand');
         }
     }, {

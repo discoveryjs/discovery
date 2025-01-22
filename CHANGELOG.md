@@ -1,6 +1,7 @@
 ## next
 
 - Added `navbuttons.uploadFromClipboard` button
+- Changed `struct` view to avoid auto expading numeric arrays
 - Fixed default copy text button action in `source` view
 
 ## 1.0.0-beta.92 (18-12-2024)
