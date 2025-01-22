@@ -1,3 +1,7 @@
+## next
+
+- Added `navbuttons.uploadFromClipboard` button
+
 ## 1.0.0-beta.92 (18-12-2024)
 
 - Fixed missed render on `unloadData` event when `modelfree` extension is used

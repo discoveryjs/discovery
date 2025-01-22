@@ -6,11 +6,13 @@ discovery.apply([
     modelfree,
     upload.setup({ clipboard: true }),
     navButtons.uploadFile,
+    navButtons.uploadFromClipboard,
     navButtons.unloadData
 ]);
 
 discovery.nav.primary.append({
     name: 'github',
+    text: '',
     href: 'https://github.com/discoveryjs/discovery',
     external: true
 });

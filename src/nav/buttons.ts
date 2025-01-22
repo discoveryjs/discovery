@@ -30,6 +30,19 @@ export function uploadFile(host: ViewModel) {
     });
 }
 
+export function uploadFromClipboard(host: ViewModel) {
+    host.nav.before('inspect', {
+        name: 'upload-from-clipboard',
+        when: '#.actions.uploadDataFromClipboard and (#.datasets or (#.widget | pageId != defaultPageId))',
+        text: '',
+        onClick: '=#.actions.uploadDataFromClipboard',
+        tooltip: {
+            position: 'trigger',
+            content: 'text:"Paste data from clipboard"'
+        }
+    });
+}
+
 export function unloadData(host: ViewModel) {
     host.nav.menu.append({
         name: 'unload-data',
@@ -87,6 +100,7 @@ export function inspect(host: ViewModel) {
     host.nav.append({
         name: 'inspect',
         when: '#.widget.inspectMode',
+        text: '',
         tooltip: {
             position: 'trigger',
             showDelay: true,

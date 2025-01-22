@@ -62,6 +62,7 @@ export class App<
         if (coalesceOption(options.upload, false)) {
             extensions.push(options.upload === true ? upload : upload.setup(options.upload || {}));
             extensions.push(navButtons.uploadFile);
+            extensions.push(navButtons.uploadFromClipboard);
         }
 
         if (coalesceOption(options.inspector, true)) {
