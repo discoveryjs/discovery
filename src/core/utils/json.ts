@@ -36,6 +36,10 @@ function restoreValue(value: any, ws: string, property: string) {
         return `${property}new Date("${value.toISOString()}")`;
     }
 
+    if (Array.isArray(value)) {
+        return `${property}[${value.join(', ')}]`;
+    }
+
     return property + String(value);
 }
 
@@ -45,6 +49,10 @@ const specialValueTypes = new Set([
     '[object Date]'
 ]);
 
+function isNumericArray(value) {
+    return Array.isArray(value) && value.every(el => typeof el === 'number');
+}
+
 export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer, space = 4) {
     const specials: any[] = [];
     const jsReplacer = function(key: string, value: any) {
@@ -52,7 +60,7 @@ export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer, space
             value = this[key];
         }
 
-        if (value !== null && specialValueTypes.has(objectToString(value))) {
+        if (value !== null && (specialValueTypes.has(objectToString(value)) || isNumericArray(value))) {
             specials.push(value);
             return '{{{__placeholder__}}}';
         }
