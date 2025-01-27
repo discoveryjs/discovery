@@ -5,6 +5,7 @@ import CodeMirror from 'codemirror';
 import 'codemirror/mode/javascript/javascript.js';
 import 'codemirror/mode/css/css.js';
 import 'codemirror/mode/xml/xml.js';
+import { escapeHtml } from '../../core/utils/html.js';
 import { createElement } from '../../core/utils/dom.js';
 import { copyText } from '../../core/utils/copy-text.js';
 import usage from './source.usage.js';
@@ -56,23 +57,36 @@ function codeMirrorHighlight(modespec, host) {
 
 function classNames(options, defaultClassNames) {
     const customClassName = options && options.className;
-    const classNames = [
-        defaultClassNames,
-        Array.isArray(customClassName)
-            ? customClassName.join(' ')
-            : (typeof customClassName === 'string' ? customClassName : false)
-    ].filter(Boolean).join(' ');
+    const resolvedClassName = Array.isArray(customClassName)
+        ? customClassName.join(' ')
+        : (typeof customClassName === 'string' ? customClassName : false);
+    const classNames = defaultClassNames && resolvedClassName
+        ? [defaultClassNames, resolvedClassName].join(' ')
+        : defaultClassNames || resolvedClassName || '';
 
     return classNames ? ` class="${classNames}"` : '';
 }
 
-function refAttrs(data) {
+function refAttrs(data, defaultClassName = 'spotlight') {
     return `${
-        classNames(data, 'spotlight')
+        classNames(data, defaultClassName)
     }${
         data.marker ? ` data-marker="${data.marker}"` : ''
     }${
         typeof data.tooltipId === 'number' ? ` data-tooltip-id="${data.tooltipId}"` : ''
+    }`;
+}
+
+function markAttrs(data, defaultClassName = 'mark') {
+    const prefix = data.prefix ?? (['self', 'nested', 'total'].includes(data.kind) ? data.kind[0].toUpperCase() : undefined);
+    const postfix = data.postfix ?? undefined;
+
+    return refAttrs(data, defaultClassName) + ` data-render-id=${data.renderId}${
+        data.kind ? ` data-kind="${data.kind}"` : ''
+    }${
+        prefix !== undefined ? ` data-prefix="${escapeHtml(prefix)}"` : ''
+    }${
+        postfix !== undefined ? ` data-postfix="${escapeHtml(postfix)}"` : ''
     }`;
 }
 
@@ -81,16 +95,38 @@ const refsPrinter = {
         open({ data }) {
             switch (data.type) {
                 case 'link':
-                    return `<a href="${data.href}"${refAttrs(data)}>`;
+                    return `<a href=${JSON.stringify(data.href)}${refAttrs(data, 'spotlight')}>`;
+                case 'span':
                 case 'spotlight':
-                    return `<span${refAttrs(data)}>`;
+                    return `<span${refAttrs(data, 'spotlight')}>`;
             }
         },
         close({ data }) {
             switch (data.type) {
                 case 'link':
                     return '</a>';
+                case 'span':
                 case 'spotlight':
+                    return '</span>';
+            }
+        }
+    }
+};
+const marksPrinter = {
+    html: {
+        open({ data }) {
+            switch (data.type) {
+                case 'link':
+                    return `<a href=${JSON.stringify(data.href)}${markAttrs(data, 'mark')}>`;
+                case 'span':
+                    return `<span${markAttrs(data, 'mark')}>`;
+            }
+        },
+        close({ data }) {
+            switch (data.type) {
+                case 'link':
+                    return '</a>';
+                case 'span':
                     return '</span>';
             }
         }
@@ -101,7 +137,8 @@ const props = `is not array? | {
     source: #.props has no 'source' ? is string ?: content is string ? content : source,
     syntax,
     lineNum is function ?: is not undefined ? bool() : true,
-    refs is array ?: null,
+    ranges: #.props.refs or refs | is array ?: undefined,
+    marks is array ?: null,
     maxSourceSizeToHighlight is number ?: 250 * 1024, // 250Kb
     actionButtons: undefined,
     actionCopySource is undefined ? true,
@@ -114,13 +151,16 @@ export default function(host) {
         const preludeEl = el.appendChild(createElement('div', 'view-source__prelude'));
         const contentEl = el.appendChild(createElement('div', 'view-source__content'));
         const postludeEl = el.appendChild(createElement('div', 'view-source__postlude'));
-        const refsTooltips = new Map();
+        const viewTooltips = new Map();
+        const markContentRenders = new Map();
+        const markRenders = [];
         const decorators = [];
         const {
             source,
             syntax,
             lineNum = true,
-            refs,
+            ranges,
+            marks,
             maxSourceSizeToHighlight,
             actionButtons,
             actionCopySource,
@@ -134,7 +174,8 @@ export default function(host) {
                 source,
                 syntax,
                 lineNum,
-                refs,
+                ranges,
+                marks,
                 maxSourceSizeToHighlight
             }
         };
@@ -157,24 +198,88 @@ export default function(host) {
             }]);
         }
 
-        if (Array.isArray(refs)) {
+        if (Array.isArray(ranges)) {
             decorators.push([
-                (_, createRange) => refs.forEach(ref => {
-                    if (ref.range) {
-                        let tooltipId = undefined;
-
-                        if (ref.tooltip) {
-                            refsTooltips.set(tooltipId = refsTooltips.size, ref);
-                        }
-
-                        createRange(
-                            ref.range[0],
-                            ref.range[1],
-                            { type: 'spotlight', ...ref, tooltipId }
-                        );
+                (_, createRange) => ranges.forEach(ref => {
+                    if (!ref || typeof ref !== 'object') {
+                        host.logger.warn('Bad value for an entry in "source" view props.ranges, must be an object', { props, entry: ref });
+                        return;
                     }
+
+                    const refType = ref.type
+                        ? (ref.type === 'spotlight' ? 'span' : ref.type)
+                        : (ref.href ? 'link' : 'span');
+                    const refRange = ref.range;
+                    let tooltipId = undefined;
+
+                    if (!['link', 'span'].includes(refType)) {
+                        host.logger.warn(`Bad type "${refType}" of an entry in "source" view props.ranges`, { props, ref });
+                        return;
+                    }
+
+                    if (!refRange) {
+                        host.logger.warn('Missed range for an entry in "source" view props.ranges', { props, entry: ref });
+                        return;
+                    }
+
+                    if (ref.tooltip) {
+                        viewTooltips.set(tooltipId = viewTooltips.size, ref);
+                    }
+
+                    createRange(
+                        ref.range[0],
+                        ref.range[1],
+                        { ...ref, type: refType, tooltipId }
+                    );
                 }),
                 refsPrinter
+            ]);
+        }
+
+        if (Array.isArray(marks)) {
+            decorators.push([
+                (_, createRange) => marks.forEach(mark => {
+                    if (!mark || typeof mark !== 'object') {
+                        host.logger.warn('Bad value for an entry in "source" view props.mark, must be an object', { props, mark });
+                        return;
+                    }
+
+                    const markKind = !mark.content
+                        ? 'dot'
+                        : !mark.kind || ['dot', 'self', 'nested', 'total', 'none'].includes(mark.kind)
+                            ? mark.kind || 'span'
+                            : undefined;
+                    const markOffset = typeof mark.offset === 'number' && isFinite(mark.offset)
+                        ? Math.max(0, Math.round(mark.offset))
+                        : undefined;
+                    let tooltipId = undefined;
+
+                    if (typeof markKind !== 'string') {
+                        host.logger.warn('Bad "kind" value for an entry in "source" view props.marks', { props, mark });
+                        return;
+                    }
+
+                    if (typeof markOffset !== 'number') {
+                        host.logger.warn('Bad "offset" value for an entry in "source" view props.marks', { props, mark });
+                        return;
+                    }
+
+                    if (mark.tooltip) {
+                        viewTooltips.set(tooltipId = viewTooltips.size, mark);
+                    }
+
+                    const markConfig = {
+                        ...mark,
+                        type: typeof mark.href === 'string' ? 'link' : 'span',
+                        kind: markKind,
+                        renderId: markContentRenders.size,
+                        tooltipId
+                    };
+
+                    markContentRenders.set(markConfig.renderId, markConfig);
+                    createRange(markOffset, markOffset, markConfig);
+                }),
+                marksPrinter
             ]);
         }
 
@@ -193,6 +298,16 @@ export default function(host) {
             `<div class="view-source__source">${
                 hitext(decorators, 'html')(source)
             }</div>`;
+
+        if (markContentRenders.size) {
+            for (const markEl of contentEl.querySelectorAll('.mark[data-render-id]')) {
+                const markConfig = markContentRenders.get(Number(markEl.dataset.renderId));
+
+                if (markConfig.content) {
+                    markRenders.push(this.render(markEl, markConfig.content, markConfig, nestedViewRenderContext));
+                }
+            }
+        }
 
         // action buttons
         const actionButtonsEl = createElement('div', 'view-source__action-buttons');
@@ -221,7 +336,7 @@ export default function(host) {
 
         // tooltips
         for (const refEl of contentEl.querySelectorAll(':scope [data-tooltip-id]')) {
-            const ref = refsTooltips.get(Number(refEl.dataset.tooltipId));
+            const ref = viewTooltips.get(Number(refEl.dataset.tooltipId));
 
             delete refEl.dataset.tooltipId;
             this.tooltip(refEl, ref.tooltip, ref, context);
@@ -233,6 +348,10 @@ export default function(host) {
 
         if (postlude) {
             await host.view.render(postludeEl, postlude, nestedViewRenderData, nestedViewRenderContext);
+        }
+
+        if (markRenders.length) {
+            await Promise.all(markRenders);
         }
     }, {
         props,

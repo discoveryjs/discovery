@@ -1,8 +1,11 @@
 ## next
 
 - Added `navbuttons.uploadFromClipboard` button
-- Changed `struct` view to avoid auto expading numeric arrays
+- Added `marks` option for `source` view, which allows injecting visual or text marks at specific points in the source text
+- Renamed the `refs` option in the `source` view to `ranges`
+- Updated the `type` field of entries in the `ranges` option (previously `refs`) to be optional. If the `href` field is specified, the `type` value defaults to `link`; otherwise, it defaults to `span` instead of `spotlight`. The `spotlight` type is now replaced by `span`
 - Fixed default copy text button action in `source` view
+- Changed `struct` view to avoid auto expading numeric arrays
 
 ## 1.0.0-beta.92 (18-12-2024)
 

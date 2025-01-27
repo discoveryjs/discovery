@@ -89,6 +89,17 @@ export default {
             source: false
         },
         {
+            title: 'Max content size for syntax highlight',
+            highlightProps: ['maxSourceSizeToHighlight'],
+            beforeDemo: ['md:"By default a syntax highlighing is not appling to a source longer than 250Kb. Option `maxSourceSizeToHighlight` is using to change max size of source to be syntax highlighted."'],
+            demo: {
+                view: 'source',
+                source: codeExample,
+                syntax: 'js',
+                maxSourceSizeToHighlight: 4
+            }
+        },
+        {
             title: 'Custom line numbers',
             highlightProps: ['lineNum'],
             demo: [
@@ -174,38 +185,108 @@ export default {
         },
         {
             title: 'Highlight ranges',
-            highlightProps: ['refs'],
+            highlightProps: ['ranges'],
+            beforeDemo: { view: 'md', source: [
+                'The `ranges` option (formerly `refs`) allows highlighting specific parts of the source text or turning them into links. The `ranges` value must be an array of objects with the following fields:',
+                '\n',
+                '- `range` (required) - an array of two numbers representing the start and end offsets of the span',
+                '- `className` - class name(s) for the wrapping element. This can be a string (a space-separated list of class names) or an array of strings. Predefined class names include `def`, `ref`, `global-ref`, and `error`, each specifying a particular style for the span.',
+                '- `href` - when specified, the range becomes a link (`<a>`), otherwise, the range is a regular span (`<span>`)',
+                '- `tooltip` - config for a [tooltip](#views-showcase&!anchor=tooltips), similar to tooltips in other views',
+                '- `marker` - a value added to the wrapping element as a `data-marker` attribute'
+            ] },
             demo: {
                 view: 'source',
                 source: 'let span = "def + ref + global-ref + error";\nlet link = "def + ref + global-ref + error";\n\n// span with tooltip',
                 syntax: 'js',
-                refs: [
+                ranges: [
                     { range: [4, 8] },
                     { range: [12, 15], className: 'def' },
                     { range: [18, 21], className: 'ref' },
                     { range: [24, 34], className: 'global-ref' },
                     { range: [37, 42], className: 'error' },
-                    { range: [49, 53], type: 'link', href: '#' },
-                    { range: [57, 60], type: 'link', href: '#', className: 'def' },
-                    { range: [63, 66], type: 'link', href: '#', className: 'ref' },
-                    { range: [69, 79], type: 'link', href: '#', className: 'global-ref' },
-                    { range: [82, 87], type: 'link', href: '#', className: 'error' },
-                    { range: [104, 111], type: 'link', href: '#example', tooltip: {
+                    { range: [49, 53], href: '#' },
+                    { range: [57, 60], href: '#', className: 'def' },
+                    { range: [63, 66], href: '#', className: 'ref' },
+                    { range: [69, 79], href: '#', className: 'global-ref' },
+                    { range: [82, 87], href: '#', className: 'error' },
+                    { range: [104, 111], href: '#example', tooltip: {
                         position: 'trigger',
-                        content: ['text:"Link to "', 'text:href']
+                        content: 'text:`Link to ${href}`'
                     } }
                 ]
             }
         },
         {
-            title: 'Max content size for syntax highlight',
-            highlightProps: ['maxSourceSizeToHighlight'],
-            beforeDemo: ['md:"By default a syntax highlighing is not appling to a source longer than 250Kb. Option `maxSourceSizeToHighlight` is using to change max size of source to be syntax highlighted."'],
+            title: 'Marks',
+            highlightProps: ['marks'],
+            beforeDemo: { view: 'md', source: [
+                'The `marks` option allows injecting visual or text marks at specific points in the source text. The `marks` value must be an array of objects with the following fields:',
+                '\n',
+                '- `offset` (required) - the offset in the source where the mark is injected.',
+                '- `kind` - the type of mark, which can be one of the following: `span` (default), `dot`, `self` (self value), `nested` (nested value), `total` (total value), or `none`',
+                '- `className` - class name(s) for the wrapping element. This can be a string (a space-separated list of class names) or an array of strings. Predefined class names include `def`, `ref`, `global-ref`, `error`, and `inactive`, each specifying a particular style for the mark.',
+                '- `href` - when specified, the mark becomes a link (`<a>`), otherwise, it is a regular span (`<span>`)',
+                '- `content` - view config for content (e.g., `\'text:"hello"\'` or `{ view: \'name\', ... }`). If not specified, `kind` is ignored and defaults to `dot` (since content is optional for marks of type `dot`)',
+                '- `prefix` (ignored when `kind` is `dot`) - text to display before the content of mark, styled with a dimmed color ',
+                '- `postfix` (ignored when `kind` is `dot`) - text to display after the content of mark, styled with a dimmed color',
+                '- `tooltip` - config for a [tooltip](#views-showcase&!anchor=tooltips), similar to tooltips in other views',
+                '- `marker` - a value added to the wrapping element as a `data-marker` attribute'
+            ] },
             demo: {
                 view: 'source',
-                source: codeExample,
+                source: 'let span = "def + ref + global-ref + error";\nlet link = "def + ref + global-ref + error";\n\n// kinds: self nested total none\n// kind="dot": default def ref global-ref error inactive\n// kind="dot" with tooltip: \n// kind="dot" with href: \n// mark with tooltip',
                 syntax: 'js',
-                maxSourceSizeToHighlight: 4
+                marks: [
+                    { offset: 4 },
+                    { offset: 4, kind: 'dot', content: 'text:"dot with text"' },
+                    { offset: 4, content: 'text:"mark"' },
+                    { offset: 12, className: 'def', content: 'text:"def"' },
+                    { offset: 18, className: 'ref', content: 'text:"ref"' },
+                    { offset: 24, className: 'global-ref', content: 'text:"global-ref"' },
+                    { offset: 37, className: 'error', content: 'text:"error"' },
+
+                    { offset: 49, href: '#' },
+                    { offset: 49, href: '#', kind: 'dot', content: 'text:"dot with text"' },
+                    { offset: 49, href: '#', content: 'text:"link"' },
+                    { offset: 57, href: '#', className: 'def', content: 'text:"def"' },
+                    { offset: 63, href: '#', className: 'ref', content: 'text:"ref"' },
+                    { offset: 69, href: '#', className: 'global-ref', content: 'text:"global-def"' },
+                    { offset: 82, href: '#', className: 'error', content: 'text:"error"' },
+
+                    { offset: 101, kind: 'self', content: 'text:"123"', href: '#', postfix: 'ms' },
+                    { offset: 106, kind: 'nested', content: 'text:"123"', postfix: 'ms' },
+                    { offset: 113, kind: 'total', content: 'text:"123"', postfix: 'ms' },
+                    { offset: 119, kind: 'none', content: 'text:"none"' },
+                    { offset: 123, kind: 'none', content: 'text:"⚠️"' },
+                    { offset: 123, kind: 'none', content: 'text:"none"', prefix: 'prefix', postfix: ' postfix', href: '#test' },
+
+                    { offset: 139, kind: 'dot' },
+                    { offset: 147, kind: 'dot', className: 'def' },
+                    { offset: 151, kind: 'dot', className: 'ref' },
+                    { offset: 155, kind: 'dot', className: 'global-ref' },
+                    { offset: 166, kind: 'dot', className: 'error' },
+                    { offset: 172, kind: 'dot', className: 'inactive' },
+
+                    ...['', 'def', 'ref', 'global-ref', 'error', 'inactive'].map(className => ({
+                        offset: 209,
+                        kind: 'dot',
+                        className,
+                        tooltip: 'text:' + JSON.stringify(className || 'default')
+                    })),
+
+                    ...['', 'def', 'ref', 'global-ref', 'error', 'inactive'].map(className => ({
+                        offset: 235,
+                        kind: 'dot',
+                        className,
+                        href: '#' + (className || 'default')
+                    })),
+
+                    { offset: 256, href: '#example', content: 'text:"show tooltip"', tooltip: {
+                        position: 'trigger',
+                        content: 'text:`Link to ${href}`'
+                    } }
+                ]
             }
         }
     ]

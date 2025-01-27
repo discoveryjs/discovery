@@ -126,44 +126,133 @@
     color: var(--discovery-fmt-color);
 }
 
-.view-source__source .spotlight {
+.view-source__source .spotlight,
+.view-source__source .mark {
+    --bg-color: light-dark(#f5e69a, #515143);
+    --color: light-dark(#948634, #bdb06a);
+
     background: #f5e69a;
-    background: light-dark(#f5e69a, #515143);
+    background: var(--bg-color);
     background-image: linear-gradient(to right,
         light-dark(#fafafa80, transparent), 
         light-dark(#fafafa80, transparent)
     );
-    color: light-dark(#948634, #bdb06a);
+    color: var(--color);
     padding: 1px 1px 2px;
     margin: 0 -1px;
 }
-.view-source__source .spotlight.error {
-    background-color: light-dark(#ffc9c9, #603c3c);
-    color: light-dark(#bb6665, #ed9e9d);
+.view-source__source .mark {
+    margin-left: 0px;
+    margin-right: 2px;
+    padding: 1.5px .35em 2.5px;
+    font-family: var(--discovery-font-family);
+    font-size: 83%;
+    line-height: 1;
+    border: .5px solid currentColor;
+    border-color: color-mix(in srgb, currentColor 65%, var(--bg-color));
+    border-radius: 4px;
+    background-color: light-dark(#e4e4e4, #2b2b2b);
+    background-clip: padding-box;
+    text-decoration-thickness: 1px;
 }
-.view-source__source .spotlight.def {
-    background-color: light-dark(#d3e7fb, #3a5066);
-    color: light-dark(#668fb8, #8cbae7);
+.view-source__source .mark[data-kind=none] {
+    color: var(--discovery-color);
+    border-color: transparent;
+    background-clip: border-box;
 }
-.view-source__source .spotlight.ref {
-    background-color: light-dark(#cee99b, #415220);
-    color: light-dark(#7a9a3b, #95ca2c);
+.view-source__source .mark[data-kind=dot]::before {
+    --dot-color: var(--color);
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    padding: 4px;
+    margin: -2px 4px 0 1px;
+    font-size: 0px;
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--dot-color) 85%, var(--discovery-background-color));
 }
-.view-source__source .spotlight.global-ref {
-    background-color: light-dark(#ffd8a3, #61492a);
-    color: light-dark(#9a7f59, #d8b381);
+.view-source__source .mark[data-kind=dot]:empty {
+    border: none;
+    background-color: transparent;
+    padding-left: 1px;
+    padding-right: 1px;
 }
-.view-source__source a.spotlight {
+.view-source__source .mark[data-kind=dot]:empty::before {
+    margin-right: 1px;
+}
+.view-source__source .mark[data-kind=self] {
+    --color: light-dark(#4c934c, #6eae6e);
+}
+.view-source__source .mark[data-kind=nested] {
+    --color: light-dark(#96944d, #aead6e);
+}
+.view-source__source .mark[data-kind=total] {
+    --color: light-dark(#9580bf, #aa92da);
+}
+.view-source__source .mark[data-prefix]:not([data-kind=dot])::before {
+    content: attr(data-prefix);
+    display: inline-block;
+    color: color-mix(in srgb, currentColor 50%, var(--bg-color));
+    padding: 0 3px 0 1px;
+}
+.view-source__source .mark[data-postfix]:not([data-kind=dot])::after {
+    content: attr(data-postfix);
+    display: inline-block;
+    color: color-mix(in srgb, currentColor 50%, var(--bg-color));
+}
+
+.view-source__source .mark.inactive {
+    --color: #888;
+}
+.view-source__source .spotlight.error,
+.view-source__source .mark.error {
+    --bg-color: light-dark(#ffc9c9, #603c3c);
+    --color: light-dark(#bb6665, #ed9e9d);
+}
+.view-source__source .spotlight.def,
+.view-source__source .mark.def {
+    --bg-color: light-dark(#d3e7fb, #3a5066);
+    --color: light-dark(#668fb8, #8cbae7);
+}
+.view-source__source .spotlight.ref,
+.view-source__source .mark.ref {
+    --bg-color: light-dark(#cee99b, #415220);
+    --color: light-dark(#7a9a3b, #95ca2c);
+}
+.view-source__source .spotlight.global-ref,
+.view-source__source .mark.global-ref {
+    --bg-color: light-dark(#ffd8a3, #61492a);
+    --color: light-dark(#9a7f59, #d8b381);
+}
+
+.view-source__source a.spotlight,
+.view-source__source a.mark {
     position: relative;
     text-decoration-color: color-mix(in srgb, currentcolor 45%, transparent);
+    text-underline-offset: 1.5px;
 }
-.view-source__source a.spotlight:hover {
-    text-decoration-color: color-mix(in srgb, currentcolor 70%, transparent);
+.view-source__source a.spotlight:hover,
+.view-source__source a.mark:hover {
+    text-decoration-color: color-mix(in srgb, currentcolor 75%, transparent);
     background-image: linear-gradient(to right,
         light-dark(transparent, #35353580), 
         light-dark(transparent, #35353580)
     );
 }
+.view-source__source a.mark:hover,
+.view-source__source .mark.discovery-view-has-tooltip:hover {
+    border-color: currentColor;
+}
+.view-source__source a.mark[data-kind=dot]:empty::before,
+.view-source__source .mark.discovery-view-has-tooltip[data-kind=dot]:empty::before {
+    outline: 1px solid color-mix(in srgb, var(--dot-color) 45%, transparent);
+    outline-offset: 1px;
+}
+.view-source__source a.mark[data-kind=dot]:hover::before,
+.view-source__source .mark.discovery-view-has-tooltip[data-kind=dot]:hover::before {
+    outline-color: var(--dot-color);
+}
+
 .view-source__source .spotlight-ignore {
     background: #ddd;
     background-image: repeating-linear-gradient(-45deg,
