@@ -177,11 +177,20 @@ export default {
             highlightProps: ['refs'],
             demo: {
                 view: 'source',
-                source: codeExample,
+                source: 'let span = "def + ref + global-ref + error";\nlet link = "def + ref + global-ref + error";\n\n// span with tooltip',
                 syntax: 'js',
                 refs: [
                     { range: [4, 8] },
-                    { range: [21, 28], type: 'link', href: '#example', tooltip: {
+                    { range: [12, 15], className: 'def' },
+                    { range: [18, 21], className: 'ref' },
+                    { range: [24, 34], className: 'global-ref' },
+                    { range: [37, 42], className: 'error' },
+                    { range: [49, 53], type: 'link', href: '#' },
+                    { range: [57, 60], type: 'link', href: '#', className: 'def' },
+                    { range: [63, 66], type: 'link', href: '#', className: 'ref' },
+                    { range: [69, 79], type: 'link', href: '#', className: 'global-ref' },
+                    { range: [82, 87], type: 'link', href: '#', className: 'error' },
+                    { range: [104, 111], type: 'link', href: '#example', tooltip: {
                         position: 'trigger',
                         content: ['text:"Link to "', 'text:href']
                     } }

@@ -128,32 +128,41 @@
 
 .view-source__source .spotlight {
     background: #f5e69a;
-    padding: 1px 2px 2px;
-}
-.discovery-root-darkmode .view-source__source .spotlight {
-    background: #686246;
+    background: light-dark(#f5e69a, #515143);
+    background-image: linear-gradient(to right,
+        light-dark(#fafafa80, transparent), 
+        light-dark(#fafafa80, transparent)
+    );
+    color: light-dark(#948634, #bdb06a);
+    padding: 1px 1px 2px;
+    margin: 0 -1px;
 }
 .view-source__source .spotlight.error {
-    background: #ffc9c9;
+    background-color: light-dark(#ffc9c9, #603c3c);
+    color: light-dark(#bb6665, #ed9e9d);
 }
 .view-source__source .spotlight.def {
-    background: #d3e7fb;
+    background-color: light-dark(#d3e7fb, #3a5066);
+    color: light-dark(#668fb8, #8cbae7);
 }
 .view-source__source .spotlight.ref {
-    background: #cee99b;
+    background-color: light-dark(#cee99b, #415220);
+    color: light-dark(#7a9a3b, #95ca2c);
 }
 .view-source__source .spotlight.global-ref {
-    background: #ffd8a3;
+    background-color: light-dark(#ffd8a3, #61492a);
+    color: light-dark(#9a7f59, #d8b381);
 }
 .view-source__source a.spotlight {
     position: relative;
-    color: inherit;
-    text-decoration: none;
+    text-decoration-color: color-mix(in srgb, currentcolor 45%, transparent);
 }
 .view-source__source a.spotlight:hover {
-    background-color: #f3eec4;
-    color: #aa6622 !important;
-    text-decoration: none
+    text-decoration-color: color-mix(in srgb, currentcolor 70%, transparent);
+    background-image: linear-gradient(to right,
+        light-dark(transparent, #35353580), 
+        light-dark(transparent, #35353580)
+    );
 }
 .view-source__source .spotlight-ignore {
     background: #ddd;
@@ -168,6 +177,9 @@
 
 .view-source__source .token {
     background: none;
+}
+.view-source__source .spotlight .token {
+    color: inherit !important;
 }
 .view-source__source .token.comment,
 .view-source__source .token.prolog,
