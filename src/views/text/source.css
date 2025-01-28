@@ -142,9 +142,10 @@
     margin: 0 -1px;
 }
 .view-source__source .mark {
+    display: inline-block;
     margin-left: 0px;
     margin-right: 2px;
-    padding: 1.5px .35em 2.5px;
+    padding: 3px .35em;
     font-family: var(--discovery-font-family);
     font-size: 83%;
     line-height: 1;
