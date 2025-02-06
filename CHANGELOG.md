@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.93 (06-02-2025)
 
 - Added `navbuttons.uploadFromClipboard` button
 - Added `marks` option for `source` view, which allows injecting visual or text marks at specific points in the source text
