@@ -29,7 +29,7 @@ export default function(host) {
                 host.view.listLimit(limit, 25)
             ).then(() => {
                 if (typeof onInit === 'function') {
-                    onInit(host.query('.[selected].pick()', data, context), name);
+                    onInit(data.find(item => item.selected), name);
                 }
             });
         }

@@ -10,7 +10,7 @@ export default function(host) {
         el.appendChild(document.createTextNode(String(text)));
     }, {
         tag: false,
-        props: (...args) => host.query(props, ...args),
+        props,
         usage
     });
 }
