@@ -17,12 +17,12 @@ export default {
                 },
                 {
                     view: 'checkbox',
-                    checked: '1 > 5',
+                    checked: '=1 > 5',
                     content: 'text:"shouldn\'t be checked"'
                 },
                 {
                     view: 'checkbox',
-                    checked: '1 < 5',
+                    checked: '=1 < 5',
                     content: 'text:"should be checked"'
                 }
             ]

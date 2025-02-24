@@ -2,6 +2,13 @@
 import { createElement } from '../../core/utils/dom.js';
 import usage from './expand.usage.js';
 
+const props = `is not array? | {
+    header: undefined,
+    content: undefined,
+    expanded: false,
+    onToggle: undefined
+} | overrideProps()`;
+
 export default function(host) {
     host.view.define('expand', function(el, config, data, context) {
         function renderState() {
@@ -23,7 +30,6 @@ export default function(host) {
         const headerContentEl = headerEl.appendChild(createElement('div', 'header-content'));
         let contentEl = null;
 
-        expanded = host.queryBool(expanded, data, context);
         headerEl.appendChild(createElement('div', 'trigger'));
         headerEl.addEventListener('click', () => {
             expanded = !expanded;
@@ -38,5 +44,5 @@ export default function(host) {
             host.view.render(headerContentEl, header || 'text:"\u00A0"', data, context),
             renderState()
         ]);
-    }, { usage });
+    }, { usage, props });
 }

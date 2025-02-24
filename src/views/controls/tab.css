@@ -6,6 +6,7 @@
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
+    text-transform: capitalize;
 }
 .view-tab.active {
     z-index: 10;

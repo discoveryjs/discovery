@@ -2,6 +2,19 @@
 import { createElement } from '../../core/utils/dom.js';
 import usage from './checkbox.usage.js';
 
+const props = `#.props | {
+    name: undefined,
+    checked: undefined,
+    readonly: undefined,
+    content: undefined,
+    onInit: undefined,
+    onChange: undefined
+} | overrideProps() | {
+    ...,
+    checked is truthy,
+    readonly is truthy
+}`;
+
 export default function(host) {
     function renderContent(contentEl, content, data, context, name, inputEl) {
         if (contentEl === null) {
@@ -20,7 +33,7 @@ export default function(host) {
         const contentEl = content ? el.appendChild(createElement('span', 'view-checkbox__label')) : null;
 
         inputEl.type = 'checkbox';
-        inputEl.checked = checked !== undefined ? host.queryBool(checked, data, context) : Boolean(context[name]);
+        inputEl.checked = checked;
         inputEl.readOnly = readonly;
         inputEl.addEventListener('click', (e) => {
             if (readonly) {
@@ -41,6 +54,7 @@ export default function(host) {
         return renderContent(contentEl, content, data, context, name, inputEl);
     }, {
         tag: 'label',
+        props,
         usage
     });
 }

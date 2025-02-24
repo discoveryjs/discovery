@@ -1,6 +1,23 @@
 /* eslint-env browser */
 import usage from './tabs.usage.js';
 
+const props = `undefined | {
+    name,
+    value,
+    tabs,
+    tabConfig,
+    content,
+    beforeTabs,
+    afterTabs,
+    onInit,
+    onChange
+} | overrideProps() | {
+    ...,
+    name is string ?: 'filter',
+    value: value is not undefined ? value :
+        name is string and name in #.context ? #.context[name]
+}`;
+
 export default function(host) {
     host.view.define('tabs', function(el, config, data, context) {
         async function renderContent(value) {
@@ -50,21 +67,14 @@ export default function(host) {
         }
 
         const { content, beforeTabs, afterTabs, onInit, onChange } = config;
-        let { name, tabs, tabConfig } = config;
+        let { name, value: initValue, tabs, tabConfig } = config;
         const tabsEl = el.appendChild(document.createElement('div'));
         let contentEl = null;
         let beforeTabsEl = null;
         let afterTabsEl = null;
         let inited = false;
         let currentValue = NaN;
-        let initValue =
-            'value' in config
-                ? config.value
-                : name in context
-                    ? context[name]
-                    : undefined;
 
-        tabs = host.query(tabs, data, context);
         tabConfig = host.view.composeConfig({
             view: 'tab',
             onClick: renderContent
@@ -85,10 +95,6 @@ export default function(host) {
         if (content) {
             contentEl = el.appendChild(document.createElement('div'));
             contentEl.className = 'view-tabs-content';
-        }
-
-        if (typeof name !== 'string') {
-            name = 'filter';
         }
 
         if (Array.isArray(tabs)) {
@@ -113,5 +119,5 @@ export default function(host) {
         }
 
         return renderContent(initValue);
-    }, { usage });
+    }, { usage, props });
 }

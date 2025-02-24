@@ -4,6 +4,7 @@ export default {
     demo: {
         view: 'tabs',
         name: 'tabs',
+        value: 'two',
         tabs: [
             { value: 'one', text: 'One' },
             { value: 'two', text: 'Two' },
@@ -29,6 +30,15 @@ export default {
     },
     examples: [
         {
+            title: 'Value is default text',
+            demo: {
+                view: 'tabs',
+                name: 'tabsValue',
+                tabs: ['foo', 'bar', 'baz'],
+                content: 'struct:#.tabsValue'
+            }
+        },
+        {
             title: 'With before and after content',
             demo: {
                 view: 'tabs',
@@ -47,14 +57,13 @@ export default {
             title: 'On change handler',
             demo: {
                 view: 'tabs',
-                name: 'example',
                 tabs: [
                     { value: 'one', text: 'One' },
                     { value: 'two', text: 'Two' },
                     { value: 'three', text: 'Three' }
                 ],
                 onChange: Function('return (value) => alert("changed to " + value)')(),
-                content: 'text:"Selected: " + #.example'
+                content: 'text:"Selected: " + #.filter'
             }
         }
     ]
