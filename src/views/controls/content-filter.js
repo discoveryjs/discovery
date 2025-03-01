@@ -3,7 +3,7 @@ import usage from './content-filter.usage.js';
 
 export default function(host) {
     host.view.define('content-filter', function(el, config, data, context) {
-        const { name = 'filter', type = 'regexp', placeholder, content, onInit, onChange } = config;
+        const { name = 'filter', type = 'regexp', placeholder, content, onInit, onChange, debounce } = config;
 
         return host.view.render(el, {
             view: 'context',
@@ -11,7 +11,8 @@ export default function(host) {
                 view: 'input',
                 name,
                 type,
-                placeholder: placeholder || 'Filter'
+                placeholder: placeholder || 'Filter',
+                debounce
             },
             content: {
                 view: 'block',
