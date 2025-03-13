@@ -529,11 +529,7 @@ export class ViewModel<
             page: this.pageId,
             id: this.pageRef,
             params: this.pageParams,
-            model: this.info,
-            actions: this.action.actionMap,
-            datasets: this.datasets,
-            data: this.data,
-            ...this.context
+            ...this.getContext()
         };
     }
 

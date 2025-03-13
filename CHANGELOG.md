@@ -6,6 +6,7 @@
     - `disabled` in `tab` view
     - `tabs` in `tabs` view
 - Changed views to normalize props for render: `checkbox`, `expand`, `tabs` and `tab`
+- Added `Model#getContext()` method
 
 ## 1.0.0-beta.93 (06-02-2025)
 

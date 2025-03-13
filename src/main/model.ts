@@ -287,6 +287,15 @@ export class Model<
             this.emit('context', prevContext, this.#context);
         }
     }
+    getContext() {
+        return {
+            model: this.info,
+            actions: this.action.actionMap,
+            datasets: this.datasets,
+            data: this.data,
+            ...this.context
+        };
+    }
 
     setData(data: unknown, options?: SetDataOptions) {
         options = options || {};
