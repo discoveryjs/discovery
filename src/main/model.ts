@@ -4,6 +4,8 @@ import type { Dataset, Encoding, LoadDataBaseOptions, LoadDataFetchOptions, Load
 import type { ConsoleLike, LogLevel } from '../core/utils/logger.js';
 import { normalizeEncodings } from '../core/encodings/utils.js';
 import { loadDataFromEvent, loadDataFromFile, loadDataFromStream, loadDataFromUrl } from '../core/utils/load-data.js';
+import { TextViewRenderer } from '../core/text-view.js';
+import * as textViews from '../text-views/index.js';
 import { Emitter } from '../core/emitter.js';
 import { ActionManager } from '../core/action.js';
 import { ObjectMarkerManager } from '../core/object-marker.js';
@@ -157,6 +159,8 @@ export class Model<
     #legacyPrepare: boolean;
     #lastSetData: symbol | undefined;
 
+    textView: TextViewRenderer;
+
     constructor(options?: Partial<Options>) {
         super();
 
@@ -205,6 +209,8 @@ export class Model<
         this.prepare = data => data;
         this.#legacyPrepare = true;
 
+        this.textView = new TextViewRenderer(this);
+
         this.apply(extensions);
 
         if (typeof setup === 'function') {
@@ -213,6 +219,8 @@ export class Model<
         } else {
             setupModel(this, () => {});
         }
+
+        this.apply(textViews);
 
         for (const { page, lookup } of this.objectMarkers.values) {
             if (page) {

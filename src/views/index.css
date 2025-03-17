@@ -32,6 +32,7 @@
 @import url('./text/source.css');
 @import url('./text/text-match.css');
 @import url('./text/text-numeric.css');
+@import url('./text-render.css');
 
 @import url('./layout/column.css');
 @import url('./layout/columns.css');

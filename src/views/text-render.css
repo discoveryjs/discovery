@@ -1,0 +1,5 @@
+.view-text-render {
+    font-family: var(--discovery-monospace-font-family);
+    font-size: var(--discovery-monospace-font-size, 12px);
+    line-height: var(--discovery-monospace-line-height, 1.5);
+}

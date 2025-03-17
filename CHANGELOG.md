@@ -1,12 +1,16 @@
 ## next
 
+- Implemented basic text rendering
+    - Added `Model#textView` dictionary which works the same way as `ViewModel#view`, but manage text views
+    - Added initial set of text views: `context`, `switch`, `text`, `badge`, `list`, `inline-list`, `comma-list`, `ol`, `ul`, `list-item` and `source`
+    - Added `text-render` view, which renders text content defined by `content` option
+- Added `Model#getContext()` method
 - Changed views to no longer treat some properties as a query:
     - `checked` in `checkbox` view
     - `expanded` in `expand` view
     - `disabled` in `tab` view
     - `tabs` in `tabs` view
 - Changed views to normalize props for render: `checkbox`, `expand`, `tabs` and `tab`
-- Added `Model#getContext()` method
 - Removed `ViewModel#queryToConfig()` method
 
 ## 1.0.0-beta.93 (06-02-2025)
