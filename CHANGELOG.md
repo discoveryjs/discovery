@@ -4,6 +4,7 @@
     - Added `Model#textView` dictionary which works the same way as `ViewModel#view`, but manage text views
     - Added initial set of text views: `context`, `switch`, `text`, `badge`, `list`, `inline-list`, `comma-list`, `ol`, `ul`, `list-item` and `source`
     - Added `text-render` view, which renders text content defined by `content` option
+    - Added `textViews` export
 - Added `Model#getContext()` method
 - Changed views to no longer treat some properties as a query:
     - `checked` in `checkbox` view

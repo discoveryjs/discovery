@@ -1,5 +1,6 @@
 import { version } from './version.js';
 import { Model, ViewModel, App } from './main/index.js';
+import * as textViews from './text-views/index.js';
 import * as views from './views/index.js';
 import * as pages from './pages/index.js';
 import inspector from './extensions/inspector.js';
@@ -18,6 +19,7 @@ export {
     ViewModel,
     ViewModel as Widget, // for backward compatibility
     App,
+    textViews,
     views,
     pages,
     embed,
