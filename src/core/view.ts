@@ -6,6 +6,7 @@ import { isDocumentFragment } from './utils/dom.js';
 import { hasOwn } from './utils/object-utils.js';
 import { Dictionary } from './dict.js';
 import { Preset } from './preset.js';
+import { queryToConfig } from './utils/query-to-config.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
 type RenderFunction = (el: HTMLElement | DocumentFragment, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
@@ -669,7 +670,7 @@ export class ViewRenderer extends Dictionary<View> {
                 if (op === '{') {
                     try {
                         return regConfigTransition(
-                            this.host.queryToConfig(prefix, op + query),
+                            queryToConfig(prefix, op + query),
                             config
                         );
                     } catch (error) {
