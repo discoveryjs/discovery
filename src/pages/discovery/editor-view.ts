@@ -34,6 +34,15 @@ const defaultViewPresets: ViewPreset[] = [
             view: 'signature',
             expanded: 2
         })
+    },
+    {
+        name: 'Text render',
+        content: jsonStringifyAsJavaScript({
+            view: 'text-render',
+            content: [
+                'table'
+            ]
+        })
     }
 ];
 
