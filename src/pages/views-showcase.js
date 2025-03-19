@@ -1,5 +1,6 @@
-import renderUsage from '../views/_usage.js';
-import intro from './views-showcase-intro-md.js';
+import { addModelViewsToContext, getUsageRenderConfig } from './views-showcase/view-usage-render.js';
+import introWebRender from './views-showcase/intro-web-render-md.js';
+import introTextRender from './views-showcase/intro-text-render-md.js';
 
 export default function(host) {
     // a hack to scroll to top when no anchor
@@ -15,17 +16,40 @@ export default function(host) {
 
     host.page.define('views-showcase', {
         view: 'context',
-        data: () => [...host.view.values],
+        context: addModelViewsToContext(host),
+        data: '#.views.selected',
         modifiers: [
             {
                 view: 'block',
                 className: 'sidebar',
                 content: [
                     {
-                        view: 'link',
-                        className: 'index-page-link',
-                        href: '="".pageLink(#.page)',
-                        text: 'Index page'
+                        view: 'block',
+                        className: 'sidebar-header',
+                        content: [
+                            {
+                                view: 'link',
+                                className: '="index-page-link" + (#.id ? " view-selected" : "")',
+                                href: '="".pageLink(#.page)',
+                                text: 'Intro'
+                            },
+                            {
+                                view: 'context',
+                                content: {
+                                    view: 'toggle-group',
+                                    className: 'render-toggle',
+                                    beforeToggles: 'text:"Render:"',
+                                    value: '=#.render',
+                                    onChange(value) {
+                                        host.setPageParams(value === 'text' ? { render: 'text' } : {});
+                                    },
+                                    data: [
+                                        { value: 'web' },
+                                        { value: 'text' }
+                                    ]
+                                }
+                            }
+                        ]
                     },
                     {
                         view: 'content-filter',
@@ -54,9 +78,10 @@ export default function(host) {
                 content: [
                     { when: 'no $ and #.id', content: 'alert-warning:"View \\"" + #.id + "\\" not found"' },
                     { when: 'no $', content: [
-                        'h1:"Views showcase"',
+                        'h1:#.render = "text" ? "Model\'s text views" : "Model\'s views"',
                         'alert:"← Select a view to get details"',
-                        { view: 'markdown', source: intro }
+                        { view: 'markdown', when: '#.render = "web"', source: introWebRender },
+                        { view: 'markdown', when: '#.render = "text"', source: introTextRender }
                     ] },
                     { content: [
                         { view: 'context', postRender(el, config, data, context) {
@@ -69,7 +94,7 @@ export default function(host) {
                             context.id = host.pageRef;
                         } },
 
-                        renderUsage(host)
+                        getUsageRenderConfig(host)
                     ] }
                 ]
             }

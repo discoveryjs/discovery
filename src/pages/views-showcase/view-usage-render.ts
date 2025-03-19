@@ -1,5 +1,6 @@
 /* eslint-env browser */
-import { jsonStringifyAsJavaScript } from '../core/utils/json.js';
+import { jsonStringifyAsJavaScript } from '../../core/utils/json.js';
+import type { ViewModel } from '../../main/view-model.js';
 
 function isTextNode(node) {
     return Boolean(node && node.nodeType === Node.TEXT_NODE);
@@ -19,10 +20,10 @@ function childrenHtml(node, level = '\n') {
     return res;
 }
 
-function nodeHtml(node, level = '\n') {
+function nodeHtml(node: Node, level = '\n') {
     switch (node.nodeType) {
         case Node.ELEMENT_NODE:
-            const [start, end = ''] = node.cloneNode().outerHTML.split(/(?=<\/[^>]+>$)/);
+            const [start, end = ''] = (node.cloneNode() as HTMLElement).outerHTML.split(/(?=<\/[^>]+>$)/);
             return (
                 start +
                 (node.firstChild && !isTextNode(node.firstChild) ? level + '  ' : '') +
@@ -44,8 +45,8 @@ function nodeHtml(node, level = '\n') {
     return '';
 }
 
-function highlightRefs(data, content) {
-    const refs = [];
+function highlightRefs(data: any, content: string) {
+    const refs: { range: [number, number] }[] = [];
     const highlights = [...Array.isArray(data.highlight)
         ? data.highlight
         : data.highlight ? [data.highlight] : []
@@ -57,7 +58,7 @@ function highlightRefs(data, content) {
 
     for (const highlight of highlights) {
         const rx = new RegExp(highlight, 'gm');
-        let match;
+        let match: RegExpExecArray | null = null;
 
         while (match = rx.exec(content)) {
             refs.push({ range: [match.index, match.index + match[0].length] });
@@ -67,7 +68,23 @@ function highlightRefs(data, content) {
     return refs;
 }
 
-export default function(host) {
+export const addModelViewsToContext = (host: ViewModel) => (_: any, context: any) => {
+    const render = context.params?.render === 'text' ? 'text' : 'web';
+    const webViews = [...host.view.values];
+    const textViews = [...host.textView.values];
+
+    return {
+        ...context,
+        render,
+        views: {
+            webViews,
+            textViews,
+            selected: render === 'text' ? textViews : webViews
+        }
+    };
+};
+
+export function getUsageRenderConfig(host: ViewModel) {
     const renderDemo = {
         view: 'context',
         modifiers: [
@@ -87,17 +104,19 @@ export default function(host) {
                 view: 'block',
                 when: 'demo or view',
                 className: 'usage-render',
-                postRender: (el, { onInit }, { demoFixed }) => {
+                postRender(el: HTMLElement, { onInit }, { demoFixed }, ctx: any) {
                     if (demoFixed) {
                         el.classList.add('demo-fixed');
                         el.style.height = demoFixed + 'px';
                     }
 
+                    el.dataset.renderType = ctx.render;
+
                     onInit(el, 'root');
                 },
                 content: {
                     view: 'render',
-                    config: 'demo or view',
+                    config: 'demo or view | #.render != "text" ?: [{ view: "text-render", content: $ }, { view: "text-render-tree", when: false, content: $ }]',
                     data: 'demoData',
                     context: '{ __demoContext: true, ...(viewDef | { name, group, options }) }'
                 }
@@ -186,8 +205,9 @@ export default function(host) {
     return {
         view: 'block',
         className: 'discovery-view-usage',
+        context: addModelViewsToContext(host),
         data({ name, options }, context) {
-            const group = [...host.view.values]
+            const group = context.views.selected
                 .filter(view => view.options.usage === options.usage)
                 .map(view => view.name);
 

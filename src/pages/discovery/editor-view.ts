@@ -6,7 +6,7 @@ import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { jsonStringifyAsJavaScript }  from '../../core/utils/json.js';
 import { contextWithoutEditorParams, getParamsFromContext } from './params.js';
-import renderUsage from '../../views/_usage.js';
+import { getUsageRenderConfig } from '../views-showcase/view-usage-render.js';
 
 type ViewPreset = {
     name: string;
@@ -162,7 +162,12 @@ export default function(host: ViewModel, updateParams: UpdateHostParams) {
         hoverTriggers: '.view-editor-view-list .item.with-usage',
         // hoverPin: 'trigger-click',
         render(popupEl, triggerEl) {
-            host.view.render(popupEl, renderUsage(host), host.view.get(triggerEl?.textContent as string), {});
+            host.view.render(
+                popupEl,
+                getUsageRenderConfig(host),
+                host.view.get(triggerEl?.textContent as string),
+                {}
+            );
         }
     });
 
