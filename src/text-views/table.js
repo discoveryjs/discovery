@@ -1,5 +1,6 @@
 import { isArray, isSet } from '../core/utils/is-type.js';
 import { hasOwn } from '../core/utils/object-utils.js';
+import usage from './table.usage.js';
 
 function configFromName(name, query) {
     return {
@@ -99,7 +100,6 @@ export default function(host) {
             cols.unshift({
                 header: '[value]',
                 view: 'table-cell',
-                content: '=is not object ? "struct"',
                 details: false
             });
         }
@@ -138,7 +138,6 @@ export default function(host) {
             });
         }
 
-        node.appendText('\n');
         drawLine(colWidths, '┌', '┬', '┐');
         drawRow(colWidths, headerCells, true);
         drawLine(colWidths, '├', '┼', '┤');
@@ -151,7 +150,7 @@ export default function(host) {
             const tableWidth = colWidths.reduce((w, cw) => w + cw + 3, 0) + 1;
             const text = ` ${moreCount} more rows… `;
             const pad = Math.max(1, tableWidth - text.length);
-            node.appendText(`${'~'.repeat(Math.floor(1))}${text}${'~'.repeat(Math.ceil(pad - 1))}\n`);
+            node.appendLine().appendText(`${'~'.repeat(Math.floor(1))}${text}${'~'.repeat(Math.ceil(pad - 1))}`);
         } else {
             drawLine(colWidths, '└', '┴', '┘');
         }
@@ -163,33 +162,35 @@ export default function(host) {
                 line += m + '─'.repeat(colWidths[i] + 2);
             }
 
-            node.appendText(line + e + '\n');
+            node.appendLine().appendText(line + e);
         }
 
         function drawRow(maxFieldLen, cells) {
+            const line = node.appendLine();
+
             for (let i = 0; i < cells.length; i++) {
                 const { width, align, content } = cells[i];
                 const pad = maxFieldLen[i] - width + 1;
 
 
                 if (pad > 0 && align !== 'right') {
-                    node.appendText('│ ');
+                    line.appendText('│ ');
                 } else {
-                    node.appendText('│' + ' '.repeat(pad));
+                    line.appendText('│' + ' '.repeat(pad));
                 }
 
-                node.append(content);
+                line.append(content);
 
                 if (pad > 0 && align === 'right') {
-                    node.appendText(' ');
+                    line.appendText(' ');
                 } else {
-                    node.appendText(' '.repeat(pad));
+                    line.appendText(' '.repeat(pad));
                 }
             }
 
-            node.appendText('│\n');
+            line.appendText('│');
         }
-    });
+    }, { type: 'block', usage });
 
     host.textView.define('table-cell', function(node, config, data, context) {
         let { content, contentWhen = true } = config;

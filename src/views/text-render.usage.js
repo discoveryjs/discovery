@@ -1,4 +1,7 @@
 export default {
+    beforeDemo: [
+        'md:"The `text-render` view renders data as text using the `Model#textView` API. For a full list of available text views, refer to the [`text`](#views-showcase&render=text) section."'
+    ],
     demo: {
         view: 'text-render',
         content: [

@@ -1,6 +1,12 @@
+export * as alert from './alert.js';
+export * as badge from './badge.js';
+export * as block from './block.js';
+export * as blockquote from './blockquote.js';
 export * as context from './context.js';
-export * as switchView from './switch.js';
-export * as listViews from './list.js';
+export * as headerViews from './headers.js';
+export * as link from './link.js';
+export * as listViews from './lists.js';
 export * as source from './source.js';
+export * as switchView from './switch.js';
 export * as table from './table.js';
 export * as textViews from './text.js';

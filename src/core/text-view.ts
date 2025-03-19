@@ -4,12 +4,12 @@ import { Dictionary } from './dict.js';
 import { queryToConfig } from './utils/query-to-config.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
-type RenderFunction = (node: RenderList, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
-type NormalizedViewPropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
-type DefineViewRender = RenderFunction | RawViewConfig;
-type ViewUsage = any; // TODO: define a type
-export type RawViewConfig = SingleViewConfig | RenderFunction | string | RawViewConfig[];
-export type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
+type TextRenderFunction = (node: RenderList, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
+type NormalizedTextViewPropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
+type DefineTextViewRender = TextRenderFunction | RawTextViewConfig;
+type TextViewUsage = any; // TODO: define a type
+export type RawTextViewConfig = SingleTextViewConfig | TextRenderFunction | string | RawTextViewConfig[];
+export type NormalizedTextViewConfig = SingleTextViewConfig | SingleTextViewConfig[];
 type queryFn = (data: any, context: any) => any;
 type query = string | queryFn | boolean;
 
@@ -18,24 +18,35 @@ type ConfigTransitionTreeNode = {
     deps: ConfigTransitionTreeNode[];
 }
 
-export interface ViewOptions {
-    render: DefineViewRender;
-    usage: ViewUsage;
-    props: NormalizedViewPropsFunction | string;
+type lrBorder = null | string | ((index: number, total: number) => string | undefined);
+type tbBorder = null | string | ((len: number, left: number, right: number) => string | undefined);
+
+export interface TextViewOptions {
+    type: RenderBlockType;
+    render: DefineTextViewRender;
+    usage: TextViewUsage;
+    props: NormalizedTextViewPropsFunction | string;
 }
-export type ViewOptionsWithoutRender = Exclude<ViewOptions, 'render'>;
-export interface NormalizedViewOptions {
-    usage?: ViewUsage;
-    props?: NormalizedViewPropsFunction;
+export type TextViewOptionsWithoutRender = Exclude<TextViewOptions, 'render'>;
+export interface NormalizedTextViewOptions {
+    type: RenderBlockType | undefined;
+    border?: null | Partial<{
+        top: tbBorder;
+        left: lrBorder;
+        right: lrBorder;
+        bottom: tbBorder;
+    }>;
+    usage?: TextViewUsage;
+    props?: NormalizedTextViewPropsFunction;
 }
 
-interface View {
+interface TextView {
     name: string | false;
-    options: NormalizedViewOptions;
-    render: RenderFunction;
+    options: NormalizedTextViewOptions;
+    render: TextRenderFunction;
 }
-export interface SingleViewConfig {
-    view: string | RenderFunction;
+export interface SingleTextViewConfig {
+    view: string | TextRenderFunction;
     when?: query;
     context?: query;
     data?: query;
@@ -48,11 +59,11 @@ type RenderProps = {
 }
 type PropsTransition = {
     props: any;
-    fn: NormalizedViewPropsFunction & { query?: string };
+    fn: NormalizedTextViewPropsFunction & { query?: string };
 };
 
 interface ViewInfo {
-    config: NormalizedViewConfig;
+    config: NormalizedTextViewConfig;
     skipped?: 'when' | 'whenData';
     props?: any,
     inputData: any;
@@ -66,8 +77,8 @@ interface ErrorData {
     reason: string;
 }
 
-const STUB_VIEW_OPTIONS: NormalizedViewOptions = Object.freeze({});
-const STUB_CONFIG: SingleViewConfig = Object.freeze({ view: '' });
+const STUB_VIEW_OPTIONS: NormalizedTextViewOptions = Object.freeze({ type: undefined });
+const STUB_CONFIG: SingleTextViewConfig = Object.freeze({ view: '' });
 const configTransitions = new WeakMap<object, any>();
 const propsTransitions = new WeakMap<object, PropsTransition>();
 const configOnlyProps = new Set<RenderPropsForbiddenKeys>([
@@ -79,7 +90,7 @@ const configOnlyProps = new Set<RenderPropsForbiddenKeys>([
     'postRender'
 ]);
 
-export function isRawViewConfig(value: unknown): value is RawViewConfig {
+export function isRawViewConfig(value: unknown): value is RawTextViewConfig {
     return (
         typeof value === 'string' ||
         Array.isArray(value) ||
@@ -92,7 +103,7 @@ function regConfigTransition<T extends object>(res: T, from: any): T {
     return res;
 }
 
-function createDefaultRenderErrorView(): View {
+function createDefaultRenderErrorView(): TextView {
     return {
         name: 'config-error',
         options: STUB_VIEW_OPTIONS,
@@ -109,7 +120,7 @@ function createDefaultRenderErrorView(): View {
 function condition(
     type: 'when' | 'whenData',
     viewRenderer: TextViewRenderer,
-    config: SingleViewConfig,
+    config: SingleTextViewConfig,
     queryData: any,
     context: any,
     inputData: any,
@@ -137,11 +148,17 @@ function condition(
 }
 
 type RenderNode = RenderList | RenderText | RenderPlaceholder;
+type RenderBlockType = 'inline' | 'inline-block' | 'block' | 'line';
 
 class RenderList {
+    type: RenderBlockType;
     children: RenderNode[];
-    constructor(nodes?: RenderNode[]) {
+    border: Border | null;
+
+    constructor(type: RenderBlockType = 'inline', nodes?: RenderNode[]) {
+        this.type = type;
         this.children = [];
+        this.border = null;
 
         if (Array.isArray(nodes)) {
             for (const node of nodes) {
@@ -152,16 +169,44 @@ class RenderList {
     appendText(value: string) {
         this.append(new RenderText(value));
     }
+    appendInlineBlock() {
+        const node = new RenderList('inline-block');
+        this.append(node);
+        return node;
+    }
+    appendBlock() {
+        const node = new RenderList('block');
+        this.append(node);
+        return node;
+    }
+    appendLine() {
+        const node = new RenderList('line');
+        this.append(node);
+        return node;
+    }
     append(node: RenderNode) {
         this.children.push(node);
         return this;
+    }
+    setBorder(border?: NormalizedTextViewOptions['border']) {
+        if (!border) {
+            this.border = null;
+            return;
+        }
+
+        this.border = new Border(
+            border.top || null,
+            border.left || null,
+            border.right || null,
+            border.bottom || null
+        );
     }
 }
 
 class RenderText {
     readonly value: string;
     constructor(value: string) {
-        this.value = value;
+        this.value = String(value);
     }
 }
 
@@ -175,18 +220,100 @@ class RenderPlaceholder {
     }
 }
 
+function maxLineLength(lines: string[]) {
+    return lines.reduce((max, line) => Math.max(max, line.length), 0);
+}
+
+class Border {
+    top: tbBorder;
+    left: lrBorder;
+    right: lrBorder;
+    bottom: tbBorder;
+
+    constructor(top: tbBorder, left: lrBorder, right: lrBorder, bottom: tbBorder) {
+        this.top = top;
+        this.left = left;
+        this.right = right;
+        this.bottom = bottom;
+    }
+
+    render(lines: string[]) {
+        const maxMidLength = maxLineLength(lines);
+        const leftBorder = this.left;
+        let maxLeftLength = 0;
+
+        if (leftBorder) {
+            if (typeof leftBorder === 'function') {
+                const prefixes = lines.map((_, idx) => String(leftBorder(idx, lines.length) ?? ''));
+
+                maxLeftLength = maxLineLength(prefixes);
+                lines = lines.map((line, idx) => prefixes[idx].padEnd(maxLeftLength) + line);
+            } else {
+                maxLeftLength = leftBorder.length;
+                lines = lines.map(line => leftBorder + line);
+            }
+        }
+
+        const rightBorder = this.right;
+        let maxRightLength = 0;
+
+        if (rightBorder) {
+            if (typeof rightBorder === 'function') {
+                const suffixes = lines.map((_, idx) => String(rightBorder(idx, lines.length) ?? ''));
+
+                maxRightLength = maxLineLength(suffixes);
+                lines = lines.map((line, idx) => line.padEnd(maxLeftLength + maxMidLength) + suffixes[idx].padStart(maxRightLength));
+            } else {
+                maxRightLength = rightBorder.length;
+                lines = lines.map(line => line.padEnd(maxLeftLength + maxMidLength) + rightBorder);
+            }
+        }
+
+        const topBorder = this.top;
+        const bottomBorder = this.bottom;
+        if (topBorder || bottomBorder) {
+
+            if (topBorder) {
+                const topBorderString = typeof topBorder === 'function'
+                    ? topBorder(maxMidLength, maxLeftLength, maxRightLength) || ''
+                    : ''.padStart(maxMidLength + maxLeftLength + maxRightLength, topBorder);
+
+                if (topBorderString) {
+                    lines.unshift(topBorderString);
+                }
+            }
+
+            if (bottomBorder) {
+                const bottomBorderString = typeof bottomBorder === 'function'
+                    ? bottomBorder(maxMidLength, maxLeftLength, maxRightLength) || ''
+                    : ''.padStart(maxMidLength + maxLeftLength + maxRightLength, bottomBorder);
+
+                if (bottomBorderString) {
+                    lines.push(bottomBorderString);
+                }
+            }
+        }
+
+        return lines;
+    }
+}
+
 async function renderNode(
     viewRenderer: TextViewRenderer,
-    renderer: View,
+    renderer: TextView,
     placeholder: RenderPlaceholder,
-    config: SingleViewConfig,
+    config: SingleTextViewConfig,
     props: RenderProps,
     data?: any,
     context?: any,
     inputData?: any,
     inputDataIndex?: number
 ) {
-    const node = new RenderList();
+    const node = new RenderList(renderer.options.type || 'inline');
+
+    if (renderer.options.border) {
+        node.setBorder(renderer.options.border);
+    }
 
     await renderer.render(node, props, data, context);
 
@@ -233,7 +360,7 @@ function createRenderContext(viewRenderer: TextViewRenderer, name: string) {
 async function render(
     viewRenderer: TextViewRenderer,
     container: RenderList,
-    config: NormalizedViewConfig,
+    config: NormalizedTextViewConfig,
     inputData: any,
     inputDataIndex: number | undefined,
     context: any
@@ -241,14 +368,14 @@ async function render(
     if (Array.isArray(config)) {
         return Promise.all(config.map(config =>
             render(viewRenderer, container, config, inputData, inputDataIndex, context)
-        )).then(nodes => new RenderList(nodes));
+        )).then(nodes => new RenderList('inline', nodes));
         // return;
     }
 
     const queryData = inputData && typeof inputDataIndex === 'number'
         ? inputData[inputDataIndex]
         : inputData;
-    let renderer: View | null = null;
+    let renderer: TextView | null = null;
 
     switch (typeof config.view) {
         case 'function':
@@ -314,9 +441,9 @@ async function render(
     }
 }
 
-export class TextViewRenderer extends Dictionary<View> {
+export class TextViewRenderer extends Dictionary<TextView> {
     host: Model;
-    defaultRenderErrorRenderer: View;
+    defaultRenderErrorRenderer: TextView;
     viewEls: WeakMap<RenderNode, ViewInfo>;
 
     constructor(host: Model) {
@@ -327,19 +454,20 @@ export class TextViewRenderer extends Dictionary<View> {
         this.viewEls = new WeakMap();
     }
 
-    define(name: string, render: DefineViewRender, options?: ViewOptionsWithoutRender): Readonly<View>;
-    define(name: string, options: ViewOptions): Readonly<View>;
-    define(name: string, _render: DefineViewRender | ViewOptions, _options?: ViewOptions) {
-        const options: Partial<ViewOptions> = isRawViewConfig(_render) || typeof _render === 'function'
+    define(name: string, render: DefineTextViewRender, options?: TextViewOptionsWithoutRender): Readonly<TextView>;
+    define(name: string, options: TextViewOptions): Readonly<TextView>;
+    define(name: string, _render: DefineTextViewRender | TextViewOptions, _options?: TextViewOptions) {
+        const options: Partial<TextViewOptions> = isRawViewConfig(_render) || typeof _render === 'function'
             ? { ..._options, render: _render }
             : _render;
         const { render = [], ...optionsWithoutRender } = options;
-        const { props } = optionsWithoutRender;
+        const { type, props } = optionsWithoutRender;
 
-        return TextViewRenderer.define<View>(this, name, Object.freeze({
+        return TextViewRenderer.define<TextView>(this, name, Object.freeze({
             name,
             options: Object.freeze({
                 ...options,
+                type: typeof type === 'string' || type === undefined ? type : undefined,
                 props: typeof props === 'string'
                     ? this.host.queryFn(props)
                     : props
@@ -347,16 +475,16 @@ export class TextViewRenderer extends Dictionary<View> {
             render: typeof render === 'function'
                 ? render.bind(createRenderContext(this, name))
                 : (node, _, data, context) => this.render(node, render, data, context)
-        } satisfies View));
+        } satisfies TextView));
     }
 
-    normalizeConfig(config: RawViewConfig | RenderFunction): SingleViewConfig | SingleViewConfig[] | null {
+    normalizeConfig(config: RawTextViewConfig | TextRenderFunction): SingleTextViewConfig | SingleTextViewConfig[] | null {
         if (!config) {
             return null;
         }
 
         if (Array.isArray(config)) {
-            const arrayOfConfigs: SingleViewConfig[] = [];
+            const arrayOfConfigs: SingleTextViewConfig[] = [];
 
             for (const configElement of config) {
                 const normalizedConfig = this.normalizeConfig(configElement);
@@ -380,7 +508,7 @@ export class TextViewRenderer extends Dictionary<View> {
                 if (op === '{') {
                     try {
                         return regConfigTransition(
-                            queryToConfig(prefix, op + query) as SingleViewConfig, // FIXME
+                            queryToConfig(prefix, op + query) as SingleTextViewConfig, // FIXME
                             config
                         );
                     } catch (error) {
@@ -409,7 +537,7 @@ export class TextViewRenderer extends Dictionary<View> {
         return config;
     }
 
-    badConfig(config: any, error: Error): SingleViewConfig {
+    badConfig(config: any, error: Error): SingleTextViewConfig {
         const errorMsg = error?.message || 'Unknown error';
 
         this.host.logger.error(errorMsg, { config, error });
@@ -422,7 +550,7 @@ export class TextViewRenderer extends Dictionary<View> {
         };
     }
 
-    ensureValidConfig(config: any): NormalizedViewConfig {
+    ensureValidConfig(config: any): NormalizedTextViewConfig {
         if (Array.isArray(config)) {
             return config.map(item => this.ensureValidConfig(item)).flat();
         }
@@ -434,7 +562,7 @@ export class TextViewRenderer extends Dictionary<View> {
         return config;
     }
 
-    composeConfig(config: any, extension: any): NormalizedViewConfig {
+    composeConfig(config: any, extension: any): NormalizedTextViewConfig {
         config = this.normalizeConfig(config);
         extension = this.normalizeConfig(extension);
 
@@ -449,10 +577,10 @@ export class TextViewRenderer extends Dictionary<View> {
     }
 
     propsFromConfig(
-        config: SingleViewConfig,
+        config: SingleTextViewConfig,
         data: any,
         context: any,
-        fn: NormalizedViewPropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
+        fn: NormalizedTextViewPropsFunction | null | false | undefined = this.get(config?.view as string)?.options.props
     ) {
         let props: Record<string, any> = {}; // regConfigTransition({}, config);
 
@@ -499,66 +627,164 @@ export class TextViewRenderer extends Dictionary<View> {
         }
     }
 
-    serialize(node: RenderNode | null) {
+    cleanUpRenderTree(node: RenderNode | null) {
         if (node === null) {
-            return '';
+            return null;
+        }
+
+        if (node instanceof RenderPlaceholder) {
+            return this.cleanUpRenderTree(node.node);
         }
 
         if (node instanceof RenderList) {
-            let buffer = '';
+            const children = node.children
+                .map(this.cleanUpRenderTree, this)
+                .filter(node => node !== null);
 
-            for (const child of node.children) {
-                const text = this.serialize(child);
+            if (children.length === 0) {
+                return null;
+            }
 
-                if (text !== '') {
-                    buffer += this.serialize(child);
+            if (children.length === 1 && (node.type === 'inline' || (node.type === children[0].type && node.border === null))) {
+                node = children[0];
+            } else {
+                const border = node.border;
+                node = new RenderList(node.type, children.length === 1 && children[0].type === 'inline' ? children[0].children : children);
+                node.border = border;
+            }
+        } else if (node.value === '') {
+            return null;
+        }
+
+        return node;
+    }
+
+    vline(s1: string, s2 = s1, s3 = s2, s4 = s1) {
+        return (idx: number, total: number) =>
+            total === 1 ? s4 : idx === 0 ? s1 : idx + 1 === total ? s3 : s2;
+    }
+
+    serialize(root: RenderNode | null) {
+        const cleanTreeRoot = this.cleanUpRenderTree(root);
+        const text = cleanTreeRoot === null
+            ? ''
+            : innerSerialize(cleanTreeRoot).join('\n');
+
+        return {
+            text
+        };
+
+        function innerSerialize(node: RenderNode): string[] {
+            if (node instanceof RenderText) {
+                return node.value.split(/\r\n?|\n/);
+            }
+
+            const lines: string[] = [''];
+            let currentLineIdx = 0;
+            if (node instanceof RenderList) {
+                let prevType: RenderBlockType = 'inline';
+
+                for (const child of node.children) {
+                    const type: RenderBlockType = child instanceof RenderList ? child.type : 'inline';
+                    const childLines = innerSerialize(child);
+
+                    if (childLines.length > 0) {
+                        switch (type) {
+                            case 'block':
+                                currentLineIdx = lines.length - 1;
+
+                                if (lines[currentLineIdx] !== '') {
+                                    lines.push('');
+                                } else if (currentLineIdx > 0 && lines[currentLineIdx] !== '') {
+                                    lines.push('');
+                                } else if (currentLineIdx === 0) {
+                                    lines.pop();
+                                }
+
+                                lines.push(...childLines);
+                                currentLineIdx = lines.push('') - 1;
+                                break;
+
+                            case 'line':
+                                if (prevType === 'block') {
+                                    currentLineIdx = lines.push('') - 1;
+                                } else if (lines[currentLineIdx] === '') {
+                                    lines.pop();
+                                }
+
+                                lines.push(...childLines);
+                                currentLineIdx = lines.push('') - 1;
+                                break;
+
+                            case 'inline-block': {
+                                if (prevType === 'block') {
+                                    currentLineIdx = lines.push('') - 1;
+                                } else if (lines[currentLineIdx] !== '' && !/\s$/.test(lines[currentLineIdx])) {
+                                    lines[currentLineIdx] += ' ';
+                                }
+
+                                const pad = lines[currentLineIdx].length;
+
+                                lines[currentLineIdx] += childLines[0];
+
+                                if (childLines.length > 1) {
+                                    for (let i = 1; i < childLines.length; i++) {
+                                        if (currentLineIdx + i < lines.length) {
+                                            lines[currentLineIdx + i] = lines[currentLineIdx + i].padEnd(pad) + childLines[i];
+                                        } else {
+                                            lines.push(' '.repeat(pad) + childLines[i]);
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+
+                            case 'inline':
+                                if (prevType === 'block') {
+                                    currentLineIdx = lines.push('') - 1;
+                                } else if (prevType === 'inline-block') {
+                                    lines[currentLineIdx] += ' ';
+                                }
+
+                                lines[currentLineIdx] += childLines[0];
+
+                                if (childLines.length > 1) {
+                                    for (let i = 1; i < childLines.length; i++) {
+                                        currentLineIdx = lines.push(childLines[i]) - 1;
+                                    }
+                                }
+                                break;
+                        }
+
+                        prevType = type;
+                    }
+                }
+
+                while (lines[currentLineIdx] === '') {
+                    currentLineIdx--;
+                    lines.pop();
+                }
+
+                if (node.border) {
+                    return node.border.render(lines);
                 }
             }
 
-            return buffer;
-        } else {
-            if (node instanceof RenderPlaceholder) {
-                return this.serialize(node.node);
-            } else {
-                return node.value;
-            }
-        }
-    }
 
-    serializeDom(node: RenderNode | null) {
-        if (node === null) {
-            return document.createDocumentFragment();
-        }
-
-        if (node instanceof RenderList) {
-            const buffer = document.createElement('span');
-            buffer.className = 'render-node';
-
-            for (const child of node.children) {
-                buffer.append(this.serializeDom(child));
-            }
-
-            return buffer;
-        } else {
-            if (node instanceof RenderPlaceholder) {
-                return this.serializeDom(node.node);
-            } else {
-                const buffer = document.createElement('span');
-                buffer.className = 'render-text';
-                buffer.textContent = String(node.value);
-                return buffer;
-            }
+            return lines;
         }
     }
 
     async render(
-        container: RenderList | null,
-        config: RawViewConfig,
+        container: RenderList | RenderBlockType | null,
+        config: RawTextViewConfig,
         data?: any,
         context?: any,
         dataIndex?: number
     ) {
-        if (!container) {
+        if (typeof container === 'string') {
+            container = new RenderList(container);
+        } else if (!container) {
             container = new RenderList();
         }
 
@@ -572,6 +798,16 @@ export class TextViewRenderer extends Dictionary<View> {
         );
 
         return container;
+    }
+
+    async renderString(
+        container: RenderList | null,
+        config: RawTextViewConfig,
+        data?: any,
+        context?: any,
+        dataIndex?: number
+    ) {
+        return this.serialize(await this.render(container, config, data, context, dataIndex));
     }
 
     listLimit(value: any, defaultValue: number) {
@@ -588,7 +824,7 @@ export class TextViewRenderer extends Dictionary<View> {
 
     renderList(
         container: RenderList,
-        itemConfig: RawViewConfig,
+        itemConfig: RawTextViewConfig,
         data: any[],
         context: any,
         opts: Partial<{
