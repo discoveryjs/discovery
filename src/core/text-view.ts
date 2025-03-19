@@ -4,7 +4,7 @@ import { Dictionary } from './dict.js';
 import { queryToConfig } from './utils/query-to-config.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
-type TextRenderFunction = (node: RenderList, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
+type TextRenderFunction = (node: RenderBox, props: RenderProps, data?: any, context?: any) => Promise<any> | void;
 type NormalizedTextViewPropsFunction = (data: any, context: { props: RenderProps, context: any }) => any;
 type DefineTextViewRender = TextRenderFunction | RawTextViewConfig;
 type TextViewUsage = any; // TODO: define a type
@@ -107,7 +107,7 @@ function createDefaultRenderErrorView(): TextView {
     return {
         name: 'config-error',
         options: STUB_VIEW_OPTIONS,
-        render(node: RenderList, config: ErrorData) {
+        render(node: RenderBox, config: ErrorData) {
             node.appendText(`[Error: ${config.reason}]`);
 
             if ('config' in config) {
@@ -147,10 +147,10 @@ function condition(
     return false;
 }
 
-type RenderNode = RenderList | RenderText | RenderPlaceholder;
+type RenderNode = RenderBox | RenderText | RenderPlaceholder;
 type RenderBlockType = 'inline' | 'inline-block' | 'block' | 'line';
 
-class RenderList {
+class RenderBox {
     type: RenderBlockType;
     children: RenderNode[];
     border: Border | null;
@@ -170,17 +170,17 @@ class RenderList {
         this.append(new RenderText(value));
     }
     appendInlineBlock() {
-        const node = new RenderList('inline-block');
+        const node = new RenderBox('inline-block');
         this.append(node);
         return node;
     }
     appendBlock() {
-        const node = new RenderList('block');
+        const node = new RenderBox('block');
         this.append(node);
         return node;
     }
     appendLine() {
-        const node = new RenderList('line');
+        const node = new RenderBox('line');
         this.append(node);
         return node;
     }
@@ -309,7 +309,7 @@ async function renderNode(
     inputData?: any,
     inputDataIndex?: number
 ) {
-    const node = new RenderList(renderer.options.type || 'inline');
+    const node = new RenderBox(renderer.options.type || 'inline');
 
     if (renderer.options.border) {
         node.setBorder(renderer.options.border);
@@ -359,7 +359,7 @@ function createRenderContext(viewRenderer: TextViewRenderer, name: string) {
 
 async function render(
     viewRenderer: TextViewRenderer,
-    container: RenderList,
+    container: RenderBox,
     config: NormalizedTextViewConfig,
     inputData: any,
     inputDataIndex: number | undefined,
@@ -368,7 +368,7 @@ async function render(
     if (Array.isArray(config)) {
         return Promise.all(config.map(config =>
             render(viewRenderer, container, config, inputData, inputDataIndex, context)
-        )).then(nodes => new RenderList('inline', nodes));
+        )).then(nodes => new RenderBox('inline', nodes));
         // return;
     }
 
@@ -392,7 +392,7 @@ async function render(
     }
 
     if (!container) {
-        container = new RenderList();
+        container = new RenderBox();
     }
 
     // immediately append a view insert point (a placeholder)
@@ -610,7 +610,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
             return 0;
         }
 
-        if (node instanceof RenderList) {
+        if (node instanceof RenderBox) {
             let res = 0;
 
             for (const child of node.children) {
@@ -636,7 +636,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
             return this.cleanUpRenderTree(node.node);
         }
 
-        if (node instanceof RenderList) {
+        if (node instanceof RenderBox) {
             const children = node.children
                 .map(this.cleanUpRenderTree, this)
                 .filter(node => node !== null);
@@ -649,7 +649,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
                 node = children[0];
             } else {
                 const border = node.border;
-                node = new RenderList(node.type, children.length === 1 && children[0].type === 'inline' ? children[0].children : children);
+                node = new RenderBox(node.type, children.length === 1 && children[0].type === 'inline' ? children[0].children : children);
                 node.border = border;
             }
         } else if (node.value === '') {
@@ -681,11 +681,11 @@ export class TextViewRenderer extends Dictionary<TextView> {
 
             const lines: string[] = [''];
             let currentLineIdx = 0;
-            if (node instanceof RenderList) {
+            if (node instanceof RenderBox) {
                 let prevType: RenderBlockType = 'inline';
 
                 for (const child of node.children) {
-                    const type: RenderBlockType = child instanceof RenderList ? child.type : 'inline';
+                    const type: RenderBlockType = child instanceof RenderBox ? child.type : 'inline';
                     const childLines = innerSerialize(child);
 
                     if (childLines.length > 0) {
@@ -776,16 +776,16 @@ export class TextViewRenderer extends Dictionary<TextView> {
     }
 
     async render(
-        container: RenderList | RenderBlockType | null,
+        container: RenderBox | RenderBlockType | null,
         config: RawTextViewConfig,
         data?: any,
         context?: any,
         dataIndex?: number
     ) {
         if (typeof container === 'string') {
-            container = new RenderList(container);
+            container = new RenderBox(container);
         } else if (!container) {
-            container = new RenderList();
+            container = new RenderBox();
         }
 
         await render(
@@ -801,7 +801,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
     }
 
     async renderString(
-        container: RenderList | null,
+        container: RenderBox | null,
         config: RawTextViewConfig,
         data?: any,
         context?: any,
@@ -823,7 +823,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
     }
 
     renderList(
-        container: RenderList,
+        container: RenderBox,
         itemConfig: RawTextViewConfig,
         data: any[],
         context: any,
@@ -832,7 +832,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
             limit: number | false,
             beforeMore: string,
             afterMore: string,
-            moreContainer: RenderList,
+            moreContainer: RenderBox,
             beforeItem: string,
             afterItem: string
         }>) {
@@ -873,8 +873,8 @@ export class TextViewRenderer extends Dictionary<TextView> {
     }
 
     maybeMore(
-        container: RenderList,
-        beforeEl: RenderList | null,
+        container: RenderBox,
+        beforeEl: RenderBox | null,
         count: number,
         offset: number,
         beforeMore?: string,
