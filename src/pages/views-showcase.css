@@ -104,7 +104,7 @@
     overflow: hidden;
     overflow-y: scroll;
 }
-.page-views-showcase > .content:has(> :not(.view-h1):first-child) {
+.page-views-showcase > .content:has(> .discovery-view-usage > :not(.view-h1):first-child) {
     padding-top: 16px;
 }
 .page-views-showcase > .content > .view-h1 {

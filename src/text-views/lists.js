@@ -5,7 +5,7 @@ export default function({ textView }) {
     textView.define('inline-list', createRenderList('inline-block'), { type: 'inline-block', usage });
     textView.define('comma-list', createRenderList('inline-block', '', ','), { type: 'inline-block', usage });
     textView.define('ol', createRenderList('line', (ctx) => (1 + ctx.index) + '. '), { type: 'block', usage });
-    textView.define('ul', createRenderList('line', '* '), { type: 'block', usage });
+    textView.define('ul', createRenderList('line', '- '), { type: 'block', usage });
 
     textView.define('list-item', function(node, props, data, context) {
         const { content = 'text', bullet, delim, renderType = 'line' } = props;
