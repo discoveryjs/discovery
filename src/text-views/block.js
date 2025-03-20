@@ -9,6 +9,7 @@ export default function({ textView }) {
         return textView.render(node, content, data, context);
     }
 
+    textView.define('inline', { type: 'inline', render });
     textView.define('inline-block', { type: 'inline-block', render });
     textView.define('block', { type: 'block', render });
     textView.define('line', { type: 'line', render });

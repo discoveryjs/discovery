@@ -35,17 +35,17 @@ export default function({ textView }) {
     textView.define('badge', {
         ...commonConfig,
         border: {
-            left: textView.vline('⎡', '⎢', '⎣', '['),
-            right: textView.vline('⎤', '⎥', '⎦', ']')
-            // left: textView.vline('╭ ', '│', '╰', '['),
-            // right: textView.vline(' ╮', '│', '╯', ']')
+            left: ['⎡', '⎢', '⎣', '['],
+            right: ['⎤', '⎥', '⎦', ']']
+            // left: ['╭ ', '│', '╰', '['],
+            // right: [' ╮', '│', '╯', ']']
         }
     });
     textView.define('pill-badge', {
         ...commonConfig,
         border: {
-            left: textView.vline('⎧', '⎪', '⎩', '('),
-            right: textView.vline('⎫', '⎪', '⎭', ')')
+            left: ['⎧', '⎪', '⎩', '('],
+            right: ['⎫', '⎪', '⎭', ')']
         }
     });
 };

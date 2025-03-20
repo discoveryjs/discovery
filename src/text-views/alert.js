@@ -6,10 +6,10 @@ export default function({ textView }) {
     }, {
         type: 'block',
         border: {
-            top: (mid, left, right) => `╔${'═'.repeat(mid + left + right - 2)}╗`,
+            top: ['╔', '═', '╗'],
             left: '║ ',
             right: ' ║',
-            bottom: (mid, left, right) => `╚${'═'.repeat(mid + left + right - 2)}╝`
+            bottom: ['╚', '═', '╝']
         }
     });
 };

@@ -18,8 +18,16 @@ type ConfigTransitionTreeNode = {
     deps: ConfigTransitionTreeNode[];
 }
 
-type lrBorder = null | string | ((index: number, total: number) => string | undefined);
-type tbBorder = null | string | ((len: number, left: number, right: number) => string | undefined);
+type BorderLR =
+    | null
+    | string
+    | Parameters<typeof borderLR>
+    | ((index: number, total: number) => string | undefined);
+type BorderTB =
+    | null
+    | string
+    | Parameters<typeof borderTB>
+    | ((len: number, left: number, right: number) => string | undefined);
 
 export interface TextViewOptions {
     type: RenderBlockType;
@@ -31,10 +39,10 @@ export type TextViewOptionsWithoutRender = Exclude<TextViewOptions, 'render'>;
 export interface NormalizedTextViewOptions {
     type: RenderBlockType | undefined;
     border?: null | Partial<{
-        top: tbBorder;
-        left: lrBorder;
-        right: lrBorder;
-        bottom: tbBorder;
+        top: BorderTB;
+        left: BorderLR;
+        right: BorderLR;
+        bottom: BorderTB;
     }>;
     usage?: TextViewUsage;
     props?: NormalizedTextViewPropsFunction;
@@ -223,14 +231,41 @@ class RenderPlaceholder {
 function maxLineLength(lines: string[]) {
     return lines.reduce((max, line) => Math.max(max, line.length), 0);
 }
+function truncLine(line: string, maxLength: number) {
+    return line.length > maxLength
+        ? line.slice(0, maxLength)
+        : line;
+}
+function borderLR(start: string, mid = start, end = mid, single = start) {
+    return (idx: number, total: number) =>
+        total === 1 ? single : idx === 0 ? start : idx + 1 === total ? end : mid;
+}
+function arrayToBorderLR(value: BorderLR) {
+    if (Array.isArray(value)) {
+        return borderLR(...value);
+    }
+
+    return value;
+}
+function borderTB(start: string, mid = start, end = mid) {
+    return (m: number, l: number, r: number) =>
+        `${start}${''.padStart(m + l + r - start.length - end.length, mid)}${end}`;
+}
+function arrayToBorderTB(value: BorderTB) {
+    if (Array.isArray(value)) {
+        return borderTB(...value);
+    }
+
+    return value;
+}
 
 class Border {
-    top: tbBorder;
-    left: lrBorder;
-    right: lrBorder;
-    bottom: tbBorder;
+    top: BorderTB;
+    left: BorderLR;
+    right: BorderLR;
+    bottom: BorderTB;
 
-    constructor(top: tbBorder, left: lrBorder, right: lrBorder, bottom: tbBorder) {
+    constructor(top: BorderTB, left: BorderLR, right: BorderLR, bottom: BorderTB) {
         this.top = top;
         this.left = left;
         this.right = right;
@@ -239,7 +274,7 @@ class Border {
 
     render(lines: string[]) {
         const maxMidLength = maxLineLength(lines);
-        const leftBorder = this.left;
+        const leftBorder = arrayToBorderLR(this.left);
         let maxLeftLength = 0;
 
         if (leftBorder) {
@@ -254,7 +289,7 @@ class Border {
             }
         }
 
-        const rightBorder = this.right;
+        const rightBorder = arrayToBorderLR(this.right);
         let maxRightLength = 0;
 
         if (rightBorder) {
@@ -269,27 +304,28 @@ class Border {
             }
         }
 
-        const topBorder = this.top;
-        const bottomBorder = this.bottom;
+        const topBorder = arrayToBorderTB(this.top);
+        const bottomBorder = arrayToBorderTB(this.bottom);
         if (topBorder || bottomBorder) {
+            const maxBorderWidth = maxMidLength + maxLeftLength + maxRightLength;
 
             if (topBorder) {
                 const topBorderString = typeof topBorder === 'function'
                     ? topBorder(maxMidLength, maxLeftLength, maxRightLength) || ''
-                    : ''.padStart(maxMidLength + maxLeftLength + maxRightLength, topBorder);
+                    : ''.padStart(maxBorderWidth, topBorder);
 
                 if (topBorderString) {
-                    lines.unshift(topBorderString);
+                    lines.unshift(truncLine(topBorderString, maxBorderWidth));
                 }
             }
 
             if (bottomBorder) {
                 const bottomBorderString = typeof bottomBorder === 'function'
                     ? bottomBorder(maxMidLength, maxLeftLength, maxRightLength) || ''
-                    : ''.padStart(maxMidLength + maxLeftLength + maxRightLength, bottomBorder);
+                    : ''.padStart(maxBorderWidth, bottomBorder);
 
                 if (bottomBorderString) {
-                    lines.push(bottomBorderString);
+                    lines.push(truncLine(bottomBorderString, maxBorderWidth));
                 }
             }
         }
@@ -657,11 +693,6 @@ export class TextViewRenderer extends Dictionary<TextView> {
         }
 
         return node;
-    }
-
-    vline(s1: string, s2 = s1, s3 = s2, s4 = s1) {
-        return (idx: number, total: number) =>
-            total === 1 ? s4 : idx === 0 ? s1 : idx + 1 === total ? s3 : s2;
     }
 
     serialize(root: RenderNode | null) {
