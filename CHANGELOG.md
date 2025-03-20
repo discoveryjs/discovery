@@ -8,6 +8,7 @@
     - Added `Text render` button into view presets of view editor on Discovery page
     - Added a section for demostration of text views on Views showcase page
 - Added `blockquote` view with a `kind` option supporting `note`, `tip`, `important`, `warning`, and `caution`.
+- Added support for alerts (a [GitHub's Markdown extension](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) based on the blockquote syntax) in `markdown` view
 - Added `Model#getContext()` method
 - Changed views to no longer treat some properties as a query:
     - `checked` in `checkbox` view

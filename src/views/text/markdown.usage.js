@@ -57,9 +57,9 @@ export default {
             ],
             demo: {
                 view: 'markdown',
+                source: 'Section without a header\n\n## Header level 2\n\nSection 1\n\n### Header level 3\n\nSection 2\n\n## Header level 2\n\nSection 3',
                 sectionPrelude: 'struct:#.section',
-                sectionPostlude: { view: 'link', href: '#top', text: 'Scroll to top ↑' },
-                source: 'Section without a header\n\n## Header level 2\n\nSection 1\n\n### Header level 3\n\nSection 2\n\n## Header level 2\n\nSection 3'
+                sectionPostlude: { view: 'link', href: '#top', text: 'Scroll to top ↑' }
             }
         },
         {
@@ -68,10 +68,11 @@ export default {
             beforeDemo: ['md:"Use `codeConfig` to specify any settings for code blocks available for `source` view."'],
             demo: {
                 view: 'markdown',
+                source: '# Header 1\n\n```js\nconsole.log("Hello world")\n```\n\n## Header 2\n\ntext\n\n## Header 3\n\n\n\n```jora\nfoo.bar.baz\n```',
                 codeConfig: {
                     prelude: {
                         view: 'block',
-                        content: ['badge:syntax', 'text:"Length: " + content.size()']
+                        content: ['badge:syntax', 'text:"Length: " + #.sourceViewProps.source.size()']
                     },
                     postlude: 'struct:#.section',
                     actionButtons: [
@@ -81,8 +82,7 @@ export default {
                             onClick: Function('return () => alert("Hello world!")')()
                         }
                     ]
-                },
-                source: '# Header 1\n\n```js\nconsole.log("Hello world")\n```\n\n## Header 2\n\ntext\n\n## Header 3\n\n\n\n```jora\nfoo.bar.baz\n```'
+                }
             }
         },
         {
@@ -90,11 +90,11 @@ export default {
             demo: {
                 view: 'markdown',
                 source: `
-# Header
-## Header
-### Header
-#### Header
-##### Header
+# Header level 1
+## Header level 2
+### Header level 3
+#### Header level 4
+##### Header level 5
 * One
 * Two
     * Three
@@ -111,6 +111,21 @@ Paragraph **bold** __bold__ *italic* _italic_ ~line-through~ \`code\` [link](#hr
 
 >Blockquote
 > > Line 2
+
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
 
 \`\`\`js
 var some = "code";

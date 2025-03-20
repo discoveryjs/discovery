@@ -37,8 +37,18 @@ export class CustomMarkedRenderer extends Renderer {
     }
 
     blockquote({ tokens }: Tokens.Blockquote) {
-        const body = this.parser.parse(tokens);
-        return `<blockquote class="view-blockquote">${body}</blockquote>`;
+        let body = this.parser.parse(tokens);
+        let kind: string | null = null;
+        const kindMatch = body.match(/^(<p>)?\[!([a-z]+)\]\n/i);
+
+        if (kindMatch) {
+            kind = kindMatch[2];
+            body = (kindMatch[1] || '') + body.slice(kindMatch[0].length);
+        }
+
+        return `<blockquote class="view-blockquote"${
+            kind ? ` data-kind=${JSON.stringify(kind.toLowerCase())}` : ''
+        }>${body}</blockquote>`;
     }
 
     code({ text: source, lang: syntax }: Tokens.Code) {
