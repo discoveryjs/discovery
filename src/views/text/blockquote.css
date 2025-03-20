@@ -2,9 +2,54 @@
     margin: 1px 0;
     padding: 0;
     padding-left: 1em;
-    color: #6a737d;
-    border-left: .25em solid rgba(191, 197, 197, 0.5);
+    border-left: .25em solid var(--color, rgba(191, 197, 197, 0.5));
 }
-.discovery-root-darkmode .view-blockquote {
+.view-blockquote:not([data-kind]) {
+    color: #6a737d;
+}
+.discovery-root-darkmode .view-blockquote:not([data-kind]) {
     color: #808993;
+}
+
+.view-blockquote[data-kind] {
+    padding-top: .4em;
+    padding-bottom: .4em;
+}
+.view-blockquote[data-kind]::before {
+    content: var(--blockquote-title-text, attr(data-kind));
+    display: block;
+    padding-left: calc(1em + .9ex);
+    margin-bottom: .2em;
+    background-image: var(--blockquote-title-icon);
+    background-size: 1.1em;
+    background-repeat: no-repeat;
+    background-position: left center;
+    color: var(--blockquote-title-color);
+    text-transform: capitalize;
+}
+
+.view-blockquote[data-kind="note"] {
+    --color: #1f6feb;
+    --blockquote-title-icon: url("./blockquote-note.svg");
+    --blockquote-title-color: #4493f8;
+}
+.view-blockquote[data-kind="tip"] {
+    --color: #238636;
+    --blockquote-title-icon: url("./blockquote-tip.svg");
+    --blockquote-title-color: #3fb950;
+}
+.view-blockquote[data-kind="important"] {
+    --color: #8957e5;
+    --blockquote-title-icon: url("./blockquote-important.svg");
+    --blockquote-title-color: #ab7df8;
+}
+.view-blockquote[data-kind="warning"] {
+    --color: #9e6a03;
+    --blockquote-title-icon: url("./blockquote-warning.svg");
+    --blockquote-title-color: #d29922;
+}
+.view-blockquote[data-kind="caution"] {
+    --color: #da3633;
+    --blockquote-title-icon: url("./blockquote-caution.svg");
+    --blockquote-title-color: #f85149;
 }

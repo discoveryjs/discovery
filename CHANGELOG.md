@@ -7,7 +7,7 @@
     - Added `textViews` export, which provides a list of default text views
     - Added `Text render` button into view presets of view editor on Discovery page
     - Added a section for demostration of text views on Views showcase page
-- Added `blockquote` view
+- Added `blockquote` view with a `kind` option supporting `note`, `tip`, `important`, `warning`, and `caution`.
 - Added `Model#getContext()` method
 - Changed views to no longer treat some properties as a query:
     - `checked` in `checkbox` view
