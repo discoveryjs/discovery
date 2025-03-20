@@ -4,8 +4,8 @@ export default function({ textView }) {
     textView.define('blockquote', function(node, props, data, context) {
         const { content = 'text', kind } = props;
 
-        if (typeof kind === 'string') {
-            node.appendLine().appendText(`[!${kind.toUpperCase()}]`);
+        if (typeof kind === 'string' && /\S/.test(kind)) {
+            node.appendLine().appendText(`[!${kind.trim().toUpperCase()}]`);
         }
 
         return textView.render(node, content, data, context);
