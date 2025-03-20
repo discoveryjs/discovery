@@ -36,6 +36,11 @@ export class CustomMarkedRenderer extends Renderer {
         }</h${depth}>\n`;
     }
 
+    blockquote({ tokens }: Tokens.Blockquote) {
+        const body = this.parser.parse(tokens);
+        return `<blockquote class="view-blockquote">${body}</blockquote>`;
+    }
+
     code({ text: source, lang: syntax }: Tokens.Code) {
         const { discoveryjs: { codes } } = this.options;
         const id = codes.push({

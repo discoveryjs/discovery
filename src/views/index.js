@@ -32,6 +32,7 @@ export { default as alerts } from './text/alerts.js';
 export { default as appHeader } from './text/app-header.js';
 export { default as autoLink } from './text/auto-link.js';
 export { default as badges } from './text/badges.js';
+export { default as blockquote } from './text/blockquote.js';
 export { default as headers } from './text/headers.js';
 export { default as html } from './text/html.js';
 export { default as image } from './text/image.js';

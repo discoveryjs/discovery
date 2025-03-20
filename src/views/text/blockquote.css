@@ -1,0 +1,10 @@
+.view-blockquote {
+    margin: 1px 0;
+    padding: 0;
+    padding-left: 1em;
+    color: #6a737d;
+    border-left: .25em solid rgba(191, 197, 197, 0.5);
+}
+.discovery-root-darkmode .view-blockquote {
+    color: #808993;
+}

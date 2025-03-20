@@ -15,16 +15,6 @@
     margin-top: 0 !important;
 }
 
-.view-markdown blockquote {
-    padding: 0;
-    padding-left: 1em;
-    color: #6a737d;
-    border-left: .25em solid rgba(191, 197, 197, 0.5);
-}
-.discovery-root-darkmode .view-markdown blockquote {
-    color: #808993;
-}
-
 .view-markdown code {
     padding: .2em .4em;
     font-family: var(--discovery-monospace-font-family);
