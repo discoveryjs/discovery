@@ -8,8 +8,8 @@ export default (view, group) => ({
             title: 'Variations',
             demo: group.map(name => [
                 `${name}:"${name}"`,
-                `${name}:"${name}\\nmultiline"`,
-                `${name}:"${name}\\nmultiline\\nmore..."`
+                `${name}:"${name}\\nmulti-line"`,
+                `${name}:"${name}\\nmulti-line\\nmore..."`
             ]).flat()
         },
         {

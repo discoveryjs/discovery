@@ -1,3 +1,5 @@
+import usage from './switch.usage.js';
+
 export default function(host) {
     host.textView.define('switch', function(node, config, data, context) {
         let { content } = config;
@@ -19,5 +21,5 @@ export default function(host) {
         }
 
         return host.textView.render(node, renderConfig, data, context);
-    });
+    }, { usage });
 }

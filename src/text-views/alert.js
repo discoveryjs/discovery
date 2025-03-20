@@ -1,15 +1,19 @@
-export default function({ textView }) {
-    textView.define('alert', function(node, props, data, context) {
-        const { content = 'text' } = props;
+import usage from './alert.usage.js';
 
-        return textView.render(node, content, data, context);
-    }, {
+export default function({ textView }) {
+    textView.define('alert', {
         type: 'block',
+        usage,
         border: {
             top: ['╔', '═', '╗'],
             left: '║ ',
             right: ' ║',
             bottom: ['╚', '═', '╝']
+        },
+        render(node, props, data, context) {
+            const { content = 'text' } = props;
+
+            return textView.render(node, content, data, context);
         }
     });
 };

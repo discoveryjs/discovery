@@ -1,6 +1,6 @@
 export * as alert from './alert.js';
 export * as badge from './badge.js';
-export * as block from './block.js';
+export * as block from './base-blocks.js';
 export * as blockquote from './blockquote.js';
 export * as context from './context.js';
 export * as headerViews from './headers.js';
