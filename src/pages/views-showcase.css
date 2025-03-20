@@ -94,7 +94,10 @@
 .page-views-showcase > .sidebar .view-menu-item:not(.disabled) {
     color: var(--discovery-link-color, #0099DD);
 }
-.page-views-showcase > .sidebar .view-menu-item:hover {
+.page-views-showcase > .sidebar .view-menu-item.selected {
+    background-color: rgb(84 118 139 / 30%);
+}
+.page-views-showcase > .sidebar .view-menu-item:not(.selected):hover {
     color: var(--discovery-link-hover-color, #0077BB);
 }
 
@@ -104,8 +107,11 @@
     overflow: hidden;
     overflow-y: scroll;
 }
-.page-views-showcase > .content:has(> .discovery-view-usage > :not(.view-h1):first-child) {
-    padding-top: 16px;
+.page-views-showcase > .content:not(:has(
+    > .discovery-view-usage > .view-h1:first-child,
+    > .view-h1:first-child
+)) {
+    padding-top: 20px;
 }
 .page-views-showcase > .content > .view-h1 {
     margin-top: 16px;

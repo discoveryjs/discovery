@@ -30,7 +30,7 @@ export default function(host) {
                             {
                                 view: 'link',
                                 className: '="index-page-link" + (#.id ? " view-selected" : "")',
-                                href: '="".pageLink(#.page)',
+                                href: '="".pageLink(#.page, #.params.render |? { render: $ })',
                                 text: 'Intro'
                             },
                             {
@@ -59,10 +59,16 @@ export default function(host) {
                             limit: false,
                             emptyText: 'Nothing matched',
                             item: 'text-match:{ text: name, match: #.filter }',
+                            itemConfig: {
+                                postRender(el, config, data) {
+                                    el.dataset.name = data.name;
+                                }
+                            },
+                            context: (_, context) => ({ ...context, selectedViewId: host.pageRef }),
                             data: `
                                 .[name ~= #.filter]
                                 .sort(name asc)
-                                .({ ..., disabled: no options.usage })
+                                .({ ..., disabled: no options.usage, selected: name = #.selectedViewId })
                             `
                         }
                     }
@@ -75,6 +81,25 @@ export default function(host) {
             data: '$[=> name=(#.view.name or #.id)]',
             content: {
                 view: 'switch',
+                context(data, context) {
+                    // FIXME: make it simpler
+                    host.overridePageHashStateWithAnchor({
+                        ref: data?.name,
+                        anchor: host.pageRef === (data?.name || null) ? host.pageAnchor : null
+                    });
+                    host.cancelScheduledRender();
+
+                    // FIXME: that's a hack
+                    setTimeout(() => {
+                        const contentEl = host.dom.root.querySelector('article > .view-block.sidebar > .view-content-filter > .content');
+                        if (contentEl) {
+                            contentEl.querySelector(':scope .view-menu-item.selected')?.classList?.remove('selected');
+                            contentEl.querySelector(`:scope .view-menu-item[data-name=${CSS.escape(data?.name)}]`)?.classList?.add('selected');
+                        }
+                    }, 50);
+
+                    return { ...context, id: host.pageRef };
+                },
                 content: [
                     { when: 'no $ and #.id', content: 'alert-warning:"View \\"" + #.id + "\\" not found"' },
                     { when: 'no $', content: [
@@ -84,16 +109,6 @@ export default function(host) {
                         { view: 'markdown', when: '#.render = "text"', source: introTextRender }
                     ] },
                     { content: [
-                        { view: 'context', postRender(el, config, data, context) {
-                            // FIXME: make it simpler
-                            host.overridePageHashStateWithAnchor({
-                                ref: data.name,
-                                anchor: host.pageRef === data.name ? host.pageAnchor : null
-                            });
-                            host.cancelScheduledRender();
-                            context.id = host.pageRef;
-                        } },
-
                         getUsageRenderConfig(host)
                     ] }
                 ]
