@@ -30,11 +30,18 @@ export default function(host) {
         } else if (typeof onClick === 'function') {
             el.addEventListener('click', () => onClick(el, data, context));
             el.classList.add('onclick');
-        } else if (href) {
-            el.addEventListener('click', () => createElement('a', {
-                href,
-                target: external ? '_blank' : ''
-            }).click());
+        } else if (typeof href === 'string') {
+            el.addEventListener('click', () => {
+                const tmpLinkEl = createElement('a', {
+                    href,
+                    target: external ? '_blank' : ''
+                });
+
+                // temporary add <a> element into a document (to host's root) to allow a click interception
+                host.dom.root.append(tmpLinkEl);
+                tmpLinkEl.click();
+                tmpLinkEl.remove();
+            });
         }
 
         if (content) {
