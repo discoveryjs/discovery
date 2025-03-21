@@ -38,7 +38,12 @@ export interface TextViewOptions {
 export type TextViewOptionsWithoutRender = Exclude<TextViewOptions, 'render'>;
 export interface NormalizedTextViewOptions {
     type: RenderBlockType | undefined;
-    border?: null | Partial<{
+    border?: null | string | [
+        top?: BorderTB,
+        left?: BorderLR,
+        bottom?: BorderTB,
+        right?: BorderLR
+    ] | Partial<{
         top: BorderTB;
         left: BorderLR;
         right: BorderLR;
@@ -202,12 +207,16 @@ class RenderBox {
             return;
         }
 
-        this.border = new Border(
-            border.top || null,
-            border.left || null,
-            border.right || null,
-            border.bottom || null
-        );
+        this.border = typeof border === 'string'
+            ? new Border(border, border, border, border)
+            : Array.isArray(border)
+                ? new Border(...border)
+                : new Border(
+                    border.top || null,
+                    border.right || null,
+                    border.bottom || null,
+                    border.left || null
+                );
     }
 }
 
@@ -228,8 +237,14 @@ class RenderPlaceholder {
     }
 }
 
-function maxLineLength(lines: string[]) {
-    return lines.reduce((max, line) => Math.max(max, line.length), 0);
+function maxLinesLength(lines: string[], start = 0, end = lines.length - 1) {
+    let maxLength = lines[start].length;
+
+    for (let i = start + 1; i <= end; i++) {
+        maxLength = Math.max(maxLength, lines[i].length);
+    }
+
+    return maxLength;
 }
 function truncLine(line: string, maxLength: number) {
     return line.length > maxLength
@@ -265,47 +280,55 @@ class Border {
     right: BorderLR;
     bottom: BorderTB;
 
-    constructor(top: BorderTB, left: BorderLR, right: BorderLR, bottom: BorderTB) {
-        this.top = top;
-        this.left = left;
-        this.right = right;
-        this.bottom = bottom;
+    constructor(
+        top: BorderTB = null,
+        right: BorderLR = null,
+        bottom: BorderTB = top,
+        left: BorderLR = right
+    ) {
+        this.top = top || null;
+        this.left = left || null;
+        this.right = right || null;
+        this.bottom = bottom || null;
     }
 
     render(lines: string[]) {
-        const maxMidLength = maxLineLength(lines);
         const leftBorder = arrayToBorderLR(this.left);
+        const rightBorder = arrayToBorderLR(this.right);
+        const topBorder = arrayToBorderTB(this.top);
+        const bottomBorder = arrayToBorderTB(this.bottom);
+
+        const maxMidLength = maxLinesLength(lines);
         let maxLeftLength = 0;
+        let maxRightLength = 0;
 
         if (leftBorder) {
             if (typeof leftBorder === 'function') {
                 const prefixes = lines.map((_, idx) => String(leftBorder(idx, lines.length) ?? ''));
 
-                maxLeftLength = maxLineLength(prefixes);
+                maxLeftLength = maxLinesLength(prefixes);
                 lines = lines.map((line, idx) => prefixes[idx].padEnd(maxLeftLength) + line);
             } else {
+                // left border is non-empty string
                 maxLeftLength = leftBorder.length;
                 lines = lines.map(line => leftBorder + line);
             }
         }
 
-        const rightBorder = arrayToBorderLR(this.right);
-        let maxRightLength = 0;
 
         if (rightBorder) {
             if (typeof rightBorder === 'function') {
                 const suffixes = lines.map((_, idx) => String(rightBorder(idx, lines.length) ?? ''));
 
-                maxRightLength = maxLineLength(suffixes);
+                maxRightLength = maxLinesLength(suffixes);
                 lines = lines.map((line, idx) => line.padEnd(maxLeftLength + maxMidLength) + suffixes[idx].padStart(maxRightLength));
             } else {
+                // right border is non-empty string
                 maxRightLength = rightBorder.length;
                 lines = lines.map(line => line.padEnd(maxLeftLength + maxMidLength) + rightBorder);
             }
         }
 
-        const topBorder = arrayToBorderTB(this.top);
-        const bottomBorder = arrayToBorderTB(this.bottom);
         if (topBorder || bottomBorder) {
             const maxBorderWidth = maxMidLength + maxLeftLength + maxRightLength;
 
@@ -705,6 +728,16 @@ export class TextViewRenderer extends Dictionary<TextView> {
             text
         };
 
+        function padCurrentLineIfNeeded(lines: string[], lineIdx: number) {
+            if (lineIdx < lines.length - 1) {
+                const maxLength = maxLinesLength(lines, lineIdx);
+
+                if (lines[lineIdx].length < maxLength) {
+                    lines[lineIdx] = lines[lineIdx].padEnd(maxLength);
+                }
+            }
+        }
+
         function innerSerialize(node: RenderNode): string[] {
             if (node instanceof RenderText) {
                 return node.value.split(/\r\n?|\n/);
@@ -750,8 +783,12 @@ export class TextViewRenderer extends Dictionary<TextView> {
                             case 'inline-block': {
                                 if (prevType === 'block') {
                                     currentLineIdx = lines.push('') - 1;
-                                } else if (lines[currentLineIdx] !== '' && !/\s$/.test(lines[currentLineIdx])) {
-                                    lines[currentLineIdx] += ' ';
+                                } else {
+                                    padCurrentLineIfNeeded(lines, currentLineIdx);
+
+                                    if (lines[currentLineIdx] !== '' && !/\s$/.test(lines[currentLineIdx])) {
+                                        lines[currentLineIdx] += ' ';
+                                    }
                                 }
 
                                 const pad = lines[currentLineIdx].length;
@@ -774,6 +811,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
                                 if (prevType === 'block') {
                                     currentLineIdx = lines.push('') - 1;
                                 } else if (prevType === 'inline-block') {
+                                    padCurrentLineIfNeeded(lines, currentLineIdx);
                                     lines[currentLineIdx] += ' ';
                                 }
 
