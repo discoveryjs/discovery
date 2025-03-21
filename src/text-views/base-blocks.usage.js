@@ -6,11 +6,11 @@ export default (view, group) => ({
             demo: group.map(name => [
                 `header:"${name}"`,
                 'text:"…text…"',
-                `${name}:"<${name}>"`,
+                `${name}:"⎡${name}⎦"`,
                 'text:"…text…"',
-                `${name}:"<${name}\\nmulti-line>"`,
+                `${name}:"⎡${name}\\nmulti-line⎦"`,
                 'text:"…text…"',
-                `${name}:"<${name}\\nmulti-line\\nmore…>"`,
+                `${name}:"⎡${name}\\nmulti-line\\nmore and more…⎦"`,
                 'text:"…text…"'
             ]).flat()
         },
@@ -19,11 +19,11 @@ export default (view, group) => ({
             demo: group.map(name => [
                 `header:"${name}"`,
                 'text:"…text…"',
-                `${name}{ border: "#", data:"<${name}>" }`,
+                `${name}{ border: [null, " |", null, "| "], data:"⎡${name}⎦" }`,
                 'text:"…text…"',
-                `${name}{ border: "#", data:"<${name}\\nmulti-line>" }`,
+                `${name}{ border: [null, " |", null, "| "], data:"⎡${name}\\nmulti-line⎦" }`,
                 'text:"…text…"',
-                `${name}{ border: "#", data:"<${name}\\nmulti-line\\nmore…>" }`,
+                `${name}{ border: [null, " |", null, "| "], data:"⎡${name}\\nmulti-line\\nmore and more…⎦" }`,
                 'text:"…text…"'
             ]).flat()
         }
