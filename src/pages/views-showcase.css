@@ -118,3 +118,38 @@
     font-family: Helvetica Neue, Helvetica, Tahoma, Arial, sans-serif;
     font-weight: 200;
 }
+
+.page-views-showcase .view-markdown .view-render {
+    display: flex;
+    gap: 2px;
+    margin: 8px 0;
+}
+.page-views-showcase .view-markdown .view-render__source::before,
+.page-views-showcase .view-markdown .view-render__result::before {
+    content: 'Discovery.js view';
+    display: block;
+    border-bottom: 1px solid var(--discovery-background-color);
+    background-color: color-mix(in srgb, currentcolor 15%, var(--discovery-background-color));
+    padding: 4px 8px;
+}
+.page-views-showcase .view-markdown .view-render__result::before {
+    content: 'Render result';
+}
+.page-views-showcase .view-markdown .view-render__source {
+    display: flex;
+    flex-direction: column;
+    max-width: 49%;
+    width: 510px;
+}
+.page-views-showcase .view-markdown .view-render__source > .view-source {
+    flex: 1;
+}
+.page-views-showcase .view-markdown .view-render__result {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.page-views-showcase .view-markdown .view-render__result > pre {
+    padding: 8px 16px;
+    flex: 1;
+}

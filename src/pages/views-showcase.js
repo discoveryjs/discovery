@@ -2,6 +2,37 @@ import { addModelViewsToContext, getUsageRenderConfig } from './views-showcase/v
 import introWebRender from './views-showcase/intro-web-render-md.js';
 import introTextRender from './views-showcase/intro-text-render-md.js';
 
+const introCodeConfig = {
+    view: 'switch',
+    content: [
+        { when: 'syntax="render:text"', content: {
+            view: 'block',
+            className: 'view-render',
+            content: [
+                {
+                    view: 'block',
+                    className: 'view-render__source',
+                    content: 'source{ syntax: "discovery-view", source }'
+                },
+                {
+                    view: 'block',
+                    className: 'view-render__result',
+                    data: data => ({
+                        ...data,
+                        config: {
+                            view: data.syntax === 'render:text' ? 'text-render' : 'context',
+                            content: Function('return ' + data.source)()
+                        }
+                    }),
+                    content: 'render{ config }'
+                    // content: { view: 'render', config: 'config' }
+                }
+            ]
+        } },
+        { content: 'source' }
+    ]
+};
+
 export default function(host) {
     // a hack to scroll to top when no anchor
     host.on('pageAnchorChange', (prev) => {
@@ -105,8 +136,8 @@ export default function(host) {
                     { when: 'no $', content: [
                         'h1:#.render = "text" ? "Model\'s text views" : "Model\'s views"',
                         'alert:"← Select a view to get details"',
-                        { view: 'markdown', when: '#.render = "web"', source: introWebRender },
-                        { view: 'markdown', when: '#.render = "text"', source: introTextRender }
+                        { view: 'markdown', when: '#.render = "web"', source: introWebRender, codeConfig: introCodeConfig },
+                        { view: 'markdown', when: '#.render = "text"', source: introTextRender, codeConfig: introCodeConfig }
                     ] },
                     { content: [
                         getUsageRenderConfig(host)

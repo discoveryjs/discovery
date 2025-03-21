@@ -497,7 +497,7 @@ async function render(
                 const {
                     config: configQuery = '',
                     context: contextQuery = ''
-                } = config;
+                } = viewRenderer.propsFromConfig(config, inputData, context);
 
                 renderer = {
                     name: false,
