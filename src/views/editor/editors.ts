@@ -267,7 +267,7 @@ export default function(host: ViewModel) {
         },
         ViewEditor: class extends ViewEditor {
             isViewDefined(name: string) {
-                return host.view.isDefined(name);
+                return host.view.isDefined(name) || host.textView.isDefined(name);
             }
         }
     });

@@ -24,7 +24,7 @@ CodeMirror.modeToMime = {
 function codeMirrorHighlight(modespec, host) {
     const mode = CodeMirror.getMode(CodeMirror.defaults, {
         name: CodeMirror.modeToMime[modespec] || modespec,
-        isDiscoveryViewDefined: name => host.view.isDefined(name)
+        isDiscoveryViewDefined: name => host.view.isDefined(name) || host.textView.isDefined(name)
     });
 
     return (source, createRange) => {
