@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.94 (21-03-2025)
 
 - Implemented basic text rendering
     - Added `Model#textView` dictionary which works the same way as `ViewModel#view`, but manage text views
