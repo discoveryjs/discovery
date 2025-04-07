@@ -29,6 +29,11 @@ type BorderTB =
     | Parameters<typeof borderTB>
     | ((len: number, left: number, right: number) => string | undefined);
 
+type Span = {
+    length: number;
+    node: null | RenderNode;
+};
+
 export interface TextViewOptions {
     type: RenderBlockType;
     render: DefineTextViewRender;
@@ -292,7 +297,7 @@ class Border {
         this.bottom = bottom || null;
     }
 
-    render(lines: string[]) {
+    render(lines: string[], spans: Span[][], node: RenderNode) {
         const leftBorder = arrayToBorderLR(this.left);
         const rightBorder = arrayToBorderLR(this.right);
         const topBorder = arrayToBorderTB(this.top);
@@ -313,6 +318,12 @@ class Border {
                 maxLeftLength = leftBorder.length;
                 lines = lines.map(line => leftBorder + line);
             }
+
+            if (maxLeftLength > 0) {
+                for (let i = 0; i < lines.length; i++) {
+                    spans[i].unshift({ length: maxLeftLength, node });
+                }
+            }
         }
 
 
@@ -321,10 +332,22 @@ class Border {
                 const suffixes = lines.map((_, idx) => String(rightBorder(idx, lines.length) ?? ''));
 
                 maxRightLength = maxLinesLength(suffixes);
-                lines = lines.map((line, idx) => line.padEnd(maxLeftLength + maxMidLength) + suffixes[idx].padStart(maxRightLength));
+
+                if (maxRightLength > 0) {
+                    for (let i = 0; i < lines.length; i++) {
+                        spans[i].push({ length: maxLeftLength + maxMidLength - lines[i].length + maxRightLength, node });
+                    }
+
+                    lines = lines.map((line, idx) => line.padEnd(maxLeftLength + maxMidLength) + suffixes[idx].padStart(maxRightLength));
+                }
             } else {
                 // right border is non-empty string
                 maxRightLength = rightBorder.length;
+
+                for (let i = 0; i < lines.length; i++) {
+                    spans[i].push({ length: maxLeftLength + maxMidLength - lines[i].length + maxRightLength, node });
+                }
+
                 lines = lines.map(line => line.padEnd(maxLeftLength + maxMidLength) + rightBorder);
             }
         }
@@ -339,6 +362,7 @@ class Border {
 
                 if (topBorderString) {
                     lines.unshift(truncLine(topBorderString, maxBorderWidth));
+                    spans.unshift([{ length: lines[0].length, node }]);
                 }
             }
 
@@ -349,11 +373,15 @@ class Border {
 
                 if (bottomBorderString) {
                     lines.push(truncLine(bottomBorderString, maxBorderWidth));
+                    spans.push([{ length: lines[lines.length - 1].length, node }]);
                 }
             }
         }
 
-        return lines;
+        return {
+            spans,
+            lines
+        };
     }
 }
 
@@ -428,7 +456,6 @@ async function render(
         return Promise.all(config.map(config =>
             render(viewRenderer, container, config, inputData, inputDataIndex, context)
         )).then(nodes => new RenderBox('inline', nodes));
-        // return;
     }
 
     const queryData = inputData && typeof inputDataIndex === 'number'
@@ -704,12 +731,13 @@ export class TextViewRenderer extends Dictionary<TextView> {
                 return null;
             }
 
-            if (children.length === 1 && (node.type === 'inline' || (node.type === children[0].type && node.border === null))) {
-                node = children[0];
-            } else {
-                const border = node.border;
-                node = new RenderBox(node.type, children.length === 1 && children[0].type === 'inline' ? children[0].children : children);
-                node.border = border;
+            const view = this.viewEls.get(node);
+            const border = node.border;
+            node = new RenderBox(node.type, children);
+            node.border = border;
+
+            if (view) {
+                this.viewEls.set(node, view);
             }
         } else if (node.value === '') {
             return null;
@@ -720,37 +748,78 @@ export class TextViewRenderer extends Dictionary<TextView> {
 
     serialize(root: RenderNode | null) {
         const cleanTreeRoot = this.cleanUpRenderTree(root);
-        const text = cleanTreeRoot === null
-            ? ''
-            : innerSerialize(cleanTreeRoot).join('\n');
+        const ranges: { range: [number, number], view: ViewInfo | null }[] = [];
+        let text = '';
+
+        if (cleanTreeRoot !== null) {
+            const { lines, spans } = innerSerialize(cleanTreeRoot, null);
+
+            let rangeOffset = 0;
+            for (const line of spans) {
+                for (const span of line) {
+                    if (span.length > 0) {
+                        const end = rangeOffset + span.length;
+                        ranges.push({
+                            range: [rangeOffset, end],
+                            view: (span.node && this.viewEls.get(span.node)) ?? null
+                        });
+                        rangeOffset = end;
+                    }
+                }
+                rangeOffset++;
+            }
+
+            text = lines.join('\n');
+        }
 
         return {
-            text
+            text,
+            ranges
         };
 
-        function padCurrentLineIfNeeded(lines: string[], lineIdx: number) {
-            if (lineIdx < lines.length - 1) {
-                const maxLength = maxLinesLength(lines, lineIdx);
+        function padLineIfNeeded(
+            lines: string[],
+            lineIdx: number,
+            minLength: number,
+            spans: Span[][],
+            node: RenderNode
+        ) {
+            if (lineIdx < lines.length) {
+                if (lines[lineIdx].length < minLength) {
+                    const prevValue = lines[lineIdx];
+                    const newValue = prevValue.padEnd(minLength);
+                    const lineSpans = spans[lineIdx];
+                    const lastSpan = lineSpans.at(-1);
 
-                if (lines[lineIdx].length < maxLength) {
-                    lines[lineIdx] = lines[lineIdx].padEnd(maxLength);
+                    lines[lineIdx] = newValue;
+
+                    if (lastSpan) {
+                        lastSpan.length += newValue.length - prevValue.length;
+                    } else {
+                        spans[lineIdx].push({ length: newValue.length, node });
+                    }
                 }
             }
         }
 
-        function innerSerialize(node: RenderNode): string[] {
+        function innerSerialize(node: RenderNode, parent: RenderNode | null): { spans: Span[][]; lines: string[]; } {
             if (node instanceof RenderText) {
-                return node.value.split(/\r\n?|\n/);
+                const lines = node.value.split(/\r\n?|\n/);
+                return {
+                    spans: lines.map(line => [{ length: line.length, node: parent }]),
+                    lines
+                };
             }
 
+            const spans: Span[][] = [[]];
             const lines: string[] = [''];
             let currentLineIdx = 0;
             if (node instanceof RenderBox) {
-                let prevType: RenderBlockType = 'inline';
+                let prevType: RenderBlockType | 'none' = 'none';
 
                 for (const child of node.children) {
                     const type: RenderBlockType = child instanceof RenderBox ? child.type : 'inline';
-                    const childLines = innerSerialize(child);
+                    const { lines: childLines, spans: childSpans } = innerSerialize(child, node);
 
                     if (childLines.length > 0) {
                         switch (type) {
@@ -758,50 +827,68 @@ export class TextViewRenderer extends Dictionary<TextView> {
                                 currentLineIdx = lines.length - 1;
 
                                 if (lines[currentLineIdx] !== '') {
+                                    spans.push([]);
                                     lines.push('');
                                 } else if (currentLineIdx > 0 && lines[currentLineIdx] !== '') {
+                                    spans.push([]);
                                     lines.push('');
                                 } else if (currentLineIdx === 0) {
+                                    spans.pop();
                                     lines.pop();
                                 }
 
+                                spans.push(...childSpans);
                                 lines.push(...childLines);
+                                spans.push([]);
                                 currentLineIdx = lines.push('') - 1;
                                 break;
 
                             case 'line':
                                 if (prevType === 'block') {
                                     currentLineIdx = lines.push('') - 1;
+                                    spans.push([]);
                                 } else if (lines[currentLineIdx] === '') {
+                                    spans.pop();
                                     lines.pop();
                                 }
 
+                                spans.push(...childSpans);
                                 lines.push(...childLines);
+                                spans.push([]);
                                 currentLineIdx = lines.push('') - 1;
                                 break;
 
                             case 'inline-block': {
                                 if (prevType === 'block') {
                                     currentLineIdx = lines.push('') - 1;
-                                } else {
-                                    padCurrentLineIfNeeded(lines, currentLineIdx);
-
-                                    if (lines[currentLineIdx] !== '' && !/\s$/.test(lines[currentLineIdx])) {
-                                        lines[currentLineIdx] += ' ';
-                                    }
+                                    spans.push([]);
+                                } else if (prevType === 'inline' || prevType === 'inline-block') {
+                                    padLineIfNeeded(
+                                        lines,
+                                        currentLineIdx,
+                                        maxLinesLength(lines, currentLineIdx) + 1,
+                                        spans,
+                                        node
+                                    );
                                 }
 
                                 const pad = lines[currentLineIdx].length;
 
+                                spans[currentLineIdx].push(...childSpans[0]);
                                 lines[currentLineIdx] += childLines[0];
 
                                 if (childLines.length > 1) {
+                                    const extraLines = childLines.length - (lines.length - currentLineIdx);
+
+                                    for (let i = 0; i < extraLines; i++) {
+                                        spans.push([]);
+                                        lines.push('');
+                                    }
+
                                     for (let i = 1; i < childLines.length; i++) {
-                                        if (currentLineIdx + i < lines.length) {
-                                            lines[currentLineIdx + i] = lines[currentLineIdx + i].padEnd(pad) + childLines[i];
-                                        } else {
-                                            lines.push(' '.repeat(pad) + childLines[i]);
-                                        }
+                                        padLineIfNeeded(lines, currentLineIdx + i, pad, spans, node);
+                                        spans[currentLineIdx + i].push(...childSpans[i]);
+                                        lines[currentLineIdx + i] += childLines[i];
                                     }
                                 }
                                 break;
@@ -810,16 +897,24 @@ export class TextViewRenderer extends Dictionary<TextView> {
                             case 'inline':
                                 if (prevType === 'block') {
                                     currentLineIdx = lines.push('') - 1;
+                                    spans.push([]);
                                 } else if (prevType === 'inline-block') {
-                                    padCurrentLineIfNeeded(lines, currentLineIdx);
-                                    lines[currentLineIdx] += ' ';
+                                    padLineIfNeeded(
+                                        lines,
+                                        currentLineIdx,
+                                        maxLinesLength(lines, currentLineIdx) + 1,
+                                        spans,
+                                        node
+                                    );
                                 }
 
+                                spans[currentLineIdx].push(...childSpans[0]);
                                 lines[currentLineIdx] += childLines[0];
 
                                 if (childLines.length > 1) {
                                     for (let i = 1; i < childLines.length; i++) {
                                         currentLineIdx = lines.push(childLines[i]) - 1;
+                                        spans[currentLineIdx] = childSpans[i];
                                     }
                                 }
                                 break;
@@ -831,16 +926,16 @@ export class TextViewRenderer extends Dictionary<TextView> {
 
                 while (lines[currentLineIdx] === '') {
                     currentLineIdx--;
+                    spans.pop();
                     lines.pop();
                 }
 
                 if (node.border) {
-                    return node.border.render(lines);
+                    return node.border.render(lines, spans, node);
                 }
             }
 
-
-            return lines;
+            return { spans, lines };
         }
     }
 
