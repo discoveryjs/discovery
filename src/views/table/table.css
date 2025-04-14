@@ -44,6 +44,22 @@
     background-color: color-mix(in srgb, var(--discovery-background-color), rgba(141, 141, 141) 30%);
 }
 
+.view-table > tbody > .view-table-row:not(:last-child) > td,
+.view-table > tbody:not(:last-child) > .view-table-row:last-child > td,
+.view-table > .view-table-more-buttons:not(:last-child) > tr > td:not(:empty) {
+    border-bottom: 1px solid rgba(170, 170, 170, 0.2);
+}
+.view-table > tbody.view-table-more-buttons > tr > td > .more-buttons {
+    margin-bottom: 2px;
+}
+.view-table > tbody.view-table-more-buttons > tr > td:empty {
+    padding: 0;
+}
+
+.view-table-footer-cell:first-child {
+    background: green;
+}
+
 .view-table-cell-details-row > .view-cell-details-content > .view-table:first-child {
     margin-top: -1px !important;
 }

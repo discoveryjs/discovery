@@ -57,6 +57,47 @@ function defaultCellRender(el, data, isDataObject) {
     el.textContent = String(data);
 }
 
+function createClickHandler(host, el, details, data, context) {
+    return () => {
+        const rowEl = el.parentNode;
+        const bodyEl = rowEl.parentNode;
+        const currentDetailsEl = Array
+            .from(bodyEl.querySelectorAll('.view-table-cell.details-expanded'))
+            .find(td => td.parentNode.parentNode === bodyEl);
+        let detailsEl = null;
+
+        if (currentDetailsEl) {
+            const currentDetailsRowEl = currentDetailsEl.parentNode;
+
+            currentDetailsEl.classList.remove('details-expanded');
+
+            if (currentDetailsEl === el) {
+                rowEl.nextSibling.remove();
+                return;
+            }
+
+            if (currentDetailsRowEl !== rowEl) {
+                currentDetailsRowEl.nextSibling.remove();
+            } else {
+                detailsEl = rowEl.nextSibling.firstChild;
+                detailsEl.innerHTML = '';
+            }
+        }
+
+        if (detailsEl === null) {
+            detailsEl = rowEl.parentNode
+                .insertBefore(document.createElement('tr'), rowEl.nextSibling)
+                .appendChild(document.createElement('td'));
+            detailsEl.parentNode.className = 'view-table-cell-details-row';
+            detailsEl.className = 'view-cell-details-content';
+            detailsEl.colSpan = 1000;
+        }
+
+        el.classList.add('details-expanded');
+        host.view.render(detailsEl, details || defaultDetailsRender, data, context);
+    };
+}
+
 export default function(host) {
     host.view.define('table-cell', function(el, config, data, context) {
         let { content, contentWhen = true, details, detailsWhen = true, colSpan } = config;
@@ -76,44 +117,39 @@ export default function(host) {
 
         if ((details || (details === undefined && isDataObject)) && host.queryBool(detailsWhen, data, context)) {
             el.classList.add('details');
-            el.addEventListener('click', () => {
-                const rowEl = el.parentNode;
-                const bodyEl = rowEl.parentNode;
-                const currentDetailsEl = Array
-                    .from(bodyEl.querySelectorAll('.view-table-cell.details-expanded'))
-                    .find(td => td.parentNode.parentNode === bodyEl);
-                let detailsEl = null;
+            el.addEventListener('click', createClickHandler(host, el, details, data, context));
+        }
 
-                if (currentDetailsEl) {
-                    const currentDetailsRowEl = currentDetailsEl.parentNode;
+        if (content) {
+            return host.view.render(el, content, data, context);
+        }
 
-                    currentDetailsEl.classList.remove('details-expanded');
+        defaultCellRender(el, data, isDataObject);
+    }, {
+        tag: 'td'
+    });
 
-                    if (currentDetailsEl === el) {
-                        rowEl.nextSibling.remove();
-                        return;
-                    }
+    host.view.define('table-footer-cell', function(el, config, data, context) {
+        let { content, contentWhen = true, details, detailsWhen = true, colSpan } = config;
+        const isDataObject =
+            !content &&
+            data !== null &&
+            (Array.isArray(data) ? data.length > 0 : typeof data === 'object') &&
+            data instanceof RegExp === false;
 
-                    if (currentDetailsRowEl !== rowEl) {
-                        currentDetailsRowEl.nextSibling.remove();
-                    } else {
-                        detailsEl = rowEl.nextSibling.firstChild;
-                        detailsEl.innerHTML = '';
-                    }
-                }
+        el.classList.add('view-table-cell');
 
-                if (detailsEl === null) {
-                    detailsEl = rowEl.parentNode
-                        .insertBefore(document.createElement('tr'), rowEl.nextSibling)
-                        .appendChild(document.createElement('td'));
-                    detailsEl.parentNode.className = 'view-table-cell-details-row';
-                    detailsEl.className = 'view-cell-details-content';
-                    detailsEl.colSpan = 1000;
-                }
+        if (typeof colSpan === 'number' && colSpan > 1) {
+            el.colSpan = colSpan;
+        }
 
-                el.classList.add('details-expanded');
-                host.view.render(detailsEl, details || defaultDetailsRender, data, context);
-            });
+        if (!host.queryBool(contentWhen, data, context)) {
+            return;
+        }
+
+        if ((details || (details === undefined && isDataObject)) && host.queryBool(detailsWhen, data, context)) {
+            el.classList.add('details');
+            el.addEventListener('click', createClickHandler(host, el, details, data, context));
         }
 
         if (content) {

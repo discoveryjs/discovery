@@ -1,5 +1,6 @@
 ## next
 
+- Added support for `footer` option in `cols` definition of `table` view (see [Setup footer cell display](https://discoveryjs.github.io/discovery/#views-showcase:table&!anchor=setup-footer-cell-display))
 - Added `debouce` option for `content-filter` view (#108)
 - Extended `ViewModel#view.renderList()` method to take options `renderList(container, itemConfig, data, context, offset, options)`, options is:
     ```ts

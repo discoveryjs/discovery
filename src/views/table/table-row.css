@@ -1,3 +1,0 @@
-.view-table-row:not(:last-child) > td {
-    border-bottom: 1px solid rgba(170, 170, 170, 0.2);
-}

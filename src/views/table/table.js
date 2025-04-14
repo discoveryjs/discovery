@@ -127,8 +127,10 @@ export default function(host) {
 
         const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
         const headerCells = [];
+        const footerCells = [];
+        const footerCellIndecies = [];
         const bodyEl = el.appendChild(createElement('tbody'));
-        const moreEl = el.appendChild(createElement('tbody'));
+        const moreEl = el.appendChild(createElement('tbody', { class: 'view-table-more-buttons' }));
         const moreButtonsEl = moreEl
             .appendChild(createElement('tr'))
             .appendChild(createElement('td'));
@@ -149,10 +151,54 @@ export default function(host) {
                 orderedData,
                 { ...context, cols },
                 0,
-                host.view.listLimit(limit, 25),
-                moreButtonsEl
-            ).then(() => moreEl.hidden = !moreButtonsEl.firstChild);
+                {
+                    limit: host.view.listLimit(limit, 25),
+                    moreContainer: moreButtonsEl,
+                    onSliceRender: restCount => restCount === 0 && moreEl.remove()
+                }
+            );
         };
+
+        async function renderFooter() {
+            const footerEl = el.appendChild(createElement('tfoot')).appendChild(createElement('tr'));
+
+            // render cells
+            await host.view.render(footerEl, footerCells, data, context);
+
+            // normalize cells positions by adding empty cells and adjusting colSpans
+            const createEmptyCell = () => createElement('td', { class: 'view-table-footer-cell' });
+            let colIndex = 0;
+            [...footerEl.childNodes].forEach((cellEl, index) => {
+                const shouldBeIndex = footerCellIndecies[index];
+
+                if (cellEl.nodeType !== 1) {
+                    return;
+                }
+
+                if (cellEl.tagName !== 'TD') {
+                    cellEl.replaceWith(document.createComment('removed non <td> element'));
+                    return;
+                }
+
+                console.log({colIndex, shouldBeIndex, x: shouldBeIndex - footerCellIndecies[index - 1]});
+
+                if (colIndex > shouldBeIndex) {
+                    const prevCellEl = cellEl.previousElementSibling;
+                    prevCellEl.colSpan = shouldBeIndex - prevCellEl.cellIndex;
+                } else {
+                    for (let i = shouldBeIndex - colIndex; i > 0; i--) {
+                        cellEl.before(createEmptyCell());
+                    }
+                }
+
+                colIndex = shouldBeIndex + cellEl.colSpan;
+            });
+
+            // pad end with empty cells if needed
+            for (let i = headerCells.length - colIndex; i > 0; i--) {
+                footerEl.append(createEmptyCell());
+            }
+        }
 
         if (Array.isArray(cols)) {
             cols = cols.map((def, idx) =>
@@ -225,6 +271,15 @@ export default function(host) {
                 el: headerCellEl
             };
 
+            if (hasOwn(col, 'footer') && typeof col.footer !== 'undefined') {
+                const config = typeof col.footer === 'object' && col.footer !== null && typeof col.footer.view !== 'string'
+                    ? col.footer
+                    : { content: col.footer };
+
+                footerCellIndecies.push(headerCells.length);
+                footerCells.push(host.view.composeConfig({ view: 'table-footer-cell' }, config));
+            }
+
             headerCells.push(headerCell);
             headerCellEl.textContent = col.header;
             this.applyComputedClassName(headerCellEl, col.headerClassName, data, context);
@@ -254,7 +309,12 @@ export default function(host) {
                 : '=#.cols'
         }, rowConfig);
 
-        return render(rows);
+        return footerCells.length === 0
+            ? render(rows)
+            : Promise.all([
+                render(rows),
+                renderFooter()
+            ]);
     }, {
         tag: 'table',
         usage

@@ -38,23 +38,26 @@ export default {
             beforeDemo: { view: 'md', source: [
                 'To set up columns, the `cols` property is used. When an array of objects is used for `cols`, it specifies the exact set of columns. Each object contains a configuration for the `table-cell` view with additional properties that apply at the table level:\n',
                 '- `header` – a text for the column header\n',
+                '- `footer` – a config for the footer cell\n',
                 '- `headerClassName` - specifies className for a header cell, works as `className` for any view (i.e. can be a string, an array, a function, etc.)\n',
                 '- `sorting` – a sorting function or query for the column\n'
             ] },
-            highlightProps: ['cols', 'header', 'headerClassName', 'sorting'],
+            highlightProps: ['cols', 'header', 'footer', 'headerClassName', 'sorting'],
             demo: {
                 view: 'table',
                 cols: [
                     {
                         header: 'Name',
                         sorting: 'name asc',
-                        data: 'name'
+                        data: 'name',
+                        footer: 'text:"Total:"'
                     },
                     {
                         header: 'Age',
                         headerClassName: 'age',
                         className: 'number',
-                        content: 'text:age + " y.o."'
+                        content: 'text:age + " y.o."',
+                        footer: { data: 'size()' }
                     }
                 ]
             },
@@ -78,8 +81,7 @@ export default {
                 '    view: "table-cell",',
                 '    data: value => value?.[key]',
                 '}',
-                '```',
-                '[test]({{"table".pageLink("views-showcase")}})'
+                '```'
             ].join('\n') },
             afterDemo: [
                 'struct:#.id.pageLink(#.page, #.params)'
@@ -214,6 +216,25 @@ export default {
                 group,
                 peoples: defaultDemoData.filter(item => item.age > min && item.age < max)
             }))
+        },
+        {
+            title: 'Setup footer cell display',
+            beforeDemo: { view: 'md', source: [
+                'A setup for footer cell is similar to a [regular cell](#!setup-cell-display), the same set of options are supported, except `colWhen`.',
+                '',
+                'When value for the `footer` is an object without a `view` property, it\'s interpreted as a footer config. Otherwise, it is treated as footer cell content, equivalent to passing `{ content: value }`.'
+            ] },
+            highlightProps: ['footer'],
+            demoData: defaultDemoData,
+            demo: {
+                view: 'table',
+                cols: {
+                    name: { footer: 'text:"Raw data"' },
+                    age: { footer: {
+                        colSpan: 2
+                    } }
+                }
+            }
         }
     ]
 };

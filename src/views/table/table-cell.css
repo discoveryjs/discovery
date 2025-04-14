@@ -77,3 +77,15 @@
 .view-table-cell > .view-struct {
     background-color: transparent;
 }
+
+.view-table-footer-cell {
+    color: #888;
+    background-color: color-mix(in srgb, var(--discovery-background-color), #8d8d8d 8%);
+    background-clip: padding-box;
+    border: solid var(--discovery-background-color);
+    border-top-color: transparent;
+    border-width: 1px 1px 1px 0;
+}
+.view-table-footer-cell:last-child {
+    border-right: 0;
+}
