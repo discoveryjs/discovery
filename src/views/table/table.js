@@ -250,7 +250,7 @@ export default function(host) {
                 sorting: '$ ascN',
                 colSpan: '=is not object ? #.cols.size() : 1',
                 content: '=is not object ? "struct"',
-                details: false
+                details: '=is object ? "struct"'
             });
         }
 

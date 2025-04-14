@@ -56,10 +56,6 @@
     padding: 0;
 }
 
-.view-table-footer-cell:first-child {
-    background: green;
-}
-
 .view-table-cell-details-row > .view-cell-details-content > .view-table:first-child {
     margin-top: -1px !important;
 }
