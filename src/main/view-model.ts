@@ -207,12 +207,12 @@ export class ViewModel<
     initRenderTriggers() {
         this.on('context', () => this.scheduleRender());
         this.on('unloadData', () => this.scheduleRender());
-        this.on('pageStateChange', () => this.scheduleRender());
+        this.on('pageStateChange', () => this.scheduleRender('nav', 'page'));
         this.on('pageAnchorChange', () => this.applyPageAnchor());
 
         this.action
-            .on('define', () => this.scheduleRender())
-            .on('revoke', () => this.scheduleRender());
+            .on('define', () => this.scheduleRender('nav', 'page'))
+            .on('revoke', () => this.scheduleRender('nav', 'page'));
 
         this.page.on('define', (pageId) => {
             if (this.pageId === pageId) {
@@ -374,8 +374,13 @@ export class ViewModel<
     // Render common
     //
 
-    scheduleRender(subject?: RenderSubject) {
-        const subjects = subject ? [subject] : renderSubjects;
+    scheduleRender(...subjects: RenderSubject[]) {
+        let allSubjects = false;
+
+        if (subjects.length === 0) {
+            allSubjects = true;
+            subjects = [...renderSubjects];
+        }
 
         for (const subject of subjects) {
             this.#renderScheduler.add(subject);
@@ -402,7 +407,7 @@ export class ViewModel<
             this.#renderSchedulerTimeout
         );
 
-        this.logger.debug(`Scheduled renders: ${[...this.#renderScheduler].join(', ')} (requested: ${subject || 'all'})`);
+        this.logger.debug(`Scheduled renders: ${[...this.#renderScheduler].join(', ')} (requested: ${allSubjects ? 'all' : subjects.join(', ')})`);
     }
 
     async enforceScheduledRenders() {
