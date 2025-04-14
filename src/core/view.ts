@@ -18,6 +18,11 @@ export type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
 type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
 type queryFn = (data: any, context: any) => any;
 type query = string | queryFn | boolean;
+export type RenderListOptions = {
+    limit: number | false;
+    moreContainer: HTMLElement;
+    onSliceRender: (restCount: number, offset: number, limit: number, totalCount: number) => void
+};
 
 type ConfigTransitionTreeNode = {
     value: any;
@@ -801,9 +806,33 @@ export class ViewRenderer extends Dictionary<View> {
         itemConfig: RawViewConfig,
         data: any[],
         context: any,
+        offset: number,
+        limit?: RenderListOptions['limit'],
+        moreContainer?: RenderListOptions['moreContainer']
+    );
+    renderList(
+        container: HTMLElement,
+        itemConfig: RawViewConfig,
+        data: any[],
+        context: any,
+        offset: number,
+        options?: Partial<RenderListOptions>
+    );
+    renderList(
+        container: HTMLElement,
+        itemConfig: RawViewConfig,
+        data: any[],
+        context: any,
         offset = 0,
-        limit: number | false = false,
-        moreContainer: HTMLElement) {
+        limitOrOptions?: RenderListOptions['limit'] | Partial<RenderListOptions>,
+        moreContainer?: RenderListOptions['moreContainer']
+    ) {
+        const options = typeof limitOrOptions === 'object' && limitOrOptions !== null
+            ? limitOrOptions
+            : { limit: limitOrOptions, moreContainer };
+        const { moreContainer: moreContainerEl, onSliceRender } = options;
+        let { limit = false } = options;
+
         if (limit === false) {
             limit = data.length;
         }
@@ -822,13 +851,22 @@ export class ViewRenderer extends Dictionary<View> {
                 )
         );
 
+        if (typeof onSliceRender === 'function') {
+            result.then(() => onSliceRender(
+                Math.max(data.length - offset - limit, 0),
+                offset,
+                limit,
+                data.length
+            ));
+        }
+
         this.maybeMoreButtons(
-            moreContainer || container,
+            moreContainerEl || container,
             null,
             data.length,
             offset + limit,
             limit,
-            (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, moreContainer)
+            offset => this.renderList(container, itemConfig, data, context, offset, options)
         );
 
         return result;

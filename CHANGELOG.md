@@ -1,3 +1,15 @@
+## next
+
+- Added `debouce` option for `content-filter` view (#108)
+- Extended `ViewModel#view.renderList()` method to take options `renderList(container, itemConfig, data, context, offset, options)`, options is:
+    ```ts
+    type RenderListOptions = {
+        limit: number | false;
+        moreContainer: HTMLElement;
+        onSliceRender: (restCount: number, offset: number, limit: number, totalCount: number) => void
+    }
+    ```
+
 ## 1.0.0-beta.94 (21-03-2025)
 
 - Implemented basic text rendering
