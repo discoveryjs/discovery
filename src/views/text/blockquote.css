@@ -5,7 +5,6 @@
     border-left: .25em solid var(--color, rgba(191, 197, 197, 0.5));
 }
 .view-blockquote:not([data-kind]) {
-    --color:;
     color: #6a737d;
 }
 .discovery-root-darkmode .view-blockquote:not([data-kind]) {
