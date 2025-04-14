@@ -122,7 +122,13 @@ export default function(host) {
 
                     // FIXME: that's a hack
                     setTimeout(() => {
+                        const indexPageLinkEl = host.dom.root.querySelector('article > .view-block.sidebar .index-page-link');
                         const contentEl = host.dom.root.querySelector('article > .view-block.sidebar > .view-content-filter > .content');
+
+                        if (indexPageLinkEl) {
+                            indexPageLinkEl.classList.toggle('view-selected', host.pageRef);
+                        }
+
                         if (contentEl) {
                             contentEl.querySelector(':scope .view-menu-item.selected')?.classList?.remove('selected');
                             contentEl.querySelector(`:scope .view-menu-item[data-name=${CSS.escape(data?.name)}]`)?.classList?.add('selected');
