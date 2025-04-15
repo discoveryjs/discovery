@@ -18,7 +18,7 @@ import type {
 import { Observer } from '../observer.js';
 import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
-import { defaultStreamTransformers, ProgressTransformer, StreamTransformSelector } from './load-data-streams.js';
+import { consumeStreamAsTypedArray, defaultStreamTransformers, ProgressTransformer, StreamTransformSelector } from './load-data-streams.js';
 
 export type * from './load-data.types.js';
 export const dataSource = {
@@ -113,29 +113,6 @@ function buildDataset(
         meta,
         data
     };
-}
-
-async function consumeStreamAsTypedArray(iterator: AsyncIterableIterator<Uint8Array>) {
-    const chunks: Uint8Array[] = [];
-    let totalLength = 0;
-
-    // Consume chunks
-    for await (const chunk of iterator) {
-        chunks.push(chunk);
-        totalLength += chunk.byteLength;
-    }
-
-    // Create a new TypedArray with the combined length
-    const combinedChunks = new Uint8Array(totalLength);
-
-    // Iterate through the input arrays and set their values in the combinedChunks array
-    let offset = 0;
-    for (const array of chunks) {
-        combinedChunks.set(array, offset);
-        offset += array.length;
-    }
-
-    return combinedChunks;
 }
 
 export async function dataFromStream(

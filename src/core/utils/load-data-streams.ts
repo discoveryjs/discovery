@@ -51,7 +51,7 @@ export function combineChunks(chunks: Uint8Array[], totalLength?: number) {
     }
 }
 
-export async function consumeChunksAsSingleTypedArray(iterator: AsyncIterableIterator<Uint8Array>) {
+export async function consumeStreamAsTypedArray(iterator: AsyncIterableIterator<Uint8Array>) {
     const chunks: Uint8Array[] = [];
     let totalLength = 0;
 
