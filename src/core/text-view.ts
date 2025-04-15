@@ -845,8 +845,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
 
                             case 'line':
                                 if (prevType === 'block') {
-                                    currentLineIdx = lines.push('') - 1;
-                                    spans.push([]);
+                                    // do nothing
                                 } else if (lines[currentLineIdx] === '') {
                                     spans.pop();
                                     lines.pop();
@@ -924,7 +923,7 @@ export class TextViewRenderer extends Dictionary<TextView> {
                     }
                 }
 
-                while (lines[currentLineIdx] === '') {
+                while (prevType !== 'inline' && lines[currentLineIdx] === '') {
                     currentLineIdx--;
                     spans.pop();
                     lines.pop();
