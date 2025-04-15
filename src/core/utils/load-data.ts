@@ -115,7 +115,7 @@ function buildDataset(
     };
 }
 
-async function consumeChunksAsSingleTypedArray(iterator: AsyncIterableIterator<Uint8Array>) {
+async function consumeStreamAsTypedArray(iterator: AsyncIterableIterator<Uint8Array>) {
     const chunks: Uint8Array[] = [];
     let totalLength = 0;
 
@@ -184,9 +184,10 @@ export async function dataFromStream(
             if (test(value)) {
                 encoding = name;
 
+                const readerIterator = createReaderIterator(reader, firstChunk);
                 const decodeRequest = streaming
-                    ? decode(streamConsumer(firstChunk))
-                    : consumeChunksAsSingleTypedArray(streamConsumer(firstChunk)).then(measureDecodingTime(decode));
+                    ? decode(readerIterator)
+                    : consumeStreamAsTypedArray(readerIterator).then(measureDecodingTime(decode));
                 const data = await decodeRequest;
 
                 return { data, compression, encoding, size, decodingTime };
@@ -208,14 +209,16 @@ export async function dataFromStream(
         };
     }
 
-    async function setProgress(done: boolean, sizeDelta = 0, decodingTimeDelta = 0) {
+    async function setProgress(done: boolean, sizeDelta = 0) {
         size += sizeDelta;
-        decodingTime += decodingTimeDelta;
 
         await setStageProgress('receiving', getProgressState(done));
     }
 
-    async function* streamConsumer(firstChunk?: ReadableStreamReadResult<Uint8Array>) {
+    async function* createReaderIterator(
+        reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>,
+        firstChunk?: ReadableStreamReadResult<Uint8Array>
+    ) {
         while (true) {
             const { value, done } = firstChunk || await reader.read();
 
@@ -225,7 +228,9 @@ export async function dataFromStream(
                 break;
             }
 
+            const startDecodingTime = performance.now();
             yield value;
+            decodingTime += performance.now() - startDecodingTime;
         }
     }
 

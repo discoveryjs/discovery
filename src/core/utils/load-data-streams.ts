@@ -147,8 +147,7 @@ export class StreamTransformSelector implements Transformer {
 
 export type ProgressTransformerCallback = (
     done: boolean,
-    sizeDelta?: number,
-    decodingTimeDelta?: number
+    sizeDelta?: number
 ) => Promise<void>;
 
 const DEFAULT_PROGRESS_CHUNK_SIZE = 1024 * 1024 / 4;
@@ -199,7 +198,6 @@ export class ProgressTransformer implements Transformer {
         this.#buffer = '';
 
         for (let offset = 0; offset < payload.length;) {
-            const chunkDecodingStartTime = performance.now();
             const chunk = offset === 0 && payload.length - offset < this.#chunkSize * 1.5
                 ? payload
                 : payload.slice(offset, offset + this.#chunkSize);
@@ -207,7 +205,7 @@ export class ProgressTransformer implements Transformer {
             controller.enqueue(chunk);
             offset += chunk.length;
 
-            await this.#setProgress(false, chunk.length, performance.now() - chunkDecodingStartTime);
+            await this.#setProgress(false, chunk.length);
         }
     }
 }
