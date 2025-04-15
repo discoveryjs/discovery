@@ -67,9 +67,9 @@ export async function consumeChunksAsSingleTypedArray(iterator: AsyncIterableIte
 
 function selectTransformStream(firstChunk: string | Uint8Array, transformers: StreamTransformer[]) {
     if (typeof firstChunk !== 'string') {
-        for (const { test, createTransformStream } of transformers) {
-            if (test(firstChunk)) {
-                return createTransformStream();
+        for (const transformer of transformers) {
+            if (transformer.test(firstChunk)) {
+                return transformer;
             }
         }
     }
@@ -79,11 +79,13 @@ function selectTransformStream(firstChunk: string | Uint8Array, transformers: St
 
 export class StreamTransformSelector implements Transformer {
     #transformers: StreamTransformer[];
+    #setTransformName?: (name: string) => void;
     #writer: WritableStreamDefaultWriter<Uint8Array> | null;
     #pipe: Promise<void> | null;
 
-    constructor(transformers: StreamTransformer[]) {
+    constructor(transformers: StreamTransformer[], setTransformName?: (name: string) => void) {
         this.#transformers = transformers;
+        this.#setTransformName = setTransformName;
         this.#writer = null;
         this.#pipe = null;
     }
@@ -91,16 +93,18 @@ export class StreamTransformSelector implements Transformer {
     transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>) {
         if (this.#pipe === null) {
             // Select the TransformStream using the first chunk
-            const streamTransformer = selectTransformStream(chunk, this.#transformers);
+            const transformer = selectTransformStream(chunk, this.#transformers);
 
-            if (streamTransformer === null) {
+            if (transformer === null) {
                 // noop pipe
                 this.#pipe = Promise.resolve();
             } else {
-                this.#writer = streamTransformer.writable.getWriter();
+                const { readable, writable } = transformer.createTransformStream();
+
+                this.#writer = writable.getWriter();
 
                 // Pipe the readable side of the selected TransformStream to the controller
-                this.#pipe = streamTransformer.readable.pipeTo(
+                this.#pipe = readable.pipeTo(
                     new WritableStream({
                         write(chunk) {
                             controller.enqueue(chunk);
@@ -113,6 +117,10 @@ export class StreamTransformSelector implements Transformer {
                         }
                     })
                 );
+
+                if (typeof this.#setTransformName === 'function') {
+                    this.#setTransformName(transformer.name);
+                }
             }
         }
 

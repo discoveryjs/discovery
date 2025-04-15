@@ -86,6 +86,7 @@ export type Dataset = {
 export type DatasetResource = {
     type: string;
     name: string;
+    compression: false | string;
     encoding: string;
     size?: number;
     encodedSize?: number;

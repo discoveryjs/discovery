@@ -1,6 +1,7 @@
 ## next
 
 - Added built-in support for loading `gzip` and `deflate` encoded data. Encoding is detected by inspecting the payload header, enabling automatic decoding prior to standard data decoding or parsing.
+- Added `compression` field in `DatasetResource` object
 - Added support for `footer` option in `cols` definition of `table` view (see [Setup footer cell display](https://discoveryjs.github.io/discovery/#views-showcase:table&!anchor=setup-footer-cell-display))
 - Fixed displaying object values in the value column of `table` view, it was unexpandable (no details) since refactoring in `1.0.0-beta.85`
 - Fixed sidebar re-rendering on page state changes

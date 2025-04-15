@@ -81,7 +81,7 @@ function isDiscoveryCliLegacyDataWrapper(input: any) {
 function buildDataset(
     rawData: any,
     rawResource: LoadDataResourceMetadata | undefined,
-    { size, encoding }: { size?: number, encoding: string }
+    { size, compression, encoding }: { size?: number, compression: false | string, encoding: string }
 ) {
     let rawMeta: Record<string, unknown> | null = null;
 
@@ -100,6 +100,7 @@ function buildDataset(
     const resource: DatasetResource = {
         type: type || 'unknown',
         name: name || 'unknown',
+        compression,
         encoding,
         ...Number.isFinite(size) ? { size } : null,
         ...Number.isFinite(encodedSize) ? { encodedSize } : null,
@@ -146,7 +147,13 @@ export async function dataFromStream(
         progress?: LoadDataStateProgress,
         step?: string
     ) => Promise<boolean>
-) {
+): Promise<{
+    data: any;
+    compression: false | string;
+    encoding: string;
+    size: number;
+    decodingTime: number;
+}> {
     const streamStartTime = Date.now();
     const encodings = [
         ...normalizeEncodings(extraEncodings),
@@ -154,6 +161,7 @@ export async function dataFromStream(
         buildinEncodings.json
     ];
     let decodingTime = 0;
+    let compression: false | string = false;
     let encoding = 'unknown';
     let size = 0;
 
@@ -161,7 +169,7 @@ export async function dataFromStream(
 
     const streamPipeline = stream
         .pipeThrough(new TransformStream(new ProgressTransformer(setProgress)))
-        .pipeThrough(new TransformStream(new StreamTransformSelector(defaultStreamTransformers)));
+        .pipeThrough(new TransformStream(new StreamTransformSelector(defaultStreamTransformers, (name: string) => compression = name)));
     const reader = streamPipeline.getReader();
 
     try {
@@ -181,7 +189,7 @@ export async function dataFromStream(
                     : consumeChunksAsSingleTypedArray(streamConsumer(firstChunk)).then(measureDecodingTime(decode));
                 const data = await decodeRequest;
 
-                return { data, encoding, size, decodingTime };
+                return { data, compression, encoding, size, decodingTime };
             }
         }
 
@@ -256,6 +264,7 @@ async function loadDataFromStreamInternal(
         const { encodings } = options || {};
         const {
             data: rawData,
+            compression = false,
             encoding = 'unknown',
             size = undefined,
             decodingTime = 0
@@ -268,7 +277,7 @@ async function loadDataFromStreamInternal(
 
         await loadDataStateTracker.asyncSet({ stage: 'received' });
 
-        const { data, resource, meta } = buildDataset(rawData, rawResource, { size, encoding });
+        const { data, resource, meta } = buildDataset(rawData, rawResource, { size, compression, encoding });
         const finishedTime = new Date();
         const time = Number(finishedTime) - Number(requestStart);
         const roundedDecodingTime = Math.round(decodingTime || 0);
