@@ -4,8 +4,6 @@ export type StreamTransformer = {
     createTransformStream(): TransformStream;
 };
 
-const CHUNK_SIZE = 1024 * 1024 / 4;
-
 export const defaultStreamTransformers: StreamTransformer[] = [
     {
         name: 'gzip',
@@ -80,29 +78,29 @@ function selectTransformStream(firstChunk: string | Uint8Array, transformers: St
 }
 
 export class StreamTransformSelector implements Transformer {
-    transformers: StreamTransformer[];
-    writer: WritableStreamDefaultWriter<Uint8Array> | null;
-    pipe: Promise<void> | null;
+    #transformers: StreamTransformer[];
+    #writer: WritableStreamDefaultWriter<Uint8Array> | null;
+    #pipe: Promise<void> | null;
 
     constructor(transformers: StreamTransformer[]) {
-        this.transformers = transformers;
-        this.writer = null;
-        this.pipe = null;
+        this.#transformers = transformers;
+        this.#writer = null;
+        this.#pipe = null;
     }
 
     transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>) {
-        if (this.pipe === null) {
+        if (this.#pipe === null) {
             // Select the TransformStream using the first chunk
-            const streamTransformer = selectTransformStream(chunk, this.transformers);
+            const streamTransformer = selectTransformStream(chunk, this.#transformers);
 
             if (streamTransformer === null) {
                 // noop pipe
-                this.pipe = Promise.resolve();
+                this.#pipe = Promise.resolve();
             } else {
-                this.writer = streamTransformer.writable.getWriter();
+                this.#writer = streamTransformer.writable.getWriter();
 
                 // Pipe the readable side of the selected TransformStream to the controller
-                this.pipe = streamTransformer.readable.pipeTo(
+                this.#pipe = streamTransformer.readable.pipeTo(
                     new WritableStream({
                         write(chunk) {
                             controller.enqueue(chunk);
@@ -118,61 +116,23 @@ export class StreamTransformSelector implements Transformer {
             }
         }
 
-        return this.writer !== null
-            ? this.writer.write(chunk)
-            : controller.enqueue(chunk);
+        if (this.#writer !== null) {
+            return this.#writer.write(chunk);
+        }
+
+        // noop passthrough
+        controller.enqueue(chunk);
     }
 
     async flush() {
-        if (this.writer !== null) {
-            this.writer.close();
-            this.writer = null;
+        if (this.#writer !== null) {
+            this.#writer.close();
+            this.#writer = null;
         }
 
-        if (this.pipe) {
-            await this.pipe;
-            this.pipe = null;
-        }
-    }
-}
-
-// ensure first chunk at least highWaterMark bytes long
-export class ProbeTransformer implements Transformer {
-    highWaterMark: number;
-    buffer: Uint8Array[] | null;
-    bufferSize: number;
-
-    constructor(highWaterMark = 1024) {
-        this.highWaterMark = highWaterMark;
-        this.buffer = [];
-        this.bufferSize = 0;
-    }
-    transform(chunk: Uint8Array, controller) {
-        // Bypass payload when buffer has already beed flushed
-        if (this.buffer === null) {
-            controller.enqueue(chunk);
-            return;
-        }
-
-        // Populate buffer
-        this.buffer.push(chunk);
-        this.bufferSize += chunk.length;
-
-        // Flush buffer when its size exceeded a threshold
-        if (this.bufferSize >= this.highWaterMark) {
-            this.flush(controller);
-        }
-    }
-    flush(controller: TransformStreamDefaultController<Uint8Array>) {
-        if (this.buffer !== null) {
-            const payload = combineChunks(this.buffer);
-
-            if (payload !== undefined) {
-                controller.enqueue(payload);
-            }
-
-            this.buffer = null;
-            this.bufferSize = 0;
+        if (this.#pipe !== null) {
+            await this.#pipe;
+            this.#pipe = null;
         }
     }
 }
@@ -183,57 +143,63 @@ export type ProgressTransformerCallback = (
     decodingTimeDelta?: number
 ) => Promise<void>;
 
+const DEFAULT_PROGRESS_CHUNK_SIZE = 1024 * 1024 / 4;
 export class ProgressTransformer implements Transformer {
-    setProgress: ProgressTransformerCallback;
-    buffer: string | Uint8Array;
-    bufferSize: number;
+    #setProgress: ProgressTransformerCallback;
+    #buffer: string | Uint8Array;
+    #chunkSize: number;
 
-    constructor(setProgress: ProgressTransformerCallback) {
-        this.setProgress = setProgress;
-        this.buffer = '';
-        this.bufferSize = 0;
+    constructor(setProgress: ProgressTransformerCallback, chunkSize = DEFAULT_PROGRESS_CHUNK_SIZE) {
+        this.#setProgress = setProgress;
+        this.#buffer = '';
+        this.#chunkSize = chunkSize;
     }
 
     async transform(chunk: Uint8Array | string, controller: TransformStreamDefaultController<Uint8Array>) {
-        if (typeof chunk === 'string') {
-            this.buffer += chunk;
-            this.bufferSize += chunk.length;
+        if (typeof this.#buffer !== 'string') {
+            await this.#flushBuffer(controller);
+        }
 
-            if (this.bufferSize >= CHUNK_SIZE) {
-                return this.flushBuffer(controller);
+        if (typeof chunk === 'string') {
+            this.#buffer += chunk;
+
+            if (this.#bufferSize >= this.#chunkSize) {
+                return this.#flushBuffer(controller);
             }
         } else {
-            await this.flushBuffer(controller);
-            this.buffer = chunk;
-            await this.flushBuffer(controller);
+            this.#buffer = chunk;
+            await this.#flushBuffer(controller);
         }
     }
 
-    async flushBuffer(controller: TransformStreamDefaultController<Uint8Array | string>) {
-        if (this.buffer === '') {
+    async flush(controller: TransformStreamDefaultController<Uint8Array | string>) {
+        await this.#flushBuffer(controller);
+        await this.#setProgress(true);
+    }
+
+    get #bufferSize() {
+        return this.#buffer.length;
+    }
+
+    async #flushBuffer(controller: TransformStreamDefaultController<Uint8Array | string>) {
+        const payload = this.#buffer;
+
+        if (this.#bufferSize === 0) {
             return;
         }
 
-        const payloadChunk = this.buffer;
+        this.#buffer = '';
 
-        this.buffer = '';
-        this.bufferSize = 0;
-
-        for (let offset = 0; offset < payloadChunk.length;) {
+        for (let offset = 0; offset < payload.length;) {
             const chunkDecodingStartTime = performance.now();
-            const chunkSlice = offset === 0 && payloadChunk.length - offset < CHUNK_SIZE * 1.5
-                ? payloadChunk
-                : payloadChunk.slice(offset, offset + CHUNK_SIZE);
+            const chunk = offset === 0 && payload.length - offset < this.#chunkSize * 1.5
+                ? payload
+                : payload.slice(offset, offset + this.#chunkSize);
 
-            controller.enqueue(chunkSlice);
-            offset += chunkSlice.length;
+            controller.enqueue(chunk);
+            offset += chunk.length;
 
-            await this.setProgress(false, chunkSlice.length, performance.now() - chunkDecodingStartTime);
+            await this.#setProgress(false, chunk.length, performance.now() - chunkDecodingStartTime);
         }
-    }
-
-    async flush(controller) {
-        await this.flushBuffer(controller);
-        return this.setProgress(true);
     }
 }
