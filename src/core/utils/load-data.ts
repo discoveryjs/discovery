@@ -18,6 +18,7 @@ import type {
 import { Observer } from '../observer.js';
 import { normalizeEncodings } from '../encodings/utils.js';
 import * as buildinEncodings from '../encodings/index.js';
+import { defaultStreamTransformers, ProgressTransformer, StreamTransformSelector } from './load-data-streams.js';
 
 export type * from './load-data.types.js';
 export const dataSource = {
@@ -146,8 +147,6 @@ export async function dataFromStream(
         step?: string
     ) => Promise<boolean>
 ) {
-    const CHUNK_SIZE = 1024 * 1024; // 1MB
-    const reader = stream.getReader();
     const streamStartTime = Date.now();
     const encodings = [
         ...normalizeEncodings(extraEncodings),
@@ -158,7 +157,12 @@ export async function dataFromStream(
     let encoding = 'unknown';
     let size = 0;
 
-    await setStageProgress('receiving', getProgress(false));
+    await setStageProgress('receiving', getProgressState(false));
+
+    const streamPipeline = stream
+        .pipeThrough(new TransformStream(new ProgressTransformer(setProgress)))
+        .pipeThrough(new TransformStream(new StreamTransformSelector(defaultStreamTransformers)));
+    const reader = streamPipeline.getReader();
 
     try {
         const firstChunk = await reader.read();
@@ -186,7 +190,7 @@ export async function dataFromStream(
         reader.releaseLock();
     }
 
-    function getProgress(done: boolean): LoadDataStateProgress {
+    function getProgressState(done: boolean): LoadDataStateProgress {
         return {
             done,
             elapsed: Date.now() - streamStartTime,
@@ -194,6 +198,13 @@ export async function dataFromStream(
             completed: size,
             total: totalSize
         };
+    }
+
+    async function setProgress(done: boolean, sizeDelta = 0, decodingTimeDelta = 0) {
+        size += sizeDelta;
+        decodingTime += decodingTimeDelta;
+
+        await setStageProgress('receiving', getProgressState(done));
     }
 
     async function* streamConsumer(firstChunk?: ReadableStreamReadResult<Uint8Array>) {
@@ -206,23 +217,8 @@ export async function dataFromStream(
                 break;
             }
 
-            for (let offset = 0; offset < value.length; offset += CHUNK_SIZE) {
-                const chunkDecodingStartTime = performance.now();
-                const chunk = offset === 0 && value.length - offset < CHUNK_SIZE
-                    ? value
-                    : value.slice(offset, offset + CHUNK_SIZE);
-
-                yield chunk;
-
-                decodingTime += performance.now() - chunkDecodingStartTime;
-                size += chunk.length;
-
-                await setStageProgress('receiving', getProgress(false));
-            }
+            yield value;
         }
-
-        // progress done
-        await setStageProgress('receiving', getProgress(true));
     }
 
     function measureDecodingTime(decode: (payload: Uint8Array) => any) {
