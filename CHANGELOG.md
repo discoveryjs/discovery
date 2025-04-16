@@ -2,6 +2,7 @@
 
 - Added built-in support for loading `gzip` and `deflate` encoded data. Encoding is detected by inspecting the payload header, enabling automatic decoding prior to standard data decoding or parsing.
 - Added `compression` field in `DatasetResource` object
+- Added `useAcceptForFilePicker` option to `upload` extension, defaulting to `false`. Discovery.js supports a wide range of data formats and encodings, relying on file content rather than extensions. Since many supported files have extensions not effectively handled by the `accept` attribute (due to its limited flexibility and inability to inspect file content) using `accept` often causes more issues than it solves, and is now disabled by default.
 - Added support for `footer` option in `cols` definition of `table` view (see [Setup footer cell display](https://discoveryjs.github.io/discovery/#views-showcase:table&!anchor=setup-footer-cell-display))
 - Fixed displaying object values in the value column of `table` view, it was unexpandable (no details) since refactoring in `1.0.0-beta.85`
 - Fixed sidebar re-rendering on page state changes

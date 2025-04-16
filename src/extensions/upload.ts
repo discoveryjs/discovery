@@ -5,6 +5,7 @@ import { createElement } from '../core/utils/dom.js';
 export default Object.assign(setup(), { setup });
 export type UploadOptions = {
     accept: string | string[];
+    useAcceptForFilePicker: boolean;
     dragdrop: boolean;
     clipboard: boolean;
 };
@@ -14,12 +15,14 @@ const isExtension = (value: string) => /^\./.test(value);
 function setup(options?: Partial<UploadOptions>) {
     options = {
         accept: 'application/json,application/jsonxl,.json,.jsonxl',
+        useAcceptForFilePicker: false,
         dragdrop: true,
         clipboard: false,
         ...options
     };
 
     return function(host: ViewModel) {
+        const useAcceptForFilePicker = Boolean(options.useAcceptForFilePicker);
         const dragdrop = Boolean(options.dragdrop);
         const clipboard = Boolean(options.clipboard);
         const accept = String(options.accept);
@@ -82,7 +85,7 @@ function setup(options?: Partial<UploadOptions>) {
             () => {
                 createElement('input', {
                     type: 'file',
-                    accept,
+                    accept: useAcceptForFilePicker ? accept : undefined,
                     onchange: (event: InputEvent) => host.loadDataFromEvent(event)
                 }).click();
             },
