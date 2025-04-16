@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.95 (16-04-2025)
 
 - Added built-in support for loading `gzip` and `deflate` encoded data. Encoding is detected by inspecting the payload header, enabling automatic decoding prior to standard data decoding or parsing.
 - Added `compression` field in `DatasetResource` object
