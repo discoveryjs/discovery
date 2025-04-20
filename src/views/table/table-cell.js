@@ -5,10 +5,29 @@ import { hasOwn } from '../../core/utils/object-utils.js';
 
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
 
+function setNumericValue(el, value) {
+    let str = String(value);
+
+    el.classList.add('number');
+
+    if (!Number.isFinite(value)) {
+        el.classList.add('keyword');
+        el.textContent = str;
+        return;
+    }
+
+    if (str.length > 3) {
+        el.innerHTML = numDelim(str, false);
+    } else {
+        el.textContent = str;
+    }
+}
+
 function defaultCellRender(el, data, isDataObject) {
     if (Array.isArray(data) || ArrayBuffer.isView(data)) {
-        el.classList.add('number');
-        el.textContent = data.length || '';
+        if (data.length > 0) {
+            setNumericValue(el, data.length);
+        }
         return;
     }
 
@@ -31,22 +50,7 @@ function defaultCellRender(el, data, isDataObject) {
     }
 
     if (typeof data === 'number') {
-        let str = String(data);
-
-        el.classList.add('number');
-
-        if (!Number.isFinite(data)) {
-            el.classList.add('keyword');
-            el.textContent = str;
-            return;
-        }
-
-        if (str.length > 3) {
-            el.innerHTML = numDelim(str, false);
-        } else {
-            el.textContent = str;
-        }
-
+        setNumericValue(el, data);
         return;
     }
 
