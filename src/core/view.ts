@@ -19,7 +19,6 @@ type ClassNameFn = (data: any, context: any) => string | false | null | undefine
 type queryFn = (data: any, context: any) => any;
 type query = string | queryFn | boolean;
 export type RenderListOptions = {
-    limit: number | false;
     moreContainer: HTMLElement;
     onSliceRender: (restCount: number, offset: number, limit: number, totalCount: number) => void
 };
@@ -807,7 +806,7 @@ export class ViewRenderer extends Dictionary<View> {
         data: any[],
         context: any,
         offset: number,
-        limit?: RenderListOptions['limit'],
+        limit: number | false,
         moreContainer?: RenderListOptions['moreContainer']
     );
     renderList(
@@ -816,6 +815,7 @@ export class ViewRenderer extends Dictionary<View> {
         data: any[],
         context: any,
         offset: number,
+        limit: number | false,
         options?: Partial<RenderListOptions>
     );
     renderList(
@@ -824,14 +824,13 @@ export class ViewRenderer extends Dictionary<View> {
         data: any[],
         context: any,
         offset = 0,
-        limitOrOptions?: RenderListOptions['limit'] | Partial<RenderListOptions>,
-        moreContainer?: RenderListOptions['moreContainer']
+        limit: number | false = false,
+        moreContainerOrOptions?: RenderListOptions['moreContainer'] | Partial<RenderListOptions>
     ) {
-        const options = typeof limitOrOptions === 'object' && limitOrOptions !== null
-            ? limitOrOptions
-            : { limit: limitOrOptions, moreContainer };
+        const options = moreContainerOrOptions instanceof HTMLElement || (moreContainerOrOptions && 'nodeType' in moreContainerOrOptions)
+            ? { moreContainer: moreContainerOrOptions } as Partial<RenderListOptions>
+            : moreContainerOrOptions || {};
         const { moreContainer: moreContainerEl, onSliceRender } = options;
-        let { limit = false } = options;
 
         if (limit === false) {
             limit = data.length;
@@ -866,7 +865,7 @@ export class ViewRenderer extends Dictionary<View> {
             data.length,
             offset + limit,
             limit,
-            offset => this.renderList(container, itemConfig, data, context, offset, options)
+            (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, options)
         );
 
         return result;

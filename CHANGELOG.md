@@ -1,3 +1,9 @@
+## next
+
+- Fixed the "Show the rest" button on lists to correctly render all remaining elements, instead of just the next N. This regression was introduced in v1.0.0-beta.95.  
+- Updated the `ViewModel#view.renderList()` method to accept the `limit` as a separate argument outside of the `options` object:  
+  `renderList(container, itemConfig, data, context, offset, limit, options)`.
+
 ## 1.0.0-beta.95 (16-04-2025)
 
 - Added built-in support for loading `gzip` and `deflate` encoded data. Encoding is detected by inspecting the payload header, enabling automatic decoding prior to standard data decoding or parsing.

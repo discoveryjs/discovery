@@ -151,8 +151,8 @@ export default function(host) {
                 orderedData,
                 { ...context, cols },
                 0,
+                host.view.listLimit(limit, 25),
                 {
-                    limit: host.view.listLimit(limit, 25),
                     moreContainer: moreButtonsEl,
                     onSliceRender: restCount => restCount === 0 && moreEl.remove()
                 }
