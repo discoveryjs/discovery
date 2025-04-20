@@ -2,7 +2,7 @@
 import usage from './table.usage.js';
 
 import { isArray, isSet } from '../../core/utils/is-type.js';
-import { createElement } from '../../core/utils/dom.js';
+import { createElement, createFragment } from '../../core/utils/dom.js';
 import { hasOwn } from '../../core/utils/object-utils.js';
 
 function configFromName(name, query) {
@@ -161,33 +161,42 @@ export default function(host) {
 
         async function renderFooter() {
             const footerEl = el.appendChild(createElement('tfoot')).appendChild(createElement('tr'));
+            const footerFragments = footerCells.map(() => createFragment());
 
             // render cells
-            await host.view.render(footerEl, footerCells, data, context);
+            const renderResults = await Promise.allSettled(footerCells.map((footerCell, idx) =>
+                host.view.render(footerFragments[idx], footerCell, data, context)
+            ));
 
             // normalize cells positions by adding empty cells and adjusting colSpans
             const createEmptyCell = () => createElement('td', { class: 'view-table-footer-cell' });
             let colIndex = 0;
-            [...footerEl.childNodes].forEach((cellEl, index) => {
+            renderResults.forEach((result, index) => {
+                const fragment = footerFragments[index];
                 const shouldBeIndex = footerCellIndecies[index];
+                let cellEl = fragment.firstChild;
 
-                if (cellEl.nodeType !== 1) {
-                    return;
-                }
-
-                if (cellEl.tagName !== 'TD') {
-                    cellEl.replaceWith(document.createComment('removed non <td> element'));
-                    return;
-                }
-
-                console.log({colIndex, shouldBeIndex, x: shouldBeIndex - footerCellIndecies[index - 1]});
-
-                if (colIndex > shouldBeIndex) {
-                    const prevCellEl = cellEl.previousElementSibling;
-                    prevCellEl.colSpan = shouldBeIndex - prevCellEl.cellIndex;
+                if (result.status === 'rejected') {
+                    host.view.renderError(footerEl.appendChild(cellEl = createEmptyCell()), result.reason, footerCells[index]);
+                } else if (!cellEl) {
+                    footerEl.append(cellEl = createEmptyCell());
+                } else if (cellEl.nodeType !== 1 || cellEl.tagName !== 'TD') {
+                    if (cellEl.classList?.contains?.('discovery-buildin-view-render-error')) {
+                        const content = cellEl;
+                        footerEl.appendChild(cellEl = createEmptyCell()).append(content);
+                    } else {
+                        host.view.renderError(footerEl.appendChild(cellEl = createEmptyCell()), 'non <td> element', footerCells[index]);
+                    }
                 } else {
-                    for (let i = shouldBeIndex - colIndex; i > 0; i--) {
-                        cellEl.before(createEmptyCell());
+                    footerEl.append(cellEl);
+
+                    if (colIndex > shouldBeIndex) {
+                        const prevCellEl = cellEl.previousElementSibling;
+                        prevCellEl.colSpan = shouldBeIndex - prevCellEl.cellIndex;
+                    } else {
+                        for (let i = shouldBeIndex - colIndex; i > 0; i--) {
+                            cellEl.before(createEmptyCell());
+                        }
                     }
                 }
 
