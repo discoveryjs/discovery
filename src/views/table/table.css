@@ -1,4 +1,9 @@
 .view-table {
+    --table-cell-padding-top: 2px;
+    --table-cell-padding-right: 8px;
+    --table-cell-padding-bottom: 2px;
+    --table-cell-padding-left: 8px;
+
     font-size: 12px;
     line-height: 19px;
     /* border-collapse: collapse; */
@@ -11,15 +16,19 @@
     z-index: 1;
 }
 .view-table > thead th {
-    padding: 2px 8px;
+    padding:
+        var(--table-cell-padding-top)
+        var(--table-cell-padding-right)
+        var(--table-cell-padding-bottom)
+        var(--table-cell-padding-left);
+    border: solid var(--discovery-background-color);
+    border-width: 1px 1px 1px 0;
     font-weight: normal;
     text-align: left;
     background: #8d8d8d26 no-repeat right 1px center;
     background-color: color-mix(in srgb, var(--discovery-background-color), #8d8d8d 15%);
     background-size: 16px;
     background-clip: padding-box;
-    border: solid var(--discovery-background-color);
-    border-width: 1px 1px 1px 0;
 }
 .view-table > thead th:last-child {
     border-right: none;

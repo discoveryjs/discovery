@@ -1,5 +1,9 @@
 .view-table-cell {
-    padding: 2px 8px;
+    padding:
+        var(--table-cell-padding-top)
+        var(--table-cell-padding-right)
+        var(--table-cell-padding-bottom)
+        var(--table-cell-padding-left);
     height: 19px; /* min cell height */
     vertical-align: top;
 }
@@ -71,20 +75,33 @@
 
 .view-table-cell > .view-struct,
 .view-table-cell > .view-struct:hover {
-    margin: -1px -8px -2px;
-    padding: 2px 8px 1px;
+    margin:
+        calc(-1 * max(calc(var(--table-cell-padding-top) - 1px), 0px))
+        calc(-1 * max(calc(var(--table-cell-padding-right) - 1px), 0px))
+        calc(-1 * var(--table-cell-padding-bottom))
+        calc(-1 * var(--table-cell-padding-left));
+    padding:
+        var(--table-cell-padding-top)
+        var(--table-cell-padding-right)
+        max(calc(var(--table-cell-padding-bottom) - 1px), 0px)
+        var(--table-cell-padding-left);
 }
 .view-table-cell > .view-struct {
     background-color: transparent;
 }
 
 .view-table-footer-cell {
-    color: #888;
-    background-color: color-mix(in srgb, var(--discovery-background-color), #8d8d8d 8%);
-    background-clip: padding-box;
+    padding:
+        var(--table-cell-padding-top)
+        max(calc(var(--table-cell-padding-right) - 1px), 0px)
+        var(--table-cell-padding-bottom)
+        var(--table-cell-padding-left);
     border: solid var(--discovery-background-color);
     border-top-color: transparent;
     border-width: 1px 1px 1px 0;
+    color: #888;
+    background-color: color-mix(in srgb, var(--discovery-background-color), #8d8d8d 8%);
+    background-clip: padding-box;
 }
 .view-table-footer-cell:last-child {
     border-right: 0;
