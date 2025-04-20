@@ -788,6 +788,14 @@ export class ViewRenderer extends Dictionary<View> {
         );
     }
 
+    renderError(container: HTMLElement | Comment | DocumentFragment, reason: string, config: any) {
+        const placeholder = container instanceof Comment
+            ? container
+            : container.appendChild(document.createComment(''));
+
+        return renderError(this, reason, placeholder, config);
+    }
+
     listLimit(value: any, defaultValue: number) {
         if (value === false) {
             return false;
