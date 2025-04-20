@@ -220,7 +220,7 @@ export default {
         {
             title: 'Setup footer cell display',
             beforeDemo: { view: 'md', source: [
-                'A setup for footer cell is similar to a [regular cell](#!setup-cell-display), the same set of options are supported, except `colWhen`.',
+                'A setup for footer cell is similar to a [regular cell](#!setup-cell-display), the same set of options are supported: .',
                 '',
                 'When value for the `footer` is an object without a `view` property, it\'s interpreted as a footer config. Otherwise, it is treated as footer cell content, equivalent to passing `{ content: value }`.'
             ] },
@@ -235,6 +235,20 @@ export default {
                     } }
                 }
             }
+        },
+        {
+            title: 'Setup header and footer display',
+            beforeDemo: { view: 'md', source: [
+                'You can use the `headerWhen` and `footerWhen` options to conditionally disable the rendering of the header and footer, respectively.'
+            ] },
+            highlightProps: ['headerWhen', 'footerWhen'],
+            demoData: defaultDemoData,
+            demo: [
+                'h2:"No header and footer"',
+                { view: 'table', headerWhen: false, footerWhen: 'size() > 10', cols: { name: { footer: 'text:"footer"' } }  },
+                'h2:"With header and footer"',
+                { view: 'table', cols: { name: { footer: 'text:"footer"' } } }
+            ]
         }
     ]
 };

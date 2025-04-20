@@ -110,7 +110,7 @@ export default function(host) {
     const isNotObject = host.queryFn('is not object');
 
     host.view.define('table', function(el, config, data, context) {
-        let { rows, cols, rowConfig, limit, valueCol = false } = config;
+        let { rows, cols, rowConfig, valueCol = false, headerWhen = true, footerWhen = true, limit } = config;
         let renderRowConfig;
 
         if ('rows' in config === false) {
@@ -125,7 +125,11 @@ export default function(host) {
             rows = rows ? [rows] : [];
         }
 
-        const headEl = el.appendChild(createElement('thead')).appendChild(createElement('tr'));
+        const shouldRenderHeader = host.query(headerWhen, data, context);
+        const shouldRenderFooter = host.query(footerWhen, data, context);
+        const headEl = shouldRenderHeader
+            ? el.appendChild(createElement('thead')).appendChild(createElement('tr'))
+            : createElement('tr');
         const headerCells = [];
         const footerCells = [];
         const footerCellIndecies = [];
@@ -277,7 +281,8 @@ export default function(host) {
 
             const headerCellEl = headEl.appendChild(createElement('th', 'view-table-header-cell'));
             const headerCell = {
-                el: headerCellEl
+                el: headerCellEl,
+                sorting: false
             };
 
             if (hasOwn(col, 'footer') && typeof col.footer !== 'undefined') {
@@ -305,8 +310,6 @@ export default function(host) {
                         render(rows.slice().sort(sorting));
                     }
                 });
-            } else {
-                col.sorting = false;
             }
         }
 
@@ -318,7 +321,7 @@ export default function(host) {
                 : '=#.cols'
         }, rowConfig);
 
-        return footerCells.length === 0
+        return !shouldRenderFooter || footerCells.length === 0
             ? render(rows)
             : Promise.all([
                 render(rows),

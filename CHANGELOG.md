@@ -2,6 +2,7 @@
 
 - Fixed the "Show the rest" button on lists to correctly render all remaining elements, instead of just the next N. This regression was introduced in v1.0.0-beta.95.  
 - Added `ViewModel#view.renderError(container, reason, config)` method to render an error badge.  
+- Added `headerWhen` and `footerWhen` options for `table` view to conditionally disable the rendering of the header and footer, respectively
 - Improved `table` view footer rendering to handle and display errors that occur during cell rendering, instead of silently failing with no output
 - Updated the `ViewModel#view.renderList()` method to accept the `limit` as a separate argument outside of the `options` object:  
   `renderList(container, itemConfig, data, context, offset, limit, options)`.
