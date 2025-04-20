@@ -4,6 +4,8 @@
 - Added `ViewModel#view.renderError(container, reason, config)` method to render an error badge.  
 - Added `headerWhen` and `footerWhen` options for `table` view to conditionally disable the rendering of the header and footer, respectively
 - Improved `table` view footer rendering to handle and display errors that occur during cell rendering, instead of silently failing with no output
+- Added `footer` option for `cols` in text-based `table` view
+- Added `headerWhen` and `footerWhen` options for text-based `table` view
 - Updated the `ViewModel#view.renderList()` method to accept the `limit` as a separate argument outside of the `options` object:  
   `renderList(container, itemConfig, data, context, offset, limit, options)`.
 

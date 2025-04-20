@@ -7,5 +7,12 @@ const defaultDemoData = [
 ];
 export default {
     demoData: defaultDemoData,
-    demo: 'table'
+    demo: {
+        view: 'table',
+        limit: 2,
+        cols: {
+            age: { footer: 'text:sum(=>age)' },
+            occupation: { footer: {} }
+        }
+    }
 };

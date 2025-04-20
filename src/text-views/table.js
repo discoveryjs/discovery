@@ -31,7 +31,7 @@ export default function(host) {
     const isNotObject = host.queryFn('is not object');
 
     host.textView.define('table', async function(node, config, data, context) {
-        let { rows, cols, limit = 25, valueCol = false } = config;
+        let { rows, cols, valueCol = false, headerWhen = true, footerWhen = true, limit = 25 } = config;
         let moreCount = 0;
 
         if ('rows' in config === false) {
@@ -112,35 +112,65 @@ export default function(host) {
             return node.appendText('\n<empty table>\n');
         }
 
+        const shouldRenderHeader = host.query(headerWhen, data, context);
+        const shouldRenderFooter = host.query(footerWhen, data, context);
         const renderedCells = Array.from(rows, () => []);
         const colWidths = [];
+        const footerCells = [];
         for (const col of cols) {
             const headerText = String(col.header).trim();
-            const headerWidth = headerText.length;
-            let colWidth = headerWidth;
+            let colWidth = 0;
+
+            if (shouldRenderHeader) {
+                const headerContent = await this.render(null, 'text', headerText);
+                const headerWidth = host.textView.textWidth(headerContent);
+
+                colWidth = Math.max(colWidth, headerWidth);
+                headerCells.push({
+                    width: headerWidth,
+                    content: headerContent
+                });
+            }
 
             for (let i = 0; i < rows.length; i++) {
-                const cellTree = await this.render(null, col, rows[i], context);
-                const cellWidth = host.textView.textWidth(cellTree);
+                const cellContent = await this.render(null, col, rows[i], context);
+                const cellWidth = host.textView.textWidth(cellContent);
 
                 colWidth = Math.max(colWidth, cellWidth);
                 renderedCells[i].push({
                     width: cellWidth,
                     align: col.align,
-                    content: cellTree
+                    content: cellContent
                 });
             }
 
+            if (shouldRenderFooter && col.footer) {
+                const config = typeof col.footer === 'object' && col.footer !== null && !hasOwn(col.footer, 'view')
+                    ? col.footer
+                    : { content: col.footer };
+                const { align, ...renderConfig } = config;
+                const cellContent = await this.render(null, this.composeConfig('block', renderConfig), data, context);
+                const cellWidth = host.textView.textWidth(cellContent);
+
+                colWidth = Math.max(colWidth, cellWidth);
+                footerCells.push({
+                    width: cellWidth,
+                    align,
+                    content: cellContent
+                });
+            } else {
+                footerCells.push(null);
+            }
+
             colWidths.push(colWidth);
-            headerCells.push({
-                width: headerWidth,
-                content: await this.render(null, 'text', headerText)
-            });
         }
 
         drawLine(colWidths, '┌', '┬', '┐');
-        drawRow(colWidths, headerCells, true);
-        drawLine(colWidths, '├', '┼', '┤');
+
+        if (shouldRenderHeader) {
+            drawRow(colWidths, headerCells);
+            drawLine(colWidths, '├', '┼', '┤');
+        }
 
         for (const row of renderedCells) {
             drawRow(colWidths, row);
@@ -150,8 +180,20 @@ export default function(host) {
             const tableWidth = colWidths.reduce((w, cw) => w + cw + 3, 0) + 1;
             const text = ` ${moreCount} more rows… `;
             const pad = Math.max(1, tableWidth - text.length);
+
             node.appendLine().appendText(`${'~'.repeat(Math.floor(1))}${text}${'~'.repeat(Math.ceil(pad - 1))}`);
+
+            if (shouldRenderFooter && footerCells.some(cell => cell !== null)) {
+                drawLine(colWidths, '├', '┼', '┤');
+                drawRow(colWidths, footerCells);
+                drawLine(colWidths, '└', '┴', '┘');
+            }
         } else {
+            if (shouldRenderFooter && footerCells.some(cell => cell !== null)) {
+                drawLine(colWidths, '├', '┼', '┤');
+                drawRow(colWidths, footerCells);
+            }
+
             drawLine(colWidths, '└', '┴', '┘');
         }
 
@@ -169,7 +211,7 @@ export default function(host) {
             const line = node.appendLine();
 
             for (let i = 0; i < cells.length; i++) {
-                const { width, align, content } = cells[i];
+                const { width = 0, align, content = '' } = cells[i] || {};
                 const pad = maxFieldLen[i] - width + 1;
 
 
