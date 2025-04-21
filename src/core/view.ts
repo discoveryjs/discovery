@@ -844,11 +844,13 @@ export class ViewRenderer extends Dictionary<View> {
             limit = data.length;
         }
 
+        const placeholder = container.appendChild(document.createComment(''));
+        const fragment = document.createDocumentFragment(); // render into fragment to speed up long list rendering
         const result = Promise.all(
             data
                 .slice(offset, offset + limit)
                 .map((_, sliceIndex, slice) =>
-                    this.render(container, itemConfig, data, {
+                    this.render(fragment, itemConfig, data, {
                         ...context,
                         index: offset + sliceIndex,
                         array: data,
@@ -856,7 +858,7 @@ export class ViewRenderer extends Dictionary<View> {
                         slice
                     }, offset + sliceIndex)
                 )
-        );
+        ).then(() => placeholder.replaceWith(fragment));
 
         if (typeof onSliceRender === 'function') {
             result.then(() => onSliceRender(
