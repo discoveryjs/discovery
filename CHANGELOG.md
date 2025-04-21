@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.96 (21-04-2025)
 
 - Fixed the "Show the rest" button on lists to correctly render all remaining elements, instead of just the next N. This regression was introduced in v1.0.0-beta.95.  
 - Added `ViewModel#view.renderError(container, reason, config)` method to render an error badge.  
