@@ -39,11 +39,11 @@ export class CustomMarkedRenderer extends Renderer {
     blockquote({ tokens }: Tokens.Blockquote) {
         let body = this.parser.parse(tokens);
         let kind: string | null = null;
-        const kindMatch = body.match(/^(<p>)?\[!([a-z]+)\]\n/i);
+        const kindMatch = body.match(/^(<p>)?\[!([a-z]+)\]\s*(<\/p>)?\n/i);
 
         if (kindMatch) {
             kind = kindMatch[2];
-            body = (kindMatch[1] || '') + body.slice(kindMatch[0].length);
+            body = (kindMatch[3] ? '' : kindMatch[1] || '') + body.slice(kindMatch[0].length);
         }
 
         return `<blockquote class="view-blockquote"${
