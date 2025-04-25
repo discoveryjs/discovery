@@ -18,9 +18,21 @@ export type NormalizedViewConfig = SingleViewConfig | SingleViewConfig[];
 type ClassNameFn = (data: any, context: any) => string | false | null | undefined;
 type queryFn = (data: any, context: any) => any;
 type query = string | queryFn | boolean;
+export type RenderListLimit = number | false | Partial<{
+    base: number | false;
+    tolerance: number;
+    start: number | false;
+    startTolerance: number;
+}>;
+export type RenderListNormalizedLimit = {
+    base: number;
+    tolerance: number;
+    start: number;
+    startTolerance: number;
+};
 export type RenderListOptions = {
     moreContainer: HTMLElement;
-    onSliceRender: (restCount: number, offset: number, limit: number, totalCount: number) => void
+    onSliceRender: (restCount: number, offset: number, nextLimit: number, totalCount: number) => void
 };
 
 type ConfigTransitionTreeNode = {
@@ -131,6 +143,44 @@ export function isRawViewConfig(value: unknown): value is RawViewConfig {
         Array.isArray(value) ||
         (value !== null && typeof value === 'object' && typeof((value as any).view) === 'string')
     );
+}
+
+function normalizeLimit(limit: RenderListLimit): RenderListNormalizedLimit {
+    let { base, tolerance, start, startTolerance } = typeof limit === 'object' && limit !== null
+        ? limit
+        : { base: limit, start: limit };
+
+    if (typeof tolerance !== 'number' || !Number.isInteger(tolerance) || tolerance <= 0) {
+        tolerance = 0;
+    }
+
+    if (startTolerance === undefined) {
+        startTolerance = tolerance;
+    } else if (typeof startTolerance !== 'number' || !Number.isInteger(tolerance) || tolerance <= 0) {
+        tolerance = 0;
+    }
+
+    if (typeof base !== 'number' || Number.isNaN(base)) {
+        base = base === false ? Infinity : 10;
+    }
+
+    if (typeof start !== 'number' || Number.isNaN(start)) {
+        start = start === undefined
+            ? base
+            : start === false ? Infinity : 10;
+    }
+
+    return {
+        base,
+        tolerance,
+        start,
+        startTolerance
+    };
+}
+function computeLimit(availCount: number, limit: number, tolerance: number) {
+    return limit + tolerance >= availCount
+        ? availCount
+        : limit;
 }
 
 function regConfigTransition<T extends object>(res: T, from: any): T {
@@ -801,6 +851,12 @@ export class ViewRenderer extends Dictionary<View> {
             return false;
         }
 
+        if (typeof value === 'object' && value !== null) {
+            return typeof value.base === 'undefined'
+                ? { ...value, base: defaultValue }
+                : value;
+        }
+
         if (!value || isNaN(value)) {
             return defaultValue;
         }
@@ -814,7 +870,7 @@ export class ViewRenderer extends Dictionary<View> {
         data: any[],
         context: any,
         offset: number,
-        limit: number | false,
+        limit: RenderListLimit,
         moreContainer?: RenderListOptions['moreContainer']
     );
     renderList(
@@ -823,7 +879,7 @@ export class ViewRenderer extends Dictionary<View> {
         data: any[],
         context: any,
         offset: number,
-        limit: number | false,
+        limit: RenderListLimit,
         options?: Partial<RenderListOptions>
     );
     renderList(
@@ -832,23 +888,26 @@ export class ViewRenderer extends Dictionary<View> {
         data: any[],
         context: any,
         offset = 0,
-        limit: number | false = false,
+        limit: RenderListLimit = false,
         moreContainerOrOptions?: RenderListOptions['moreContainer'] | Partial<RenderListOptions>
     ) {
         const options = moreContainerOrOptions instanceof HTMLElement || (moreContainerOrOptions && 'nodeType' in moreContainerOrOptions)
             ? { moreContainer: moreContainerOrOptions } as Partial<RenderListOptions>
             : moreContainerOrOptions || {};
         const { moreContainer: moreContainerEl, onSliceRender } = options;
-
-        if (limit === false) {
-            limit = data.length;
-        }
+        const limitOptions = normalizeLimit(limit);
 
         const placeholder = container.appendChild(document.createComment(''));
         const fragment = document.createDocumentFragment(); // render into fragment to speed up long list rendering
+        const totalCount = data.length;
+        const restCount = totalCount - offset;
+        const renderCount = offset === 0
+            ? computeLimit(restCount, limitOptions.start, limitOptions.startTolerance)
+            : computeLimit(restCount, limitOptions.base, limitOptions.tolerance);
+        const nextRenderCount = computeLimit(restCount - renderCount, limitOptions.base, limitOptions.tolerance);
         const result = Promise.all(
             data
-                .slice(offset, offset + limit)
+                .slice(offset, offset + renderCount)
                 .map((_, sliceIndex, slice) =>
                     this.render(fragment, itemConfig, data, {
                         ...context,
@@ -862,20 +921,30 @@ export class ViewRenderer extends Dictionary<View> {
 
         if (typeof onSliceRender === 'function') {
             result.then(() => onSliceRender(
-                Math.max(data.length - offset - limit, 0),
+                restCount - renderCount,
                 offset,
-                limit,
-                data.length
+                nextRenderCount,
+                totalCount
             ));
         }
 
         this.maybeMoreButtons(
             moreContainerEl || container,
             null,
-            data.length,
-            offset + limit,
-            limit,
-            (offset, limit) => this.renderList(container, itemConfig, data, context, offset, limit, options)
+            totalCount,
+            offset + renderCount,
+            nextRenderCount,
+            (offset, limit) => this.renderList(
+                container,
+                itemConfig,
+                data,
+                context,
+                offset,
+                limit !== limitOptions.base
+                    ? { ...limitOptions, base: limit }
+                    : limitOptions,
+                options
+            )
         );
 
         return result;
@@ -884,23 +953,23 @@ export class ViewRenderer extends Dictionary<View> {
     maybeMoreButtons(
         container: HTMLElement,
         beforeEl: Node | null,
-        count: number,
-        offset: number,
-        limit: number,
+        total: number,
+        nextOffset: number,
+        nextLimit: number,
         renderMore: (offset: number, limit: number) => any
     ) {
-        if (count <= offset) {
+        if (total <= nextOffset) {
             return null;
         }
 
-        const restCount = count - offset;
+        const restCount = total - nextOffset;
         const buttons = document.createElement('span');
 
-        if (restCount > limit) {
+        if (restCount > nextLimit) {
             this.renderMoreButton(
                 buttons,
-                'Show ' + limit + ' more...',
-                () => renderMore(offset, limit)
+                'Show ' + nextLimit + ' more...',
+                () => renderMore(nextOffset, nextLimit)
             );
         }
 
@@ -908,7 +977,7 @@ export class ViewRenderer extends Dictionary<View> {
             this.renderMoreButton(
                 buttons,
                 'Show all the rest ' + restCount + ' items...',
-                () => renderMore(offset, Infinity)
+                () => renderMore(nextOffset, Infinity)
             );
         }
 

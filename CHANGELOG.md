@@ -1,6 +1,7 @@
 ## next
 
 - Fixed blockquote kind detection in `markdown` view
+- Extended `limit` option for supported web views to accept an object with optional properties: `{ start, startTolerance, base, tolerance }`
 
 ## 1.0.0-beta.96 (21-04-2025)
 
