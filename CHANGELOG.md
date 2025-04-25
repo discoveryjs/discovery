@@ -1,8 +1,9 @@
 ## next
 
-- Fixed blockquote kind detection in `markdown` view
-- Extended `limit` option for supported web views to accept an object with optional properties: `{ start, startTolerance, base, tolerance }`
+- Added `align` option for cells and footer in `cols` option of `table` view
 - Added a second parameter to `onToggle` callback calls in `expand` view, providing an object `{ el, finish, data, context }`
+- Extended `limit` option for supported web views to accept an object with optional properties: `{ start, startTolerance, base, tolerance }`
+- Fixed blockquote kind detection in `markdown` view
 
 ## 1.0.0-beta.96 (21-04-2025)
 

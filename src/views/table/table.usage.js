@@ -155,7 +155,8 @@ export default {
                 '- `colWhen` (similar to `when` and `whenData` options) allows disabling column rendering based on the table\'s data.',
                 '- `when` and `whenData` apply to `table-cell` and behave the same way as they do for any view, to disabling rendering of the cell itself.',
                 '- `contentWhen` (similar to `when` and `whenData` options) allows disabling cell content rendering based on the cell\'s data.',
-                '- `colSpan` allows setting a relevant attribute for a table cell. (Note: subsequent cells should be disabled using `when` or `whenData`).'
+                '- `colSpan` allows setting a relevant attribute for a table cell. (Note: subsequent cells should be disabled using `when` or `whenData`).',
+                '- `align` specifies text alignment, supported values `\'left\'`, `\'center\'` and `\'right\'`'
             ].join('\n') },
             highlightProps: ['contentWhen', 'colWhen', 'colSpan', 'when'],
             demo: {

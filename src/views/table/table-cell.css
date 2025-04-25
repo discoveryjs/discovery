@@ -18,6 +18,16 @@
     color: #888;
 }
 
+.view-table-cell.align-left {
+    text-align: left;
+}
+.view-table-cell.align-center {
+    text-align: center;
+}
+.view-table-cell.align-right {
+    text-align: right;
+}
+
 .view-table-cell.details {
     padding-left: 14px;
     position: relative;

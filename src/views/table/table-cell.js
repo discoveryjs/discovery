@@ -4,6 +4,7 @@ import { numDelim } from '../../core/utils/html.js';
 import { hasOwn } from '../../core/utils/object-utils.js';
 
 const defaultDetailsRender = { view: 'struct', expanded: 1 };
+const alignValues = ['left', 'center', 'right'];
 
 function setNumericValue(el, value) {
     let str = String(value);
@@ -102,9 +103,15 @@ function createClickHandler(host, el, details, data, context) {
     };
 }
 
+function applyAlign(el, align) {
+    if (typeof align === 'string' && alignValues.includes(align)) {
+        el.classList.add(`align-${align}`);
+    }
+}
+
 export default function(host) {
     host.view.define('table-cell', function(el, config, data, context) {
-        let { content, contentWhen = true, details, detailsWhen = true, colSpan } = config;
+        let { content, contentWhen = true, details, detailsWhen = true, colSpan, align } = config;
         const isDataObject =
             !content &&
             data !== null &&
@@ -118,6 +125,8 @@ export default function(host) {
         if (!host.queryBool(contentWhen, data, context)) {
             return;
         }
+
+        applyAlign(el, align);
 
         if ((details || (details === undefined && isDataObject)) && host.queryBool(detailsWhen, data, context)) {
             el.classList.add('details');
@@ -134,7 +143,7 @@ export default function(host) {
     });
 
     host.view.define('table-footer-cell', function(el, config, data, context) {
-        let { content, contentWhen = true, details, detailsWhen = true, colSpan } = config;
+        let { content, contentWhen = true, details, detailsWhen = true, colSpan, align } = config;
         const isDataObject =
             !content &&
             data !== null &&
@@ -150,6 +159,8 @@ export default function(host) {
         if (!host.queryBool(contentWhen, data, context)) {
             return;
         }
+
+        applyAlign(el, align);
 
         if ((details || (details === undefined && isDataObject)) && host.queryBool(detailsWhen, data, context)) {
             el.classList.add('details');
