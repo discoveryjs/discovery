@@ -11,13 +11,13 @@ const props = `is not array? | {
 
 export default function(host) {
     host.view.define('expand', function(el, config, data, context) {
-        function renderState() {
+        async function renderState() {
             el.classList.toggle('expanded', expanded);
 
             if (expanded) {
                 contentEl = createElement('div', 'content');
 
-                return host.view.render(contentEl, content, data, context)
+                await host.view.render(contentEl, content, data, context)
                     .then(() => el.appendChild(contentEl));
             } else if (contentEl !== null) {
                 contentEl.remove();
@@ -33,10 +33,16 @@ export default function(host) {
         headerEl.appendChild(createElement('div', 'trigger'));
         headerEl.addEventListener('click', () => {
             expanded = !expanded;
-            renderState();
+
+            const finish = renderState();
 
             if (typeof onToggle === 'function') {
-                onToggle(expanded);
+                onToggle(expanded, {
+                    el,
+                    finish,
+                    data,
+                    context
+                });
             }
         });
 

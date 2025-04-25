@@ -2,6 +2,7 @@
 
 - Fixed blockquote kind detection in `markdown` view
 - Extended `limit` option for supported web views to accept an object with optional properties: `{ start, startTolerance, base, tolerance }`
+- Added a second parameter to `onToggle` callback calls in `expand` view, providing an object `{ el, finish, data, context }`
 
 ## 1.0.0-beta.96 (21-04-2025)
 
