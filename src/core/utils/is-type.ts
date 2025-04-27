@@ -28,3 +28,7 @@ export function isSet<T>(value: unknown): value is Set<T> {
 export function isRegExp(value: unknown): value is RegExp {
     return objectToString(value) === '[object RegExp]';
 }
+
+export function isObject(value: unknown): value is object {
+    return typeof value === 'object' && value !== null;
+}

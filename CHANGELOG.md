@@ -1,6 +1,12 @@
 ## next
 
-- Added `align` option for cells and footer in `cols` option of `table` view
+- Updates for `table` view:
+    - Added `table-header` and `table-footer` views
+    - Added `table-header-cell` view
+    - Updates for `cols` option:
+        - Added `align` option for cells and footer
+        - Extended `header` to accept a config object beside a string as a header cell text, including a query string, i.e. `header: '=expr ? "foo" : "bar"'`
+        - Removed `headerClassName` option, use `header: { className }` instead
 - Added a second parameter to `onToggle` callback calls in `expand` view, providing an object `{ el, finish, data, context }`
 - Extended `limit` option for supported web views to accept an object with optional properties: `{ start, startTolerance, base, tolerance }`
 - Fixed blockquote kind detection in `markdown` view

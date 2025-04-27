@@ -37,12 +37,11 @@ export default {
             title: 'Columns setup',
             beforeDemo: { view: 'md', source: [
                 'To set up columns, the `cols` property is used. When an array of objects is used for `cols`, it specifies the exact set of columns. Each object contains a configuration for the `table-cell` view with additional properties that apply at the table level:\n',
-                '- `header` – a text for the column header\n',
+                '- `header` – a text or config for the column header\n',
                 '- `footer` – a config for the footer cell\n',
-                '- `headerClassName` - specifies className for a header cell, works as `className` for any view (i.e. can be a string, an array, a function, etc.)\n',
                 '- `sorting` – a sorting function or query for the column\n'
             ] },
-            highlightProps: ['cols', 'header', 'footer', 'headerClassName', 'sorting'],
+            highlightProps: ['cols', 'header', 'footer', 'sorting'],
             demo: {
                 view: 'table',
                 cols: [
@@ -219,6 +218,23 @@ export default {
             }))
         },
         {
+            title: 'Setup header cell display',
+            beforeDemo: { view: 'md', source: [
+                'A setup for header cells is simple as a setting up a string. However, a value for header can be a query string (i.e. `\'=query\'`), a config object or content views.'
+            ] },
+            highlightProps: ['header'],
+            demoData: defaultDemoData,
+            demo: {
+                view: 'table',
+                cols: [
+                    { header: 'just a text' },
+                    { header: '=occupation has "Doctor" ? "Has doctor" : "-"' },
+                    { header: { className: 'foo', content: ['text-numeric:123456'], tooltip: 'text:`Rows: ${size()}`' } },
+                    { header: { text: 'text via config' } }
+                ]
+            }
+        },
+        {
             title: 'Setup footer cell display',
             beforeDemo: { view: 'md', source: [
                 'A setup for footer cell is similar to a [regular cell](#!setup-cell-display), the same set of options are supported: .',
@@ -240,7 +256,7 @@ export default {
         {
             title: 'Setup header and footer display',
             beforeDemo: { view: 'md', source: [
-                'You can use the `headerWhen` and `footerWhen` options to conditionally disable the rendering of the header and footer, respectively.'
+                'You can use the `headerWhen` and `footerWhen` options to conditionally disable the rendering of the header and footer, respectively. The footer also is not rendering when no any footer cell is defined.'
             ] },
             highlightProps: ['headerWhen', 'footerWhen'],
             demoData: defaultDemoData,

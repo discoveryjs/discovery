@@ -2,7 +2,7 @@
 import usage from './table.usage.js';
 
 import { isArray, isSet } from '../../core/utils/is-type.js';
-import { createElement, createFragment } from '../../core/utils/dom.js';
+import { createElement } from '../../core/utils/dom.js';
 import { hasOwn } from '../../core/utils/object-utils.js';
 
 function configFromName(name, query) {
@@ -76,16 +76,16 @@ function toScalar(value) {
     return Array.isArray(value) ? value.length : value;
 }
 
-function getOrder(host, data, sorting) {
+function getRowsOrder(host, rows, sorting) {
     if (typeof sorting !== 'function') {
-        return false;
+        return 0;
     }
 
     let order = 0;
 
     try {
-        for (let i = 1, prev = toScalar(data[0]); i < data.length; i++) {
-            const current = toScalar(data[i]);
+        for (let i = 1, prev = toScalar(rows[0]); i < rows.length; i++) {
+            const current = toScalar(rows[i]);
             const sign = Math.sign(sorting(prev, current));
 
             if (sign) {
@@ -103,7 +103,7 @@ function getOrder(host, data, sorting) {
         return 0;
     }
 
-    return -order;
+    return -order || 0;
 }
 
 export default function(host) {
@@ -125,34 +125,68 @@ export default function(host) {
             rows = rows ? [rows] : [];
         }
 
-        const shouldRenderHeader = host.query(headerWhen, data, context);
-        const shouldRenderFooter = host.query(footerWhen, data, context);
-        const headEl = shouldRenderHeader
-            ? el.appendChild(createElement('thead')).appendChild(createElement('tr'))
-            : createElement('tr');
-        const headerCells = [];
-        const footerCells = [];
-        const footerCellIndecies = [];
-        const bodyEl = el.appendChild(createElement('tbody'));
-        const moreEl = el.appendChild(createElement('tbody', { class: 'view-table-more-buttons' }));
+        let currentRows = rows;
+        const bodyEl = createElement('tbody');
+        const moreEl = createElement('tbody', { class: 'view-table-more-buttons' });
         const moreButtonsEl = moreEl
             .appendChild(createElement('tr'))
             .appendChild(createElement('td'));
 
-        const render = (orderedData) => {
+        const renderHeader = () => {
+            if (!host.query(headerWhen, data, context)) {
+                return;
+            }
+
+            const headerCells = cols.map(col => col.header);
+            const headerSortings = cols.map(col =>
+                hasOwn(col, 'sorting')
+                    ? host.query(col.sorting, null, context)
+                    : sortingFromConfig(col, host, context)
+            );
+
+            return this.render(el, {
+                view: 'table-header',
+                cols: headerCells,
+                sortings: headerSortings,
+                getRowsOrder: sorting => getRowsOrder(host, currentRows, sorting),
+                setSorting(sorting, desc) {
+                    if (typeof sorting === 'function') {
+                        const sortedRows = rows.slice().sort(sorting);
+
+                        if (desc) {
+                            sortedRows.reverse();
+                        }
+
+                        renderRows(sortedRows);
+                    } else {
+                        renderRows(rows);
+                    }
+                }
+            }, data, context);
+        };
+        const renderFooter = () => {
+            const footerCells = cols.map(col => col.footer);
+
+            if (!host.query(footerWhen, data, context) || !footerCells.some(cell => cell !== undefined)) {
+                return;
+            }
+
+            return this.render(el, {
+                view: 'table-footer',
+                cols: footerCells
+            }, data, context);
+        };
+        const renderRows = async (orderedData) => {
+            currentRows = orderedData;
             bodyEl.innerHTML = '';
             moreButtonsEl.innerHTML = '';
 
-            for (const headerCell of headerCells) {
-                const order = getOrder(host, orderedData, headerCell.sorting);
-                headerCell.el.classList.toggle('asc', order === 1);
-                headerCell.el.classList.toggle('desc', order === -1);
-            }
+            el.append(bodyEl, moreEl);
 
             return host.view.renderList(
                 bodyEl,
                 renderRowConfig,
-                orderedData,
+                currentRows,
                 { ...context, cols },
                 0,
                 host.view.listLimit(limit, 25),
@@ -162,56 +196,6 @@ export default function(host) {
                 }
             );
         };
-
-        async function renderFooter() {
-            const footerEl = el.appendChild(createElement('tfoot')).appendChild(createElement('tr'));
-            const footerFragments = footerCells.map(() => createFragment());
-
-            // render cells
-            const renderResults = await Promise.allSettled(footerCells.map((footerCell, idx) =>
-                host.view.render(footerFragments[idx], footerCell, data, context)
-            ));
-
-            // normalize cells positions by adding empty cells and adjusting colSpans
-            const createEmptyCell = () => createElement('td', { class: 'view-table-footer-cell' });
-            let colIndex = 0;
-            renderResults.forEach((result, index) => {
-                const fragment = footerFragments[index];
-                const shouldBeIndex = footerCellIndecies[index];
-                let cellEl = fragment.firstChild;
-
-                if (result.status === 'rejected') {
-                    host.view.renderError(footerEl.appendChild(cellEl = createEmptyCell()), result.reason, footerCells[index]);
-                } else if (!cellEl) {
-                    footerEl.append(cellEl = createEmptyCell());
-                } else if (cellEl.nodeType !== 1 || cellEl.tagName !== 'TD') {
-                    if (cellEl.classList?.contains?.('discovery-buildin-view-render-error')) {
-                        const content = cellEl;
-                        footerEl.appendChild(cellEl = createEmptyCell()).append(content);
-                    } else {
-                        host.view.renderError(footerEl.appendChild(cellEl = createEmptyCell()), 'non <td> element', footerCells[index]);
-                    }
-                } else {
-                    footerEl.append(cellEl);
-
-                    if (colIndex > shouldBeIndex) {
-                        const prevCellEl = cellEl.previousElementSibling;
-                        prevCellEl.colSpan = shouldBeIndex - prevCellEl.cellIndex;
-                    } else {
-                        for (let i = shouldBeIndex - colIndex; i > 0; i--) {
-                            cellEl.before(createEmptyCell());
-                        }
-                    }
-                }
-
-                colIndex = shouldBeIndex + cellEl.colSpan;
-            });
-
-            // pad end with empty cells if needed
-            for (let i = headerCells.length - colIndex; i > 0; i--) {
-                footerEl.append(createEmptyCell());
-            }
-        }
 
         if (Array.isArray(cols)) {
             cols = cols.map((def, idx) =>
@@ -271,48 +255,6 @@ export default function(host) {
             !hasOwn(col, 'colWhen') || host.queryBool(col.colWhen, data, context)
         );
 
-        for (const col of cols) {
-            const sorting = hasOwn(col, 'sorting')
-                ? host.query(col.sorting, null, context)
-                : sortingFromConfig(col, host, context);
-            const defaultOrder = typeof sorting === 'function'
-                ? getOrder(host, rows, sorting) // getOrder() returns 0 when all values are equal, it's the same as absence of sorting
-                : 0;
-
-            const headerCellEl = headEl.appendChild(createElement('th', 'view-table-header-cell'));
-            const headerCell = {
-                el: headerCellEl,
-                sorting: false
-            };
-
-            if (hasOwn(col, 'footer') && typeof col.footer !== 'undefined') {
-                const config = typeof col.footer === 'object' && col.footer !== null && typeof col.footer.view !== 'string'
-                    ? col.footer
-                    : { content: col.footer };
-
-                footerCellIndecies.push(headerCells.length);
-                footerCells.push(host.view.composeConfig({ view: 'table-footer-cell' }, config));
-            }
-
-            headerCells.push(headerCell);
-            headerCellEl.textContent = col.header;
-            this.applyComputedClassName(headerCellEl, col.headerClassName, data, context);
-
-            if (defaultOrder !== 0) {
-                headerCell.sorting = sorting;
-                headerCellEl.classList.add('sortable');
-                headerCellEl.addEventListener('click', () => {
-                    if (headerCellEl.classList.contains('asc')) {
-                        render(rows.slice().sort(sorting).reverse());
-                    } else if (headerCellEl.classList.contains('desc') && !defaultOrder) {
-                        render(rows);
-                    } else {
-                        render(rows.slice().sort(sorting));
-                    }
-                });
-            }
-        }
-
         moreButtonsEl.colSpan = cols.length;
         renderRowConfig = this.composeConfig({
             view: 'table-row',
@@ -321,12 +263,11 @@ export default function(host) {
                 : '=#.cols'
         }, rowConfig);
 
-        return !shouldRenderFooter || footerCells.length === 0
-            ? render(rows)
-            : Promise.all([
-                render(rows),
-                renderFooter()
-            ]);
+        return Promise.all([
+            renderHeader(),
+            renderFooter(),
+            renderRows(rows)
+        ]);
     }, {
         tag: 'table',
         usage
