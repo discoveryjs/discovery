@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.97 (28-04-2025)
 
 - Updates for `table` view:
     - Added `table-header` and `table-footer` views
