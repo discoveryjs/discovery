@@ -1,13 +1,15 @@
 import { applyAlign, createClickHandler, defaultCellRender } from './table-cell-utils.js';
 
 export default function(host) {
-    host.view.define('table-cell', function(el, config, data, context) {
+    host.view.define('table-footer-cell', function(el, config, data, context) {
         let { content, contentWhen = true, details, detailsWhen = true, colSpan, align } = config;
         const isDataObject =
             !content &&
             data !== null &&
             (Array.isArray(data) ? data.length > 0 : typeof data === 'object') &&
             data instanceof RegExp === false;
+
+        el.classList.add('view-table-cell');
 
         if (typeof colSpan === 'number' && colSpan > 1) {
             el.colSpan = colSpan;

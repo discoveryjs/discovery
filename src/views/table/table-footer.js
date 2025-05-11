@@ -40,6 +40,7 @@ export default function(host) {
         // normalize cells positions by adding empty cells and adjusting colSpans
         const createEmptyCell = () => createElement('td', { class: 'view-table-footer-cell' });
         let colIndex = 0;
+        let cellsWithContent = 0;
         renderResults.forEach((result, index) => {
             const { index: shouldBeIndex, config } = footerCells[index];
             const fragment = footerFragments[index];
@@ -47,17 +48,25 @@ export default function(host) {
 
             if (result.status === 'rejected') {
                 host.view.renderError(footerRowEl.appendChild(cellEl = createEmptyCell()), result.reason, config);
+                cellsWithContent++;
             } else if (!cellEl) {
                 footerRowEl.append(cellEl = createEmptyCell());
             } else if (cellEl.nodeType !== 1 || cellEl.tagName !== 'TD') {
-                if (cellEl.classList?.contains?.('discovery-buildin-view-render-error')) {
+                if (cellEl.nodeType === 8 && !cellEl.nextSibling) {
+                    // ignore, cell is not rendered
+                    return;
+                } else if (cellEl.classList?.contains?.('discovery-buildin-view-render-error')) {
                     const content = cellEl;
+
                     footerRowEl.appendChild(cellEl = createEmptyCell()).append(content);
+                    cellsWithContent++;
                 } else {
                     host.view.renderError(footerRowEl.appendChild(cellEl = createEmptyCell()), 'non <td> element', config);
+                    cellsWithContent++;
                 }
             } else {
                 footerRowEl.append(cellEl);
+                cellsWithContent++;
 
                 if (colIndex > shouldBeIndex) {
                     const prevCellEl = cellEl.previousElementSibling;
@@ -71,6 +80,10 @@ export default function(host) {
 
             colIndex = shouldBeIndex + cellEl.colSpan;
         });
+
+        if (cellsWithContent === 0) {
+            el.classList.add('no-cells-with-content');
+        }
 
         // pad end with empty cells if needed
         for (let i = cols.length - colIndex; i > 0; i--) {

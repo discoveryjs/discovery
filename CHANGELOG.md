@@ -1,7 +1,8 @@
 ## next
 
 - Fixed an exception in `source` view when `prefix` or `postfix` is neither `undefined` nor a string
-
+- Fixed `table` view footer rendering when cell rendering is disabled using the `when` option
+- Changed `table` view to hide footer if no footer cells contain any content
 
 ## 1.0.0-beta.97 (28-04-2025)
 

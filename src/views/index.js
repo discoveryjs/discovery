@@ -54,7 +54,9 @@ export { default as struct } from './struct/index.js';
 
 export { default as table } from './table/table.js';
 export { default as tableHeader } from './table/table-header.js';
+export { default as tableHeaderCell } from './table/table-header-cell.js';
 export { default as tableFooter } from './table/table-footer.js';
+export { default as tableFooterCell } from './table/table-footer-cell.js';
 export { default as tableRow } from './table/table-row.js';
 export { default as tableCell } from './table/table-cell.js';
 

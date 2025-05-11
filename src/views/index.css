@@ -46,8 +46,6 @@
 @import url('./signature/style/index.css');
 @import url('./struct/style/index.css');
 
-@import url('./table/table-cell.css');
-@import url('./table/table-row.css');
 @import url('./table/table.css');
 
 @import url('./tree/tree-leaf.css');
