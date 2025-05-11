@@ -1,3 +1,8 @@
+## next
+
+- Fixed an exception in `source` view when `prefix` or `postfix` is neither `undefined` nor a string
+
+
 ## 1.0.0-beta.97 (28-04-2025)
 
 - Updates for `table` view:

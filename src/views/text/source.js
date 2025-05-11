@@ -84,9 +84,9 @@ function markAttrs(data, defaultClassName = 'mark') {
     return refAttrs(data, defaultClassName) + ` data-render-id=${data.renderId}${
         data.kind ? ` data-kind="${data.kind}"` : ''
     }${
-        prefix !== undefined ? ` data-prefix="${escapeHtml(prefix)}"` : ''
+        prefix !== undefined ? ` data-prefix="${escapeHtml(String(prefix))}"` : ''
     }${
-        postfix !== undefined ? ` data-postfix="${escapeHtml(postfix)}"` : ''
+        postfix !== undefined ? ` data-postfix="${escapeHtml(String(postfix))}"` : ''
     }`;
 }
 
