@@ -265,8 +265,8 @@ export default function(host) {
 
         return Promise.all([
             renderHeader(),
-            renderFooter(),
-            renderRows(rows)
+            renderRows(rows),
+            renderFooter()
         ]);
     }, {
         tag: 'table',
