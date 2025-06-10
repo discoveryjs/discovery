@@ -7,7 +7,10 @@ const props = `is not array? | {
     content: undefined,
     expanded: false,
     onToggle: undefined
-} | overrideProps()`;
+} | overrideProps() | {
+    ...,
+    expanded.bool()
+}`;
 
 export default function(host) {
     host.view.define('expand', function(el, config, data, context) {
