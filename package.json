@@ -68,7 +68,7 @@
         "codemirror": "^5.65.2",
         "github-slugger": "^2.0.0",
         "hitext": "^1.0.0-beta.1",
-        "jora": "1.0.0-beta.13",
+        "jora": "1.0.0-beta.15",
         "marked": "^14.1.4"
     },
     "devDependencies": {
