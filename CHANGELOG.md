@@ -6,6 +6,7 @@
 - Fixed `table` view to render the footer after the body. Although this change does not affect the visual presentation, it ensures proper selection of table content
 - Changed `table` view to hide footer if no footer cells contain any content
 - Fixed `expand` view to ensure `expanded` property is boolean
+- Fixed tooltip display with delayed showing by preventing it from appearing if the trigger element has been removed from the document
 
 ## 1.0.0-beta.97 (28-04-2025)
 

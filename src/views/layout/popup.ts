@@ -216,7 +216,7 @@ export default function(host: ViewModel) {
         showDelayArgs: [triggerEl: PopupTriggerEl, render: PopupRender | undefined] | null;
         showDelay: PopupOptions['showDelay'];
 
-        lastTriggerEl: HTMLElement | null;
+        #lastTriggerEl: Element | null;
         lastHoverTriggerEl: HTMLElement | null;
         render: PopupOptions['render'] | undefined;
         position: PopupOptions['position'];
@@ -258,7 +258,7 @@ export default function(host: ViewModel) {
             this.hideTimer = null;
             this.hide = this.hide.bind(this);
 
-            this.lastTriggerEl = null;
+            this.#lastTriggerEl = null;
             this.lastHoverTriggerEl = null;
             this.hoverPinned = false;
             this.frozen = false;
@@ -296,6 +296,21 @@ export default function(host: ViewModel) {
             return openedPopups.includes(this);
         }
 
+        get lastTriggerEl() {
+            return this.#lastTriggerEl;
+        }
+        set lastTriggerEl(triggerEl: Element | null) {
+            if (this.#lastTriggerEl !== null) {
+                this.#lastTriggerEl.classList.remove('discovery-view-popup-active');
+            }
+
+            this.#lastTriggerEl = triggerEl && triggerEl instanceof Element ? triggerEl : null;
+
+            if (this.#lastTriggerEl !== null) {
+                this.#lastTriggerEl.classList.add('discovery-view-popup-active');
+            }
+        }
+
         toggle(...args: Parameters<typeof this.show>) {
             if (this.visible) {
                 this.hide();
@@ -305,35 +320,42 @@ export default function(host: ViewModel) {
         }
 
         async show(triggerEl?: PopupTriggerEl, render = this.render, showImmediately = false) {
+            // schedule showing if delayed
             if (!this.visible && !showImmediately && showDelayToMs(this.showDelay, triggerEl) > 0) {
                 startDelayedShow(this, triggerEl, render);
                 return;
             }
 
-            stopDelayedShow(this);
-            inspectorLockedInstances.delete(this);
-            host.view.setViewRoot(this.el, 'popup', { config: render });
-
             const hostEl = host.dom.container;
+
+            // remove popup from inspector locked instances
+            inspectorLockedInstances.delete(this);
+
+            // Bail out when triggerEl is not connected to the host element,
+            // which can happen if showing the popup is delayed and the trigger element
+            // is removed from the DOM by the time the timer fires.
+            // This prevents issues where clicking an element with a tooltip (with delayed displaying)
+            // renders new content, and then the tooltip appears attached to the cursor.
+            if (triggerEl && !hostEl.contains(triggerEl)) {
+                this.hide();
+                return;
+            }
+
+            // cleanup previous show effects
+            stopDelayedShow(this);
+            this.relatedPopups.forEach(related => related.hide());
 
             if (this.hideTimer !== null) {
                 clearTimeout(this.hideTimer);
                 this.hideTimer = null;
             }
 
-            this.relatedPopups.forEach(related => related.hide());
-            this.el.classList.toggle('inspect', host.inspectMode.value);
-
-            if (this.lastTriggerEl) {
-                this.lastTriggerEl.classList.remove('discovery-view-popup-active');
-            }
-
-            if (triggerEl) {
-                triggerEl.classList.add('discovery-view-popup-active');
-            }
-
+            // apply new effects
             this.lastTriggerEl = triggerEl || null;
+            this.el.classList.toggle('inspect', host.inspectMode.value);
+            host.view.setViewRoot(this.el, 'popup', { config: render });
 
+            // change the visible state if needed
             if (!this.visible) {
                 openedPopups.push(this);
 
@@ -342,6 +364,7 @@ export default function(host: ViewModel) {
                 }
             }
 
+            // render content
             if (typeof render === 'function') {
                 this.el.innerHTML = '';
 
@@ -478,13 +501,9 @@ export default function(host: ViewModel) {
 
                 // hide popup itself
                 openedPopups.splice(openedPopups.indexOf(this), 1);
+                this.lastTriggerEl = null;
                 this.el.remove();
                 this.unfreeze();
-
-                if (this.lastTriggerEl) {
-                    this.lastTriggerEl.classList.remove('discovery-view-popup-active');
-                    this.lastTriggerEl = null;
-                }
 
                 if (openedPopups.length === 0) {
                     window.removeEventListener('resize', hideOnResize);
