@@ -16,6 +16,7 @@ export type Graph = {
     children: GraphNode[];
 };
 export type GraphNode = Partial<{
+    label: string;
     query: string;
     view: string;
     children: GraphNode[];

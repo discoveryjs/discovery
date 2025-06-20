@@ -3,16 +3,27 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    gap: 50px;
+    gap: 25px;
     margin: 0 0 10px;
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-box {
+.page-discovery > .discovery-editor .query-graph .query-graph-layer {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    align-items: flex-start;
+    gap: 4px;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node {
     --color: #8888;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node.target {
+    pointer-events: none;
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__dot {
+    position: relative;
     display: block;
     width: 10px;
     height: 10px;
@@ -20,15 +31,44 @@
     background-color: var(--color);
     background-clip: content-box;
     border-radius: 50%;
-    cursor: pointer;
-    /* opacity: .8; */
     transition: .2s ease-in-out;
     transition-property: box-shadow, background-color;
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] {
-    --color: #f6f61cb5; /* #979729 */
+.page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__label {
+    position: relative;
+    z-index: -1;
+    padding: 0px 6px;
+    --overlap-dot: 20px;
+    padding-left: calc(-1px + var(--overlap-dot));
+    margin-left: calc(-1 * var(--overlap-dot));
+    max-width: 180px;
+    min-width: 40px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    outline: .5px solid color-mix(in srgb, var(--color), transparent 35%);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-family: var(--discovery-monospace-font-family);
+    font-size: 10px;
+    color: color-mix(in srgb, var(--discovery-color), var(--color) 30%);
+    background-color: color-mix(in srgb, var(--discovery-background-color), var(--color) 30%);
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"]::before {
+.page-discovery > .discovery-editor .query-graph .query-graph-node:is(:hover, .target) > .query-graph-node__label {
+    /* box-shadow: 0 0 0 .5px var(--color) inset; */
+    outline-color: var(--color);
+    outline-width: 1px;
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__label:empty::before {
+    content: "<empty query>";
+    color: #888;
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] {
+    --color: light-dark(#b1ac1a, #f6f61cb5);
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__dot::before {
     content: '';
     position: absolute;
     display: block;
@@ -42,37 +82,56 @@
     clip-path: inset(0px 0px 50% 50%);
     animation: discovery-graph-computing .65s forwards infinite linear;
 }
+.page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__dot::after {
+    content: '';
+    position: absolute;
+    display: block;
+    aspect-ratio: 1/1;
+    width: 10px;
+    --border-width: .75px;
+    margin-left: calc(-1 * var(--border-width));
+    margin-top: calc(-1 * var(--border-width));
+    border: var(--border-width) solid var(--discovery-background-color);
+    border-radius: 50%;
+}
 @keyframes discovery-graph-computing {
     to { rotate: 360deg }
 }
+@keyframes discovery-graph-await-computing {
+    to { background-color: transparent }
+}
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"] {
     --color: #4da32fcf;
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"] > .query-graph-node__dot {
     transition: none;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="failed"] {
     --color: #d84343;
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="canceled"] {
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="canceled"] > .query-graph-node__dot {
     background-image: radial-gradient(transparent calc(50% - 2px), var(--discovery-color) 50%);
     background-color: transparent;
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node.current {
+.page-discovery > .discovery-editor .query-graph .query-graph-node.current > .query-graph-node__dot {
     /* background-color: #4da32fcf; */
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node.target {
-    pointer-events: none;
-    /* background-color: #f6f61cb5; */
-    box-shadow: 0 0 0 2px var(--color) inset, 0 0 0 3px var(--discovery-background-color) inset;
-    outline: 1px solid var(--discovery-background-color);
+.page-discovery > .discovery-editor .query-graph .query-graph-node.target > .query-graph-node__dot {
     cursor: default;
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node:not(.target):hover {
-    /* scale: 1.25; */
+.page-discovery > .discovery-editor .query-graph .query-graph-node.target:not([data-state="computing"]) > .query-graph-node__dot {
+    box-shadow: 0 0 0 2px var(--color) inset, 0 0 0 3px var(--discovery-background-color) inset;
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node:not(.target):hover > .query-graph-node__dot {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color), var(--discovery-color) 35%) inset, 0 0 0 3px var(--discovery-background-color) inset;
     opacity: 1;
-    box-shadow: 0 0 0 2px #888 inset, 0 0 0 3px var(--discovery-background-color) inset;
-    outline: 1px solid var(--discovery-background-color);
     transition: none;
 }
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="awaiting"] > .query-graph-node__dot {
+    animation: discovery-graph-await-computing .75s alternate infinite linear;
+    background-color: light-dark(#b1ac1a, #f6f61cb5);
+}
+
 .page-discovery > .discovery-editor .query-graph > svg {
     position: absolute;
     inset: 0;
@@ -80,6 +139,9 @@
     height: 100%;
     z-index: -1;
     pointer-events: none;
+}
+.page-discovery > .discovery-editor .query-graph > svg :is(line, path) {
+    stroke: light-dark(#bbb, #666);
 }
 
 .query-graph-actions {

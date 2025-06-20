@@ -50,33 +50,65 @@ function svg(tagName: string, attributes?: Record<string, unknown>) {
     return el;
 }
 
-function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel) {
-    function createBox() {
-        return el.appendChild(createElement('div', 'query-graph-box'));
+function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel, targetNode?: Partial<GraphNode>) {
+    function createGraphLayer() {
+        return el.appendChild(createElement('div', 'query-graph-layer'));
     }
 
-    function walk(box: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
+    function createGraphNode(path: number[], node: GraphNode) {
+        return createElement('div', {
+            'data-path': path.join(' '),
+            tabindex: -1,
+            class: 'query-graph-node'
+        }, [
+            createElement('div', 'query-graph-node__dot'),
+            createElement('div', 'query-graph-node__label', getNodeLabel(node))
+        ]);
+    }
+
+    function getNodeLabel(node: GraphNode) {
+        if (node.label) {
+            return node.label;
+        }
+
+        const { query } = node;
+
+        if (typeof query === 'string') {
+            const m = query.match(/^\s*\/\/![ \t]*(\S.*)/);
+
+            if (m) {
+                return m[1].trim();
+            }
+
+            return query.trim();
+        }
+
+        return '';
+    }
+
+    function walk(boxEl: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
         if (!Array.isArray(currentPath)) {
             currentPath = [];
         }
 
-        if (!box) {
-            box = createBox();
+        if (!boxEl) {
+            boxEl = createGraphLayer();
         }
 
         const isTarget = currentPath.length === 1;
         const isCurrent = currentPath.length > 1;
-        const nodeEl = box.appendChild(createElement('div', {
-            'data-path': path.join(' '),
-            tabindex: -1,
-            class: `query-graph-node${
-                isTarget
-                    ? ' target'
-                    : isCurrent
-                        ? ' current'
-                        : ''
-            }`
-        }));
+        const nodeEl = boxEl.appendChild(createGraphNode(
+            path,
+            isTarget ? { ...node, ...targetNode } : node
+        ));
+
+        if (isTarget) {
+            nodeEl.classList.add('target');
+        }
+
+        if (isCurrent) {
+            nodeEl.classList.add('current');
+        }
 
         host.view.attachTooltip(nodeEl, {
             className: 'query-graph-tooltip',
@@ -85,20 +117,20 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel) {
                 syntax: '=query ? "jora" : false',
                 source: '=query or "<empty query>"',
                 actionCopySource: false,
-                lineNumber: false
+                lineNum: false
             }
         }, { query: node.query });
 
         if (Array.isArray(node.children)) {
             for (let i = 0; i < node.children.length; i++) {
                 const childEl = walk(
-                    box.nextSibling as HTMLElement,
+                    boxEl.nextSibling as HTMLElement,
                     node.children[i],
                     path.concat(i),
                     currentPath[1] === i ? currentPath.slice(1) : []
                 );
 
-                connections.push([nodeEl, childEl]);
+                connections.push([nodeEl.lastChild as HTMLElement, childEl]);
             }
         }
 
@@ -112,13 +144,16 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel) {
 
     requestAnimationFrame(() => {
         const svgEl = el.appendChild(svg('svg'));
+        const gap = parseInt(getComputedStyle(el).gap);
+
         for (const [fromEl, toEl] of connections) {
             const fromBox = getBoundingRect(fromEl, svgEl);
             const toBox = getBoundingRect(toEl, svgEl);
 
-            const x1 = fromBox.right - 2;
+            const x0 = fromBox.right + 2;
+            const x1 = Math.max(toBox.left - gap - 10, x0);
             const y1 = fromBox.top + fromBox.height / 2;
-            const x2 = toBox.left + 2;
+            const x2 = toBox.left - 3;
             const y2 = toBox.top + toBox.height / 2;
             const dx = (x2 - x1) / 3;
 
@@ -134,7 +169,7 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel) {
                     : svg('path', {
                         stroke: '#888',
                         fill: 'none',
-                        d: `M ${x1} ${y1} C ${x1 + 2 * dx} ${y1} ${
+                        d: `M ${x0} ${y1} H ${x1} C ${x1 + 2 * dx} ${y1} ${
                             x2 - 2 * dx
                         } ${y2} ${x2} ${y2}`
                     })
@@ -411,7 +446,8 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         }
     });
     queryGraphEl.addEventListener('click', ({ target }) => {
-        const path = (target as HTMLElement).dataset.path;
+        const graphNode: HTMLElement | null = target && (target as HTMLElement).closest('[data-path]');
+        const path = graphNode?.dataset.path;
 
         if (typeof path === 'string' && path !== currentGraph.current.join(' ')) {
             mutateGraph(({ nextGraph, last }) => {
@@ -432,7 +468,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                     view: nextView,
                     graph: nextGraph
                 };
-            });
+            }, false);
         }
     });
 
@@ -447,7 +483,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         }
     }
 
-    function mutateGraph(fn: GraphMutator) {
+    function mutateGraph(fn: GraphMutator, autofocus = true) {
         const nextGraph = JSON.parse(JSON.stringify(currentGraph)); // accept only serializable data, clean up undefined
         const currentPath = getPathInGraph(nextGraph, nextGraph.current);
         const last = currentPath[currentPath.length - 1];
@@ -455,7 +491,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
         const params = fn({ nextGraph, currentPath, last, preLast });
 
-        updateParams(params, true);
+        updateParams(params, autofocus);
     }
 
     function scheduleCompute(fn: () => void) {
@@ -819,7 +855,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
             queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
             queryGraphEl.innerHTML = '';
-            buildQueryGraph(queryGraphEl, pageGraph, host);
+            buildQueryGraph(queryGraphEl, pageGraph, host, { query: pageQuery, view: pageView });
 
             queryPathEl.innerHTML = '';
             for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(1, -1)) {
