@@ -21,6 +21,7 @@ You also can use Discovery.js as an [advanced viewer for a JSON]() right on the 
 - [CSS syntax reference](https://csstree.github.io/docs/syntax/) ([source](https://github.com/csstree/docs/tree/master/src/syntax))
 - [Jora Docs](https://discoveryjs.github.io/jora/) – Jora query language and engine documentation and playground
 - [CSSWG spec drafts index](https://csstree.github.io/csswg-drafts-index/) ([source](https://github.com/csstree/csswg-drafts-index))
+- [react-native-bundle-discovery](https://github.com/retyui/react-native-bundle-discovery) – a toolkit to analyze and visualize Metro bundle
 
 ## Articles
 
