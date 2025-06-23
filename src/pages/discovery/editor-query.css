@@ -3,8 +3,10 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    gap: 25px;
-    margin: 0 0 10px;
+    gap: 30px;
+    margin: 1px calc(-1 * var(--discovery-page-padding-right)) 1px calc(-1 * var(--discovery-page-padding-left));
+    padding: 1px var(--discovery-page-padding-right) 12px var(--discovery-page-padding-left);
+    overflow-x: auto;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-layer {
     display: flex;
@@ -33,6 +35,8 @@
     border-radius: 50%;
     transition: .2s ease-in-out;
     transition-property: box-shadow, background-color;
+    outline: .75px solid var(--discovery-background-color);
+    outline-offset: -3px;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__label {
     position: relative;
@@ -63,10 +67,16 @@
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__label:empty::before {
     content: "<empty query>";
-    color: #888;
+    color: color-mix(in srgb, #888 65%, var(--color));
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] {
     --color: light-dark(#b1ac1a, #f6f61cb5);
+}
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"],
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__dot,
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__label {
+    transition-delay: 50ms;
+    transition-property: background-color, outline-color, border-color, box-shadow, color;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__dot::before {
     content: '';
@@ -80,22 +90,15 @@
     /* box-shadow: 0 0 0 1px var(--discovery-background-color), 0 0 0 3px var(--color); */
     border-radius: 50%;
     clip-path: inset(0px 0px 50% 50%);
-    animation: discovery-graph-computing .65s forwards infinite linear;
-}
-.page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__dot::after {
-    content: '';
-    position: absolute;
-    display: block;
-    aspect-ratio: 1/1;
-    width: 10px;
-    --border-width: .75px;
-    margin-left: calc(-1 * var(--border-width));
-    margin-top: calc(-1 * var(--border-width));
-    border: var(--border-width) solid var(--discovery-background-color);
-    border-radius: 50%;
+    animation: discovery-graph-computing .65s forwards infinite linear, discovery-graph-computing-appear .1s 1 forwards linear;
 }
 @keyframes discovery-graph-computing {
     to { rotate: 360deg }
+}
+@keyframes discovery-graph-computing-appear {
+    from { opacity: 0 }
+    99% { opacity: 0 }
+    to { opacity: 1 }
 }
 @keyframes discovery-graph-await-computing {
     to { background-color: transparent }
@@ -103,7 +106,9 @@
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"] {
     --color: #4da32fcf;
 }
-.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"] > .query-graph-node__dot {
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"],
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"] > .query-graph-node__dot,
+.page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="successful"] > .query-graph-node__label {
     transition: none;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="failed"] {
@@ -128,7 +133,6 @@
     transition: none;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="awaiting"] > .query-graph-node__dot {
-    animation: discovery-graph-await-computing .75s alternate infinite linear;
     background-color: light-dark(#b1ac1a, #f6f61cb5);
 }
 

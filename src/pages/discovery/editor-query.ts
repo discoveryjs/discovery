@@ -50,20 +50,24 @@ function svg(tagName: string, attributes?: Record<string, unknown>) {
     return el;
 }
 
-function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel, targetNode?: Partial<GraphNode>) {
+function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targetNode?: Partial<GraphNode>) {
     function createGraphLayer() {
         return el.appendChild(createElement('div', 'query-graph-layer'));
     }
 
-    function createGraphNode(path: number[], node: GraphNode) {
+    function createGraphNode() {
         return createElement('div', {
-            'data-path': path.join(' '),
-            tabindex: -1,
-            class: 'query-graph-node'
+            class: 'query-graph-node',
+            tabindex: -1
         }, [
             createElement('div', 'query-graph-node__dot'),
-            createElement('div', 'query-graph-node__label', getNodeLabel(node))
+            createElement('div', 'query-graph-node__label')
         ]);
+    }
+
+    function updateGraphNodeEl(el: HTMLElement, path: number[], node: GraphNode) {
+        el.dataset.path = path.join(' ');
+        (el.lastElementChild as HTMLElement).textContent = getNodeLabel(node);
     }
 
     function getNodeLabel(node: GraphNode) {
@@ -91,24 +95,30 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel, targetN
             currentPath = [];
         }
 
+        let nextLayerGraphNodeEl: HTMLElement | null = null;
+
         if (!boxEl) {
             boxEl = createGraphLayer();
+            nextGraphNodeElByLayer.set(boxEl, null);
+        } else {
+            let candidate = nextGraphNodeElByLayer.get(boxEl);
+
+            if (candidate === undefined) {
+                nextGraphNodeElByLayer.set(boxEl, candidate = boxEl.firstElementChild as HTMLElement);
+            }
+
+            nextLayerGraphNodeEl = candidate;
         }
 
         const isTarget = currentPath.length === 1;
         const isCurrent = currentPath.length > 1;
-        const nodeEl = boxEl.appendChild(createGraphNode(
-            path,
-            isTarget ? { ...node, ...targetNode } : node
-        ));
+        const nodeEl = nextLayerGraphNodeEl || boxEl.appendChild(createGraphNode());
 
-        if (isTarget) {
-            nodeEl.classList.add('target');
-        }
+        nextGraphNodeElByLayer.set(boxEl, nodeEl.nextElementSibling as HTMLElement);
 
-        if (isCurrent) {
-            nodeEl.classList.add('current');
-        }
+        updateGraphNodeEl(nodeEl, path, isTarget ? { ...node, ...targetNode } : node);
+        nodeEl.classList.toggle('target', isTarget);
+        nodeEl.classList.toggle('current', isCurrent);
 
         host.view.attachTooltip(nodeEl, {
             className: 'query-graph-tooltip',
@@ -137,9 +147,30 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel, targetN
         return nodeEl;
     }
 
+    const nextGraphNodeElByLayer = new Map<HTMLElement, HTMLElement | null>();
     const connections: [from: HTMLElement, to: HTMLElement][] = [];
+
+    el.querySelector(':scope > svg')?.remove();
+
+    // create update nodes
     for (let i = 0; i < graph.children.length; i++) {
         walk(el.firstChild as HTMLElement, graph.children[i], [i], graph.current[0] === i ? graph.current : []);
+    }
+
+    // remove unused nodes
+    for (const layerEl of el.querySelectorAll(':scope .query-graph-layer')) {
+        let lastNodeEl = nextGraphNodeElByLayer.get(layerEl as HTMLElement);
+
+        if (lastNodeEl === undefined) {
+            layerEl.remove();
+            continue;
+        } else {
+            while (lastNodeEl !== null) {
+                const tmpEl = lastNodeEl;
+                lastNodeEl = lastNodeEl.nextElementSibling as HTMLElement | null;
+                tmpEl?.remove();
+            }
+        }
     }
 
     requestAnimationFrame(() => {
@@ -161,7 +192,7 @@ function buildQueryGraph(el: HTMLElement, graph: Graph, host: ViewModel, targetN
                 y1 === y2
                     ? svg('line', {
                         stroke: '#888',
-                        x1,
+                        x1: x0,
                         y1,
                         x2,
                         y2
@@ -605,7 +636,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             }
             case 'awaiting': {
                 queryEditor.setValue(computation.query);
-                renderOutputExpander(computation, null, 'Avaiting...');
+                renderOutputExpander(computation, null, 'Awaiting...');
                 break;
             }
             case 'computing': {
@@ -715,10 +746,23 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         let computeError = false;
 
         if (first) {
+            const computatationPaths = new Set();
+
             for (let i = computeIndex; i < currentGraph.current.length; i++) {
                 const computation = computationCache[i];
+
                 if (computation.state !== 'computing') {
                     syncComputeState(computation);
+                }
+
+                computatationPaths.add(computation.path.join(' '));
+            }
+
+            for (const el of queryGraphEl.querySelectorAll('[data-state]')) {
+                const graphNodeEl = el as HTMLElement;
+
+                if (!computatationPaths.has(graphNodeEl.dataset.path)) {
+                    delete graphNodeEl.dataset.state;
                 }
             }
         }
@@ -854,8 +898,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             const pageGraph = normalizeGraph({ ...pageParams.graph || defaultGraph });
 
             queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
-            queryGraphEl.innerHTML = '';
-            buildQueryGraph(queryGraphEl, pageGraph, host, { query: pageQuery, view: pageView });
+            syncQueryGraphView(queryGraphEl, pageGraph, host, { query: pageQuery, view: pageView });
 
             queryPathEl.innerHTML = '';
             for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(1, -1)) {
