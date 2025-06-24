@@ -206,7 +206,7 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
                         } ${y2} ${x2} ${y2}`
                     })
             );
-            
+
             if (isCurrent) {
                 connectionEl.classList.add('current');
             }
@@ -252,7 +252,7 @@ function insertNewNodeAfterLast(children: GraphNode[], last: GraphNode, newNode 
 
     if (lastIndex !== -1) {
         const newNodeIndex = lastIndex + 1;
-        children.splice(newNodeIndex, 0, {});
+        children.splice(newNodeIndex, 0, newNode);
         return newNodeIndex;
     }
 
