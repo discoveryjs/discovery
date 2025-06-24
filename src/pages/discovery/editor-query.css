@@ -115,11 +115,19 @@
     --color: #d84343;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="canceled"] > .query-graph-node__dot {
-    background-image: radial-gradient(transparent calc(50% - 2px), var(--discovery-color) 50%);
-    background-color: transparent;
-}
-.page-discovery > .discovery-editor .query-graph .query-graph-node.current > .query-graph-node__dot {
-    /* background-color: #4da32fcf; */
+    --color: #d84343;
+    --color-dash: color-mix(in srgb, var(--discovery-background-color), #888 15%);
+    --dash-start: 7px;
+    --dash-end: 9px;
+    outline: none;
+    background-color: color-mix(in srgb, var(--color), #8888);
+    background-image: linear-gradient(to right,
+        transparent var(--dash-start),
+        var(--color-dash) var(--dash-start),
+        var(--color-dash) var(--dash-end),
+        transparent var(--dash-end)
+    );
+    rotate: 45deg;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node.target > .query-graph-node__dot {
     cursor: default;
@@ -475,8 +483,10 @@
     margin: 0;
 }
 
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor .query-input-details > .state-message,
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__output-panel .data-query-result-details .state-message {
     padding: 4px 8px;
-    font-size: 12px;
+    color: #888;
     background-color: rgba(205, 205, 205, 0.1);
+    font-size: 12px;
 }

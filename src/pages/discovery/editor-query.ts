@@ -593,9 +593,9 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 expandQueryInputData = newData;
 
                 if (computation.state === 'awaiting') {
-                    queryEditorInputDetailsEl.textContent = 'Computing...';
+                    queryEditorInputDetailsEl.textContent = '<div class="state-message">Computing...</div>';
                 } else if (computation.state === 'canceled') {
-                    queryEditorInputDetailsEl.textContent = 'Not available because one of ancestor queries failed';
+                    queryEditorInputDetailsEl.innerHTML = '<div class="state-message">Not available because one of ancestor queries failed<div>';
                 } else {
                     queryEditorInputDetailsEl.innerHTML = '';
                     host.view.render(
