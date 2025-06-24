@@ -90,31 +90,19 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         return '';
     }
 
-    function walk(boxEl: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
+    function walk(layerEl: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
         if (!Array.isArray(currentPath)) {
             currentPath = [];
         }
 
-        let nextLayerGraphNodeEl: HTMLElement | null = null;
-
-        if (!boxEl) {
-            boxEl = createGraphLayer();
-            nextGraphNodeElByLayer.set(boxEl, null);
-        } else {
-            let candidate = nextGraphNodeElByLayer.get(boxEl);
-
-            if (candidate === undefined) {
-                nextGraphNodeElByLayer.set(boxEl, candidate = boxEl.firstElementChild as HTMLElement);
-            }
-
-            nextLayerGraphNodeEl = candidate;
+        if (!layerEl) {
+            graphLayerEls.push(layerEl = createGraphLayer());
+            nextGraphNodeElByLayer.set(layerEl, []);
         }
 
         const isTarget = currentPath.length === 1;
         const isCurrent = currentPath.length > 1;
-        const nodeEl = nextLayerGraphNodeEl || boxEl.appendChild(createGraphNode());
-
-        nextGraphNodeElByLayer.set(boxEl, nodeEl.nextElementSibling as HTMLElement);
+        const nodeEl = nextGraphNodeElByLayer.get(layerEl)?.shift() || layerEl.appendChild(createGraphNode());
 
         updateGraphNodeEl(nodeEl, path, isTarget ? { ...node, ...targetNode } : node);
         nodeEl.classList.toggle('target', isTarget);
@@ -134,7 +122,7 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         if (Array.isArray(node.children)) {
             for (let i = 0; i < node.children.length; i++) {
                 const childEl = walk(
-                    boxEl.nextSibling as HTMLElement,
+                    layerEl.nextSibling as HTMLElement,
                     node.children[i],
                     path.concat(i),
                     currentPath[1] === i ? currentPath.slice(1) : []
@@ -147,35 +135,35 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         return nodeEl;
     }
 
-    const nextGraphNodeElByLayer = new Map<HTMLElement, HTMLElement | null>();
+    const graphLayerEls = [...el.querySelectorAll(':scope > .query-graph-layer')] as HTMLElement[];
+    const nextGraphNodeElByLayer = graphLayerEls.reduce(
+        (map, layerEl) => map.set(layerEl, [...layerEl.querySelectorAll(':scope > .query-graph-node')] as HTMLElement[]),
+        new Map<HTMLElement, HTMLElement[]>()
+    );
     const connections: [from: HTMLElement, to: HTMLElement][] = [];
-
-    el.querySelector(':scope > svg')?.remove();
+    const svgEl = el.querySelector(':scope > svg') || el.appendChild(svg('svg'));
 
     // create update nodes
     for (let i = 0; i < graph.children.length; i++) {
-        walk(el.firstChild as HTMLElement, graph.children[i], [i], graph.current[0] === i ? graph.current : []);
+        walk(
+            graphLayerEls[0],
+            graph.children[i],
+            [i],
+            graph.current[0] === i ? graph.current : []
+        );
     }
 
     // remove unused nodes
-    for (const layerEl of el.querySelectorAll(':scope .query-graph-layer')) {
-        let lastNodeEl = nextGraphNodeElByLayer.get(layerEl as HTMLElement);
-
-        if (lastNodeEl === undefined) {
-            layerEl.remove();
-            continue;
-        } else {
-            while (lastNodeEl !== null) {
-                const tmpEl = lastNodeEl;
-                lastNodeEl = lastNodeEl.nextElementSibling as HTMLElement | null;
-                tmpEl?.remove();
-            }
+    for (const nodeEls of nextGraphNodeElByLayer.values()) {
+        for (const nodeEl of nodeEls) {
+            nodeEl.remove();
         }
     }
 
     requestAnimationFrame(() => {
-        const svgEl = el.appendChild(svg('svg'));
         const gap = parseInt(getComputedStyle(el).gap);
+        const defaultConnectionEls: SVGElement[] = [];
+        const currentConnectionEls: SVGElement[] = [];
 
         for (const [fromEl, toEl] of connections) {
             const fromBox = getBoundingRect(fromEl, svgEl);
@@ -189,28 +177,32 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
             const dx = (x2 - x1) / 3;
 
             const isCurrent = toEl.classList.contains('current') || toEl.classList.contains('target');
-            const connectionEl = svgEl.appendChild(
-                y1 === y2
-                    ? svg('line', {
-                        stroke: '#888',
-                        x1: x0,
-                        y1,
-                        x2,
-                        y2
-                    })
-                    : svg('path', {
-                        stroke: '#888',
-                        fill: 'none',
-                        d: `M ${x0} ${y1} H ${x1} C ${x1 + 2 * dx} ${y1} ${
-                            x2 - 2 * dx
-                        } ${y2} ${x2} ${y2}`
-                    })
-            );
+            const connectionEl = y1 === y2
+                ? svg('line', {
+                    stroke: '#888',
+                    x1: x0,
+                    y1,
+                    x2,
+                    y2
+                })
+                : svg('path', {
+                    stroke: '#888',
+                    fill: 'none',
+                    d: `M ${x0} ${y1} H ${x1} C ${x1 + 2 * dx} ${y1} ${
+                        x2 - 2 * dx
+                    } ${y2} ${x2} ${y2}`
+                });
 
             if (isCurrent) {
+                currentConnectionEls.push(connectionEl);
                 connectionEl.classList.add('current');
+            } else {
+                defaultConnectionEls.push(connectionEl);
             }
+
         }
+
+        svgEl.replaceChildren(...defaultConnectionEls, ...currentConnectionEls);
     });
 }
 
@@ -543,7 +535,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     }
 
     function scheduleCompute(fn: () => void) {
-        const id = setTimeout(fn, 16);
+        const id = setTimeout(fn, 1);
         return () => clearTimeout(id);
     }
 
@@ -782,6 +774,12 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                     delete graphNodeEl.dataset.state;
                 }
             }
+
+            // A trick to reset all transitions on graph nodes, as transitions
+            // can freeze when the main thread is blocked and display an incorrect state of nodes
+            const placeholder = document.createComment('');
+            queryGraphEl.replaceWith(placeholder);
+            placeholder.replaceWith(queryGraphEl);
         }
 
         for (let i = computeIndex; i < currentGraph.current.length; i++) {
