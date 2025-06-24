@@ -917,10 +917,10 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
             syncQueryGraphView(queryGraphEl, pageGraph, host, { query: pageQuery, view: pageView });
 
-            queryPathEl.innerHTML = '';
-            for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(1, -1)) {
-                queryPathEl.append(createElement('div', 'query', (node as GraphNode).query || ''));
-            }
+            // queryPathEl.innerHTML = '';
+            // for (const node of getPathInGraph(pageGraph, pageGraph.current).slice(1, -1)) {
+            //     queryPathEl.append(createElement('div', 'query', (node as GraphNode).query || ''));
+            // }
 
             currentGraph = pageGraph;
             currentContext = queryContext;
