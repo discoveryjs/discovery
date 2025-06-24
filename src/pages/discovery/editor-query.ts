@@ -124,8 +124,8 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
             className: 'query-graph-tooltip',
             content: isTarget ? 'badge:"Current query"' : {
                 view: 'source',
-                syntax: '=query ? "jora" : false',
-                source: '=query or "<empty query>"',
+                syntax: '=query | trim() ? "jora" : false',
+                source: '=query | trim() ?: "<empty query>"',
                 actionCopySource: false,
                 lineNum: false
             }
