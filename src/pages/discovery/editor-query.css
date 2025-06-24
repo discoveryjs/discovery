@@ -155,6 +155,10 @@
 .page-discovery > .discovery-editor .query-graph > svg :is(line, path) {
     stroke: light-dark(#bbb, #666);
 }
+.page-discovery > .discovery-editor .query-graph > svg :is(line, path).current {
+    stroke-width: 1.25;
+    stroke: light-dark(#666, #bbb);
+}
 
 .query-graph-actions {
     display: flex;

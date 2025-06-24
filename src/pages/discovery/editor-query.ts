@@ -188,7 +188,8 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
             const y2 = toBox.top + toBox.height / 2;
             const dx = (x2 - x1) / 3;
 
-            svgEl.append(
+            const isCurrent = toEl.classList.contains('current') || toEl.classList.contains('target');
+            const connectionEl = svgEl.appendChild(
                 y1 === y2
                     ? svg('line', {
                         stroke: '#888',
@@ -205,6 +206,10 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
                         } ${y2} ${x2} ${y2}`
                     })
             );
+            
+            if (isCurrent) {
+                connectionEl.classList.add('current');
+            }
         }
     });
 }
