@@ -14,6 +14,15 @@
     align-items: flex-start;
     gap: 4px;
 }
+.page-discovery > .discovery-editor .query-graph .query-graph-layer > .view-button {
+    order: 1;
+    margin: 0 -1px;
+    padding: 3px 12px 3px 12px;
+    font-family: var(--discovery-monospace-font-family);
+    font-size: 10px;
+    line-height: 1;
+    text-align: center;
+}
 .page-discovery > .discovery-editor .query-graph .query-graph-node {
     --color: #8888;
     display: flex;
@@ -61,7 +70,6 @@
     background-color: color-mix(in srgb, var(--discovery-background-color), var(--color) 30%);
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node:is(:hover, .target) > .query-graph-node__label {
-    /* box-shadow: 0 0 0 .5px var(--color) inset; */
     outline-color: var(--color);
     outline-width: 1px;
 }
@@ -258,9 +266,6 @@
 }
 .page-discovery > .discovery-editor .query-editor {
     position: relative;
-}
-.page-discovery > .discovery-editor .query-editor > .discovery-view-editor {
-    /* gap: 1px; */
 }
 
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor > .discovery-view-editor__input-panel {

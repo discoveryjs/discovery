@@ -58,7 +58,8 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
     function createGraphNode() {
         return createElement('div', {
             class: 'query-graph-node',
-            tabindex: -1
+            tabindex: -1,
+            'data-action': 'select'
         }, [
             createElement('div', 'query-graph-node__dot'),
             createElement('div', 'query-graph-node__label')
@@ -98,6 +99,14 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         if (!layerEl) {
             graphLayerEls.push(layerEl = createGraphLayer());
             nextGraphNodeElByLayer.set(layerEl, []);
+
+            if (graphLayerEls.length === 1) {
+                layerEl.append(createElement('button', {
+                    class: 'view-button',
+                    tabindex: -1,
+                    'data-action': 'new-root-node'
+                }, '+'));
+            }
         }
 
         const isTarget = currentPath.length === 1;
@@ -345,7 +354,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             view: 'button',
             className: 'stash',
             tooltip: hintTooltip(() => currentGraph.current.length < 2
-                ? 'Stash current query and create a new empty query'
+                ? 'Stash current query and create a new empty root query'
                 : 'Stash current query and create a new empty query for current parent'
             ),
             onClick() {
@@ -486,29 +495,52 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         }
     });
     queryGraphEl.addEventListener('click', ({ target }) => {
-        const graphNode: HTMLElement | null = target && (target as HTMLElement).closest('[data-path]');
-        const path = graphNode?.dataset.path;
+        const actionEl = (target as HTMLElement).closest('[data-action]') as (HTMLElement | null);
 
-        if (typeof path === 'string' && path !== currentGraph.current.join(' ')) {
-            mutateGraph(({ nextGraph, last }) => {
-                const nextPath = path.split(' ').map(Number);
-                const nextGraphPath = getPathInGraph(nextGraph, nextPath);
-                const nextTarget: GraphNode = nextGraphPath[nextGraphPath.length - 1];
+        if (!queryGraphEl.contains(actionEl)) {
+            return;
+        }
 
-                const nextQuery = nextTarget.query;
-                const nextView = nextTarget.view;
-                nextTarget.query = undefined;
-                nextTarget.view = undefined;
-                last.query = currentQuery;
-                last.view = currentView;
-                nextGraph.current = nextPath;
+        switch (actionEl?.dataset.action) {
+            case 'new-root-node':
+                mutateGraph(({ nextGraph, last }) => {
+                    last.query = currentQuery;
+                    last.view = currentView;
+                    nextGraph.current = [nextGraph.children.push({}) - 1];
 
-                return {
-                    query: nextQuery,
-                    view: nextView,
-                    graph: nextGraph
-                };
-            }, false);
+                    return {
+                        query: '',
+                        view: undefined,
+                        graph: nextGraph
+                    };
+                });
+                break;
+
+            case 'select':
+                const { path } = actionEl.dataset;
+
+                if (typeof path === 'string' && path !== currentGraph.current.join(' ')) {
+                    mutateGraph(({ nextGraph, last }) => {
+                        const nextPath = path.split(' ').map(Number);
+                        const nextGraphPath = getPathInGraph(nextGraph, nextPath);
+                        const nextTarget: GraphNode = nextGraphPath[nextGraphPath.length - 1];
+                        const nextQuery = nextTarget.query;
+                        const nextView = nextTarget.view;
+
+                        nextTarget.query = undefined;
+                        nextTarget.view = undefined;
+                        last.query = currentQuery;
+                        last.view = currentView;
+                        nextGraph.current = nextPath;
+        
+                        return {
+                            query: nextQuery,
+                            view: nextView,
+                            graph: nextGraph
+                        };
+                    }, false);
+                }
+                break;
         }
     });
 
