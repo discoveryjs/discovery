@@ -242,6 +242,18 @@ function getPathInGraph(graph: Graph, path: number[]) {
     return result;
 }
 
+function insertNewNodeAfterLast(children: GraphNode[], last: GraphNode, newNode = {}) {
+    const lastIndex = children.indexOf(last);
+
+    if (lastIndex !== -1) {
+        const newNodeIndex = lastIndex + 1;
+        children.splice(newNodeIndex, 0, {});
+        return newNodeIndex;
+    }
+
+    return children.push({}) - 1;
+}
+
 export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     const QueryEditorClass = (host.view as any).QueryEditor as typeof QueryEditor;
     const defaultGraph = {};
@@ -345,7 +357,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
                     last.query = currentQuery;
                     last.view = currentView;
-                    nextGraph.current[nextGraph.current.length - 1] = preLastChildren.push({}) - 1;
+                    nextGraph.current[nextGraph.current.length - 1] = insertNewNodeAfterLast(preLastChildren, last);
 
                     return {
                         query: '',
@@ -365,7 +377,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
                     last.query = currentQuery;
                     last.view = currentView;
-                    nextGraph.current[nextGraph.current.length - 1] = preLastChildren.push({}) - 1;
+                    nextGraph.current[nextGraph.current.length - 1] = insertNewNodeAfterLast(preLastChildren, last);
 
                     return {
                         graph: nextGraph
