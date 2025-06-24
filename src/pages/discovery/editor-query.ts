@@ -748,7 +748,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     function compute(computeIndex: number, computeData: unknown, computeContext: unknown, first = false) {
         if (scheduledCompute) {
             scheduledCompute.cancel();
-            scheduledCompute.computation.state = 'canceled';
+            scheduledCompute.computation.state = 'awaiting';
             scheduledCompute = null;
         }
 
@@ -862,6 +862,11 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 String(cache.path) === String(computePath)) {
                 computeData = cache.computed;
                 computeError = cache.error;
+
+                if (cache.state === 'computing') {
+                    firstComputation = i;
+                }
+
                 continue;
             }
 
