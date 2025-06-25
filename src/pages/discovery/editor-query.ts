@@ -6,6 +6,7 @@ import { createElement } from '../../core/utils/dom.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { getBoundingRect } from '../../core/utils/layout.js';
 import { contextWithoutEditorParams, getParamsFromContext } from './params.js';
+import { Dataset } from '../../core/utils/load-data.types.js';
 
 type GraphNodePath = [graph: Graph, ...GraphNode[]];
 type GraphMutator = (graphState: {
@@ -48,6 +49,21 @@ function svg(tagName: string, attributes?: Record<string, unknown>) {
     }
 
     return el;
+}
+
+function syncDatasetsView(el: HTMLElement, datasets: Dataset[], host: ViewModel) {
+    el.replaceChildren();
+
+    if (!Array.isArray(datasets)) {
+        return;
+    }
+
+    for (const dataset of datasets) {
+        const datasetEl = el.appendChild(createElement('div', 'dataset', [
+            createElement('span', 'dataset__type', dataset.resource.type),
+            createElement('span', 'dataset__name', dataset.resource.name)
+        ]))
+    }
 }
 
 function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targetNode?: Partial<GraphNode>) {
@@ -289,9 +305,11 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     const queryEditorInputDetailsEl = createElement('div', 'query-input-details');
     const queryEditorResultEl = createElement('div', 'data-query-result');
     const queryEditorResultDetailsEl = createElement('div', 'data-query-result-details');
+    const queryEditorDatasetsEl = createElement('div', 'query-datasets');
     const queryGraphEl = createElement('div', 'query-graph');
     const queryPathEl = createElement('div', 'query-path');
     const queryEditorFormEl = createElement('div', 'form query-editor-form', [
+        queryEditorDatasetsEl,
         queryGraphEl,
         queryPathEl,
         createElement('div', 'query-editor', [
@@ -950,6 +968,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             const pageGraph = normalizeGraph({ ...pageParams.graph || defaultGraph });
 
             queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
+            syncDatasetsView(queryEditorDatasetsEl, queryContext.datasets || [], host);
             syncQueryGraphView(queryGraphEl, pageGraph, host, { query: pageQuery, view: pageView });
 
             // queryPathEl.innerHTML = '';
