@@ -802,8 +802,6 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             scheduledCompute = null;
         }
 
-        let computeError = false;
-
         if (first) {
             const computatationPaths = new Set();
 
@@ -832,7 +830,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             placeholder.replaceWith(queryGraphEl);
         }
 
-        for (let i = computeIndex; i < currentGraph.current.length; i++) {
+        for (let i = computeIndex, computeError = false; i < currentGraph.current.length; i++) {
             const computation = computationCache[i];
             const isTarget = i === currentGraph.current.length - 1;
 
@@ -895,7 +893,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
     function makeComputationPlan(computeData: unknown, computeContext: unknown) {
         const graphPath = getPathInGraph(currentGraph, currentGraph.current).slice(1);
-        let firstComputation = -1;
+        let computingIndex = -1;
         let computeError: Error | null = null;
 
         for (let i = 0; i < currentGraph.current.length; i++) {
@@ -905,7 +903,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             const computeQuery = isTarget ? currentQuery : (graphNode as GraphNode).query;
             const computePath = currentGraph.current.slice(0, i + 1);
 
-            if (firstComputation === -1 &&
+            if (computingIndex === -1 &&
                 cache.query === computeQuery &&
                 cache.data === computeData &&
                 cache.context === computeContext &&
@@ -914,7 +912,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 computeError = cache.error;
 
                 if (cache.state === 'computing') {
-                    firstComputation = i;
+                    computingIndex = i;
                 }
 
                 continue;
@@ -922,7 +920,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
             const computation: Computation = computationCache[i] = {
                 state: 'awaiting',
-                path: currentGraph.current.slice(0, i + 1),
+                path: computePath,
                 query: computeQuery || '',
                 data: undefined,
                 context: undefined,
@@ -936,17 +934,17 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 continue;
             }
 
-            if (firstComputation === -1) {
-                firstComputation = i;
-                computation.state = 'computing';
-                computation.data = computeData;
-                computation.context = computeContext;
+            if (computingIndex === -1) {
+                computingIndex = i;
+                // computation.state = 'computing';
+                // computation.data = computeData;
+                // computation.context = computeContext;
                 continue;
             }
         }
 
-        return firstComputation !== -1
-            ? computationCache.slice(firstComputation, currentGraph.current.length)
+        return computingIndex !== -1
+            ? computationCache.slice(computingIndex, currentGraph.current.length)
             : [];
     }
 

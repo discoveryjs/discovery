@@ -130,7 +130,7 @@
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"],
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__dot,
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__label {
-    transition-delay: 50ms;
+    /* transition-delay: 50ms; */
     transition-property: background-color, outline-color, border-color, box-shadow, color;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] > .query-graph-node__dot::before {
