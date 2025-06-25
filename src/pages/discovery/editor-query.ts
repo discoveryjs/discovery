@@ -62,7 +62,7 @@ function syncDatasetsView(el: HTMLElement, datasets: Dataset[], host: ViewModel)
         const datasetEl = el.appendChild(createElement('div', 'dataset', [
             createElement('span', 'dataset__type', dataset.resource.type),
             createElement('span', 'dataset__name', dataset.resource.name)
-        ]))
+        ]));
     }
 }
 
@@ -83,13 +83,17 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
     }
 
     function updateGraphNodeEl(el: HTMLElement, path: number[], node: GraphNode) {
+        const labelEl = el.lastElementChild as HTMLElement;
+        const { label, text } = getNodeLabel(node);
+
         el.dataset.path = path.join(' ');
-        (el.lastElementChild as HTMLElement).textContent = getNodeLabel(node);
+        labelEl.classList.toggle('has-label', label);
+        labelEl.textContent = text;
     }
 
     function getNodeLabel(node: GraphNode) {
         if (node.label) {
-            return node.label;
+            return { label: true, text: node.label };
         }
 
         const { query } = node;
@@ -98,13 +102,13 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
             const m = query.match(/^\s*\/\/![ \t]*(\S.*)/);
 
             if (m) {
-                return m[1].trim();
+                return { label: true, text: m[1].trim() };
             }
 
-            return query.trim();
+            return { label: false, text: query.trim() };
         }
 
-        return '';
+        return { label: false, text: '' };
     }
 
     function walk(layerEl: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
@@ -550,7 +554,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                         last.query = currentQuery;
                         last.view = currentView;
                         nextGraph.current = nextPath;
-        
+
                         return {
                             query: nextQuery,
                             view: nextView,

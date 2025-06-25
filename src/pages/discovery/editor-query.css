@@ -52,7 +52,7 @@
     flex-wrap: nowrap;
     gap: 30px;
     margin: 1px calc(-1 * var(--discovery-page-padding-right)) 1px calc(-1 * var(--discovery-page-padding-left));
-    padding: 1px var(--discovery-page-padding-right) 12px var(--discovery-page-padding-left);
+    padding: 1px var(--discovery-page-padding-right) 12px calc(1px + var(--discovery-page-padding-left));
     overflow-x: auto;
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-layer {
@@ -120,9 +120,11 @@
     outline-color: var(--color);
     outline-width: 1px;
 }
+.page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__label:is(:empty, :not(.has-label)) {
+    color: color-mix(in srgb, #888 65%, var(--color));
+}
 .page-discovery > .discovery-editor .query-graph .query-graph-node > .query-graph-node__label:empty::before {
     content: "<empty query>";
-    color: color-mix(in srgb, #888 65%, var(--color));
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node[data-state="computing"] {
     --color: light-dark(#b1ac1a, #f6f61cb5);
