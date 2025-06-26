@@ -15,14 +15,13 @@ function quote(str: string) {
 }
 
 function exportStateAsJson(pageParams: Partial<KnownParams>) {
-    const { title, query, view } = pageParams;
-    const res = { title, query, view };
-
     return `{\n${
-        Object.keys(res).reduce(
-            (props, k) => typeof res[k] === 'string'
-                ? props.concat(`    ${k}: \'${quote(res[k])}\'`)
-                : props,
+        Object.keys(pageParams).reduce(
+            (props, k) => typeof pageParams[k] === 'string'
+                ? props.concat(`    ${k}: \'${quote(pageParams[k])}\'`)
+                : (k === 'graph' || typeof pageParams[k] === 'boolean') && pageParams[k]
+                    ? props.concat(`    ${k}: ${JSON.stringify(pageParams[k])}`)
+                    : props,
             [] as string[]
         ).join(',\n')
     }\n}`;
