@@ -76,6 +76,7 @@
     align-items: center;
     gap: 3px;
     cursor: pointer;
+    margin-top: calc(var(--pad, 0) * 22px);
 }
 .page-discovery > .discovery-editor .query-graph .query-graph-node.target {
     pointer-events: none;

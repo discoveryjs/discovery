@@ -15,6 +15,15 @@ type GraphMutator = (graphState: {
     last: GraphNode;
     preLast: GraphNode;
 }) => { query?: string; view?: string; graph: Graph; };
+type GraphWalkNode = {
+    parent: GraphWalkNode | null;
+    children: GraphWalkNode[];
+    node: GraphNode;
+    nodeEl: HTMLElement;
+    layerIndex: number;
+    layerPos: number;
+    layerOptPos: number;
+};
 type ScheduledCompute = {
     computation: Computation;
     cancel(): void;
@@ -25,6 +34,10 @@ type EditorErrorMarker = {
 
 function count(value: unknown[], one: string, many: string): string {
     return value.length ? `${value.length} ${value.length === 1 ? one : many}` : 'empty';
+}
+
+function clamp(num: number, min: number, max: number) {
+    return Math.min(max, Math.max(num, min));
 }
 
 function valueDescriptor(value: unknown) {
@@ -111,7 +124,13 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         return { label: false, text: '' };
     }
 
-    function walk(layerEl: HTMLElement | null, node: GraphNode, path: number[], currentPath: number[]) {
+    function walk(
+        layerEl: HTMLElement | null,
+        node: GraphNode,
+        parentWalkNode: GraphWalkNode | null,
+        path: number[],
+        currentPath: number[]
+    ) {
         if (!Array.isArray(currentPath)) {
             currentPath = [];
         }
@@ -119,6 +138,7 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         if (!layerEl) {
             graphLayerEls.push(layerEl = createGraphLayer());
             nextGraphNodeElByLayer.set(layerEl, []);
+            graphLayerHeights.push(0);
 
             if (graphLayerEls.length === 1) {
                 layerEl.append(createElement('button', {
@@ -132,7 +152,19 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         const isTarget = currentPath.length === 1;
         const isCurrent = currentPath.length > 1;
         const nodeEl = nextGraphNodeElByLayer.get(layerEl)?.shift() || layerEl.appendChild(createGraphNode());
+        const nodeLayerPos = graphLayerHeights[path.length - 1];
+        const graphWalkNode: GraphWalkNode = {
+            parent: parentWalkNode,
+            children: [],
+            node,
+            nodeEl,
+            layerIndex: path.length - 1,
+            layerPos: nodeLayerPos,
+            layerOptPos: nodeLayerPos
+        };
 
+        graphWalkNodes.push(graphWalkNode);
+        graphLayerHeights[path.length - 1]++;
         updateGraphNodeEl(nodeEl, path, isTarget ? { ...node, ...targetNode } : node);
         nodeEl.classList.toggle('target', isTarget);
         nodeEl.classList.toggle('current', isCurrent);
@@ -150,25 +182,29 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
 
         if (Array.isArray(node.children)) {
             for (let i = 0; i < node.children.length; i++) {
-                const childEl = walk(
+                const childWalkNode = walk(
                     layerEl.nextSibling as HTMLElement,
                     node.children[i],
+                    graphWalkNode,
                     path.concat(i),
                     currentPath[1] === i ? currentPath.slice(1) : []
                 );
 
-                connections.push([nodeEl.lastChild as HTMLElement, childEl]);
+                graphWalkNode.children.push(childWalkNode);
+                connections.push([nodeEl.lastChild as HTMLElement, childWalkNode.nodeEl]);
             }
         }
 
-        return nodeEl;
+        return graphWalkNode;
     }
 
+    const graphWalkNodes: GraphWalkNode[] = []; // DFS order
     const graphLayerEls = [...el.querySelectorAll(':scope > .query-graph-layer')] as HTMLElement[];
     const nextGraphNodeElByLayer = graphLayerEls.reduce(
         (map, layerEl) => map.set(layerEl, [...layerEl.querySelectorAll(':scope > .query-graph-node')] as HTMLElement[]),
         new Map<HTMLElement, HTMLElement[]>()
     );
+    const graphLayerHeights = new Array(nextGraphNodeElByLayer.size).fill(0);
     const connections: [from: HTMLElement, to: HTMLElement][] = [];
     const svgEl = el.querySelector(':scope > svg') || el.appendChild(svg('svg'));
 
@@ -177,6 +213,7 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         walk(
             graphLayerEls[0],
             graph.children[i],
+            null,
             [i],
             graph.current[0] === i ? graph.current : []
         );
@@ -187,6 +224,43 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
         for (const nodeEl of nodeEls) {
             nodeEl.remove();
         }
+    }
+
+    // refine node positions
+    const maxLayerHeight = graphLayerHeights.reduce((max, height) => Math.max(max, height));
+    const layerStackHeights = graphLayerHeights.map(() => 0);
+    for (const node of graphWalkNodes) {
+        const { parent } = node;
+
+        // adjust non-root nodes positions
+        if (parent) {
+            // adjust child pos related to parent node pos
+            const childrenCount = parent.node.children?.length || 1;
+            const minPos = layerStackHeights[node.layerIndex];
+            const maxPos = maxLayerHeight - (graphLayerHeights[node.layerIndex] - node.layerPos);
+            let layerOptPos = clamp(
+                parent.layerPos - Math.floor((childrenCount - 1) / 2),
+                minPos,
+                maxPos
+            );
+
+            // adjust node position related to default children block position
+            if (node.children.length > 0 && minPos > 0) {
+                const childrenAdjust = clamp(
+                    node.children[0].layerPos, // + Math.floor((node.children.length - 1) / 2),
+                    Math.max(layerOptPos, layerStackHeights[node.layerIndex + 1]),
+                    maxPos
+                );
+
+                layerOptPos += clamp(childrenAdjust - layerOptPos, 0, 2);
+            }
+
+            // apply adjusted position
+            node.layerPos = layerOptPos;
+        }
+
+        node.nodeEl.style.setProperty('--pad', String(node.layerPos - layerStackHeights[node.layerIndex]));
+        layerStackHeights[node.layerIndex] = node.layerPos + 1;
     }
 
     requestAnimationFrame(() => {
