@@ -7,7 +7,12 @@ import { escapeHtml } from '../../core/utils/html.js';
 import { getBoundingRect } from '../../core/utils/layout.js';
 import { contextWithoutEditorParams, getParamsFromContext } from './params.js';
 import { Dataset } from '../../core/utils/load-data.types.js';
+import { deepEqual } from '../../core/utils/compare.js';
 
+type ViewDataset = {
+    type: string;
+    name: string;
+};
 type GraphNodePath = [graph: Graph, ...GraphNode[]];
 type GraphMutator = (graphState: {
     nextGraph: Graph;
@@ -64,19 +69,30 @@ function svg(tagName: string, attributes?: Record<string, unknown>) {
     return el;
 }
 
-function syncDatasetsView(el: HTMLElement, datasets: Dataset[], host: ViewModel) {
+function syncDatasetsView(el: HTMLElement, datasets: Dataset[], prevSyncDatasets: ViewDataset[]) {
+    if (!Array.isArray(datasets)) {
+        datasets = [];
+    }
+
+    const nextSyncDatasets = datasets.map((dataset) => ({
+        type: dataset.resource?.type || 'unknown',
+        name: dataset.resource?.name || 'unknown'
+    }));
+
+    if (deepEqual(nextSyncDatasets, prevSyncDatasets)) {
+        return prevSyncDatasets;
+    }
+
     el.replaceChildren();
 
-    if (!Array.isArray(datasets)) {
-        return;
-    }
-
-    for (const dataset of datasets) {
-        const datasetEl = el.appendChild(createElement('div', 'dataset', [
-            createElement('span', 'dataset__type', dataset.resource.type),
-            createElement('span', 'dataset__name', dataset.resource.name)
+    for (const dataset of nextSyncDatasets) {
+        el.appendChild(createElement('div', 'dataset', [
+            createElement('span', 'dataset__type', dataset.type),
+            createElement('span', 'dataset__name', dataset.name)
         ]));
     }
+
+    return nextSyncDatasets;
 }
 
 function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targetNode?: Partial<GraphNode>) {
@@ -365,6 +381,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     let currentView: string | undefined;
     let currentGraph = normalizeGraph({});
     let currentContext: unknown;
+    let currentDatasets: ViewDataset[] = [];
     let errorMarker: EditorErrorMarker | null = null;
     let scheduledCompute: ScheduledCompute | null = null;
     let computationCache: Computation[] = [];
@@ -1044,7 +1061,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             const pageGraph = normalizeGraph({ ...pageParams.graph || defaultGraph });
 
             queryGraphButtonsEl.classList.toggle('root', pageGraph.current.length < 2);
-            syncDatasetsView(queryEditorDatasetsEl, queryContext.datasets || [], host);
+            currentDatasets = syncDatasetsView(queryEditorDatasetsEl, queryContext.datasets || [], currentDatasets);
             syncQueryGraphView(queryGraphEl, pageGraph, host, { query: pageQuery, view: pageView });
 
             // queryPathEl.innerHTML = '';
