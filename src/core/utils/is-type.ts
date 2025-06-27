@@ -32,3 +32,29 @@ export function isRegExp(value: unknown): value is RegExp {
 export function isObject(value: unknown): value is object {
     return typeof value === 'object' && value !== null;
 }
+
+const hasToStringTag = typeof Symbol.toStringTag === 'symbol';
+const $Error = Error as any; // TS doesn't know about Error.isError yet
+const $DOMError = globalThis.DOMError as any;
+export const isError = typeof $Error.isError === 'function' ? $Error.isError as typeof isErrorFallback : isErrorFallback;
+function isErrorFallback(value: unknown): value is Error {
+    if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
+        return false;
+    }
+
+    if (!hasToStringTag || !(Symbol.toStringTag in value)) {
+        const str = objectToString(value);
+        return str === '[object Error]' || // errors
+			str === '[object DOMException]' || // browsers
+			str === '[object DOMError]' || // browsers, deprecated
+			str === '[object Exception]'; // sentry
+    }
+
+    if (typeof $DOMError !== 'undefined' && value instanceof $DOMError) {
+        // Edge 80
+        return true;
+    }
+
+    // fallback for envs with toStringTag but without structuredClone
+    return value instanceof Error;
+}

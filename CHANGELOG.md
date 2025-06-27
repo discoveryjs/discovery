@@ -1,6 +1,7 @@
 ## next
 
 - Bumped [jora](https://github.com/discoveryjs/jora) to 1.0.0-beta.15
+- Added `isError()` utility function, serving as an alias for `Error.isError()` with a fallback if unavailable
 - Fixed an exception in `source` view when `prefix` or `postfix` is neither `undefined` nor a string
 - Fixed `table` view footer rendering when cell rendering is disabled using the `when` option
 - Fixed `table` view to render the footer after the body. Although this change does not affect the visual presentation, it ensures proper selection of table content
