@@ -2,6 +2,7 @@
 
 - Bumped [jora](https://github.com/discoveryjs/jora) to 1.0.0-beta.15
 - Added `jsonSafeParse()` and `jsonSafeStringify()` utility functions, which behave like `JSON.parse()` and `JSON.stringify()` but return an error instead of throwing an exception
+- Added experimental Jora query methods: `jsonParse`, `jsonStringify`, and `jsonInfo` (the latter based on `stringifyInfo()` from [`json-ext`](https://github.com/discoveryjs/json-ext))
 - Added `isError()` utility function, serving as an alias for `Error.isError()` with a fallback if unavailable
 - Added support for displaying error values (where `isError()` returns `true`) in `struct` view
 - Fixed an exception in `source` view when `prefix` or `postfix` is neither `undefined` nor a string

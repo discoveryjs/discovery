@@ -1,6 +1,6 @@
 import type { Model, ModelOptions, PageAnchor, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
-import { hasOwn } from '../core/utils/object-utils.js';
+import modelCommonJoraMethods from './model-common-jora-methods.js';
 import jora from 'jora';
 
 export function createExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
@@ -31,8 +31,8 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
         }
     };
     let queryCustomMethods = {
+        ...modelCommonJoraMethods,
         query: host.query.bind(host),
-        overrideProps,
         pageLink: (pageRef: PageRef, pageId: string, pageParams: PageParams, pageAnchor: PageAnchor) =>
             host.encodePageHash(pageId, pageRef, pageParams, pageAnchor),
         marker: objectMarkers.lookup.bind(objectMarkers),
@@ -63,22 +63,6 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
         }
 
         return mark;
-    }
-
-    function overrideProps(current: any, props = this.context.props) {
-        if (!props) {
-            return current;
-        }
-
-        const result = { ...current };
-
-        for (const key of Object.keys(result)) {
-            if (hasOwn(props, key)) {
-                result[key] = props[key];
-            }
-        }
-
-        return result;
     }
 
     function callAction(actionName: string, ...args: unknown[]) {
