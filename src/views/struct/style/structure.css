@@ -123,14 +123,34 @@
 
 .view-struct .string > .match,
 .view-struct .string-text > .match {
-    background-color: #f5e69a;
+    background-color: light-dark(#f5e69a, #565638);
     padding-top: 1px;
-    border-bottom: 1px solid transparent;
+    border-bottom: 1px solid light-dark(transparent, #a7a73b);
 }
-.discovery-root-darkmode .view-struct .string > .match,
-.discovery-root-darkmode .view-struct .string-text > .match {
-    background-color: #565638;
-    border-color: #a7a73b;
+
+.view-struct .error-value {
+    display: inline-block;
+    vertical-align: text-top;
+    margin-top: -1px;
+    line-height: 1.5;
+    border-radius: 3px;
+    border: 1px solid light-dark(#f8c1c1, #0004);
+    --bg-color: light-dark(#ffe0e0, #622b29);
+    background-color: var(--bg-color);
+    font-size: 84%;
+    color: light-dark(
+        #d23b3b,
+        color-mix(in srgb, #a00 25%, var(--discovery-color))
+    );
+}
+.view-struct .error-value__name {
+    vertical-align: top;
+    padding: 0px 4px;
+}
+.view-struct .error-value__message {
+    padding: 0 4px;
+    display: inline-block;
+    background-color: light-dark(#fff1f1, #443232);
 }
 
 .view-struct .value > .view-table {

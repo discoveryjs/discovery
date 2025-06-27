@@ -1,6 +1,6 @@
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
 import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
-import { isArray } from '../../core/utils/is-type.js';
+import { isArray, isError } from '../../core/utils/is-type.js';
 import { matchAll } from '../../core/utils/pattern.js';
 
 const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
@@ -180,6 +180,15 @@ export default function value2html(value: unknown, compact: boolean, options: Re
                 }
 
                 return `[${content.join(', ')}]`;
+            }
+
+            if (isError(value)) {
+                return (
+                    '<span class="error-value">' +
+                    `<span class="error-value__name">${escapeHtml(value.name)}</span>` +
+                    (compact ? '' : `<span class="error-value__message">${escapeHtml(value.message)}</span>`) +
+                    '</span>'
+                );
             }
 
             switch (objectToString(value)) {
