@@ -78,3 +78,19 @@ export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer, space
             (_, rn, ws, any, property) => rn + ws + any + restoreValue(specials.shift(), ws, property)
         );
 }
+
+export function jsonSafeParse(...args: Parameters<typeof JSON.parse>) {
+    try {
+        return JSON.parse(...args);
+    } catch (e) {
+        return e;
+    }
+}
+
+export function jsonSafeStringify(...args: Parameters<typeof JSON.stringify>) {
+    try {
+        return JSON.stringify(...args) ?? 'null';
+    } catch (e) {
+        return String(e);
+    }
+}
