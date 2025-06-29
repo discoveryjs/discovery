@@ -3,6 +3,7 @@ import type { ValueAnnotation, ValueAnnotationContext } from '../views/struct/re
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 import { ObjectMarkerManager } from '../core/object-marker.js';
 import modelCommonJoraMethods from './model-common-jora-methods.js';
+import modelCommonJoraAssertions from './model-common-jora-assertions.js';
 import jora from 'jora';
 
 export function createLegacyExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
@@ -28,7 +29,6 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
             return host.queryFn.call({ queryFnFromString: joraSetup }, query)(...args);
         }
     };
-    let queryCustomAssertions = {};
     let queryCustomMethods = {
         ...modelCommonJoraMethods,
         query: host.query.bind(host),
@@ -40,6 +40,9 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
         actionHandler: (actionName: string, ...args: unknown[]) => host.action.has(actionName)
             ? () => callAction(actionName, ...args)
             : undefined
+    };
+    let queryCustomAssertions = {
+        ...modelCommonJoraAssertions
     };
     let joraSetup = jora.setup({
         methods: queryCustomMethods,

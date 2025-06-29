@@ -1,6 +1,7 @@
 import type { Model, ModelOptions, PageAnchor, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods, SetupQueryMethodsExtension } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 import modelCommonJoraMethods from './model-common-jora-methods.js';
+import modelCommonJoraAssertions from './model-common-jora-assertions.js';
 import jora from 'jora';
 
 export function createExtensionApi(host: Model, options?: SetDataOptions): PrepareContextApiWrapper {
@@ -30,7 +31,6 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
         addQueryMethods,
         addQueryAssertions
     };
-    let queryCustomAssertions = {};
     let queryCustomMethods = {
         ...modelCommonJoraMethods,
         query: host.query.bind(host),
@@ -42,6 +42,9 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
         actionHandler: (actionName: string, ...args: unknown[]) => host.action.has(actionName)
             ? () => callAction(actionName, ...args)
             : undefined
+    };
+    let queryCustomAssertions = {
+        ...modelCommonJoraAssertions
     };
 
     if (typeof setup === 'function') {
