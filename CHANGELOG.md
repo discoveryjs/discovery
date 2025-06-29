@@ -5,6 +5,8 @@
 - Added experimental Jora query methods: `jsonParse`, `jsonStringify`, and `jsonInfo` (the latter based on `stringifyInfo()` from [`json-ext`](https://github.com/discoveryjs/json-ext))
 - Added `isError()` utility function, serving as an alias for `Error.isError()` with a fallback if unavailable
 - Added support for displaying error values (where `isError()` returns `true`) in `struct` view
+- Added `addQueryMethods()` and `addQueryAssertions()` methods for setup and prepare API
+- Deprecated `addQueryHelpers()`, use `addQueryMethods()` instead
 - Fixed an exception in `source` view when `prefix` or `postfix` is neither `undefined` nor a string
 - Fixed `table` view footer rendering when cell rendering is disabled using the `when` option
 - Fixed `table` view to render the footer after the body. Although this change does not affect the visual presentation, it ensures proper selection of table content

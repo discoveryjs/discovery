@@ -1,4 +1,4 @@
-import type { Model, ModelOptions, PageAnchor, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods } from './model.js';
+import type { Model, ModelOptions, PageAnchor, PageParams, PageRef, PrepareContextApiWrapper, SetDataOptions, SetupMethods, SetupQueryMethodsExtension } from './model.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 import modelCommonJoraMethods from './model-common-jora-methods.js';
 import jora from 'jora';
@@ -23,13 +23,14 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
     const methods: SetupMethods = {
         setPrepare: host.setPrepare.bind(host),
         defineObjectMarker,
-        addQueryHelpers(helpers) {
-            queryCustomMethods = {
-                ...queryCustomMethods,
-                ...helpers
-            };
-        }
+        addQueryHelpers(methods) { // deprecated
+            host.logger.warn('addQueryHelpers() is deprecated, use addQueryMethods() instead');
+            return addQueryMethods(methods);
+        },
+        addQueryMethods,
+        addQueryAssertions
     };
+    let queryCustomAssertions = {};
     let queryCustomMethods = {
         ...modelCommonJoraMethods,
         query: host.query.bind(host),
@@ -49,11 +50,28 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
 
     objectMarkers.lock();
 
-    host.queryFnFromString = jora.setup({ methods: queryCustomMethods });
+    host.queryFnFromString = jora.setup({
+        methods: queryCustomMethods,
+        assertions: queryCustomAssertions
+    });
 
     //
     // Helpers
     //
+
+    function addQueryMethods(methods: SetupQueryMethodsExtension) {
+        queryCustomMethods = {
+            ...queryCustomMethods,
+            ...methods
+        };
+    }
+
+    function addQueryAssertions(assertions: SetupQueryMethodsExtension) {
+        queryCustomAssertions = {
+            ...queryCustomAssertions,
+            ...assertions
+        };
+    }
 
     function defineObjectMarker<T>(name: string, options: ObjectMarkerConfig<T>) {
         const { mark, lookup } = objectMarkers.define(name, options);

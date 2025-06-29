@@ -66,7 +66,10 @@ export interface SetDataOptions {
 export type SetupMethods = {
     setPrepare(fn: PrepareFunction): void;
     defineObjectMarker<T extends object>(name: string, options: ObjectMarkerConfig<T>): ObjectMarker<T>['mark'];
-    addQueryHelpers(helpers: SetupQueryMethodsExtension): void;
+    /** @deprecated use addQueryMethods() instead */
+    addQueryHelpers(methods: SetupQueryMethodsExtension): void;
+    addQueryMethods(methods: SetupQueryMethodsExtension): void;
+    addQueryAssertions(assertions: SetupQueryMethodsExtension): void;
 };
 export type SetupQueryMethodsExtension = {
     [key: string]: string | ((...args: unknown[]) => any);
@@ -90,7 +93,10 @@ export interface LegacyPrepareContextApi {
     lookupObjectMarker(value: any, type?: string): ObjectMarkerDescriptor<object> | null;
     lookupObjectMarkerAll(value: any): ObjectMarkerDescriptor<object>[];
     addValueAnnotation(query: Query, options: object | boolean): void;
-    addQueryHelpers(helpers: SetupQueryMethodsExtension): void;
+    /** @deprecated use addQueryMethods() instead */
+    addQueryHelpers(methods: SetupQueryMethodsExtension): void;
+    addQueryMethods(methods: SetupQueryMethodsExtension): void;
+    addQueryAssertions(assertions: SetupQueryMethodsExtension): void;
     query(query: Query, ...args: unknown[]): any;
 }
 

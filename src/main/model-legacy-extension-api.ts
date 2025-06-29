@@ -1,4 +1,4 @@
-import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions, PageAnchor } from './model.js';
+import type { LegacyPrepareContextApi, PrepareContextApiWrapper, Model, Query, PageRef, PageParams, SetDataOptions, PageAnchor, SetupQueryMethodsExtension } from './model.js';
 import type { ValueAnnotation, ValueAnnotationContext } from '../views/struct/render-annotations.js';
 import type { ObjectMarkerConfig } from '../core/object-marker.js';
 import { ObjectMarkerManager } from '../core/object-marker.js';
@@ -18,18 +18,17 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
         lookupObjectMarker,
         lookupObjectMarkerAll,
         addValueAnnotation,
-        addQueryHelpers(helpers) {
-            joraSetup = jora.setup({
-                methods: queryCustomMethods = {
-                    ...queryCustomMethods,
-                    ...helpers
-                }
-            });
+        addQueryHelpers(methods) { // deprecated
+            host.logger.warn('addQueryHelpers() is deprecated, use addQueryMethods() instead');
+            return addQueryMethods(methods);
         },
+        addQueryMethods,
+        addQueryAssertions,
         query(query: Query, ...args: unknown[]) {
             return host.queryFn.call({ queryFnFromString: joraSetup }, query)(...args);
         }
     };
+    let queryCustomAssertions = {};
     let queryCustomMethods = {
         ...modelCommonJoraMethods,
         query: host.query.bind(host),
@@ -42,7 +41,10 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
             ? () => callAction(actionName, ...args)
             : undefined
     };
-    let joraSetup = jora.setup({ methods: queryCustomMethods });
+    let joraSetup = jora.setup({
+        methods: queryCustomMethods,
+        assertions: queryCustomAssertions
+    });
 
     return {
         contextApi,
@@ -59,6 +61,24 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
     //
     // Helpers
     //
+
+    function addQueryMethods(methods: SetupQueryMethodsExtension) {
+        joraSetup = jora.setup({
+            methods: queryCustomMethods = {
+                ...queryCustomMethods,
+                ...methods
+            }
+        });
+    }
+
+    function addQueryAssertions(assertions: SetupQueryMethodsExtension) {
+        joraSetup = jora.setup({
+            assertions: queryCustomAssertions = {
+                ...queryCustomAssertions,
+                ...assertions
+            }
+        });
+    }
 
     function defineObjectMarker<T>(name: string, options: ObjectMarkerConfig<T>) {
         const { page, mark, lookup } = objectMarkers.define(name, options) || {};
