@@ -53,6 +53,9 @@
     --discovery-fmt-qualifier: #dd4a68;
     --discovery-fmt-entity: #9a6e3a;
     --discovery-fmt-punctuation: #999;
+    --discovery-fmt-meta-color: #9150c5;
+    --discovery-fmt-negative-color: #ec2b2b;
+    --discovery-fmt-positive-color: #690;
 
     --discovery-page-padding-top: 35px;
     --discovery-page-padding-right: 40px;
@@ -87,6 +90,9 @@
     --discovery-fmt-string-color: #7faf20;
     --discovery-fmt-string-underline-color: #85ab51;
     --discovery-fmt-string-hover-color: #97cf26;
+    --discovery-fmt-meta-color: #a783c4;
+    --discovery-fmt-negative-color: #fa6464;
+    --discovery-fmt-positive-color: #7faf20;
 }
 
 .discovery[data-dzen] .discovery-hidden-in-dzen {

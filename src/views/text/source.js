@@ -5,6 +5,7 @@ import CodeMirror from 'codemirror';
 import 'codemirror/mode/javascript/javascript.js';
 import 'codemirror/mode/css/css.js';
 import 'codemirror/mode/xml/xml.js';
+import 'codemirror/mode/diff/diff.js';
 import { escapeHtml } from '../../core/utils/html.js';
 import { createElement } from '../../core/utils/dom.js';
 import { copyText } from '../../core/utils/copy-text.js';

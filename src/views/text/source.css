@@ -336,6 +336,17 @@
 .view-source__source .token.type {
     color: var(--discovery-fmt-type-color);
 }
+
+.view-source__source .token.meta {
+    color: var(--discovery-fmt-meta-color);
+}
+.view-source__source .token.negative {
+    color: var(--discovery-fmt-negative-color);
+}
+.view-source__source .token.positive {
+    color: var(--discovery-fmt-positive-color);
+}
+
 .view-source__source .token.discovery-view-name {
     background-color: var(--discovery-fmt-string-highlight-color);
     box-shadow: 0 0 0 1px var(--discovery-fmt-string-highlight-color);

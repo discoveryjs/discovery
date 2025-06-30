@@ -4,6 +4,21 @@ import { equal } from '../../core/utils/compare.js';
 const codeExample = 'let name = "world";\n\nconsole.log(`Hello, ${name}!`);';
 const lineNum = Function('return num => num + 5')();
 const helloWorld = Function('return () => alert("Hello world!")')();
+const diffPath = '/src/views/text/source.js';
+const diffExample = `diff --git a${diffPath} b${diffPath}
+index 302b02e..62ea1be 100644
+--- a${diffPath}
++++ b${diffPath}
+@@ -18,7 +18,8 @@ CodeMirror.modeToMime = {
+     html: 'text/html',
+     css: 'text/css',
+     scss: 'text/x-scss',
+-    less: 'text/x-less'
++    less: 'text/x-less',
++    diff: 'text/x-diff'
+ };
+ 
+ function codeMirrorHighlight(modespec, host) {`;
 
 function getSupported() {
     const modes = new Set();
@@ -87,6 +102,14 @@ export default {
                 'md:"More syntaxes may be added via `import \'codemirror/mode/[name]/[name]\';`"'
             ],
             source: false
+        },
+        {
+            title: 'Diff syntax example',
+            demo: {
+                view: 'source',
+                syntax: 'diff',
+                source: diffExample
+            }
         },
         {
             title: 'Max content size for syntax highlight',
