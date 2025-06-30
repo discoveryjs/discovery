@@ -512,6 +512,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 mutateGraph(({ nextGraph, last, preLast }) => {
                     const index = preLast.children?.indexOf(last) ?? -1;
                     let nextQuery = preLast.query;
+                    const nextView = preLast.view;
 
                     preLast.children?.splice(index, 1);
                     if (!preLast.children?.length) {
@@ -527,6 +528,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
                     return {
                         query: nextQuery,
+                        view: nextView,
                         graph: nextGraph
                     };
                 });

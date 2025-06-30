@@ -15,6 +15,17 @@
         - Added `isImageContent()`, `getImageContent()` and `getImageDataUri()` utility functions
         - Added `imagecontent` Jora assertion, based on `isImageContent()`, enabling support for `expr is imagecontent` in queries
         - Added Jora query methods: `imagecontent()` (returns the type and content for an image-like string, or `null` otherwise) and `datauri` (produces a data URI string from an image-like string)
+- Reworked the computation graph on the discovery page and related features:
+    - Enhanced the look and feel of the graph
+    - Improved layout handling for complex graphs
+    - Added labels to graph nodes, showing a fragment of the node's query or the content of a comment on the first line if it starts with `//!`
+    - Added a "new root query" button
+    - Removed the graph path query stack view above the query editor
+    - Changed the "clone" and "stash" current query actions to insert a new node immediately after the current node
+    - Fixed overriding of the parent node’s view config on graph node deletion
+    - Fixed premature cancellation of a computing node when switching the current node during path computation if the node is part of the new extended path
+    - Fixed "Copy page as JSON" action to include the graph
+    - Various minor improvements and fixes
 - Fixed an exception in `source` view when `prefix` or `postfix` is neither `undefined` nor a string
 - Fixed `table` view footer rendering when cell rendering is disabled using the `when` option
 - Fixed `table` view to render the footer after the body. Although this change does not affect the visual presentation, it ensures proper selection of table content
