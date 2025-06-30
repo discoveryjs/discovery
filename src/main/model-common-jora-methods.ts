@@ -1,11 +1,14 @@
 import { hasOwn } from '../core/utils/object-utils.js';
 import { jsonSafeParse, jsonSafeStringify, jsonStringifyInfo } from '../core/utils/json';
+import { getImageContent, getImageDataUri } from '../core/utils/image.js';
 
 export default {
     overrideProps,
     jsonInfo: jsonStringifyInfo,
     jsonParse: jsonSafeParse,
-    jsonStringify: jsonSafeStringify
+    jsonStringify: jsonSafeStringify,
+    imagecontent: getImageContent,
+    datauri: getImageDataUri
 };
 
 function overrideProps(current: any, props = this.context.props) {
