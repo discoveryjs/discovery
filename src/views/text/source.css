@@ -342,9 +342,13 @@
 }
 .view-source__source .token.negative {
     color: var(--discovery-fmt-negative-color);
+    background-color: color-mix(in srgb, currentcolor 10%, transparent);
+    padding: 1px 0;
 }
 .view-source__source .token.positive {
     color: var(--discovery-fmt-positive-color);
+    background-color: color-mix(in srgb, currentcolor 10%, transparent);
+    padding: 1px 0;
 }
 
 .view-source__source .token.discovery-view-name {
