@@ -279,7 +279,7 @@
 	color: var(--discovery-fmt-comment-color);
 }
 .view-source__source .token.punctuation {
-	color: var(--discovery-fmt-punctuation);
+	color: var(--discovery-fmt-punctuation-color);
 }
 .view-source__source .token.namespace {
 	opacity: .7;
@@ -326,11 +326,11 @@
 .view-source__source .token.attribute,
 .view-source__source .token.attr-name,
 .view-source__source .token.class-name {
-	color: var(--discovery-fmt-qualifier);
+	color: var(--discovery-fmt-qualifier-color);
 }
 /* .view-source__source .token.operator, */
 .view-source__source .token.entity {
-	color: var(--discovery-fmt-entity);
+	color: var(--discovery-fmt-entity-color);
 }
 .view-source__source .token.image,
 .view-source__source .token.type {
