@@ -28,6 +28,9 @@
             - `getImageSrc()` returns the value itself if it is already an image-like src, or attempts to produce a data URI from image-like content strings; returns `undefined` otherwise
         - Added Jora query assertions based on utilities above: `imagecontent`, `imagedatauri` and `imagesrc`, e.g. `expr is imagedatauri`
         - Added Jora query methods: `imagecontent()`, `imagedatauri()` and `imagesrc()`
+        - Changed `image` view:
+            - When `src` is not explicitly specified in the config and the input data is a string, the data value is processed through `imagesrc()` and used as the `src`
+            - Config entries with a value of `undefined` are ignored
 - Reworked the computation graph on the discovery page and related features:
     - Enhanced the look and feel of the graph
     - Improved layout handling for complex graphs
