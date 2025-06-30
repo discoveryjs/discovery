@@ -31,6 +31,7 @@
         - Changed `image` view:
             - When `src` is not explicitly specified in the config and the input data is a string, the data value is processed through `imagesrc()` and used as the `src`
             - Config entries with a value of `undefined` are ignored
+        - Added a default image-like content string detection annotation in the `struct` view: when a string value is identified as image-like content, a badge is displayed before the string, showing an image preview on hover
 - Reworked the computation graph on the discovery page and related features:
     - Enhanced the look and feel of the graph
     - Improved layout handling for complex graphs

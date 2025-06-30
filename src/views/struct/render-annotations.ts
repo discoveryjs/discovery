@@ -3,6 +3,7 @@ import type { Query } from '../../main/model.js';
 import type { RenderContext, TooltipConfig } from '../../core/view.js';
 import { createElement } from '../../core/utils/dom.js';
 import { numDelim } from '../../core/utils/html.js';
+import { getImageContent } from '../../core/utils/image.js';
 
 export type ValueAnnotation = { query: Query, debug?: string | boolean };
 export type ValueAnnotationContext = {
@@ -58,8 +59,27 @@ export function preprocessAnnotations(annotations: unknown[]) {
     return false;
 }
 
+function imageAnnotation(value: unknown) {
+    if (typeof value === 'string' && value.length > 64) {
+        const imageContent = getImageContent(value);
+
+        if (imageContent !== null) {
+            return {
+                place: 'before',
+                style: 'badge',
+                text: 'image',
+                imageContent,
+                tooltip: {
+                    className: 'view-struct_image-preview-tooltip',
+                    content: 'image-preview{ src: #.config.imageContent | `data:image/${type},${content}` }'
+                }
+            };
+        }
+    }
+}
+
 export function getDefaultAnnotations(host: ViewModel) {
-    return preprocessAnnotations([...host.objectMarkers.values].map(({ name, lookup }) =>
+    const markerAnnotations = [...host.objectMarkers.values].map(({ name, lookup }) =>
         (value: unknown, context: ValueAnnotationContext) => {
             const marker = lookup(value, true);
 
@@ -72,7 +92,9 @@ export function getDefaultAnnotations(host: ViewModel) {
                 };
             }
         }
-    ));
+    );
+
+    return preprocessAnnotations([...markerAnnotations, imageAnnotation]);
 }
 
 export function prepareAnnotations(

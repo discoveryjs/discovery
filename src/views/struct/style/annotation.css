@@ -61,13 +61,16 @@
 
 .view-struct .value-annotation.style-badge {
     text-decoration: none;
-    background: rgba(155, 155, 155, 0.15);
+    background-color: rgba(155, 155, 155, 0.15);
     color: #999;
     border-radius: 3px;
     user-select: none;
 }
+.view-struct .value-annotation.style-badge.discovery-view-has-tooltip:hover {
+    box-shadow: 0 0 0 .5px #888;
+}
 .view-struct .value-annotation.style-badge[href] {
-    background: rgba(55, 155, 230, 0.16);
+    background-color: rgba(55, 155, 230, 0.16);
 }
 .view-struct .value-annotation.style-badge[href]:hover {
     color: #89a0bd;
@@ -77,4 +80,11 @@
 
 .view-struct .value-annotation .num-delim {
     padding-left: 2px;
+}
+
+.view-struct_image-preview-tooltip {
+    padding: 0 !important;
+}
+.view-struct_image-preview-tooltip .view-image-preview {
+    min-width: 160px;
 }
