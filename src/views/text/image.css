@@ -3,6 +3,11 @@
 }
 .view-image:not(.error):not(.loaded) {
     background-color: rgba(141, 141, 141, .3);
+    transition: background-color 0.001s ease-in;
+    transition-delay: 125ms;
+    @starting-style {
+        background-color: transparent;
+    }
 }
 
 .view-image.error,
