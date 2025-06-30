@@ -12,9 +12,22 @@
         - Added `error` Jora assertion, based on `isError()`, enabling support for `expr is error` in queries
         - Added support for displaying error values (where `isError()` returns `true`) in `struct` view
     - Images:
-        - Added `isImageContent()`, `getImageContent()` and `getImageDataUri()` utility functions
-        - Added `imagecontent` Jora assertion, based on `isImageContent()`, enabling support for `expr is imagecontent` in queries
-        - Added Jora query methods: `imagecontent()` (returns the type and content for an image-like string, or `null` otherwise) and `datauri` (produces a data URI string from an image-like string)
+        - Added utility functions:
+            - `isImageContent()` returns `true` if value is image-like content strings, e.g. base64-encoded raw content (JPEG, PNG, SVG, GIF or ICO) or SVG-like string, which can be prefixed with `image/*` or `data:image/*`
+            - `getImageContent()` returns `{ type, content }` for image-like content strings, or `null`
+            - `isImageDataUri()` returns `true` if value is a string starting with `data:image/*,`
+            - `getImageDataUri()` produces an image data URI string from a image-like content strings if possible, or returns `undefined` otherwise
+            - `isImageSrc()` return `true` if value is a path or an URL, including image data URI
+            - `getImageSrc()` returns value itself if it's already an image-like src, or attempts produce a data URI from image-like content strings, or return `undefined` otherwise
+        - Added utility functions:
+            - `isImageContent()` returns `true` if the value is an image-like content string, e.g. base64-encoded raw content (JPEG, PNG, SVG, GIF, ICO) or an SVG-like string, optionally prefixed with `image/*` or `data:image/*`
+            - `getImageContent()` returns `{ type, content }` for image-like content strings, or `null` if not applicable
+            - `isImageDataUri()` returns `true` if the value is a string starting with `data:image/*,`
+            - `getImageDataUri()` produces an image data URI string from image-like content strings if possible, or returns `undefined` otherwise
+            - `isImageSrc()` returns `true` if the value is a path or URL, including an image data URI
+            - `getImageSrc()` returns the value itself if it is already an image-like src, or attempts to produce a data URI from image-like content strings; returns `undefined` otherwise
+        - Added Jora query assertions based on utilities above: `imagecontent`, `imagedatauri` and `imagesrc`, e.g. `expr is imagedatauri`
+        - Added Jora query methods: `imagecontent()`, `imagedatauri()` and `imagesrc()`
 - Reworked the computation graph on the discovery page and related features:
     - Enhanced the look and feel of the graph
     - Improved layout handling for complex graphs

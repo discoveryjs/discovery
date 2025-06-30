@@ -3,7 +3,7 @@ export { equal, deepEqual } from './compare.js';
 export { debounce } from './debounce.js';
 export { randomId } from './id.js';
 export { escapeHtml, numDelim } from './html.js';
-export { isImageContent, getImageContent, getImageDataUri } from './image.js';
+export { isImageContent, getImageContent, isImageDataUri, getImageDataUri, isImageSrc, getImageSrc } from './image.js';
 export type { TypedArray } from './is-type.js';
 export { isTypedArray, isArray, isSet, isRegExp, isError } from './is-type.js';
 export { jsonStringifyAsJavaScript, jsonStringifyInfo, jsonSafeParse, jsonSafeStringify } from './json.js';

@@ -1,5 +1,8 @@
 import { decode as decodeBase64 } from '../../core/utils/base64.js';
 
+const imageDatauriRx = /^data:image\/([a-z\+]+?(?:;base64)?),/;
+const pathSrcRx = /^([a-z\-]+:|\.{0,2}\/)/i;
+
 function isSvg(content: string) {
     if (content.includes('http://www.w3.org/2000/svg')) {
         // ensure the content contains "<svg " or "<svg:" - a most common patterns for SVG
@@ -9,14 +12,36 @@ function isSvg(content: string) {
     return false;
 }
 
+export function isImageDataUri(value: unknown) {
+    return typeof value === 'string' && imageDatauriRx.test(value);
+}
+
 export function getImageDataUri(value: unknown) {
     const image = getImageContent(value);
 
     if (image === null) {
-        return null;
+        return;
     }
 
     return `data:image/${image.type},${image.content}`;
+}
+
+export function isImageSrc(value: unknown) {
+    return (
+        typeof value === 'string' &&
+        pathSrcRx.test(value) &&
+        (isImageDataUri(value) || !isImageContent(value))
+    );
+}
+
+export function getImageSrc(value: unknown) {
+    if (typeof value !== 'string') {
+        return;
+    }
+
+    return isImageSrc(value)
+        ? value
+        : getImageDataUri(value);
 }
 
 export function isImageContent(value: unknown) {
@@ -73,7 +98,7 @@ export function getImageContent(value: unknown) {
                 break;
             case 0x64: // d
                 if (value.startsWith('data:image/')) {
-                    const match = value.match(/^data:image\/([a-z\+]+?(?:;base64)?),/);
+                    const match = value.match(imageDatauriRx);
 
                     if (match !== null) {
                         type = match[1];
