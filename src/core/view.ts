@@ -112,6 +112,7 @@ export type TooltipConfig = Partial<{
     positionMode: PopupOptions['positionMode'];
     pointerOffsetX: number;
     pointerOffsetY: number;
+    hideOnTriggerClick: boolean;
     content: RawViewConfig;
 }>;
 type TooltipInfo = {
@@ -476,6 +477,7 @@ function createTooltip(host: ViewModel) {
             let positionMode: TooltipConfig['positionMode'] = 'natural';
             let pointerOffsetX: TooltipConfig['pointerOffsetX'] = 3;
             let pointerOffsetY: TooltipConfig['pointerOffsetY'] = 3;
+            let hideOnTriggerClick: TooltipConfig['hideOnTriggerClick'] = false;
             let content: any = config;
 
             if (classNames !== null) {
@@ -494,6 +496,7 @@ function createTooltip(host: ViewModel) {
                 positionMode = config.positionMode || positionMode;
                 pointerOffsetX = ensureNumber(config.pointerOffsetX, pointerOffsetX);
                 pointerOffsetY = ensureNumber(config.pointerOffsetY, pointerOffsetY);
+                hideOnTriggerClick = Boolean(config.hideOnTriggerClick);
 
                 content = config.content;
             }
@@ -502,6 +505,7 @@ function createTooltip(host: ViewModel) {
             popup.positionMode = positionMode;
             popup.pointerOffsetX = pointerOffsetX;
             popup.pointerOffsetY = pointerOffsetY;
+            popup.hideOnTriggerClick = hideOnTriggerClick;
 
             if (content) {
                 return host.view.render(el, content, data, context);
@@ -641,6 +645,7 @@ export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup inste
     positionMode: TooltipConfig['positionMode'];
     pointerOffsetX: TooltipConfig['pointerOffsetX'];
     pointerOffsetY: TooltipConfig['pointerOffsetY'];
+    hideOnTriggerClick: TooltipConfig['hideOnTriggerClick'];
     // use method definition aside, since stub implementation doesn't use config parameter
     constructor(config: Partial<PopupOptions>);
     constructor() {}

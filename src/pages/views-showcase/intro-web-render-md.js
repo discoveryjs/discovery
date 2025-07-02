@@ -198,6 +198,7 @@ Tooltip options:
 - \`positionMode\` — Positioning mode. Options are \`'natural'\` (default) or \`'safe'\`.
 - \`pointerOffsetX\` — Horizontal offset from the pointer (default: 3).
 - \`pointerOffsetY\` — Vertical offset from the pointer (default: 3).
+- \`hideOnTriggerClick\` – Hide the tooltip when click a trigger element.
 - \`showDelay\` — Delay before showing the tooltip. Options are \`true\` (300ms, default), \`false\` (0ms), a number, or a function that returns a boolean or numeric value.
 - \`content\` — View configuration for tooltip content.
 `;

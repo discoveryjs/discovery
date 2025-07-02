@@ -16,6 +16,7 @@ export type PopupOptions = {
     hoverPin: false | 'popup-hover' | 'trigger-click';
     hideIfEventOutside: boolean;
     hideOnResize: boolean;
+    hideOnTriggerClick: boolean;
     render: PopupRender;
     className: string;
 };
@@ -228,6 +229,7 @@ export default function(host: ViewModel) {
 
         hideIfEventOutsideDisabled: boolean;
         hideOnResizeDisabled: boolean;
+        hideOnTriggerClickEnabled: boolean;
         hideTimer: ReturnType<typeof setTimeout> | null;
         hoverPinned: boolean;
         frozen: boolean;
@@ -245,6 +247,7 @@ export default function(host: ViewModel) {
                 hoverPin,
                 hideIfEventOutside = true,
                 hideOnResize = true,
+                hideOnTriggerClick = false,
                 className
             } = options || {};
 
@@ -274,6 +277,7 @@ export default function(host: ViewModel) {
             this.hoverPin = isHoverPinModeValue(hoverPin) ? hoverPin : false;
             this.hideIfEventOutsideDisabled = !hideIfEventOutside;
             this.hideOnResizeDisabled = !hideOnResize;
+            this.hideOnTriggerClickEnabled = !hideOnTriggerClick;
 
             if (className) {
                 this.el.classList.add(className);
@@ -511,7 +515,7 @@ export default function(host: ViewModel) {
             }
         }
 
-        hideIfEventOutside({ target }: Event) {
+        hideIfEventOutside({ target, type }: Event) {
             // the feature is disabled or inspect mode is enabled (i.e. inspecting views)
             if (this.hideIfEventOutsideDisabled || inspectorLockedInstances.has(this)) {
                 return;
@@ -519,7 +523,9 @@ export default function(host: ViewModel) {
 
             // event inside a trigger element
             if (this.lastTriggerEl && this.lastTriggerEl.contains(target as Node)) {
-                return;
+                if (!this.hideOnTriggerClickEnabled || type !== 'click') {
+                    return;
+                }
             }
 
             // event inside a popup or its related popups
