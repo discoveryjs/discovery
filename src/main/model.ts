@@ -29,7 +29,7 @@ export type Extension<T> = ExtensionFunction<T> | ExtensionArray<T> | ExtensionO
 
 export type PageId = string;
 export type PageRef = string | number | null;
-export type PageParams = Record<string, unknown> | [string, unknown][] | string;
+export type PageParams = Record<string, unknown> | [key: string, value?: unknown][] | string;
 export type PageAnchor = string | null;
 export type PageHashStateWithAnchor = PageHashState & { anchor: PageAnchor; }
 export type PageHashState = {

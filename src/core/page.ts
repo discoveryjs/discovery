@@ -14,7 +14,7 @@ export type PageOptions = {
     init(newPageEl: HTMLElement): void;
     render: PageOptionRender;
     keepScrollOffset: boolean;
-    encodeParams(params: PageParams): [string, any][] | string;
+    encodeParams(params: PageParams): [key: string, value?: any][] | string;
     decodeParams(params: [string, string | boolean][]): Record<string, unknown>;
 };
 export type PageOptionsWithoutRender = Exclude<PageOptions, 'render'>;
@@ -84,8 +84,8 @@ export class PageRenderer extends Dictionary<Page> {
     }
 
     define(name: string, options: PageOptions): Readonly<Page>;
-    define(name: string, render: PageOptionRender, options?: PageOptionsWithoutRender): Readonly<Page>;
-    define(name: string, _render: PageOptionRender | PageOptions, _options?: PageOptionsWithoutRender): Readonly<Page> {
+    define(name: string, render: PageOptionRender, options?: Partial<PageOptionsWithoutRender>): Readonly<Page>;
+    define(name: string, _render: PageOptionRender | PageOptions, _options?: Partial<PageOptionsWithoutRender>): Readonly<Page> {
         const options: Partial<PageOptions> = isRawViewConfig(_render) || typeof _render === 'function'
             ? { ..._options, render: _render }
             : _render;

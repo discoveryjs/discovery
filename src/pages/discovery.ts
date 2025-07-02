@@ -1,12 +1,14 @@
 /* eslint-env browser */
+import type { ViewModel } from '../main/view-model.js';
+import type { KnownParams } from './discovery/types.js';
 import { createElement } from '../core/utils/dom.js';
 import { encodeParams, decodeParams } from './discovery/params.js';
 import createHeader from './discovery/header.js';
 import createQueryEditor from './discovery/editor-query.js';
 import createViewEditor from './discovery/editor-view.js';
 
-export default function(host) {
-    function updateParams(delta, replace) {
+export default function(host: ViewModel) {
+    function updateParams(delta: Partial<KnownParams>, replace: boolean) {
         return host.setPageParams({
             ...host.pageParams,
             ...delta
@@ -44,25 +46,32 @@ export default function(host) {
         };
     }
 
-    function actionQueryAcceptChanges(data) {
+    function actionQueryAcceptChanges(data: unknown) {
         return data === lastPerformData;
     }
 
-    function actionQuerySubquery(query, rootData) {
+    function actionQuerySubquery(query: string, rootData: unknown) {
         if (actionQueryAcceptChanges(rootData)) {
             get().queryEditor.createSubquery(query);
         }
     }
 
-    function actionQueryAppend(query, rootData) {
+    function actionQueryAppend(query: string, rootData: unknown) {
         if (actionQueryAcceptChanges(rootData)) {
             get().queryEditor.appendToQuery(query);
         }
     }
 
-    let refs = null;
-    let lastRequest = null;
-    let lastPerformData = NaN; // used NaN to mismatch with any value
+    let refs: null | {
+        header: ReturnType<typeof createHeader>,
+        queryEditor: ReturnType<typeof createQueryEditor>,
+        viewEditor: ReturnType<typeof createViewEditor>,
+        discoverEditorEl: HTMLElement,
+        discoverContentEl: HTMLElement,
+        layout: HTMLElement[]
+    } = null;
+    let lastRequest = Symbol();
+    let lastPerformData: unknown = NaN; // used NaN to mismatch with any value
 
     host.on('pageStateChange', (prev) => {
         if (host.pageId !== prev.id) {
@@ -84,7 +93,7 @@ export default function(host) {
     //
     // Page
     //
-    host.page.define('discovery', function(el, data, context) {
+    host.page.define('discovery', function(_, data: any, context: any) {
         const {
             header,
             queryEditor,
@@ -94,7 +103,7 @@ export default function(host) {
         } = get();
 
         // process noedit setting
-        discoverEditorEl.hidden = context.params.noedit;
+        discoverEditorEl.hidden = context?.params.noedit;
 
         // update page title
         header.render(data, context);

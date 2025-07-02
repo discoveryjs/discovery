@@ -508,7 +508,7 @@ export class ViewModel<
     encodePageHash(pageId: string, pageRef: PageRef = null, pageParams?: PageParams, pageAnchor: string | null = null) {
         const encodedPageId = pageId || this.defaultPageId;
         const encodeParams = getPageMethod(this, pageId, 'encodeParams', defaultEncodeParams);
-        const encodedParams: [string, any][] | string = encodeParams(pageParams || {});
+        const encodedParams = encodeParams(pageParams || {});
 
         return super.encodePageHash(
             encodedPageId !== this.defaultPageId ? encodedPageId : '',
