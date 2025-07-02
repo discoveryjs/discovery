@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.98 (02-07-2025)
 
 - Bumped [jora](https://github.com/discoveryjs/jora) to 1.0.0-beta.15
 - Added `addQueryMethods()` and `addQueryAssertions()` methods for setup and prepare API
