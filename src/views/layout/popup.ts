@@ -224,12 +224,12 @@ export default function(host: ViewModel) {
         positionMode: PopupOptions['positionMode'];
         pointerOffsetX: PopupOptions['pointerOffsetX'];
         pointerOffsetY: PopupOptions['pointerOffsetY'];
+        hideOnTriggerClick: PopupOptions['hideOnTriggerClick'];
         hoverTriggers: PopupOptions['hoverTriggers'];
         hoverPin: PopupOptions['hoverPin'];
 
         hideIfEventOutsideDisabled: boolean;
         hideOnResizeDisabled: boolean;
-        hideOnTriggerClickEnabled: boolean;
         hideTimer: ReturnType<typeof setTimeout> | null;
         hoverPinned: boolean;
         frozen: boolean;
@@ -277,7 +277,7 @@ export default function(host: ViewModel) {
             this.hoverPin = isHoverPinModeValue(hoverPin) ? hoverPin : false;
             this.hideIfEventOutsideDisabled = !hideIfEventOutside;
             this.hideOnResizeDisabled = !hideOnResize;
-            this.hideOnTriggerClickEnabled = !hideOnTriggerClick;
+            this.hideOnTriggerClick = Boolean(hideOnTriggerClick);
 
             if (className) {
                 this.el.classList.add(className);
@@ -523,7 +523,7 @@ export default function(host: ViewModel) {
 
             // event inside a trigger element
             if (this.lastTriggerEl && this.lastTriggerEl.contains(target as Node)) {
-                if (!this.hideOnTriggerClickEnabled || type !== 'click') {
+                if (!this.hideOnTriggerClick || type !== 'click') {
                     return;
                 }
             }
