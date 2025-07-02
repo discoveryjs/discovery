@@ -1,0 +1,18 @@
+.view-text-diff {
+    display: inline-block;
+    font-family: var(--discovery-monospace-font-family);
+    font-size: var(--discovery-monospace-font-size, 12px);
+    line-height: var(--discovery-monospace-line-height, 1.5);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.view-text-diff .added {
+    padding: 1.5px 0;
+    background-color: color-mix(in srgb, #92da92 70%, var(--discovery-background-color));
+    color: rgba(0, 0, 0, .75);
+}
+.view-text-diff .removed {
+    padding: 1.5px 0;
+    background-color: color-mix(in srgb, #de6666 65%, var(--discovery-background-color));
+    color: rgba(0, 0, 0, .75);
+}

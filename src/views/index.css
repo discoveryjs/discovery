@@ -30,6 +30,7 @@
 @import url('./text/indicator.css');
 @import url('./text/markdown.css');
 @import url('./text/source.css');
+@import url('./text/text-diff.css');
 @import url('./text/text-match.css');
 @import url('./text/text-numeric.css');
 @import url('./text-render.css');

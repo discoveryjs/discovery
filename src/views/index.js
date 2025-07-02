@@ -42,6 +42,7 @@ export { default as link } from './text/link.js';
 export { default as markdown } from './text/markdown.js';
 export { default as source } from './text/source.js';
 export { default as text } from './text/text.js';
+export { default as textDiff } from './text/text-diff.js';
 export { default as textMatch } from './text/text-match.js';
 export { default as textNumeric } from './text/text-numeric.js';
 
