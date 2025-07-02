@@ -1,6 +1,6 @@
 /* eslint-env browser */
 import type { ViewModel } from '../main/view-model.js';
-import type { KnownParams } from './discovery/types.js';
+import type { Computation, KnownParams } from './discovery/types.js';
 import { createElement } from '../core/utils/dom.js';
 import { encodeParams, decodeParams } from './discovery/params.js';
 import createHeader from './discovery/header.js';
@@ -70,7 +70,6 @@ export default function(host: ViewModel) {
         discoverContentEl: HTMLElement,
         layout: HTMLElement[]
     } = null;
-    let lastRequest = Symbol();
     let lastPerformData: unknown = NaN; // used NaN to mismatch with any value
 
     host.on('pageStateChange', (prev) => {
@@ -112,12 +111,7 @@ export default function(host: ViewModel) {
         lastPerformData = NaN;
 
         // perform query
-        const request = lastRequest = Symbol('last-query-request');
-        queryEditor.perform(data, context).then(queryResult => {
-            if (lastRequest !== request) {
-                return;
-            }
-
+        queryEditor.perform(data, context).then((queryResult: Computation) => {
             if (queryResult.error) {
                 viewEditor.el.hidden = true;
                 discoverContentEl.hidden = true;

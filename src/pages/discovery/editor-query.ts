@@ -29,10 +29,6 @@ type GraphWalkNode = {
     layerPos: number;
     layerOptPos: number;
 };
-type ScheduledCompute = {
-    computation: Computation;
-    cancel(): void;
-};
 type EditorErrorMarker = {
     clear(): void;
 };
@@ -347,11 +343,11 @@ function normalizeGraph(inputGraph: Partial<Graph>): Graph {
 }
 
 function getPathInGraph(graph: Graph, path: number[]) {
-    const result: GraphNodePath = [graph];
+    const result: GraphNode[] = [];
     let cursor: Graph | GraphNode = graph;
 
     for (let i = 0; i < path.length; i++) {
-        cursor = cursor.children?.[path[i]] as GraphNode;
+        cursor = cursor.children?.[path[i]] || {};
         result.push(cursor);
     }
 
@@ -383,16 +379,29 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     let currentContext: unknown;
     let currentDatasets: ViewDataset[] = [];
     let errorMarker: EditorErrorMarker | null = null;
-    let scheduledCompute: ScheduledCompute | null = null;
     let computationCache: Computation[] = [];
+    let computationPlan: Computation[] = [];
+    let computationPlanTarget: Computation | null = null;
+    let computationPath: number[] = [];
 
     let queryEditorSuggestionsEl: HTMLInputElement;
     let queryEditorLiveEditEl: HTMLInputElement;
     const getQuerySuggestions = (query: string, offset: number, data: unknown, context: unknown) =>
         queryEditorSuggestionsEl.checked ? host.querySuggestions(query, offset, data, context) : null;
-    const queryEditor = new QueryEditorClass(getQuerySuggestions).on('change', value =>
-        queryEditorLiveEditEl.checked && updateHostParams({ query: value }, true)
-    );
+    const queryEditor = new QueryEditorClass(getQuerySuggestions).on('change', (value, change) => {
+        if (!queryEditorLiveEditEl.checked) {
+            return;
+        }
+
+        // cancel current plan and render (if any) when editor's value changed by user input
+        if (change.origin !== 'setValue') {
+            computationPlan = computationPlan.slice();
+            host.cancelScheduledRender();
+        }
+
+        // update params
+        updateHostParams({ query: value }, true);
+    });
     const queryEngineInfo = host.getQueryEngineInfo();
     const queryGraphButtonsEl = createElement('div', 'query-graph-actions');
     const queryEditorButtonsEl = createElement('div', 'buttons');
@@ -672,18 +681,13 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
     function mutateGraph(fn: GraphMutator, autofocus = true) {
         const nextGraph = JSON.parse(JSON.stringify(currentGraph)); // accept only serializable data, clean up undefined
-        const currentPath = getPathInGraph(nextGraph, nextGraph.current);
+        const currentPath: GraphNodePath = [nextGraph, ...getPathInGraph(nextGraph, nextGraph.current)];
         const last = currentPath[currentPath.length - 1];
         const preLast = currentPath[currentPath.length - 2];
 
         const params = fn({ nextGraph, currentPath, last, preLast });
 
         updateParams(params, autofocus);
-    }
-
-    function scheduleCompute(fn: () => void) {
-        const id = setTimeout(fn, 1);
-        return () => clearTimeout(id);
     }
 
     function syncInputData(computation: Computation) {
@@ -778,7 +782,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         );
     }
 
-    function syncOutputData(computation) {
+    function syncOutputData(computation: Computation) {
         if (errorMarker) {
             errorMarker.clear();
             errorMarker = null;
@@ -804,7 +808,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, 'Result', [
                     valueDescriptor(computation.computed),
-                    ` in ${parseInt(computation.duration, 10)}ms`
+                    ` in ${Math.floor(computation.duration)}ms`
                 ]);
 
                 break;
@@ -815,7 +819,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 const range = error?.details?.loc?.range;
                 const doc = queryEditor.cm.doc;
 
-                if (Array.isArray(range) && range.length === 2) {
+                if (error && Array.isArray(range) && range.length === 2) {
                     const [start, end] = range;
 
                     errorMarker = error.details?.token === 'EOF' || start === end || computation.query[start] === '\n'
@@ -832,7 +836,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
                 queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, 'Error', [
-                    error.message.split(/\n/)[0].replace(/^(Parse error|Bad input).+/s, 'Parse error')
+                    error?.message.split(/\n/)[0].replace(/^(Parse error|Bad input).+/s, 'Parse error') || 'Error'
                 ]);
 
                 break;
@@ -879,66 +883,35 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     }
 
     function syncComputeState(computation: Computation) {
-        const path = computation.path.join(' ');
-        const graphNodeEl: HTMLElement | null = queryGraphEl.querySelector(`[data-path="${path}"]`);
+        const graphNodeEl: HTMLElement | null = queryGraphEl.querySelector(`[data-path="${computation.path}"]`);
 
         if (graphNodeEl) {
             graphNodeEl.dataset.state = computation.state;
         }
 
-        if (computationCache[currentGraph.current.length - 1] === computation) {
+        if (computation === computationPlanTarget) {
             syncInputData(computation);
             syncOutputData(computation);
         }
     }
 
-    function compute(computeIndex: number, computeData: unknown, computeContext: unknown, first = false) {
-        if (scheduledCompute) {
-            scheduledCompute.cancel();
-            scheduledCompute.computation.state = 'awaiting';
-            scheduledCompute = null;
-        }
-
-        if (first) {
-            const computatationPaths = new Set();
-
-            for (let i = computeIndex; i < currentGraph.current.length; i++) {
-                const computation = computationCache[i];
-
-                if (computation.state !== 'computing') {
-                    syncComputeState(computation);
-                }
-
-                computatationPaths.add(computation.path.join(' '));
-            }
-
-            for (const el of queryGraphEl.querySelectorAll('[data-state]')) {
-                const graphNodeEl = el as HTMLElement;
-
-                if (!computatationPaths.has(graphNodeEl.dataset.path)) {
-                    delete graphNodeEl.dataset.state;
-                }
-            }
-
-            // A trick to reset all transitions on graph nodes, as transitions
-            // can freeze when the main thread is blocked and display an incorrect state of nodes
-            const placeholder = document.createComment('');
-            queryGraphEl.replaceWith(placeholder);
-            placeholder.replaceWith(queryGraphEl);
-        }
-
-        for (let i = computeIndex, computeError = false; i < currentGraph.current.length; i++) {
-            const computation = computationCache[i];
-            const isTarget = i === currentGraph.current.length - 1;
+    function computePlan(
+        plan: Computation[],
+        computeIndex: number,
+        computeData: unknown,
+        computeContext: unknown
+    ): Promise<Computation> {
+        for (let i = computeIndex, computeError = false; i < plan.length; i++) {
+            const computation = plan[i];
 
             if (computation.state === 'awaiting') {
                 computation.state = 'computing';
             }
 
-            if (computation.state === 'failed') {
-                computeError = true;
-            } else if (computeError) {
+            if (computeError) {
                 computation.state = 'canceled';
+            } else if (computation.state === 'failed') {
+                computeError = true;
             }
 
             if (computation.state !== 'computing') {
@@ -946,78 +919,81 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 computeContext = computation.context; // in the future it can be changed
                 syncComputeState(computation);
 
-                if (isTarget) {
+                if (computation === computationPlanTarget) {
                     return Promise.resolve(computation);
                 }
 
                 continue;
             }
 
+            // computation.state === 'processing'
             return new Promise((resolve, reject) => {
                 computation.data = computeData;
                 computation.context = computeContext;
                 syncComputeState(computation);
-                scheduledCompute = {
-                    computation,
-                    cancel: scheduleCompute(() => {
-                        const startTime = Date.now();
 
-                        scheduledCompute = null;
+                // move computations to next tick to give a chance for a browser to update UI
+                setTimeout(() => {
+                    // bailout if current plan has been changed
+                    if (plan !== computationPlan) {
+                        return Promise.reject('Computation plan is canceled');
+                    }
 
-                        try {
-                            computation.computed = host.query(computation.query, computation.data, computation.context);
-                            computation.state = 'successful';
-                        } catch (error) {
-                            computation.error = error;
-                            computation.state = 'failed';
-                        }
+                    const startTime = Date.now();
 
-                        computation.duration = Date.now() - startTime;
+                    try {
+                        computation.computed = host.query(computation.query, computation.data, computation.context);
+                        computation.state = 'successful';
+                    } catch (error) {
+                        computation.error = error;
+                        computation.state = 'failed';
+                    }
 
-                        // compute next
-                        compute(
-                            i,
-                            computeData,
-                            computeContext
-                        ).then(resolve, reject);
-                    })
-                };
+                    computation.duration = Date.now() - startTime;
+
+                    // compute next
+                    computePlan(
+                        plan,
+                        i,
+                        computeData,
+                        computeContext
+                    ).then(resolve, reject);
+                }, 1);
             });
         }
 
-        return Promise.reject('No computation found');
+        return Promise.reject('No target computation found');
     }
 
-    function makeComputationPlan(computeData: unknown, computeContext: unknown) {
-        const graphPath = getPathInGraph(currentGraph, currentGraph.current).slice(1);
-        let computingIndex = -1;
+    function createComputationPlan(graph: Graph, computeData: unknown, computeContext: unknown, cache: Computation[]) {
+        const graphPath = graph.current;
+        const graphNodePath = getPathInGraph(graph, graphPath);
+        const plan: Computation[] = [];
         let computeError: Error | null = null;
 
-        for (let i = 0; i < currentGraph.current.length; i++) {
-            const graphNode = graphPath[i];
-            const cache = computationCache[i] || {};
-            const isTarget = i === currentGraph.current.length - 1;
-            const computeQuery = isTarget ? currentQuery : (graphNode as GraphNode).query;
-            const computePath = currentGraph.current.slice(0, i + 1);
+        for (let i = 0, len = Math.min(graphPath.length, cache.length); i < len; i++) {
+            const cached = cache[i];
+            const isTarget = i === graphPath.length - 1;
+            const computeQuery = isTarget ? currentQuery : graphNodePath[i].query || '';
 
-            if (computingIndex === -1 &&
-                cache.query === computeQuery &&
-                cache.data === computeData &&
-                cache.context === computeContext &&
-                String(cache.path) === String(computePath)) {
-                computeData = cache.computed;
-                computeError = cache.error;
-
-                if (cache.state === 'computing') {
-                    computingIndex = i;
-                }
-
-                continue;
+            if (!Object.is(cached.query, computeQuery) ||
+                !Object.is(cached.data, computeData) ||
+                !Object.is(cached.context, computeContext)) {
+                break;
             }
 
-            const computation: Computation = computationCache[i] = {
-                state: 'awaiting',
-                path: computePath,
+            plan.push(cached);
+            cached.path = graphPath.slice(0, i + 1).join(' ');
+            computeData = cached.computed;
+            computeError = cached.error;
+        }
+
+        for (let i = plan.length; i < graphPath.length; i++) {
+            const isTarget = i === graphPath.length - 1;
+            const computeQuery = isTarget ? currentQuery : graphNodePath[i].query || '';
+            const computation: Computation = cache[i] = {
+                state: computeError ? 'canceled' : 'awaiting',
+                path: graphPath.slice(0, i + 1).join(' '),
                 query: computeQuery || '',
                 data: undefined,
                 context: undefined,
@@ -1026,23 +1002,76 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 duration: 0
             };
 
-            if (computeError) {
-                computation.state = 'canceled';
-                continue;
-            }
+            cache[i] = computation;
+            plan.push(computation);
+        }
 
-            if (computingIndex === -1) {
-                computingIndex = i;
-                // computation.state = 'computing';
-                // computation.data = computeData;
-                // computation.context = computeContext;
-                continue;
+        return plan;
+    }
+
+    function isEqualArrays(a: unknown[], b: unknown[]) {
+        if (a === b) {
+            return true;
+        }
+
+        if (a.length !== b.length) {
+            return false;
+        }
+
+        for (let i = 0; i < a.length; i++) {
+            if (!Object.is(a[i], b[i])) {
+                return false;
             }
         }
 
-        return computingIndex !== -1
-            ? computationCache.slice(computingIndex, currentGraph.current.length)
-            : [];
+        return true;
+    }
+
+    function computeGraph(graph: Graph, data: unknown, context: unknown) {
+        const nextPlan = createComputationPlan(graph, data, context, computationCache);
+        const nextTarget = nextPlan[nextPlan.length - 1];
+        const planChanged = !isEqualArrays(computationPlan, nextPlan);
+        const pathChanged = !isEqualArrays(computationPath, graph.current);
+
+        computationPlan = nextPlan;
+        computationPath = graph.current;
+
+        if (planChanged || pathChanged) {
+            const pathState = new Map(nextPlan.map(({ path, state }) => [path, state]));
+            let stateChanged = false;
+
+            // sync graph node states with current computation path
+            for (const el of queryGraphEl.querySelectorAll('[data-path]')) {
+                const graphNodeEl = el as HTMLElement;
+                const prevState = graphNodeEl.dataset.state;
+                const nextState = pathState.get(graphNodeEl.dataset.path as string);
+
+                if (prevState !== nextState) {
+                    stateChanged = true;
+
+                    if (typeof nextState === 'string') {
+                        graphNodeEl.dataset.state = nextState;
+                    } else {
+                        delete graphNodeEl.dataset.state;
+                    }
+                }
+            }
+
+            // A trick to reset all transitions on graph nodes, as transitions
+            // can freeze when the main thread is blocked and display an incorrect state of nodes
+            if (stateChanged) {
+                const placeholder = document.createComment('');
+                queryGraphEl.replaceWith(placeholder);
+                placeholder.replaceWith(queryGraphEl);
+            }
+        }
+
+        if (computationPlanTarget !== nextTarget) {
+            computationPlanTarget = nextTarget;
+            syncComputeState(computationPlanTarget);
+        }
+
+        return computePlan(computationPlan, 0, data, context);
     }
 
     return {
@@ -1077,8 +1106,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             currentView = pageView;
 
             // perform queries
-            makeComputationPlan(data, queryContext);
-            return compute(0, data, queryContext, true);
+            return computeGraph(currentGraph, data, queryContext);
         }
     };
 }

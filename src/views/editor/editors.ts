@@ -14,6 +14,10 @@ import './editors-hint.js';
 
 type CodeMirrorChange = {
     origin: string;
+    removed: string[];
+    text: string[];
+    from: { line: number; ch: number; },
+    to: { line: number; ch: number; }
 };
 export type EditorOptions = {
     mode: string | { name: string; isDiscoveryViewDefined?: (name: string) => boolean; };
@@ -77,7 +81,7 @@ const renderQueryAutocompleteItem: EditorHintSuggestion['render'] = (el, _, { en
 };
 
 export class Editor extends Emitter<{
-    change: [newValue: string];
+    change: [newValue: string, change: CodeMirrorChange];
 }> {
     static CodeMirror = CodeMirror;
 
@@ -112,11 +116,11 @@ export class Editor extends Emitter<{
             cm.display.lineDiv.parentNode.dataset.placeholder = placeholder;
         }
 
-        cm.on('change', () => {
+        cm.on('change', (_, change: CodeMirrorChange) => {
             const newValue = cm.getValue();
 
             this.el.classList.toggle('empty-value', newValue === '');
-            this.emit('change', newValue);
+            this.emit('change', newValue, change);
         });
 
         if (typeof hint === 'function') {

@@ -23,9 +23,9 @@ export type GraphNode = Partial<{
 }>;
 export type Computation = {
     state: 'successful' | 'failed' | 'awaiting' | 'computing' | 'canceled';
-    path: number[];
+    path: string;
     query: string;
-    error: Error | null;
+    error: Error & { details?: any } | null;
     data: unknown;
     context: unknown;
     computed: unknown;
