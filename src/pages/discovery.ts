@@ -123,7 +123,7 @@ export default function(host: ViewModel) {
             discoverContentEl.hidden = false;
 
             viewEditor.render(lastPerformData, /* queryResult.context */ context, discoverContentEl);
-        });
+        }, () => {});
     }, {
         reuseEl: true,
         init(el) {

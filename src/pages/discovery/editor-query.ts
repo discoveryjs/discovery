@@ -3,7 +3,7 @@ import type { ViewModel } from '../../main/view-model.js';
 import type { QueryEditor } from '../../views/editor/editors.js';
 import type { Computation, Graph, GraphNode, UpdateHostParams } from './types.js';
 import { createElement } from '../../core/utils/dom.js';
-import { escapeHtml } from '../../core/utils/html.js';
+import { escapeHtml, numDelim } from '../../core/utils/html.js';
 import { getBoundingRect } from '../../core/utils/layout.js';
 import { contextWithoutEditorParams, getParamsFromContext } from './params.js';
 import { Dataset } from '../../core/utils/load-data.types.js';
@@ -51,6 +51,10 @@ function valueDescriptor(value: unknown) {
     }
 
     return `Scalar (${value === null ? 'null' : typeof value})`;
+}
+
+function createNumDelimElement(value: unknown) {
+    return createElement('span', 'num-delim-wrapper', numDelim(value));
 }
 
 function svg(tagName: string, attributes?: Record<string, unknown>) {
@@ -183,6 +187,7 @@ function syncQueryGraphView(el: HTMLElement, graph: Graph, host: ViewModel, targ
 
         host.view.attachTooltip(nodeEl, {
             className: 'query-graph-tooltip',
+            hideOnTriggerClick: true,
             content: isTarget ? 'badge:"Current query"' : {
                 view: 'source',
                 syntax: '=query | trim() ? "jora" : false',
@@ -397,6 +402,11 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         if (change.origin !== 'setValue') {
             computationPlan = computationPlan.slice();
             host.cancelScheduledRender();
+        }
+
+        if (errorMarker) {
+            errorMarker.clear();
+            errorMarker = null;
         }
 
         // update params
@@ -706,7 +716,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                     ? 'Computing...'
                     : computation.state === 'canceled'
                         ? 'Not available (undefined)'
-                        : valueDescriptor(computation.data)
+                        : createNumDelimElement(valueDescriptor(computation.data))
             ]),
             createElement('div', {
                 class: 'query-input-context',
@@ -721,7 +731,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                     ? 'Computing...'
                     : computation.state === 'canceled'
                         ? 'Not available (undefined)'
-                        : valueDescriptor(computation.context)
+                        : createNumDelimElement(valueDescriptor(computation.context))
             ])
         );
 
@@ -783,11 +793,6 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     }
 
     function syncOutputData(computation: Computation) {
-        if (errorMarker) {
-            errorMarker.clear();
-            errorMarker = null;
-        }
-
         switch (computation.state) {
             case 'canceled': {
                 queryEditor.setValue(computation.query);
@@ -807,8 +812,10 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             case 'successful': {
                 queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, 'Result', [
-                    valueDescriptor(computation.computed),
-                    ` in ${Math.floor(computation.duration)}ms`
+                    createNumDelimElement(valueDescriptor(computation.computed)),
+                    ' in ',
+                    createNumDelimElement(Math.floor(computation.duration)),
+                    'ms'
                 ]);
 
                 break;
@@ -895,12 +902,20 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         }
     }
 
-    function computePlan(
+    function executeComputationPlan(
         plan: Computation[],
         computeIndex: number,
         computeData: unknown,
-        computeContext: unknown
+        computeContext: unknown,
+        scheduleTask = (fn: (...args: any[]) => any) => {
+            setTimeout(fn, 1);
+        }
     ): Promise<Computation> {
+        // bailout if current plan has been changed
+        if (plan !== computationPlan) {
+            return Promise.reject('Computation plan is canceled');
+        }
+
         for (let i = computeIndex, computeError = false; i < plan.length; i++) {
             const computation = plan[i];
 
@@ -933,7 +948,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 syncComputeState(computation);
 
                 // move computations to next tick to give a chance for a browser to update UI
-                setTimeout(() => {
+                scheduleTask(() => {
                     // bailout if current plan has been changed
                     if (plan !== computationPlan) {
                         return Promise.reject('Computation plan is canceled');
@@ -952,13 +967,11 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                     computation.duration = Date.now() - startTime;
 
                     // compute next
-                    computePlan(
-                        plan,
-                        i,
-                        computeData,
-                        computeContext
-                    ).then(resolve, reject);
-                }, 1);
+                    setTimeout(
+                        () => executeComputationPlan(plan, i, computeData, computeContext).then(resolve, reject),
+                        1
+                    );
+                });
             });
         }
 
@@ -1036,9 +1049,15 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         computationPlan = nextPlan;
         computationPath = graph.current;
 
+        if (nextTarget !== computationPlanTarget) {
+            computationPlanTarget = nextTarget;
+            syncComputeState(nextTarget);
+        }
+
+        const result = executeComputationPlan(computationPlan, 0, data, context, fn => requestAnimationFrame(() => setTimeout(fn, 1)));
+
         if (planChanged || pathChanged) {
             const pathState = new Map(nextPlan.map(({ path, state }) => [path, state]));
-            let stateChanged = false;
 
             // sync graph node states with current computation path
             for (const el of queryGraphEl.querySelectorAll('[data-path]')) {
@@ -1047,8 +1066,6 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 const nextState = pathState.get(graphNodeEl.dataset.path as string);
 
                 if (prevState !== nextState) {
-                    stateChanged = true;
-
                     if (typeof nextState === 'string') {
                         graphNodeEl.dataset.state = nextState;
                     } else {
@@ -1059,11 +1076,9 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
 
             // A trick to reset all transitions on graph nodes, as transitions
             // can freeze when the main thread is blocked and display an incorrect state of nodes
-            if (stateChanged) {
-                const placeholder = document.createComment('');
-                queryGraphEl.replaceWith(placeholder);
-                placeholder.replaceWith(queryGraphEl);
-            }
+            const placeholder = document.createComment('');
+            queryGraphEl.replaceWith(placeholder);
+            placeholder.replaceWith(queryGraphEl);
         }
 
         if (computationPlanTarget !== nextTarget) {
@@ -1071,7 +1086,7 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
             syncComputeState(computationPlanTarget);
         }
 
-        return computePlan(computationPlan, 0, data, context);
+        return result;
     }
 
     return {

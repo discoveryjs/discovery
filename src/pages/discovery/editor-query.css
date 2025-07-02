@@ -4,6 +4,7 @@
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
+    display: none;
 }
 .page-discovery > .discovery-editor .query-datasets .dataset {
     position: relative;
@@ -379,6 +380,9 @@
     padding-right: 14px;
     color: var(--discovery-fmt-variable-color);
     font-family: var(--discovery-monospace-font-family);
+}
+.page-discovery > .discovery-editor .query-editor > .discovery-view-editor .num-delim-wrapper .num-delim {
+    padding-left: 1.25px;
 }
 .page-discovery > .discovery-editor .query-editor > .discovery-view-editor .query-input-variable::before {
     content: '';
