@@ -44,6 +44,24 @@ export default (view, group) => ({
                     data: '"prefix-" + $'
                 }
             }
+        },
+        {
+            title: 'Configure item\'s limit',
+            demo: {
+                view,
+                data: ['one', 'two', 'three', 'four'],
+                limit: 2,
+                item: 'text:$'
+            }
+        },
+        {
+            title: 'Configure item\'s no limit',
+            demo: {
+                view,
+                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+                limit: false,
+                item: 'text:$'
+            }
         }
     ]
 });
