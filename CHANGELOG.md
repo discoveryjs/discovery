@@ -1,4 +1,4 @@
-## next
+## 1.0.0-beta.99 (19-08-2025)
 
 - Updated JSONXL:
     - Fixed an edge case for signed numbers in the range ±[MAX_SAFE_INTEGER/2 … MAX_SAFE_INTEGER].
