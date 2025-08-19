@@ -1,3 +1,9 @@
+## next
+
+- Updated JSONXL:
+    - Fixed an edge case for signed numbers in the range ±[MAX_SAFE_INTEGER/2 … MAX_SAFE_INTEGER].
+    - Removed the limitation that could trigger when the total encoded string length exceeded the maximum string length (~500 MB in V8)
+
 ## 1.0.0-beta.98 (02-07-2025)
 
 - Bumped [jora](https://github.com/discoveryjs/jora) to 1.0.0-beta.15
