@@ -6,6 +6,7 @@ export * as context from './context.js';
 export * as headerViews from './headers.js';
 export * as link from './link.js';
 export * as listViews from './lists.js';
+export * as markdown from './markdown.js';
 export * as source from './source.js';
 export * as switchView from './switch.js';
 export * as table from './table.js';

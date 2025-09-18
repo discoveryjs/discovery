@@ -99,7 +99,10 @@ const props = `is not array? | {
     sectionPrelude: undefined,
     sectionPostlude: undefined,
     codeConfig: undefined
-} | overrideProps()`;
+} | overrideProps() | {
+    ...,
+    source is not array ?: join('\\n')
+}`;
 
 export default function(host) {
     const marked = new Marked().setOptions({
@@ -120,10 +123,6 @@ export default function(host) {
             source,
             codeConfig
         } = config;
-
-        if (Array.isArray(source)) {
-            source = source.join('\n');
-        }
 
         source = source.replace(/{{(.+?)}}/gs, (_, query) => {
             query = query.trim();

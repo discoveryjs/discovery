@@ -1,3 +1,7 @@
+## next
+
+- Added `markdown` (with `md` alias) text view
+
 ## 1.0.0-beta.99 (19-08-2025)
 
 - Updated JSONXL:
