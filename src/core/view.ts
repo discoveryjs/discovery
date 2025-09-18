@@ -70,6 +70,13 @@ interface View {
     options: NormalizedViewOptions;
     render: RenderFunction;
 }
+export interface ViewMetadata {
+    name: string;
+    tag: string | null | undefined;
+    group: string[];
+    props?: ReturnType<NormalizedViewPropsFunction> | null;
+    usage: ViewUsage['examples'];
+}
 export interface SingleViewConfig {
     view: string | RenderFunction;
     when?: query;
@@ -661,6 +668,7 @@ export class ViewRenderer extends Dictionary<View> {
     fragmentEls: WeakMap<Node, ViewInfo[]>;
     tooltip: ReturnType<typeof createTooltip> | null;
     Popup = ViewPopup;
+    #metadataCache: ViewMetadata[] | null = null;
 
     constructor(host: ViewModel) {
         super();
@@ -670,6 +678,11 @@ export class ViewRenderer extends Dictionary<View> {
         this.viewEls = new WeakMap();
         this.fragmentEls = new WeakMap();
         this.tooltip = null;
+        this.#metadataCache = null;
+
+        this
+            .on('define', () => this.#metadataCache = null)
+            .on('revoke', () => this.#metadataCache = null);
     }
 
     define(name: string, render: DefineViewRender, options?: ViewOptionsWithoutRender): Readonly<View>;
@@ -1082,5 +1095,65 @@ export class ViewRenderer extends Dictionary<View> {
             fn: transition.fn,
             query: transition.fn.query || null
         };
+    }
+
+    getViewsMetadata() {
+        if (this.#metadataCache !== null) {
+            return this.#metadataCache;
+        }
+
+        const views = [...this.values].sort((a, b) => a.name < b.name ? -1 : 1);
+        const groupedViews = new Map<unknown, View[]>();
+        const result: ViewMetadata[] = [];
+
+        for (const view of views) {
+            const key = view.options.usage || {};
+            const group = groupedViews.get(key);
+
+            if (group === undefined) {
+                groupedViews.set(key, [view]);
+            } else {
+                group.push(view);
+            }
+        }
+
+        for (const groupViews of groupedViews.values()) {
+            // FIXME: View['name'] is string | false, but here always string;
+            // need to fix the type definition of View interface and remove 'as string' assertion
+            const groupViewNames = groupViews.map(view => view.name as string);
+
+            for (const view of groupViews) {
+                const { name, options } = view;
+                const usage = {
+                    examples: [],
+                    ...typeof options.usage === 'function'
+                        ? options.usage(name, groupViewNames)
+                        : Array.isArray(options.usage)
+                            ? { examples: options.usage }
+                            : options.usage
+                };
+
+                const mainDemoAsExample = {};
+                let hasMainDemo = false;
+                for (const key of Object.keys(usage)) {
+                    if (key !== 'examples' && usage[key] !== undefined) {
+                        mainDemoAsExample[key] = usage[key];
+                        hasMainDemo = true;
+                    }
+                }
+
+                result.push({
+                    // FIXME: View['name'] is string | false, but here always string;
+                    // need to fix the type definition of View interface and remove 'as string' assertion
+                    name: name as string,
+                    tag: options.tag === undefined ? 'div' : options.tag,
+                    group: groupViewNames,
+                    props: options.props?.('text', { props: {}, context: {} }) || null,
+                    usage: hasMainDemo ? [mainDemoAsExample, ...usage.examples] : usage.examples
+                });
+            }
+        }
+
+        return this.#metadataCache = result;
     }
 }
