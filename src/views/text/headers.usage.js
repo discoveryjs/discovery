@@ -3,7 +3,7 @@ export default (view, group) => ({
     examples: [
         {
             title: 'Variations',
-            view: group.map(view => `${view}:"Header \\"${view}\\""`)
+            demo: group.map(view => `${view}:"Header \\"${view}\\""`)
         },
         {
             title: 'Complex content',

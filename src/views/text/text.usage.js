@@ -6,7 +6,7 @@ export default {
     examples: [
         {
             title: 'Shorthand usage',
-            view: 'text:"Hello world!"'
+            demo: 'text:"Hello world!"'
         }
     ]
 };

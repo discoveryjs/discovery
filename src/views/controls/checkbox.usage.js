@@ -8,7 +8,7 @@ export default {
     examples: [
         {
             title: 'Checked state',
-            beforeDemo: 'Checked state is set up with `checked` property. Its value can be a query',
+            beforeDemo: ['md:"Checked state is set up with `checked` property. Its value can be a query"'],
             demo: [
                 {
                     view: 'checkbox',
