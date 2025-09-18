@@ -1,5 +1,5 @@
 import { hasOwn } from '../core/utils/object-utils.js';
-import { jsonSafeParse, jsonSafeStringify, jsonStringifyInfo } from '../core/utils/json';
+import { jsonSafeParse, jsonSafeStringify, jsonStringifyAsJavaScript, jsonStringifyInfo } from '../core/utils/json';
 import { getImageContent, getImageDataUri, getImageSrc } from '../core/utils/image.js';
 
 export default {
@@ -7,6 +7,7 @@ export default {
     jsonInfo: jsonStringifyInfo,
     jsonParse: jsonSafeParse,
     jsonStringify: jsonSafeStringify,
+    jsonStringifyAsJavaScript,
     imagecontent: getImageContent,
     imagedatauri: getImageDataUri,
     imagesrc: getImageSrc

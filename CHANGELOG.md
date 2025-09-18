@@ -2,6 +2,10 @@
 
 - Added `markdown` (with `md` alias) text view
 - Added `render` view for text renderer
+- Added `jsonStringifyAsJavaScript` Jora method, similar to `JSON.stringify()`, but producing a JavaScript-friendly representation while preserving certain values:
+    - Removes quotes from object keys when safe
+    - Replaces `"` with `'`
+    - Preserves RegExp, Date, and Function values
 
 ## 1.0.0-beta.99 (19-08-2025)
 

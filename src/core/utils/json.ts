@@ -53,9 +53,13 @@ function isNumericArray(value) {
     return Array.isArray(value) && value.every(el => typeof el === 'number');
 }
 
-export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer, space = 4) {
+export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer | null, space: string | number = 4) {
     const specials: any[] = [];
     const jsReplacer = function(key: string, value: any) {
+        if (typeof replacer === 'function') {
+            value = replacer.call(this, key, value);
+        }
+
         if (typeof value === 'string' && objectToString(this[key]) === '[object Date]') {
             value = this[key];
         }
@@ -68,14 +72,14 @@ export function jsonStringifyAsJavaScript(value: any, replacer?: Replacer, space
         return value;
     };
 
-    return String(JSON.stringify(value, replacer || jsReplacer, space))
+    return String(JSON.stringify(value, jsReplacer, space))
         .replace(/"((?:\\.|[^"])*)"(:?)/g,
             (_, content, colon) => colon && /^[a-z$_][a-z$_\d]*$/i.test(content)
                 ? content + colon
                 : `'${content.replace(/\\"/g, '"').replace(/'/g, '\\\'')}'` + colon
         )
-        .replace(/(^|\n)([ \t]*)(.*?)([a-zA-Z$_][a-zA-Z0-9$_]+:\s*)?'{{{__placeholder__}}}'/g,
-            (_, rn, ws, any, property) => rn + ws + any + restoreValue(specials.shift(), ws, property)
+        .replace(/^(\s*)(.*?)([a-zA-Z$_][a-zA-Z0-9$_]+:\s*)?'{{{__placeholder__}}}'/gm,
+            (_, ws, any, property) => ws + any + restoreValue(specials.shift(), ws, property)
         );
 }
 
