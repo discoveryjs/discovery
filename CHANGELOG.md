@@ -1,6 +1,7 @@
 ## next
 
 - Added `markdown` (with `md` alias) text view
+- Added `render` view for text renderer
 
 ## 1.0.0-beta.99 (19-08-2025)
 

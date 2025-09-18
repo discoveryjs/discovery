@@ -473,7 +473,33 @@ async function render(
             break;
 
         case 'string':
-            renderer = viewRenderer.get(config.view) || null;
+            if (config.view === 'render') {
+                const {
+                    config: configQuery = '',
+                    context: contextQuery = ''
+                } = viewRenderer.propsFromConfig(config, inputData, context);
+
+                renderer = {
+                    name: false,
+                    options: STUB_VIEW_OPTIONS,
+                    render(node, _, _data) {
+                        const _config = configQuery !== '' ? viewRenderer.host.query(configQuery, queryData, context) : _data;
+                        const _context = viewRenderer.host.query(contextQuery, context, queryData);
+                        // config only   -> _config=query(data) _data=data
+                        // data only     -> _config=query(data) _data=query(data)
+                        // config & data -> _config=query(data) _data=query(data)
+
+                        return viewRenderer.render(
+                            node,
+                            _config,
+                            _data !== _config ? _data : queryData,
+                            _context
+                        );
+                    }
+                };
+            } else {
+                renderer = viewRenderer.get(config.view) || null;
+            }
             break;
     }
 
