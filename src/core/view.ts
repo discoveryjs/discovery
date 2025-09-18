@@ -5,7 +5,6 @@ import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
 import { isDocumentFragment } from './utils/dom.js';
 import { hasOwn } from './utils/object-utils.js';
 import { Dictionary } from './dict.js';
-import { Preset } from './preset.js';
 import { queryToConfig } from './utils/query-to-config.js';
 
 export type RenderContext = ReturnType<typeof createRenderContext>;
@@ -576,14 +575,12 @@ async function render(
                     }
                 };
             } else if (config.view.startsWith('preset/')) {
-                const presetName = config.view.substr(7);
+                const presetName = config.view.slice(7);
 
                 renderer = {
                     name: false,
                     options: { tag: null },
-                    render: viewRenderer.host.preset.isDefined(presetName)
-                        ? (viewRenderer.host.preset.get(presetName) as Preset).render
-                        : () => {}
+                    render: viewRenderer.host.preset.get(presetName)?.render ?? (() => {})
                 };
             } else {
                 renderer = viewRenderer.get(config.view) || null;
