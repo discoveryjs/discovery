@@ -3,7 +3,7 @@ import { hasOwn, objectToString } from '../../core/utils/object-utils.js';
 import { isArray, isError } from '../../core/utils/is-type.js';
 import { matchAll } from '../../core/utils/pattern.js';
 
-const urlRx = /^(?:https?:)?\/\/(?:[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
+const urlRx = /^(?:https?:)?\/\/(?:localhost|[a-z0-9\-]+(?:\.[a-z0-9\-]+)+|\d+(?:\.\d+){3})(?:\:\d+)?(?:\/\S*?)?$/i;
 
 function token(type: string, str: string | number) {
     return `<span class="${type}">${str}</span>`;
