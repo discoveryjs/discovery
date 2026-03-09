@@ -7,6 +7,7 @@
     - Removes quotes from object keys when safe
     - Replaces `"` with `'`
     - Preserves RegExp, Date, and Function values
+- Improved view selection performance in introspection mode
 
 ## 1.0.0-beta.99 (19-08-2025)
 

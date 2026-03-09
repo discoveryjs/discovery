@@ -1,40 +1,132 @@
 /* eslint-env browser */
 
 import { createElement, passiveCaptureOptions } from '../core/utils/dom.js';
-import { getBoundingRect } from '../core/utils/layout.js';
 import { pointerXY } from '../core/utils/pointer.js';
-import { debounce } from '../core/utils/debounce.js';
 import { resetViewTreeScrollTopBeforeSelect, viewTree } from './inspector/view-tree.js';
 import { propsConfigView } from './inspector/props-config.js';
 import { dataView } from './inspector/data.js';
 
-function isBoxChanged(oldBox, newBox) {
-    if (oldBox === null) {
-        return true;
+// Return the visible bounding rect of a node in viewport coordinates,
+// clipped against every scrollable ancestor.
+function getClippedViewportRect(node) {
+    const el = node.nodeType === 1 ? node : node.parentElement;
+
+    if (!el) {
+        return null;
     }
 
-    for (const prop of ['top', 'left', 'width', 'height']) {
-        if (oldBox[prop] !== newBox[prop]) {
-            return true;
+    let { top, left, right, bottom } = el.getBoundingClientRect();
+    let parent = el.parentElement;
+
+    while (parent) {
+        const style = getComputedStyle(parent);
+
+        if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+            const pr = parent.getBoundingClientRect();
+            const clipLeft = pr.left + parent.clientLeft;
+            const clipTop = pr.top + parent.clientTop;
+            const clipRight = clipLeft + parent.clientWidth;
+            const clipBottom = clipTop + parent.clientHeight;
+
+            left = Math.max(left, clipLeft);
+            top = Math.max(top, clipTop);
+            right = Math.min(right, clipRight);
+            bottom = Math.min(bottom, clipBottom);
         }
+
+        parent = parent.parentElement;
     }
 
-    return false;
+    return { top, left, right, bottom, width: right - left, height: bottom - top };
+}
+
+// Walk the view tree and return the deepest view leaf whose node contains targetEl.
+function findLeafForElement(leaves, targetEl) {
+    let result = null;
+
+    const walk = (leafs) => {
+        for (const leaf of leafs) {
+            if (leaf.node && (leaf.view || leaf.viewRoot)) {
+                const container = leaf.node.nodeType === 1 ? leaf.node : leaf.node.parentElement;
+
+                if (container && container.contains(targetEl)) {
+                    result = leaf;
+                }
+            }
+
+            if (leaf.children.length) {
+                walk(leaf.children);
+            }
+        }
+    };
+
+    walk(leaves);
+    return result;
 }
 
 export default (host) => {
     let inspectorActivated = false;
-    let lastOverlayEl = null;
     let lastHoverViewTreeLeaf = null;
     let selectedTreeViewLeaf = null;
     let hideTimer = null;
-    let syncOverlayTimer;
 
     const detailsSidebarLeafExpanded = new Set();
-    const viewByEl = new Map();
-    const overlayByViewNode = new Map();
+
+    // --- canvas for drawing the highlight box ---
+    const canvasEl = createElement('canvas');
+    canvasEl.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:1999';
+    const ctx = canvasEl.getContext('2d');
+
+    const resizeCanvas = () => {
+        const dpr = window.devicePixelRatio || 1;
+        canvasEl.width = window.innerWidth * dpr;
+        canvasEl.height = window.innerHeight * dpr;
+        canvasEl.style.width = window.innerWidth + 'px';
+        canvasEl.style.height = window.innerHeight + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        redrawHighlight();
+    };
+
+    const drawHighlight = (leaf) => {
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+        if (!leaf?.node) {
+            return;
+        }
+
+        const rect = getClippedViewportRect(leaf.node);
+
+        if (!rect || rect.width <= 0 || rect.height <= 0) {
+            return;
+        }
+
+        const isViewRoot = Boolean(leaf.viewRoot);
+        const isDark = host.colorScheme?.value === 'dark';
+        const { top, left, width, height } = rect;
+
+        ctx.save();
+
+        if (isViewRoot) {
+            ctx.fillStyle = isDark ? 'rgba(106, 0, 204, 0.2)' : 'rgba(106, 0, 204, 0.3)';
+            ctx.strokeStyle = isDark ? 'rgba(111, 74, 152, 0.65)' : 'rgba(54, 0, 102, 0.4)';
+        } else {
+            ctx.fillStyle = isDark ? 'rgba(0, 200, 0, 0.2)' : 'rgba(0, 255, 0, 0.3)';
+            ctx.strokeStyle = isDark ? 'rgba(128, 200, 128, 0.65)' : 'rgba(0, 128, 0, 0.4)';
+        }
+
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.fillRect(left, top, width, height);
+        ctx.strokeRect(left + 0.5, top + 0.5, width - 1, height - 1);
+        ctx.restore();
+    };
+
+    const redrawHighlight = () => drawHighlight(selectedTreeViewLeaf || lastHoverViewTreeLeaf);
+    const clearHighlight = () => ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+    // --- capture layer: full-screen transparent div that blocks pointer events ---
     const cancelHintEl = createElement('div', 'cancel-hint view-alert view-alert-warning');
-    const overlayLayerEl = createElement('div', {
+    const captureLayerEl = createElement('div', {
         class: 'discovery-view-inspector-overlay',
         onclick: (e) => {
             if ((e.metaKey || e.ctrlKey) && lastHoverViewTreeLeaf) {
@@ -51,141 +143,68 @@ export default (host) => {
             );
         }
     }, [cancelHintEl]);
-    const syncOverlayState = debounce(() => {
-        // don't sync change a view selected
+
+    // --- leaf lookup at a viewport point ---
+    const findLeafAt = (x, y) => {
+        const domRoot = host.dom.container.getRootNode();
+        // elementsFromPoint returns all elements at the point top-to-bottom, including
+        // those occluded by the capture layer, so we can safely filter our own elements out.
+        const target = [...(domRoot.elementsFromPoint(x, y) || [])]
+            .find(el => el !== captureLayerEl && !captureLayerEl.contains(el) && el !== canvasEl);
+
+        if (!target) {
+            return null;
+        }
+
+        const tree = host.view.getViewTree([popup.el]);
+        return findLeafForElement(tree, target);
+    };
+
+    const updateState = () => {
         if (!inspectorActivated || selectedTreeViewLeaf !== null) {
             return;
         }
 
-        // console.time('syncOverlayState');
-        const tree = host.view.getViewTree([popup.el]);
-        const overlayToRemove = new Set([...overlayByViewNode.keys()]);
-        const walk = function walk(leafs, parentEl) {
-            for (const leaf of leafs) {
-                // if (leaf.fragmentNodes && leaf.fragmentNodes.length) {
-                //     const r = new Range();
-                //     r.setStartBefore(leaf.fragmentNodes[0]);
-                //     r.setEndAfter(leaf.fragmentNodes[leaf.fragmentNodes.length - 1]);
-                //     const { top, left, right, bottom } = r.getBoundingClientRect();
-                //     const offset = getPageOffset(parentEl);
-                //     const box = {
-                //         top: top + offset.top,
-                //         left: left + offset.left,
-                //         width: right - left,
-                //         height: bottom - top
-                //     };
-
-                //     const overlay = {
-                //         el: parentEl.appendChild(document.createElement('div')),
-                //         box: null
-                //     };
-                //     overlay.el.className = leaf.viewRoot ? 'overlay view-root' : 'overlay';
-                //     viewByEl.set(overlay.el, leaf);
-
-                //     overlay.el.style.top = `${box.top}px`;
-                //     overlay.el.style.left = `${box.left}px`;
-                //     overlay.el.style.width = `${box.width}px`;
-                //     overlay.el.style.height = `${box.height}px`;
-                // }
-
-                if (!leaf.node || (!leaf.view && !leaf.viewRoot)) {
-                    if (leaf.children.length) {
-                        walk(leaf.children, parentEl);
-                    }
-
-                    continue;
-                }
-
-                const box = getBoundingRect(leaf.node, parentEl);
-                let overlay = overlayByViewNode.get(leaf.node) || null;
-
-                if (overlay === null) {
-                    overlay = {
-                        el: parentEl.appendChild(createElement('div', leaf.viewRoot ? 'overlay view-root' : 'overlay')),
-                        box: null
-                    };
-
-                    if (leaf.node.nodeType === 1) {
-                        overlay.el.style.zIndex = getComputedStyle(leaf.node).zIndex;
-                    }
-
-                    if (leaf.viewRoot && leaf.viewRoot.inspectable !== false) {
-                        overlay.el.dataset.inspectable = true;
-                    }
-
-                    overlayByViewNode.set(leaf.node, overlay);
-                    viewByEl.set(overlay.el, leaf);
-                } else {
-                    overlayToRemove.delete(leaf.node);
-                }
-
-                if (isBoxChanged(overlay.box, box)) {
-                    overlay.el.style.top = `${box.top}px`;
-                    overlay.el.style.left = `${box.left}px`;
-                    overlay.el.style.width = `${box.width}px`;
-                    overlay.el.style.height = `${box.height}px`;
-                    overlay.box = box;
-                }
-
-                if (leaf.children.length) {
-                    if (leaf.node.nodeType === 1) {
-                        overlay.el.style.overflow = getComputedStyle(leaf.node).overflow !== 'visible' ? 'hidden' : 'visible';
-                    }
-
-                    walk(leaf.children, overlay.el);
-                }
-            }
-        };
-
-        walk(tree, overlayLayerEl);
-
-        for (const node of overlayToRemove) {
-            overlayByViewNode.get(node).el.remove();
-            overlayByViewNode.delete(node);
-        }
-        // console.timeEnd('syncOverlayState');
-
-        updateState();
-    }, { maxWait: 0, wait: 50 });
-    const updateState = () => {
         const { x, y } = pointerXY.value;
-        onHover([...host.dom.container.parentNode.elementsFromPoint(x | 0, y | 0) || []]
-            .find(el => viewByEl.has(el)) || null
-        );
+        onHover(findLeafAt(x | 0, y | 0));
     };
+
     const keyPressedEventListener = (e) => {
         if (e.key === 'Escape' || e.keyCode === 27 || e.which === 27) {
             host.inspectMode.set(false);
         }
     };
+
     const enableInspect = () => {
         if (!inspectorActivated) {
             inspectorActivated = true;
-            document.addEventListener('scroll', syncOverlayState, passiveCaptureOptions);
+            resizeCanvas();
+            document.addEventListener('scroll', redrawHighlight, passiveCaptureOptions);
             document.addEventListener('keydown', keyPressedEventListener, true);
-            pointerXY.subscribe(syncOverlayState);
-            syncOverlayTimer = setInterval(syncOverlayState, 500);
-            host.dom.container.append(overlayLayerEl);
-            syncOverlayState();
+            window.addEventListener('resize', resizeCanvas);
+            pointerXY.subscribe(updateState);
+            host.dom.container.append(canvasEl, captureLayerEl);
+            updateState();
             host.inspectMode.set(true);
         }
     };
+
     const disableInspect = () => {
         if (inspectorActivated) {
             inspectorActivated = false;
-            clearInterval(syncOverlayTimer);
-            document.removeEventListener('scroll', syncOverlayState, passiveCaptureOptions);
+            document.removeEventListener('scroll', redrawHighlight, passiveCaptureOptions);
             document.removeEventListener('keydown', keyPressedEventListener, true);
-            pointerXY.unsubscribe(syncOverlayState);
+            window.removeEventListener('resize', resizeCanvas);
+            pointerXY.unsubscribe(updateState);
             inspectByQuick = false;
             delete cancelHintEl.dataset.alt;
-            overlayLayerEl.remove();
-            overlayLayerEl.replaceChildren(cancelHintEl); // remove all overlay DOM nodes
-            overlayByViewNode.clear(); // reset all overlay nodes
+            canvasEl.remove();
+            captureLayerEl.remove();
             hide();
             host.inspectMode.set(false);
         }
     };
+
     const selectTreeViewLeaf = (leaf) => {
         selectedTreeViewLeaf = leaf || null;
 
@@ -202,7 +221,7 @@ export default (host) => {
 
             // use rAF to make a transition work
             requestAnimationFrame(() => {
-                onHover(overlayByViewNode.get(leaf.node)?.el || null);
+                drawHighlight(leaf);
                 clearTimeout(hideTimer);
                 popup.show();
                 popup.freeze();
@@ -214,53 +233,37 @@ export default (host) => {
         } else {
             detailsSidebarLeafExpanded.clear();
             resetViewTreeScrollTopBeforeSelect();
+            clearHighlight();
             hide();
-            syncOverlayState();
+            updateState();
         }
     };
-    const hide = () => {
-        if (lastOverlayEl) {
-            lastOverlayEl.classList.remove('hovered');
-        }
 
-        lastOverlayEl = null;
+    const hide = () => {
+        clearHighlight();
         lastHoverViewTreeLeaf = null;
         selectedTreeViewLeaf = null;
-
         popup.hide();
     };
-    const onHover = overlayEl => {
-        if (overlayEl === lastOverlayEl) {
+
+    const onHover = (leaf) => {
+        if (leaf === lastHoverViewTreeLeaf) {
             return;
         }
 
-        if (lastOverlayEl !== null) {
-            lastOverlayEl.classList.remove('hovered');
-        }
-
-        lastOverlayEl = overlayEl;
-
-        if (overlayEl === null) {
-            hideTimer = setTimeout(hide, 100);
-            return;
-        }
-
-        overlayEl.classList.add('hovered');
-
-        const leaf = viewByEl.get(overlayEl) || null;
-
-        if (leaf === null) {
-            lastHoverViewTreeLeaf = null;
-            return;
-        }
-
-        if (lastHoverViewTreeLeaf !== null && leaf.view === lastHoverViewTreeLeaf.view) {
+        if (leaf !== null && lastHoverViewTreeLeaf !== null && leaf.view === lastHoverViewTreeLeaf.view) {
             return;
         }
 
         lastHoverViewTreeLeaf = leaf;
-        clearTimeout(hideTimer);
 
+        if (leaf === null) {
+            hideTimer = setTimeout(hide, 100);
+            return;
+        }
+
+        clearTimeout(hideTimer);
+        drawHighlight(leaf);
         popup.show();
     };
 
