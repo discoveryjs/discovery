@@ -1,5 +1,6 @@
 ## next
 
+- Added support for JSONL as input data format
 - Added `markdown` (with `md` alias) text view
 - Added `render` view for text renderer
 - Added `ViewRenderer#getViewsMetadata()` method

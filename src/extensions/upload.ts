@@ -14,7 +14,7 @@ const isExtension = (value: string) => /^\./.test(value);
 
 function setup(options?: Partial<UploadOptions>) {
     options = {
-        accept: 'application/json,application/jsonxl,.json,.jsonxl',
+        accept: 'application/json,application/jsonl,application/jsonxl,.json,.jsonl,.jsonxl',
         useAcceptForFilePicker: false,
         dragdrop: true,
         clipboard: false,
@@ -52,7 +52,7 @@ function setup(options?: Partial<UploadOptions>) {
         host.preset.define('upload', [
             {
                 view: 'button-primary',
-                text: '=`Open file${#.actions.uploadFile.fileExtensions |? " (" + join(", ") + ")" : "" | size() > 1 and size() <= 17 ?: "…"}`',
+                text: '=`Open file${#.actions.uploadFile.fileExtensions |? " (" + join(", ") + ")" : "" | size() > 1 and size() <= 25 ?: "…"}`',
                 onClick: '=#.actions.uploadFile'
             },
             {

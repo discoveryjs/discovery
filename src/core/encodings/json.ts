@@ -5,5 +5,5 @@ export const encoding = /* @__PURE__ */ Object.freeze({
     name: 'json',
     test: () => true,
     streaming: true,
-    decode: parseChunked
+    decode: iterator => parseChunked(iterator, { mode: 'auto' })
 }) satisfies Encoding as Encoding;
