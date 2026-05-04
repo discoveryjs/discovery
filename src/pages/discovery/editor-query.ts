@@ -795,12 +795,12 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
     function syncOutputData(computation: Computation) {
         switch (computation.state) {
             case 'canceled': {
-                queryEditor.setValue(computation.query);
+                queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, 'Result', 'Not available');
                 break;
             }
             case 'awaiting': {
-                queryEditor.setValue(computation.query);
+                queryEditor.setValue(computation.query, computation.data, computation.context);
                 renderOutputExpander(computation, null, 'Awaiting...');
                 break;
             }
@@ -817,7 +817,6 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                     createNumDelimElement(Math.floor(computation.duration)),
                     'ms'
                 ]);
-
                 break;
             }
 
@@ -983,15 +982,20 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
         const graphNodePath = getPathInGraph(graph, graphPath);
         const plan: Computation[] = [];
         let computeError: Error | null = null;
+        let lastCached: Computation | null = null;
 
         for (let i = 0, len = Math.min(graphPath.length, cache.length); i < len; i++) {
             const cached = cache[i];
             const isTarget = i === graphPath.length - 1;
             const computeQuery = isTarget ? currentQuery : graphNodePath[i].query || '';
 
-            if (!Object.is(cached.query, computeQuery) ||
-                !Object.is(cached.data, computeData) ||
+            if (!Object.is(cached.data, computeData) ||
                 !Object.is(cached.context, computeContext)) {
+                break;
+            }
+
+            if (!Object.is(cached.query, computeQuery)) {
+                lastCached = cached ?? null;
                 break;
             }
 
@@ -1015,8 +1019,15 @@ export default function(host: ViewModel, updateHostParams: UpdateHostParams) {
                 duration: 0
             };
 
-            cache[i] = computation;
+            if (lastCached !== null) {
+                computation.state = 'computing';
+                computation.data = lastCached.data;
+                computation.context = lastCached.context;
+            }
+
             plan.push(computation);
+            cache[i] = computation;
+            lastCached = null;
         }
 
         return plan;

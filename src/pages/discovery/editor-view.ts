@@ -74,7 +74,7 @@ export default function(host: ViewModel, updateParams: UpdateHostParams) {
         viewLiveEditEl.checked && updateParams({ view: value }, true)
     );
     const viewEditorButtonsEl = createElement('div', 'buttons');
-    const viewEditorFormEl = createElement('div', 'form view-editor-form', [
+    const viewEditorFormEl = createElement('div', 'form view-editor-form hide-editor', [
         createElement('div', 'view-editor-form-header', [
             createElement('div', 'discovery-editor-tabs view-mode', viewModeTabsEls = ['Default', 'Custom'].map(viewMode =>
                 createElement('div', {
