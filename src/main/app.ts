@@ -6,6 +6,7 @@ import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { ProgressbarOptions } from '../core/utils/progressbar.js';
 import type { UploadOptions } from '../extensions/upload.js';
 import type { EmbedClientOptions } from '../extensions/embed-client.js';
+import type { ToastMessagesOptions } from '../extensions/toast-messages.js';
 import { hasOwn } from '../core/utils/object-utils.js';
 import { createElement } from '../core/utils/dom.js';
 import { syncLoaderWithProgressbar } from '../core/utils/load-data.js';
@@ -16,6 +17,7 @@ import upload from '../extensions/upload.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import * as navButtons from '../nav/buttons.js';
+import toastMessages from '../extensions/toast-messages.js';
 
 const coalesceOption = (value: any, fallback: any) => value !== undefined ? value : fallback;
 
@@ -33,6 +35,7 @@ export interface AppOptions<T = ViewModel> extends ViewModelOptions<T> {
     router: boolean;
     upload: Partial<UploadOptions> | boolean;
     embed: Partial<EmbedClientOptions> | boolean;
+    toastMessages: Partial<ToastMessagesOptions> | boolean;
 }
 type AppOptionsBind = AppOptions; // to fix: Type parameter 'Options' has a circular default.
 
@@ -50,6 +53,10 @@ export class App<
         extensions.push(navButtons.indexPage);
         extensions.push(navButtons.discoveryPage);
         extensions.push(navButtons.colorSchemeToggle);
+
+        if (coalesceOption(options.toastMessages, true)) {
+            extensions.push(options.toastMessages === true ? toastMessages : toastMessages.setup(options.toastMessages || {}));
+        }
 
         if (coalesceOption(options.router, true)) {
             extensions.push(router);

@@ -1,0 +1,79 @@
+.discovery-toast-messages {
+    position: fixed;
+    z-index: 1000;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    pointer-events: none;
+}
+.discovery-toast-messages > .toast-message-wrapper {
+    background: var(--discovery-background-color);
+    background: color-mix(in srgb, var(--discovery-background-color), transparent 50%);
+    border-radius: .25rem;
+    backdrop-filter: blur(8px) grayscale(.5);
+    transition: .25s ease-out;
+    transition-property: max-height, opacity, transform;
+    max-height: none;
+    max-height: calc-size(fit-content, size);
+    pointer-events: auto;
+    @starting-style {
+        opacity: 0;
+        max-height: 0px;
+        transform: translateY(50px);
+    }
+}
+
+.discovery-toast-messages > .toast-message-wrapper:hover > .toast-message-close-button {
+    opacity: 1;
+}
+.discovery-toast-messages > .toast-message-wrapper > .toast-message-close-button {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    z-index: 1;
+    width: 16px;
+    padding: 0 1px;
+    line-height: 1;
+    border: .5px solid light-dark(#aaa, #666);
+    border-radius: 4px;
+    box-shadow: 0px 0px 1px 1px light-dark(transparent, #0004);
+    background: light-dark(#e8e8e8, #555);
+    color: light-dark(#888, #aaa);
+    font-size: 15px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.125s ease-out;
+    cursor: pointer;
+}
+.discovery-toast-messages > .toast-message-wrapper > .toast-message-close-button:hover {
+    border-color: light-dark(#888, #777);
+    color: light-dark(#666, #ccc);
+}
+
+.discovery-toast-messages > .toast-message-wrapper > .view-alert {
+    min-width: 180px;
+    position: relative;
+    margin: 0;
+    padding: 8px 12px;
+    box-shadow: 0 0 0 .5px #0006;
+    text-shadow: .5px .5px 0 #fffa;
+    font-size: 12px;
+    line-height: 16px;
+}
+.discovery-root-darkmode .discovery-toast-messages > .toast-message-wrapper > .view-alert {
+    box-shadow: 0px 0px 1px 1px #0004;
+    text-shadow: .5px .5px 0 #0006;
+}
+.discovery-toast-messages > .toast-message-wrapper.ready-to-remove {
+    transition: .25s ease-out;
+    opacity: 0;
+    transform: translateX(100px);
+}
+.discovery-toast-messages > .toast-message-wrapper .view-button {
+    padding: 2px 6px;
+    margin-top: -2px;
+    margin-bottom: -2px;
+}
