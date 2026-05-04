@@ -35,6 +35,17 @@ export default function(host) {
                         content: 'html:name + " is a server-less application that securely opens and analyzes your data directly on your device,<br>ensuring all processing is done locally without transmitting your data elsewhere."'
                     }
                 ]
+            },
+
+            {
+                view: 'markdown',
+                className: 'supported-input-formats-tips',
+                source: [
+                    '> [!TIP]',
+                    '> - Supported input formats: `JSON`, `JSONL`/`NDJSON` (newline-delimited JSON), and `JSONXL` (snapshot9).',
+                    '> - The file extension can be arbitrary; the format is determined based on the file\'s content.',
+                    '> - The file content may be compressed using `gzip` or `deflate`.'
+                ]
             }
         ]
     });

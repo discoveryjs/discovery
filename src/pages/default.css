@@ -35,3 +35,21 @@
     color: #aaa;
     padding: 10px 0 0 3px;
 }
+
+.welcome-block .supported-input-formats-tips {
+    max-width: 700px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #aaa;
+}
+.welcome-block .supported-input-formats-tips blockquote {
+    margin-top: 22px;
+    padding: .3em 0 .3em .8em;
+    border-left-width: 2px;
+}
+.welcome-block .supported-input-formats-tips ul {
+    margin-left: -3px;
+}
+.welcome-block .supported-input-formats-tips li {
+    padding-left: 2px;
+}
