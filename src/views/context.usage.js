@@ -27,7 +27,31 @@ export default {
                     }
                 ],
                 content: [
-                    'h2:"Values"',
+                    'h2:"Context state after modifiers update"',
+                    'struct{ expanded: 1, data: # }'
+                ]
+            }
+        },
+        {
+            title: 'Using with modifiers and context name',
+            highlightProps: ['name'],
+            demo: {
+                view: 'context',
+                name: 'contextName',
+                modifiers: [
+                    'h2:"Modifiers"',
+                    {
+                        view: 'input',
+                        name: 'inputValue'
+                    },
+                    {
+                        view: 'select',
+                        name: 'selectValue',
+                        data: ['foo', 'bar', 'baz']
+                    }
+                ],
+                content: [
+                    'h2:"Context state after modifiers update"',
                     'struct{ expanded: 1, data: # }'
                 ]
             }

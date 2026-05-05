@@ -4,6 +4,7 @@ import usage from './context.usage.js';
 
 const props = `#.props | {
     modifiers is array ?: is truthy ? [$] : [],
+    name is string?,
     content,
     proxy.bool(),
     onInit,
@@ -14,6 +15,7 @@ export default function(host) {
     host.view.define('context', async function(el, props, data, context) {
         let {
             modifiers = [],
+            name: contextName,
             content = [],
             proxy,
             onInit,
@@ -63,7 +65,12 @@ export default function(host) {
             if (name && (!hasOwn(localContext, name) || localContext[name] !== value)) {
                 localContext = {
                     ...localContext,
-                    [name]: value
+                    ...contextName
+                        ? { [contextName]: {
+                            ...localContext[contextName],
+                            [name]: value
+                        } }
+                        : { [name]: value }
                 };
 
                 if (inited) {
