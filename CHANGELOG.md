@@ -2,6 +2,7 @@
 
 - Added support for JSONL as input data format
 - Added toast messages extension for displaying non-intrusive notifications in the app via `toastMessage(config)` action
+- Added `grid` view
 - Added `name` property for `context` view, which allows to specify a key in context where modifiers values will be stored, instead of the root level
 - Added `markdown` (with `md` alias) text view
 - Added `render` view for text renderer

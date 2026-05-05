@@ -20,6 +20,7 @@ export { default as block } from './layout/block.js';
 export { default as column } from './layout/column.js';
 export { default as columns } from './layout/columns.js';
 export { default as expand } from './layout/expand.js';
+export { default as grid } from './layout/grid.js';
 export { default as hstack } from './layout/hstack.js';
 export { default as listItem } from './layout/list-item.js';
 export { default as lists } from './layout/lists.js';

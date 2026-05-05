@@ -1,0 +1,9 @@
+.view-grid {
+    display: grid;
+    gap: var(--grid-gap, 4px 1ex);
+    grid-template-columns: var(--grid-column-template, auto);
+    align-items: baseline;
+}
+.view-grid > .grid__row {
+    display: contents;
+}
