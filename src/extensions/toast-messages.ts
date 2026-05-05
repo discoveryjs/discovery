@@ -75,7 +75,7 @@ function setup(options?: Partial<ToastMessagesOptions>) {
                     message.el.prepend(createElement('button', {
                         class: 'toast-message-close-button',
                         onclick: () => removeMessage(id)
-                    }, '×'));
+                    }, '✕'));
                 }
             });
 
