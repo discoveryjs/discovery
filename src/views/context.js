@@ -7,8 +7,8 @@ const props = `#.props | {
     name is string?,
     content,
     proxy.bool(),
-    onInit,
-    onChange
+    onInit is function?,
+    onChange is function?
 }`;
 
 export default function(host) {
@@ -22,6 +22,7 @@ export default function(host) {
             onChange
         } = props;
 
+        let storage = contextName ? { ...context[contextName] } : {};
         let localContext = context;
         let lastRender = null;
         let inited = false;
@@ -34,8 +35,12 @@ export default function(host) {
         const contentStartMarker = el.appendChild(document.createComment('{ view: "context" } content start'));
         const contentEndMarker = el.appendChild(document.createComment('{ view: "context" } content end'));
 
-        if (proxy && (onInit || onChange)) {
-            content = this.composeConfig(content, { onInit, onChange });
+        if (proxy) {
+            if (onInit || onChange) {
+                content = this.composeConfig(content, { onInit, onChange });
+            }
+        } else if (onInit) {
+            onInit(storage, contextName);
         }
 
         inited = true;
@@ -62,24 +67,19 @@ export default function(host) {
         }
 
         function updateContext(value, name) {
-            if (name && (!hasOwn(localContext, name) || localContext[name] !== value)) {
-                localContext = {
-                    ...localContext,
-                    ...contextName
-                        ? { [contextName]: {
-                            ...localContext[contextName],
-                            [name]: value
-                        } }
-                        : { [name]: value }
-                };
+            if (name && (!hasOwn(storage, name) || storage[name] !== value)) {
+                storage = { ...storage, [name]: value };
+                localContext = contextName
+                    ? { ...localContext, [contextName]: storage }
+                    : { ...localContext, ...storage };
 
                 if (inited) {
                     renderContent();
 
-                    if (proxy && typeof onChange === 'function') {
-                        onChange(value, name);
+                    if (onChange) {
+                        onChange(...proxy ? [value, name] : [storage, contextName]);
                     }
-                } else if (typeof onInit === 'function') {
+                } else if (proxy && onInit) {
                     onInit(value, name);
                 }
             }
