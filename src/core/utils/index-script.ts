@@ -1,4 +1,5 @@
 export * as base64 from './base64.js';
+export { createBlobFromPrimitive, createBlobFromIterable, createBlobFromAsyncIterable } from './blob.js';
 export { equal, deepEqual } from './compare.js';
 export { debounce } from './debounce.js';
 export { randomId } from './id.js';
@@ -14,3 +15,4 @@ export { Logger } from './logger.js';
 export { objectToString, hasOwn } from './object-utils.js';
 export { match, matchAll } from './pattern.js';
 export { safeFilterRx } from './safe-filter-rx.js';
+export { getIterableFromStream, getReadableStreamFromSource } from './web-stream.js';
