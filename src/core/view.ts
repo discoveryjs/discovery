@@ -853,6 +853,19 @@ export class ViewRenderer extends Dictionary<View> {
         );
     }
 
+    async renderReplace(
+        container: HTMLElement | DocumentFragment,
+        config: RawViewConfig,
+        data?: any,
+        context?: any,
+        dataIndex?: number
+    ) {
+        const fragment = createFragment();
+
+        await this.render(fragment, config, data, context, dataIndex);
+        container.replaceChildren(fragment);
+    }
+
     renderError(container: HTMLElement | Comment | DocumentFragment, reason: string, config: any) {
         const placeholder = container instanceof Comment
             ? container
