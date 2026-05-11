@@ -7,7 +7,8 @@ import type { ColorSchemeState, SerializedColorSchemeValue } from '../core/color
 import { Emitter } from '../core/emitter.js';
 import { Observer } from '../core/observer.js';
 import { randomId } from '../core/utils/id.js';
-import { extractResourceMetadata, getReadableStreamFromSource } from '../core/utils/load-data.js';
+import { extractResourceMetadata } from '../core/utils/load-data.js';
+import { getReadableStreamFromSource } from '../core/utils/web-stream.js';
 import { loadStages, decodeStageProgress } from '../core/utils/progressbar.js';
 import { createLocationSync, LocationSync } from '../core/utils/location-sync.js';
 
