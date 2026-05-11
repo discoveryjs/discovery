@@ -38,6 +38,7 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
             host.encodePageHash(pageId, pageRef, pageParams, pageAnchor),
         marker: objectMarkers.lookup.bind(objectMarkers),
         markerAll: objectMarkers.lookupAll.bind(objectMarkers),
+        call: (fn: (...args: unknown[]) => unknown, ...args: unknown[]) => fn(...args),
         callAction,
         actionHandler: (actionName: string, ...args: unknown[]) => host.action.has(actionName)
             ? () => callAction(actionName, ...args)

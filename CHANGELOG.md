@@ -7,6 +7,7 @@
 - Added `markdown` (with `md` alias) text view
 - Added `render` view for text renderer
 - Added `ViewRenderer#getViewsMetadata()` method
+- Added `call()` Jora helper method to call a function, which simplifies function calls, i.e. `fn.call(foo, bar)` instead of `$fn: fn; foo.$fn(bar)`
 - Added `jsonStringifyAsJavaScript` Jora method, similar to `JSON.stringify()`, but producing a JavaScript-friendly representation while preserving certain values:
     - Removes quotes from object keys when safe
     - Replaces `"` with `'`

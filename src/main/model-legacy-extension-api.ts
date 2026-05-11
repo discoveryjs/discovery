@@ -36,6 +36,7 @@ export function createLegacyExtensionApi(host: Model, options?: SetDataOptions):
             host.encodePageHash(pageId, pageRef, pageParams, pageAnchor),
         marker: lookupObjectMarker,
         markerAll: lookupObjectMarkerAll,
+        call: (fn: (...args: unknown[]) => unknown, ...args: unknown[]) => fn(...args),
         callAction,
         actionHandler: (actionName: string, ...args: unknown[]) => host.action.has(actionName)
             ? () => callAction(actionName, ...args)
