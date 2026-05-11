@@ -1,0 +1,92 @@
+.discovery-dialog {
+    display: grid;
+    grid-template:
+        'title action-buttons'
+        'content content'
+        'toolbar toolbar';
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto 1fr auto;
+    min-width: 250px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: var(--discovery-background-color);
+    box-shadow: 0 0 0 .5px #0004, 0 2px 10px #0008;
+    color: var(--discovery-color);
+    font-size: 14px;
+    line-height: 1.4;
+    outline: none;
+    transition: .125s ease-in-out;
+    transition-property: transform, opacity;
+    @starting-style {
+        transform: scale(.8);
+        opacity: 0;
+    }
+}
+.discovery-root-darkmode .discovery-dialog {
+    /* background-color: #333; */
+    color: #eee;
+    box-shadow: 0 0 0 .5px #0006, 0 2px 8px #0008;
+}
+.discovery-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    transition: .35s ease-out;
+    transition-property: backdrop-filter, background-color;
+    @starting-style {
+        backdrop-filter: blur(0);
+    }
+}
+
+.discovery-dialog__title {
+    grid-area: title;
+    padding: 6px 16px;
+    align-content: center;
+    opacity: 0.75;
+}
+.discovery-dialog__action-buttons {
+    grid-area: action-buttons;
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+.discovery-dialog__action-button {
+    aspect-ratio: 1/1;
+    padding: 6px;
+    border: none;
+    background-color: transparent;
+    font-size: 14px;
+    color: color-mix(in srgb, var(--discovery-color), light-dark(#fff, #000) 50%);
+    cursor: pointer;
+}
+.discovery-dialog__action-button:hover,
+.discovery-dialog__action-button:focus {
+    /* background-color: light-dark(#0002, #fff1); */
+    color: var(--discovery-color);
+    outline: none;
+}
+
+.discovery-dialog__content {
+    grid-area: content;
+    padding: 12px 16px;
+    overflow: auto;
+    border-top: 1px solid light-dark(#0002, #0006);
+}
+
+.discovery-dialog__toolbar {
+    grid-area: toolbar;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 8px;
+    border-top: 1px solid light-dark(#0002, #0006);
+    gap: 6px;
+}
+.discovery-dialog__toolbar:empty {
+    display: none;
+}
+.discovery-dialog__toolbar .view-button {
+    padding: 6px 12px;
+    margin: 0;
+}

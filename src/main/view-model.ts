@@ -19,6 +19,7 @@ import { PresetRenderer } from '../core/preset.js';
 import inspector from '../extensions/inspector.js';
 import * as views from '../views/index.js';
 import * as pages from '../pages/index.js';
+import { DialogRegistry } from '../core/dialog.js';
 
 export type RenderSubject = typeof renderSubjects[number];
 export type SetDataProgressOptions = Partial<{
@@ -95,6 +96,7 @@ export class ViewModel<
     view: ViewRenderer;
     nav: ViewModelNavigation;
     preset: PresetRenderer;
+    dialog: DialogRegistry;
     page: PageRenderer;
     #renderScheduler: Set<RenderSubject> & { timer?: ReturnType<typeof setTimeout> | null };
     #renderSchedulerTimeout: number;
@@ -110,13 +112,13 @@ export class ViewModel<
 
     dom: {
         ready: Promise<void>;
-        wrapper: HTMLElement;
-        root: HTMLElement | ShadowRoot;
-        container: HTMLElement;
-        nav: HTMLElement;
-        sidebar: HTMLElement;
-        content: HTMLElement;
-        pageContent: HTMLElement;
+        wrapper: HTMLElement;           // <div class="discovery">
+        root: HTMLElement | ShadowRoot; // |- #shadow-root or .discovery
+        container: HTMLElement;         // |  |- <div class="discovery-root">
+        nav: HTMLElement;               // |  |  |- <div class="discovery-nav">
+        sidebar: HTMLElement;           // |  |  |- <nav class="discovery-sidebar">
+        content: HTMLElement;           // |  |  |- <main class="discovery-content">
+        pageContent: HTMLElement;       // |  |  |  |- <article> (page content is rendered here)
         detachColorScheme: null | (() => void);
     };
     queryExtensions: Record<string, (...args: unknown[]) => any>;
@@ -157,6 +159,7 @@ export class ViewModel<
         this.view = new ViewRenderer(this);
         this.nav = new ViewModelNavigation(this);
         this.preset = new PresetRenderer(this.view);
+        this.dialog = new DialogRegistry(this, this.view);
         this.page = new PageRenderer(this, this.view);
         this.#renderScheduler = new Set();
         this.#renderSchedulerTimeout = 16; // for the first render, following will be with 0

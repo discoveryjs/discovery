@@ -2,6 +2,7 @@
 
 - Added support for JSONL as input data format
 - Added toast messages extension for displaying non-intrusive notifications in the app via `toastMessage(config)` action
+- Added `ViewModel#dialog` subsystem for displaying modal dialogs in the app, with a `dialog.define(name, config)` and `dialog.show(nameOrConfig, data, context)` API
 - Added `grid` view
 - Added `name` property for `context` view, which allows to specify a key in context where modifiers values will be stored, instead of the root level
 - Added `markdown` (with `md` alias) text view

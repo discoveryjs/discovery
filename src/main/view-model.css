@@ -1,3 +1,4 @@
 @import './style/base.css';
 @import './style/sidebar.css';
+@import './style/dialog.css';
 @import '../nav/index.css';
