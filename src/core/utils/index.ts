@@ -13,4 +13,6 @@ export { getLocalStorageEntry, getLocalStorageValue, getSessionStorageEntry, get
 export { pointerXY } from './pointer.js';
 export type * from './progressbar.js';
 export { Progressbar } from './progressbar.js';
+export type { SaveAsFileOptions, DownloadDataAsFileOptions } from './save-data.js';
+export { saveStreamAsFile, downloadDataAsFile, isSaveFilePickerSupported, isDownloadSupported } from './save-data.js';
 export { ContentRect } from './size.js';
