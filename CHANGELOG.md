@@ -3,6 +3,7 @@
 - Added support for JSONL as input data format
 - Added toast messages extension for displaying non-intrusive notifications in the app via `toastMessage(config)` action
 - Added `ViewModel#dialog` subsystem for displaying modal dialogs in the app, with a `dialog.define(name, config)` and `dialog.show(nameOrConfig, data, context)` API
+- Added `exportData` extension (enabled in `App` by default) which adds `downloadDataAsFile()` and `saveDataAsFile()` actions for downloading data as a file or saving it using the File System Access API when supported, and `save-data-as` dialog
 - Added `saveStreamAsFile()` and `downloadDataAsFile()` utils
 - Added `grid` view
 - Added `name` property for `context` view, which allows to specify a key in context where modifiers values will be stored, instead of the root level

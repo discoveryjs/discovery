@@ -4,6 +4,7 @@ import * as textViews from './text-views/index.js';
 import * as views from './views/index.js';
 import * as pages from './pages/index.js';
 import inspector from './extensions/inspector.js';
+import exportData from './extensions/export-data.js';
 import upload from './extensions/upload.js';
 import router from './extensions/router.js';
 import embed from './extensions/embed-client.js';
@@ -24,6 +25,7 @@ export {
     pages,
     embed,
     inspector,
+    exportData,
     jsonxl,
     router,
     upload,

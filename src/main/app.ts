@@ -5,6 +5,7 @@ import type { LoadDataResult } from '../core/utils/load-data.js';
 import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { ProgressbarOptions } from '../core/utils/progressbar.js';
 import type { UploadOptions } from '../extensions/upload.js';
+import type { ExportDataOptions } from '../extensions/export-data.js';
 import type { EmbedClientOptions } from '../extensions/embed-client.js';
 import type { ToastMessagesOptions } from '../extensions/toast-messages.js';
 import { hasOwn } from '../core/utils/object-utils.js';
@@ -14,6 +15,7 @@ import { ViewModel } from './view-model.js';
 import { Progressbar } from '../core/utils/progressbar.js';
 import modelfree from '../extensions/modelfree.js';
 import upload from '../extensions/upload.js';
+import exportData from '../extensions/export-data.js';
 import embed from '../extensions/embed-client.js';
 import router from '../extensions/router.js';
 import * as navButtons from '../nav/buttons.js';
@@ -34,6 +36,7 @@ export interface AppOptions<T = ViewModel> extends ViewModelOptions<T> {
     mode: 'modelfree';
     router: boolean;
     upload: Partial<UploadOptions> | boolean;
+    export: Partial<ExportDataOptions> | boolean;
     embed: Partial<EmbedClientOptions> | boolean;
     toastMessages: Partial<ToastMessagesOptions> | boolean;
 }
@@ -70,6 +73,10 @@ export class App<
             extensions.push(options.upload === true ? upload : upload.setup(options.upload || {}));
             extensions.push(navButtons.uploadFile);
             extensions.push(navButtons.uploadFromClipboard);
+        }
+
+        if (coalesceOption(options.export, true)) {
+            extensions.push(options.export === true ? exportData : exportData.setup(options.export || {}));
         }
 
         if (coalesceOption(options.inspector, true)) {
