@@ -3,6 +3,8 @@
 - Added support for JSONL as input data format
 - Added toast messages extension for displaying non-intrusive notifications in the app via `toastMessage(config)` action
 - Added `ViewModel#dialog` subsystem for displaying modal dialogs in the app, with a `dialog.define(name, config)` and `dialog.show(nameOrConfig, data, context)` API
+- Added `Model#storage` subsystem for managing persistent storage entries, using `localStorage` and `sessionStorage` when available, with a fallback to in-memory storage when not supported
+    - Added `getStorageValue(key)` and `setStorageValue(key, value)` Jora methods
 - Added `exportData` extension (enabled in `App` by default) which adds `downloadDataAsFile()` and `saveDataAsFile()` actions for downloading data as a file or saving it using the File System Access API when supported, and `save-data-as` dialog
 - Added `saveStreamAsFile()` and `downloadDataAsFile()` utils
 - Added `grid` view

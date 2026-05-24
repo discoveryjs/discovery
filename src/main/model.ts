@@ -14,6 +14,7 @@ import { createLegacyExtensionApi } from './model-legacy-extension-api.js';
 import { querySuggestions } from './query-suggestions.js';
 import { Logger } from '../core/utils/logger.js';
 import { equal } from '../core/utils/compare.js';
+import { ValueStorage } from '../core/storage.js';
 
 export type LogOptions = {
     level: LogLevel;
@@ -153,6 +154,7 @@ export class Model<
 
     logger: Logger;
 
+    storage: ValueStorage;
     action: ActionManager;
     objectMarkers: ObjectMarkerManager;
     linkResolvers: LinkResolver[];
@@ -204,6 +206,7 @@ export class Model<
 
         this.logger = new Logger(logPrefix, logLevel, logger);
 
+        this.storage = new ValueStorage(this);
         this.action = new ActionManager();
         this.objectMarkers = new ObjectMarkerManager(this.logger);
         this.linkResolvers = [];

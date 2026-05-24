@@ -42,7 +42,9 @@ export function setupModel(host: Model, setup: ModelOptions['setup']) {
         callAction,
         actionHandler: (actionName: string, ...args: unknown[]) => host.action.has(actionName)
             ? () => callAction(actionName, ...args)
-            : undefined
+            : undefined,
+        getStorageValue: (key: string) => host.storage.getValue(key),
+        setStorageValue: (key: string, value: unknown) => host.storage.setValue(key, value)
     };
     let queryCustomAssertions = {
         ...modelCommonJoraAssertions
