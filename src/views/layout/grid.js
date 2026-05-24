@@ -47,7 +47,7 @@ export default function(host) {
                     const cellEl = rowEl.appendChild(createElement('div', 'grid__cell'));
                     if (rowBlueprint) {
                         renders.push(this.render(cellEl, rowBlueprint[j], data[i], context));
-                    } else {
+                    } else if (rowCells[j]) {
                         renders.push(this.render(cellEl,
                             this.composeConfig(rowCells[j], handlers),
                             data,

@@ -7,27 +7,31 @@ type Subscriber<T> = {
 export class Observer<T> {
     subscriber: Subscriber<T> | null;
     value: T;
+    #readonly: {
+        subscribe: Observer<T>['subscribe'];
+        subscribeSync: Observer<T>['subscribeSync'];
+        unsubscribe: Observer<T>['unsubscribe'];
+        value: T;
+    };
 
     constructor(initValue: T, shouldUpdate?: (a: T, b: T) => boolean) {
         this.subscriber = null;
         this.value = initValue;
         this.shouldUpdate = typeof shouldUpdate === 'function' ? shouldUpdate : this.shouldUpdate;
-    }
 
-    get readonly() {
         const host = this;
-
-        return {
-            // FIXME: TS should infer types for subscribe/subscribeSync/unsubscribe,
-            // however it doesn't and produces `any` instead. Used `as Observer<T>[method]`
-            // as a workaround.
-            subscribe: this.subscribe.bind(this) as Observer<T>['subscribe'],
-            subscribeSync: this.subscribeSync.bind(this) as Observer<T>['subscribeSync'],
-            unsubscribe: this.unsubscribe.bind(this) as Observer<T>['unsubscribe'],
+        this.#readonly = Object.freeze({
+            subscribe: this.subscribe.bind(this),
+            subscribeSync: this.subscribeSync.bind(this),
+            unsubscribe: this.unsubscribe.bind(this),
             get value() {
                 return host.value;
             }
-        };
+        });
+    }
+
+    get readonly() {
+        return this.#readonly;
     }
 
     subscribe(callback: OnChangeCallback<T>) {

@@ -37,7 +37,7 @@ export class DialogRegistry extends Dictionary<Dialog> {
     }
 
     define(name: string, config: Partial<DialogConfig> | RawViewConfig): Dialog {
-        return DialogRegistry.define<Dialog>(this, name, Object.freeze({
+        return DialogRegistry.define(this, name, Object.freeze({
             name,
             config: normalizeDialogConfig(config)
         }));
