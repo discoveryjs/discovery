@@ -14,5 +14,8 @@ export type * from './logger.js';
 export { Logger } from './logger.js';
 export { objectToString, hasOwn } from './object-utils.js';
 export { match, matchAll } from './pattern.js';
+export {
+    getStorage, FallbackStorage, getLocalStorageEntry, getLocalStorageValue,
+    getSessionStorageEntry, getSessionStorageValue, PersistentStorageEntry } from './storage.js';
 export { safeFilterRx } from './safe-filter-rx.js';
 export { getIterableFromStream, getReadableStreamFromSource } from './web-stream.js';

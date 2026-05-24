@@ -1,28 +1,38 @@
 import { Observer } from '../observer.js';
 
+const storageMaps = new Map();
+const storageEntryFactories = new WeakMap<Storage,(key: string) => PersistentStorageEntry>();
+
 export type StorageType = 'localStorage' | 'sessionStorage';
-export const getSessionStorageEntry = /* #__PURE__ */ createStorageEntryFactory('sessionStorage');
+export const getSessionStorageEntry = /* #__PURE__ */ createStorageEntryFactory(getStorage('sessionStorage'));
 export const getSessionStorageValue = /* #__PURE__ */ createStorageReader('sessionStorage');
-export const getLocalStorageEntry = /* #__PURE__ */ createStorageEntryFactory('localStorage');
+export const getLocalStorageEntry = /* #__PURE__ */ createStorageEntryFactory(getStorage('localStorage'));
 export const getLocalStorageValue = /* #__PURE__ */ createStorageReader('localStorage');
 
-const storageMaps = new Map();
+export function createStorageEntryFactory(storage: Storage | null = null) {
+    let getOrCreateStorageEntry = storage ? storageEntryFactories.get(storage) : undefined;
 
-function createStorageEntryFactory(type: StorageType) {
-    const storage = getStorage(type);
-    const map = new Map<string, PersistentStorageEntry>();
+    if (getOrCreateStorageEntry === undefined) {
+        const entryMap = new Map<string, PersistentStorageEntry>();
 
-    return function getOrCreateStorageEntry<T extends string>(key: string) {
-        let persistentKey = map.get(key);
+        getOrCreateStorageEntry = (key) => {
+            let persistentKey = entryMap.get(key);
 
-        if (persistentKey === undefined) {
-            persistentKey = new PersistentStorageEntry<T>(storage, key);
-            map.set(key, persistentKey);
-            registerStorageMap(storage, map);
+            if (persistentKey === undefined) {
+                persistentKey = new PersistentStorageEntry(storage, key);
+                entryMap.set(key, persistentKey);
+                registerStorageMap(storage, entryMap);
+            }
+
+            return persistentKey;
+        };;
+
+        if (storage) {
+            storageEntryFactories.set(storage, getOrCreateStorageEntry);
         }
+    }
 
-        return persistentKey as PersistentStorageEntry<T>;
-    };
+    return getOrCreateStorageEntry;
 }
 
 function createStorageReader(type: StorageType) {
@@ -33,13 +43,18 @@ function createStorageReader(type: StorageType) {
     };
 }
 
-function getStorage(type: StorageType): Storage | null {
+export function getStorage(type: StorageType): Storage | null {
     const key = '__storage_test__' + Math.random();
     let storage: Storage;
 
     try {
-        storage = window[type];
+        storage = globalThis[type];
     } catch {
+        return null;
+    }
+
+    // Some environments (e.g. Node.js with no a flag) provides Storage but with no implementation
+    if (!storage || 'getItem' in storage === false) {
         return null;
     }
 
@@ -68,22 +83,54 @@ function getStorage(type: StorageType): Storage | null {
     return storage;
 }
 
+export class FallbackStorage implements Storage {
+    #storage = new Map<string, string>();
+    length = 0;
+
+    clear() {
+        this.#storage.clear();
+        this.length = 0;
+    }
+    getItem(key: string) {
+        return this.#storage.get(key) ?? null;
+    }
+    key(index: number) {
+        return Array.from(this.#storage.keys())[index] ?? null;
+    }
+    removeItem(key: string) {
+        if (this.#storage.delete(key)) {
+            this.length--;
+        }
+    }
+    setItem(key: string, value: string) {
+        if (!this.#storage.has(key)) {
+            this.length++;
+        }
+
+        this.#storage.set(key, value);
+    }
+}
+
 function registerStorageMap(storage: Storage | null, map: Map<string, PersistentStorageEntry>) {
     if (storage !== null && !storageMaps.has(storage)) {
         storageMaps.set(storage, map);
 
-        if (storageMaps.size === 1) {
-            addEventListener('storage', (e) => {
-                const map = storageMaps.get(e.storageArea);
+        if (storageMaps.size === 1 && typeof globalThis.addEventListener === 'function') {
+            try {
+                addEventListener('storage', (e) => {
+                    const map = storageMaps.get(e.storageArea);
 
-                if (map !== undefined) {
-                    const persistentKey = map.get(e.key as string);
+                    if (map !== undefined) {
+                        const persistentKey = map.get(e.key as string);
 
-                    if (persistentKey) {
-                        persistentKey.forceSync();
+                        if (persistentKey) {
+                            persistentKey.forceSync();
+                        }
                     }
-                }
-            });
+                });
+            } catch {
+                // ignore, not all environments supports addEventListener (e.g. Node.js)
+            }
         }
     }
 }

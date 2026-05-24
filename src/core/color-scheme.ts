@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import { getLocalStorageEntry, getLocalStorageValue, type PersistentStorageEntry } from './utils/persistent.js';
+import { getLocalStorageEntry, getLocalStorageValue, type PersistentStorageEntry } from './utils/storage.js';
 
 export type SerializedColorSchemeValue = typeof colorSchemeSerializedValues[number];
 export type ColorSchemeValue = 'light' | 'dark';
