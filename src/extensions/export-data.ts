@@ -20,6 +20,13 @@ export type ExportDataStreamOptions = {
     compression?: 'gzip' | 'deflate' | null;
     highWaterMark?: number;
 }
+export type OnProgressState = {
+    mode: 'download' | 'save';
+    filename: string;
+    done: boolean;
+    written: number;
+    error?: Error;
+};
 
 function setup(options?: Partial<ExportDataOptions>) {
     options = {
@@ -29,6 +36,7 @@ function setup(options?: Partial<ExportDataOptions>) {
     };
 
     return function(host: ViewModel) {
+        const storageKey = 'discoveryjs:export-data-options';
         const isDownloadEnabled = options.download && typeof downloadDataAsFile === 'function';
         const isSaveEnabled = options.save && typeof saveStreamAsFile === 'function';
 
@@ -40,12 +48,32 @@ function setup(options?: Partial<ExportDataOptions>) {
             return;
         }
 
+        // define storage entry for export options, so they can be remembered and easily changed by user
+        host.storage.define(storageKey, {
+            defaultValue: {
+                action: null,
+                format: 'json',
+                space: null,
+                compression: null
+            }
+        });
+
+        // define dialog for export options when host supports dialogs
         if (host.dialog) {
-            // setTimeout(() => host.dialog.show('test'), 1000);
+            host.action.define('getLastExportDataOptions', () =>
+                host.storage.getValue(storageKey)
+            );
+            host.action.define('showExportDataDialog', (data, options) =>
+                host.dialog.show('export-data-as', data, options)
+            );
             host.dialog.define('export-data-as', {
                 titleText: 'Export Data',
                 content: {
                     view: 'grid',
+                    context: (_, ctx: any) => ({
+                        ...host.storage.getValue(storageKey),
+                        ...ctx
+                    }),
                     rows: [
                         [
                             'text:"Format:"',
@@ -54,8 +82,8 @@ function setup(options?: Partial<ExportDataOptions>) {
                                 name: 'format',
                                 data: [
                                     { value: 'json', text: 'JSON' },
-                                    { value: 'jsonl', text: 'JSONL' },
-                                    { value: 'jsonxl', text: 'JSONXL' }
+                                    { value: 'jsonl', text: 'JSONL' }
+                                    // { value: 'jsonxl', text: 'JSONXL' }
                                 ]
                             }
                         ],
@@ -88,7 +116,6 @@ function setup(options?: Partial<ExportDataOptions>) {
                     ]
                 },
                 toolbar: [
-                    // 'struct:#.dialogValue',
                     {
                         view: 'button-primary',
                         when: isSaveEnabled,
@@ -107,7 +134,11 @@ function setup(options?: Partial<ExportDataOptions>) {
                         onClick: '=#.dialog.close'
                     }
                 ],
-                onSubmit({ submitValue, returnValue, data }) {
+                onSubmit({ submitValue, returnValue, data }: {
+                    submitValue: 'save' | 'download';
+                    returnValue: ExportDataStreamOptions;
+                    data: any;
+                }) {
                     const action =
                         submitValue === 'save'
                             ? 'saveDataAsFile'
@@ -120,40 +151,48 @@ function setup(options?: Partial<ExportDataOptions>) {
                         return;
                     }
 
-                    setTimeout(() => host.action.call(action, data, returnValue), 50);
+                    host.storage.setValue(storageKey, {
+                        action: submitValue,
+                        ...returnValue
+                    });
+
+                    host.action.call(action, data, returnValue);
                 }
             });
         }
 
-        if (isDownloadEnabled) {
-            host.action.define('downloadDataAsFile', (data, options: DownloadDataAsFileOptions & ExportDataStreamOptions) => {
-                options = options || { format: 'json' };
-
-                const stream = createDataStream(data, options);
-                const suggestedFilename = options?.filename || getSuggestedFilename(options);
-                const onProgress = options?.onProgress ?? createOnProgressCallback(host);
-
-                downloadDataAsFile?.(stream, {
-                    filename: suggestedFilename,
-                    onProgress: onProgress
-                });
-            });
+        // define actions for downloading and saving data as file
+        if (isDownloadEnabled && downloadDataAsFile) {
+            host.action.define('downloadDataAsFile', createActionHandler(host, downloadDataAsFile));
         }
 
-        if (isSaveEnabled) {
-            host.action.define('saveDataAsFile', (data, options?: SaveAsFileOptions & ExportDataStreamOptions) => {
-                options = options || { format: 'json' };
-
-                const stream = createDataStream(data, options);
-                const suggestedFilename = options?.filename || getSuggestedFilename(options);
-                const onProgress = options?.onProgress ?? createOnProgressCallback(host);
-
-                saveStreamAsFile?.(stream, {
-                    filename: suggestedFilename,
-                    onProgress: onProgress
-                });
-            });
+        if (isSaveEnabled && saveStreamAsFile) {
+            host.action.define('saveDataAsFile', createActionHandler(host, saveStreamAsFile));
         }
+    };
+}
+
+function createActionHandler(host: ViewModel, handler: Exclude<typeof downloadDataAsFile | typeof saveStreamAsFile, null>) {
+    return (data: unknown, options?: (DownloadDataAsFileOptions | SaveAsFileOptions) & ExportDataStreamOptions) => {
+        options = options || { format: 'json' };
+
+        const stream = createDataStream(data, options);
+        const filename = options?.filename || getSuggestedFilename(options);
+        const onProgress = createOnProgressCallback(host, handler === downloadDataAsFile ? 'download' : 'save', options?.onProgress);
+
+        // don't return a promise here, to avoid blocking action until the file is saved
+        handler(stream, {
+            filename,
+            onProgress
+        }).catch((error: any) => {
+            host.logger.error(`Failed to export data in ${filename}\n`, error);
+            onProgress({
+                filename,
+                done: true,
+                written: 0,
+                error
+            } as Parameters<ReturnType<typeof createOnProgressCallback>>[0]);
+        });
     };
 }
 
@@ -175,7 +214,7 @@ function createDataStream(data: any, options?: ExportDataStreamOptions): Readabl
         compression,
         highWaterMark = 1024 * 1024
     } = options || {};
-    let source;
+    let source: Generator<string>;
 
     switch (format) {
         case 'json':
@@ -190,7 +229,8 @@ function createDataStream(data: any, options?: ExportDataStreamOptions): Readabl
             throw new Error(`Unsupported format "${format}"`);
     }
 
-    let stream = getReadableStreamFromSource(source);
+    let stream = (getReadableStreamFromSource(source) as unknown as ReadableStream<string>)
+        .pipeThrough(new TextEncoderStream());
 
     if (compression) {
         stream = stream.pipeThrough(new CompressionStream(compression));
@@ -199,26 +239,40 @@ function createDataStream(data: any, options?: ExportDataStreamOptions): Readabl
     return stream;
 }
 
-function createOnProgressCallback(host: ViewModel) {
+function createOnProgressCallback(host: ViewModel, mode: 'download' | 'save', customCallback?: (progress: OnProgressState) => void) {
     const actionId = randomId();
-    const onProgress = async (progress: { filename: string; done: boolean; written: number }) => {
-        const { filename, done, written } = progress;
+    const onProgress = customCallback || (async (progress: OnProgressState) => {
+        const { mode, filename, done, written, error } = progress;
 
         host.action.call('toastMessage', {
             id: actionId,
-            type: !done ? 'primary' : 'success',
-            data: { filename, done, written },
-            content: !done
-                ? [
-                    'text-numeric:`Saving file ${filename} (${written / 1_000_000 | $ + "" | replace(/(\\.\\d).*/, "$1")} MB)...`',
+            data: {
+                mode,
+                filename,
+                done,
+                written,
+                error
+            },
+            ...error ? {
+                type: 'danger',
+                content: 'text:`Error exporting data ${filename}: ${error}`',
+                remove: 10000
+            } : !done ? {
+                type: 'primary',
+                content: [
+                    'text-numeric:`${mode = "download" ? "Preparing payload for" : "Saving data into"} ${filename} (${written / 1_000_000 | $ + "" | replace(/(\\.\\d).*/, "$1")} MB)...`',
                     'progress{ when: total, progress: completed / total }'
-                ]
-                : 'text:`File ${filename} saved`',
-            remove: done ? 5000 : false
+                ],
+                remove: false
+            } : {
+                type: 'success',
+                content: 'text:`File ${filename} ${mode = "download" ? "prepared, download started" : "saved successfully"} (${written / 1_000_000 | $ + "" | replace(/(\\.\\d).*/, "$1")} MB)`',
+                remove: 5000
+            }
         });
+        await new Promise(resolve => setTimeout(resolve, 1));
+    });
 
-        await new Promise(resolve => setTimeout(resolve, 10));
-    };
-
-    return onProgress;
+    return (progress: Exclude<OnProgressState, 'mode'>) =>
+        onProgress({ ...progress, mode });
 }

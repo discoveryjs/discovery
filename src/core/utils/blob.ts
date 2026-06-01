@@ -11,6 +11,10 @@ export function createBlobFromPrimitive(
     source: string | ArrayBufferLike | ArrayBufferView,
     options?: BlobPropertyBag
 ): Blob | null {
+    if (source instanceof Blob) {
+        return source;
+    }
+
     if (typeof source === 'string' ||
         ArrayBuffer.isView(source) ||
         source instanceof ArrayBuffer ||

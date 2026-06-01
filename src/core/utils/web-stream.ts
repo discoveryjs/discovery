@@ -1,4 +1,4 @@
-import { createBlobFromIterable } from './blob';
+import { createBlobFromPrimitive } from './blob';
 
 async function* createStreamIterator<T>(stream: ReadableStream<T>): AsyncIterable<T> {
     const reader = stream.getReader();
@@ -39,7 +39,7 @@ export function getReadableStreamFromSource(source: unknown) {
         return source.body;
     }
 
-    source = createBlobFromIterable(source as any) || source;
+    source = createBlobFromPrimitive(source as any) || source;
 
     if (source instanceof Blob) {
         return source.stream();
@@ -56,7 +56,7 @@ export function getReadableStreamFromSource(source: unknown) {
                 throw new Error('Bad value type (can\'t convert to a stream)');
             }
 
-            this.iterator = generator();
+            this.iterator = generator.call(source);
         },
         async pull(controller) {
             const { value, done } = await this.iterator.next();
