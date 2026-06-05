@@ -69,7 +69,7 @@
         "diff": "^8.0.2",
         "github-slugger": "^2.0.0",
         "hitext": "^1.0.0-beta.1",
-        "jora": "1.0.0-beta.15",
+        "jora": "1.0.0-beta.16",
         "marked": "^14.1.4"
     },
     "devDependencies": {

@@ -1,5 +1,6 @@
 ## next
 
+- Bumped [jora](https://github.com/discoveryjs/jora) to 1.0.0-beta.16
 - Added support for JSONL as input data format
 - Added toast messages extension for displaying non-intrusive notifications in the app via `toastMessage(config)` action
 - Added `ViewModel#dialog` subsystem for displaying modal dialogs in the app, with a `dialog.define(name, config)` and `dialog.show(nameOrConfig, data, context)` API
