@@ -66,6 +66,18 @@ export function createFragment(...children: (Node | string)[]) {
     return fragment;
 }
 
+export function normalizeStyleSize(value: boolean | number | string = true): string {
+    if (typeof value === 'number') {
+        return `${value}px`;
+    }
+
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    return value ? '' : '0px';
+}
+
 export const passiveSupported = /* @__PURE__ */ (() => {
     let passiveSupported = false;
 

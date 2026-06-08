@@ -3,11 +3,13 @@
 import { isRawViewConfig, type RawViewConfig, type ViewRenderer } from './view.js';
 import { Dictionary } from './dict.js';
 import { ViewModel } from '../main/view-model.js';
-import { createElement } from './utils/index.js';
+import { createElement, normalizeStyleSize } from './utils/index.js';
 
 export type DialogConfig = {
+    fullViewport: boolean;
     titleText: string; // for simple cases when only text is needed, to avoid extra config
     title: RawViewConfig;
+    contentPadding: boolean | number | string; // false = 0, true = default
     content: RawViewConfig;
     toolbar: RawViewConfig;
     onSubmit: (submit: DialogSubmit) => void;
@@ -86,6 +88,8 @@ export class DialogRegistry extends Dictionary<Dialog> {
             }
         };
 
+        dialogEl.classList.toggle('fullviewport', config.fullViewport || false);
+        dialogEl.style.setProperty('--dialog-content-padding', normalizeStyleSize(config.contentPadding));
         this.#host.dom.container.append(dialogEl);
         dialogEl.showModal();
         dialogEl.onclose = () => {

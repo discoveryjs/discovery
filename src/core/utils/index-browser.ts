@@ -1,7 +1,7 @@
 export { applyContainerStyles, rollbackContainerStyles } from './container-styles.js';
 export { copyText } from './copy-text.js';
 export type { CreateElementAttrs } from './dom.js';
-export { createElement, createFragment, createText, isDocumentFragment, passiveCaptureOptions, passiveSupported } from './dom.js';
+export { createElement, createFragment, createText, normalizeStyleSize, isDocumentFragment, passiveCaptureOptions, passiveSupported } from './dom.js';
 export type { InjectStyle, InjectInlineStyle, InjectLinkStyle } from './inject-styles.js';
 export { injectStyles } from './inject-styles.js';
 export { getBoundingRect, getOffsetParent, getOverflowParent, getPageOffset, getViewportRect } from './layout.js';
