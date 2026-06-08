@@ -14,6 +14,7 @@
 - Added `name` property for `context` view, which allows to specify a key in context where modifiers values will be stored, instead of the root level
 - Added `markdown` (with `md` alias) text view
 - Added `render` view for text renderer
+- Improved `ViewRenderer` in render errors handling and details display
 - Added `ViewRenderer#getViewsMetadata()` method
 - Added `ViewRenderer#renderReplace()` method, which replaces the content of the container instead of appending to it
 - Added `call()` Jora helper method to call a function, which simplifies function calls, i.e. `fn.call(foo, bar)` instead of `$fn: fn; foo.$fn(bar)`

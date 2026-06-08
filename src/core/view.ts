@@ -2,7 +2,7 @@
 
 import type { ViewModel } from '../main/view-model.js';
 import type { PopupOptions, PopupRender } from '../views/layout/popup.js';
-import { isDocumentFragment } from './utils/dom.js';
+import { createElement, createFragment, isDocumentFragment } from './utils/dom.js';
 import { hasOwn } from './utils/object-utils.js';
 import { Dictionary } from './dict.js';
 import { queryToConfig } from './utils/query-to-config.js';
@@ -80,8 +80,8 @@ export interface ViewMetadata {
 export interface SingleViewConfig {
     view: string | RenderFunction;
     when?: query;
-    context?: query;
-    data?: query;
+    context?: any;
+    data?: any;
     whenData?: query;
     className?: string | ClassNameFn | (string | ClassNameFn)[];
     tooltip?: TooltipConfig | RawViewConfig;
@@ -97,7 +97,7 @@ type PropsTransition = {
 };
 
 interface ViewInfo {
-    config: NormalizedViewConfig;
+    config: SingleViewConfig;
     skipped?: 'when' | 'whenData';
     props?: any,
     inputData: any;
@@ -107,8 +107,8 @@ interface ViewInfo {
 };
 interface ErrorData {
     type?: string;
-    config: any;
-    reason: string;
+    config: SingleViewConfig;
+    reason: Error | string;
 }
 
 export type TooltipConfig = Partial<{
@@ -212,7 +212,7 @@ function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTre
                 parent = child;
             } else {
                 parent.children.push(parent = {
-                    node: null,
+                    node: node.nodeType !== 8 ? node : null,
                     parent,
                     view: info,
                     children: []
@@ -255,24 +255,116 @@ function createDefaultRenderErrorView(view: ViewRenderer): View {
         name: 'config-error',
         options: STUB_VIEW_OPTIONS,
         render(el: HTMLElement, config: ErrorData) {
-            el.className = 'discovery-buildin-view-render-error';
-            el.dataset.type = config.type;
-            el.textContent = config.reason;
+            const blockClassName = 'discovery-buildin-view-render-error';
+            const tagEl = createElement('span', 'error-tag');
+            const summaryEl = el.appendChild(createElement('span', `${blockClassName}__summary`, [
+                tagEl,
+                createElement('span', 'reason', [String(config.reason)])
+            ]));
+            const viewName = typeof config.config.view === 'string' ? config.config.view : null;
+            const lastQueryField = (config.reason as any)?.lastQuery;
+            const lastQuery = typeof lastQueryField === 'string' && typeof config.config[lastQueryField] === 'string'
+                ? config.config[lastQueryField]
+                : null;
+
+            el.className = `${blockClassName}`;
+            summaryEl.dataset.type = config.type;
+
+            if (lastQueryField) {
+                summaryEl.dataset.type = 'query';
+                el.style.setProperty('--query-field', `"${lastQueryField}"`);
+            }
 
             if ('config' in config) {
-                const configEl = el.appendChild(document.createElement('span'));
+                const renderDetails = (detailsOutputEl: HTMLElement) => {
+                    const detailsEl = detailsOutputEl.appendChild(createElement('div', `${blockClassName}__details`));
 
-                configEl.className = 'toggle-config';
-                configEl.textContent = 'show config...';
-                configEl.addEventListener('click', () => {
-                    if (el.classList.toggle('expanded')) {
-                        configEl.textContent = 'hide config...';
-                        view.render(el, { view: 'struct', expanded: 1 }, config.config);
-                    } else {
-                        configEl.textContent = 'show config...';
-                        el.lastChild?.remove();
+                    if (viewName) {
+                        el.style.setProperty('--view-name', `"${viewName}"`);
                     }
-                });
+
+                    // render error text
+                    const message = String(config.reason);
+                    const stack = typeof config.reason !== 'string' && config.reason.stack
+                        ? String(config.reason.stack)
+                        : null;
+                    detailsEl.append(createElement('pre', `${blockClassName}__message`, [
+                        message,
+                        stack
+                            ? '\n\nStack trace:\n' + (stack.startsWith(message)
+                                ? stack.slice(message.length).replace(/^[\r\n]+/, '')
+                                : stack)
+                            : ''
+                    ]));
+
+                    // render view stack
+                    const stackTraceEl = detailsEl.appendChild(createElement('div', `${blockClassName}__stack-trace`));
+                    const stackTrace = view.getViewStackTrace(el.parentNode as HTMLElement, true);
+
+                    if (stackTrace) {
+                        for (const entry of stackTrace) {
+                            const rootName = 'name' in entry ? entry.name : undefined;
+                            const view = entry.config.view;
+
+                            if (rootName) {
+                                stackTraceEl.append(createElement('span', 'view-stack-entry root', [rootName]));
+                            }
+
+                            stackTraceEl.append(createElement('span', 'view-stack-entry', [
+                                typeof view === 'string' && view
+                                    ? view
+                                    : typeof entry.config === 'function' || typeof view === 'function'
+                                        ? 'ƒn'
+                                        : '[unknown view]'
+                            ]));
+                        }
+                    }
+
+                    // render view config
+                    view.render(detailsEl, 'struct{ expanded: true }', config.config);
+
+                    // render last query if any
+                    if (lastQuery) {
+                        const range = (config.reason as any)?.details?.loc?.range;
+                        const queryEl = detailsEl.appendChild(createElement('div', `${blockClassName}__last-query`, [
+                            createElement('span', 'query-field', [lastQueryField])
+                        ]));
+
+                        view.render(queryEl, {
+                            view: 'source',
+                            source: lastQuery,
+                            ranges: range ? [{ range, className: 'error' }] : []
+                        });
+                    }
+                };
+
+                tagEl.classList.add('has-details');
+                attachTooltip(view.host, tagEl, {
+                    ignoreTrigger: () => el.classList.contains('expanded'),
+                    hideOnTriggerClick: true,
+                    contentPadding: false,
+                    content: renderDetails
+                } satisfies TooltipConfig);
+
+                if (view.host.dialog) {
+                    tagEl.addEventListener('click', () => {
+                        view.host.dialog.show({
+                            titleText: 'Error details',
+                            fullViewport: true,
+                            contentPadding: false,
+                            content: renderDetails
+                        });
+                    });
+                } else {
+                    tagEl.classList.add('toggle');
+                    tagEl.addEventListener('click', () => {
+                        if (el.classList.toggle('expanded')) {
+                            renderDetails(el);
+                        } else {
+                            summaryEl.nextSibling?.remove();
+                        }
+                    });
+                }
             }
         }
     };
@@ -402,7 +494,7 @@ async function renderDom(
     placeholder.replaceWith(el);
 }
 
-function renderError(viewRenderer: ViewRenderer, reason: string, placeholder: Comment, config: any) {
+function renderError(viewRenderer: ViewRenderer, reason: Error | string, placeholder: Comment, config: any) {
     return renderDom(viewRenderer, viewRenderer.defaultRenderErrorRenderer, placeholder, STUB_CONFIG, {
         type: 'render',
         reason,
@@ -446,7 +538,7 @@ function createRenderContext(viewRenderer: ViewRenderer, name: string) {
     };
 }
 
-function attachTooltip(host: ViewModel, el: HTMLElement, config: TooltipConfig | RawViewConfig, data: any, context: any) {
+function attachTooltip(host: ViewModel, el: HTMLElement, config: TooltipConfig | RawViewConfig, data?: any, context?: any) {
     el.classList.add('discovery-view-has-tooltip');
     tooltipEls.set(el, { config, data, context });
 
@@ -619,17 +711,20 @@ async function render(
         return renderError(viewRenderer, errorMsg, placeholder, config);
     }
 
+    let lastQuery: string | null = null;
     try {
         // when -> data -> whenData -> render
-        if (condition('when', viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder)) {
-            const renderContext = 'context' in config
+        if (condition(lastQuery = 'when', viewRenderer, config, queryData, context, inputData, inputDataIndex, placeholder)) {
+            const renderContext = hasOwn(config, lastQuery = 'context')
                 ? await viewRenderer.host.query(config.context, queryData, context)
                 : context;
-            const renderData = 'data' in config
+            const renderData = hasOwn(config, lastQuery = 'data')
                 ? await viewRenderer.host.query(config.data, queryData, renderContext)
                 : queryData;
 
-            if (condition('whenData', viewRenderer, config, renderData, renderContext, inputData, inputDataIndex, placeholder)) {
+            if (condition(lastQuery = 'whenData', viewRenderer, config, renderData, renderContext, inputData, inputDataIndex, placeholder)) {
+                lastQuery = null;
+
                 // use await to catch possible errors in renderDom()
                 return await renderDom(
                     viewRenderer,
@@ -645,8 +740,9 @@ async function render(
             }
         }
     } catch (e) {
-        viewRenderer.host.logger.error('View render error:', e.message);
-        return renderError(viewRenderer, String(e), placeholder, STUB_CONFIG);
+        e.lastQuery = lastQuery;
+        viewRenderer.host.logger.error('View render error:', e);
+        return renderError(viewRenderer, e, placeholder, config);
     }
 }
 
@@ -778,8 +874,8 @@ export class ViewRenderer extends Dictionary<View> {
         return config;
     }
 
-    badConfig(config: any, error: Error): SingleViewConfig {
-        const errorMsg = error?.message || 'Unknown error';
+    badConfig(config: any, error: Error | string): SingleViewConfig {
+        const errorMsg = typeof error === 'string' ? error : error?.message || 'Unknown error';
 
         this.host.logger.error(errorMsg, { config, error });
 
@@ -876,7 +972,7 @@ export class ViewRenderer extends Dictionary<View> {
         container.replaceChildren(fragment);
     }
 
-    renderError(container: HTMLElement | Comment | DocumentFragment, reason: string, config: any) {
+    renderError(container: HTMLElement | Comment | DocumentFragment, reason: Error | string, config: any) {
         const placeholder = container instanceof Comment
             ? container
             : container.appendChild(document.createComment(''));
@@ -1070,21 +1166,26 @@ export class ViewRenderer extends Dictionary<View> {
         return result;
     }
 
-    getViewStackTrace(el: Node) {
+    getViewStackTrace(el: Node, includeRoots = false) {
         const { container: root } = this.host.dom as { container?: HTMLElement | null };
 
         if (!root || el instanceof Node === false || !root.contains(el)) {
             return null;
         }
 
-        const stack: ViewInfo[] = [];
+        const stack: (ViewInfo | RootViewInfo)[] = [];
         let cursor: Node | null = el;
 
         while (cursor !== null && cursor !== root) {
             const viewInfo = this.viewEls.get(cursor);
+            const rootInfo = includeRoots ? rootViewEls.get(cursor as any) : undefined;
 
             if (viewInfo !== undefined) {
                 stack.push(viewInfo);
+            }
+
+            if (rootInfo !== undefined) {
+                stack.push(rootInfo);
             }
 
             cursor = cursor.parentNode;
