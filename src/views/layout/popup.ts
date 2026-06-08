@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import type { ViewModel } from '../../main/view-model.js';
 import { getOffsetParent, getBoundingRect, getViewportRect } from '../../core/utils/layout.js';
-import { passiveCaptureOptions } from '../../core/utils/dom.js';
+import { normalizeStyleSize, passiveCaptureOptions } from '../../core/utils/dom.js';
 import { pointerXY } from '../../core/utils/pointer.js';
 
 export type PopupTriggerEl = HTMLElement | null | undefined;
@@ -13,11 +13,13 @@ export type PopupOptions = {
     pointerOffsetY: number;
     showDelay: boolean | number | ((triggerEl: PopupTriggerEl) => boolean | number); // false = 0, true = defaultShowDelay
     hoverTriggers: string | null; // string is a list of css selectors
+    ignoreTrigger: string | null | ((triggerEl: PopupTriggerEl) => boolean); // return true to disallow showing, false to allow it; string is a list of selectors
     hoverPin: false | 'popup-hover' | 'trigger-click';
     hideIfEventOutside: boolean;
     hideOnResize: boolean;
     hideOnTriggerClick: boolean;
     render: PopupRender;
+    contentPadding: boolean | number | string; // false = 0, true = default
     className: string;
 };
 
@@ -218,6 +220,7 @@ export default function(host: ViewModel) {
         showDelay: PopupOptions['showDelay'];
 
         #lastTriggerEl: Element | null;
+        #ignoreTrigger: Exclude<PopupOptions['ignoreTrigger'], string> | null;
         lastHoverTriggerEl: HTMLElement | null;
         render: PopupOptions['render'] | undefined;
         position: PopupOptions['position'];
@@ -243,6 +246,8 @@ export default function(host: ViewModel) {
                 positionMode = 'safe',
                 pointerOffsetX,
                 pointerOffsetY,
+                contentPadding = true,
+                ignoreTrigger = null,
                 hoverTriggers,
                 hoverPin,
                 hideIfEventOutside = true,
@@ -253,6 +258,7 @@ export default function(host: ViewModel) {
 
             this.el = document.createElement('div');
             this.el.classList.add('discovery-view-popup');
+            this.contentPadding = contentPadding;
 
             this.showDelayTimer = null;
             this.showDelayArgs = null;
@@ -273,6 +279,7 @@ export default function(host: ViewModel) {
             this.positionMode = positionMode;
             this.pointerOffsetX = ensureNumber(pointerOffsetX, 3);
             this.pointerOffsetY = ensureNumber(pointerOffsetY, 3);
+            this.ignoreTrigger = ignoreTrigger;
             this.hoverTriggers = hoverTriggers || null;
             this.hoverPin = isHoverPinModeValue(hoverPin) ? hoverPin : false;
             this.hideIfEventOutsideDisabled = !hideIfEventOutside;
@@ -300,6 +307,15 @@ export default function(host: ViewModel) {
             return openedPopups.includes(this);
         }
 
+        set contentPadding(value: PopupOptions['contentPadding']) {
+            this.el.style.setProperty('--tooltip-content-padding', normalizeStyleSize(value));
+        }
+        set ignoreTrigger(value: PopupOptions['ignoreTrigger'] | null) {
+            this.#ignoreTrigger = typeof value === 'string'
+                ? (triggerEl) => triggerEl?.querySelector(value) !== null
+                : value || null;
+        }
+
         get lastTriggerEl() {
             return this.#lastTriggerEl;
         }
@@ -324,13 +340,18 @@ export default function(host: ViewModel) {
         }
 
         async show(triggerEl?: PopupTriggerEl, render = this.render, showImmediately = false) {
+            if (triggerEl && this.#ignoreTrigger?.(triggerEl)) {
+                this.hide();
+                return;
+            }
+
             // schedule showing if delayed
             if (!this.visible && !showImmediately && showDelayToMs(this.showDelay, triggerEl) > 0) {
                 startDelayedShow(this, triggerEl, render);
                 return;
             }
 
-            const hostEl = host.dom.container;
+            const hostEl = triggerEl?.closest('dialog') || host.dom.container;
 
             // remove popup from inspector locked instances
             inspectorLockedInstances.delete(this);

@@ -2,6 +2,7 @@
     position: fixed;
     min-width: 200px;
     box-sizing: border-box;
+    padding: var(--tooltip-content-padding, 0px);
     z-index: 300;
     overflow: hidden;
     overflow-y: auto;

@@ -119,6 +119,8 @@ export type TooltipConfig = Partial<{
     pointerOffsetX: number;
     pointerOffsetY: number;
     hideOnTriggerClick: boolean;
+    ignoreTrigger: PopupOptions['ignoreTrigger'];
+    contentPadding: boolean | number | string; // false = 0, true = default
     content: RawViewConfig;
 }>;
 type TooltipInfo = {
@@ -484,6 +486,8 @@ function createTooltip(host: ViewModel) {
             let pointerOffsetX: TooltipConfig['pointerOffsetX'] = 3;
             let pointerOffsetY: TooltipConfig['pointerOffsetY'] = 3;
             let hideOnTriggerClick: TooltipConfig['hideOnTriggerClick'] = false;
+            let ignoreTrigger: TooltipConfig['ignoreTrigger'] = null;
+            let contentPadding: TooltipConfig['contentPadding'] = true;
             let content: any = config;
 
             if (classNames !== null) {
@@ -503,6 +507,8 @@ function createTooltip(host: ViewModel) {
                 pointerOffsetX = ensureNumber(config.pointerOffsetX, pointerOffsetX);
                 pointerOffsetY = ensureNumber(config.pointerOffsetY, pointerOffsetY);
                 hideOnTriggerClick = Boolean(config.hideOnTriggerClick);
+                ignoreTrigger = config.ignoreTrigger || null;
+                contentPadding = config.contentPadding;
 
                 content = config.content;
             }
@@ -512,6 +518,8 @@ function createTooltip(host: ViewModel) {
             popup.pointerOffsetX = pointerOffsetX;
             popup.pointerOffsetY = pointerOffsetY;
             popup.hideOnTriggerClick = hideOnTriggerClick;
+            popup.ignoreTrigger = ignoreTrigger;
+            popup.contentPadding = contentPadding;
 
             if (content) {
                 return host.view.render(el, content, data, context);
@@ -650,6 +658,8 @@ export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup inste
     pointerOffsetX: TooltipConfig['pointerOffsetX'];
     pointerOffsetY: TooltipConfig['pointerOffsetY'];
     hideOnTriggerClick: TooltipConfig['hideOnTriggerClick'];
+    ignoreTrigger: TooltipConfig['ignoreTrigger'];
+    contentPadding: TooltipConfig['contentPadding'];
     // use method definition aside, since stub implementation doesn't use config parameter
     constructor(config: Partial<PopupOptions>);
     constructor() {}
