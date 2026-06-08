@@ -1,0 +1,174 @@
+.discovery-buildin-view-render-error {
+    display: inline-block;
+    vertical-align: top;
+    margin: 1px;
+    border: 1px solid rgba(212, 0, 0, 0.4);
+    border-radius: 4px;
+}
+
+.discovery-buildin-view-render-error__summary {
+    display: flex;
+    background-color: rgba(255, 25, 25, 0.1);
+    background-clip: padding-box;
+    color: #c66;
+    font-size: 10px;
+    line-height: 1;
+    overflow: hidden;
+}
+.discovery-buildin-view-render-error__summary > .last-query {
+    color: var(--discovery-color);
+    padding-right: 6px;
+}
+.discovery-buildin-view-render-error__summary .error-tag {
+    display: inline-flex;
+    vertical-align: top;
+    padding: 4px;
+    border-radius: 3px 0 0 3px;
+    background-color: rgb(226, 36, 36, .4);
+    text-shadow: 1px 1px rgb(0, 0, 0, .2);
+    color: rgba(255, 255, 255, .85);
+    white-space: nowrap;
+}
+.discovery-buildin-view-render-error__summary .error-tag::before {
+    content: 'ERROR';
+}
+.discovery-buildin-view-render-error__summary[data-type="config"] .error-tag::before {
+    content: 'CONFIG ERROR';
+}
+.discovery-buildin-view-render-error__summary[data-type="render"] .error-tag::before {
+    content: 'RENDER ERROR';
+}
+.discovery-buildin-view-render-error__summary[data-type="query"] .error-tag::before {
+    content: 'QUERY ERROR (' var(--query-field) ')';
+}
+.discovery-buildin-view-render-error__summary .error-tag.has-details {
+    cursor: pointer;
+}
+.discovery-buildin-view-render-error__summary .error-tag.toggle::after {
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    aspect-ratio: 1;
+    width: 12px;
+    margin: -2px -2px -2px 2px;
+    mask-image: url("../views/layout/expand.svg");
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 12px;
+    background-color: currentColor;
+    opacity: .5;
+    transform: rotate(-90deg);
+    transition: transform .15s ease-in;
+}
+.discovery-buildin-view-render-error.expanded .error-tag {
+    border-bottom-left-radius: 0;
+}
+.discovery-buildin-view-render-error.expanded .error-tag.toggle::after {
+    transform: rotate(0deg);
+}
+
+.discovery-buildin-view-render-error .reason {
+    padding: 4px;
+    vertical-align: top;
+    transition: .15s ease-in;
+    transition-property: opacity, transform;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.discovery-buildin-view-render-error.expanded .reason {
+    transition-timing-function: ease-out;
+    transition-delay: 0s, .05s;
+    transition-duration: .25s;
+    opacity: 0;
+    transform: translateY(2em);
+}
+.discovery-buildin-view-render-error .error-tag.discovery-view-has-tooltip + .reason {
+    max-width: 32ex;
+    text-overflow: ellipsis;
+}
+
+.discovery-buildin-view-render-error__message {
+    padding: 8px;
+    font-family: var(--discovery-monospace-font-family, monospace);
+    font-size: var(--discovery-monospace-font-size);
+    line-height: var(--discovery-monospace-line-height);
+    color: light-dark(#ff00002e, #dc7c7c);
+    background: light-dark(#d85a5a, #3f3333);
+    white-space: pre-wrap;
+}
+
+.discovery-buildin-view-render-error .toggle-config {
+    margin-left: 1ex;
+    cursor: pointer;
+    opacity: .65;
+    color: #888;
+    user-select: none;
+}
+.discovery-buildin-view-render-error .toggle-config:hover {
+    opacity: 1;
+}
+
+.discovery-buildin-view-render-error__details > * {
+    margin: 1px;
+}
+.discovery-buildin-view-render-error__details > :last-child {
+    border-radius: 0 0 3px 3px;
+}
+
+.discovery-buildin-view-render-error__stack-trace {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 1px;
+    margin: 1px;
+}
+.discovery-buildin-view-render-error__stack-trace .view-stack-entry {
+    background-color: #8883;
+    font-size: 85%;
+    padding: 2px 6px;
+}
+.discovery-buildin-view-render-error__stack-trace .view-stack-entry.root {
+    background-color: rgba(189, 120, 255, .25);
+}
+/* .discovery-buildin-view-render-error__stack-trace::before {
+    content: 'Render stack:';
+    font-size: 85%;
+    color: #888;
+    padding: 0 6px 0 4px;
+} */
+.discovery-buildin-view-render-error__stack-trace::after {
+    content: var(--view-name, 'Error on render');
+    background-color: #4ebbff4d;
+    font-size: 85%;
+    padding: 2px 6px;
+}
+.discovery-buildin-view-render-error__last-query .query-field {
+    display: block;
+    padding: 2px 6px;
+    font-size: 85%;
+}
+.discovery-buildin-view-render-error__last-query .query-field::before {
+    content: 'Error occurred at query ';
+    color: #888;
+}
+.discovery-buildin-view-render-error__last-query .query-field::after {
+    content: ':';
+    color: #888;
+}
+.discovery-buildin-view-render-error__last-query .view-source {
+    margin: 0;
+}
+
+.discovery-buildin-view-tooltip {
+    padding: var(--tooltip-content-padding, 5px 10px);
+    min-width: 120px;
+    border: 0.5px solid #fff5;
+    border-radius: 3px;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+.discovery-root-darkmode .discovery-buildin-view-tooltip {
+    background: rgba(36, 36, 36, 0.8);
+}
