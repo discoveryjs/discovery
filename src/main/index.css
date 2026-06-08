@@ -1,5 +1,5 @@
-@import url('../views/index.css');
 @import url('../pages/index.css');
+@import url('../views/index.css');
 @import url('../extensions/inspector.css');
 @import url('../extensions/toast-messages.css');
 @import url('./view-model.css');
