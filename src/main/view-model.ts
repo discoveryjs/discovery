@@ -231,15 +231,11 @@ export class ViewModel<
     // Data
     //
 
-    async setData(data: unknown, options?: SetDataOptions & { render?: boolean }) {
-        const { render = true } = options || {};
-
+    async setData(data: unknown, options?: SetDataOptions) {
         await super.setData(data, options);
 
         // run after data is prepared and set
-        if (render) {
-            this.scheduleRender();
-        }
+        this.scheduleRender();
     }
 
     async setDataProgress(data: unknown, context: unknown, options?: SetDataProgressOptions) {
@@ -257,13 +253,19 @@ export class ViewModel<
         await progressbar?.setState({ stage: 'prepare' });
         await this.setData(data, {
             dataset,
-            setPrepareWorkTitle: progressbar?.setStateStep.bind(progressbar),
-            render: false
+            setPrepareWorkTitle: progressbar?.setStateStep.bind(progressbar)
         });
 
+        if (progressbar) {
+            // when progressbar is used, we cancel any scheduled render
+            // and enforce a new render after the final state of the progressbar is displayed,
+            // which is makes sense for long initial renders
+            this.cancelScheduledRender();
+            await progressbar.setState({ stage: 'initui' });
+            this.scheduleRender();
+        }
+
         // await dom is ready and everything is rendered
-        await progressbar?.setState({ stage: 'initui' });
-        this.scheduleRender();
         await Promise.all([
             this.dom.wrapper.parentNode ? this.dom.ready : true,
             this.enforceScheduledRenders()
