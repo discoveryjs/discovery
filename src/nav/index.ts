@@ -80,6 +80,64 @@ export class NavItemArray {
     }
 }
 
+const poweredByDiscoveryEl = createElement('div', 'powered-by-discoveryjs', [
+    'powered by ',
+    createElement('a', {
+        class: 'view-link',
+        href: 'https://github.com/discoveryjs/discovery',
+        target: '_blank'
+    }, 'Discovery.js'),
+    ` ${version}`
+]);
+
+function createBurgerMenu(nav: ViewModelNavigation) {
+    return {
+        view: 'nav-button',
+        name: 'burger',
+        whenData: true,
+        data: async () => {
+            const fragment = createFragment();
+
+            await nav.host.view.render(fragment, nav.menu.items, nav.data, {
+                ...nav.context,
+                hide: () => nav.popup?.hide()
+            });
+
+            return [...fragment.childNodes]
+                .filter(node => node.nodeType === 1 || node.nodeType === 3);
+        },
+        onClick: (el: HTMLElement, data: (Node | string)[]) => {
+            const popup = nav.popup || new nav.host.view.Popup({
+                className: 'discovery-nav-popup'
+            });
+
+            if (!nav.popup) {
+                nav.popup = popup;
+                popup.el.addEventListener('click', ({ target }) => {
+                    if ((target as HTMLElement).closest('a[href]')) {
+                        setTimeout(() => popup.hide(), 50);
+                    }
+                }, true);
+
+                // auto-destroy popup when the nav is not pointed on it anymore
+                const originalHide = popup.hide.bind(popup);
+                popup.hide = () => {
+                    if (nav.popup !== popup) {
+                        popup.destroy();
+                    } else {
+                        originalHide();
+                    }
+                };
+            }
+
+            popup.toggle(el, (el) =>
+                // clone poweredByDiscoveryEl to avoid retaining data/context via DOM nodes
+                el.append(...data, poweredByDiscoveryEl.cloneNode(true))
+            );
+        }
+    };
+}
+
 export * as buttons from './buttons.js';
 export class ViewModelNavigation extends NavItemArray {
     host: ViewModel;
@@ -95,16 +153,6 @@ export class ViewModelNavigation extends NavItemArray {
     constructor(host: ViewModel, baseConfig: RawViewConfig = 'nav-button') {
         super(host, baseConfig);
 
-        const poweredByDiscovery = createElement('div', 'powered-by-discoveryjs', [
-            'powered by ',
-            createElement('a', {
-                class: 'view-link',
-                href: 'https://github.com/discoveryjs/discovery',
-                target: '_blank'
-            }, 'Discovery.js'),
-            ` ${version}`
-        ]);
-
         this.host = host;
         this.popup = null;
         this.data = null;
@@ -114,38 +162,7 @@ export class ViewModelNavigation extends NavItemArray {
         this.menu = new NavItemArray(host, 'menu-item');
         this.config = [
             this.secondary.items,
-            {
-                view: 'nav-button',
-                name: 'burger',
-                whenData: true,
-                data: async () => {
-                    const fragment = createFragment();
-
-                    await this.host.view.render(fragment, this.menu.items, this.host.data, {
-                        ...this.context,
-                        hide: () => this.popup?.hide()
-                    });
-
-                    return [...fragment.childNodes]
-                        .filter(node => node.nodeType === 1 || node.nodeType === 3);
-                },
-                onClick: (el: HTMLElement, nodes: (Node | string)[]) => {
-                    const popup = this.popup || new this.host.view.Popup({
-                        className: 'discovery-nav-popup'
-                    });
-
-                    if (!this.popup) {
-                        this.popup = popup;
-                        popup.el.addEventListener('click', ({ target }) => {
-                            if ((target as HTMLElement).closest('a[href]')) {
-                                setTimeout(() => popup.hide(), 50);
-                            }
-                        }, true);
-                    }
-
-                    popup.toggle(el, (el) => el.append(...nodes, poweredByDiscovery));
-                }
-            },
+            createBurgerMenu(this),
             this.primary.items
         ];
 
@@ -165,21 +182,31 @@ export class ViewModelNavigation extends NavItemArray {
     render(el: HTMLElement, data: any, context: any) {
         this.contentRect.observe(el);
 
-        if (el) {
-            this.data = data;
-            this.context = {
-                ...context,
-                widget: this.host
-            };
+        // updata data and context for the next render
+        this.data = data;
+        this.context = {
+            ...context,
+            widget: this.host
+        };
 
-            this.host.view.setViewRoot(el, 'nav', {
-                config: this.config,
-                data: this.data,
-                context: this.context
-            });
-
-            el.innerHTML = '';
-            this.host.view.render(el, this.config, this.data, this.context);
+        // reset popup
+        if (!this.popup?.visible) {
+            this.popup?.destroy();
         }
+        this.popup = null;
+
+        // render nav if container is specified
+        if (!el) {
+            return;
+        }
+
+        this.host.view.setViewRoot(el, 'nav', {
+            config: this.config,
+            data: this.data,
+            context: this.context
+        });
+
+        el.innerHTML = '';
+        return this.host.view.render(el, this.config, this.data, this.context);
     }
 };
