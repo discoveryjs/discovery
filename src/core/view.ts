@@ -131,10 +131,6 @@ type TooltipInfo = {
 
 const STUB_VIEW_OPTIONS: NormalizedViewOptions = Object.freeze({ tag: undefined });
 const STUB_CONFIG: SingleViewConfig = Object.freeze({ view: '' });
-const tooltipEls = new WeakMap<HTMLElement, TooltipInfo>();
-const rootViewEls = new WeakMap<HTMLElement, RootViewInfo>();
-const configTransitions = new WeakMap<object, any>();
-const propsTransitions = new WeakMap<object, PropsTransition>();
 const configOnlyProps = new Set<RenderPropsForbiddenKeys>([
     'view',
     'when',
@@ -192,11 +188,6 @@ function computeLimit(availCount: number, limit: number, tolerance: number) {
         : limit;
 }
 
-function regConfigTransition<T extends object>(res: T, from: any): T {
-    configTransitions.set(res, from);
-    return res;
-}
-
 function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTreeNode, ignoreNodes: Set<Node>) {
     if (node === null || ignoreNodes.has(node)) {
         return;
@@ -221,7 +212,7 @@ function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTre
         }
     }
 
-    const rootViewInfo = rootViewEls.get(node as any);
+    const rootViewInfo = viewRenderer.rootViewEls.get(node as any);
 
     if (rootViewInfo !== undefined) {
         parent.children.push(parent = {
@@ -250,7 +241,7 @@ function collectViewTree(viewRenderer: ViewRenderer, node: Node, parent: ViewTre
     }
 }
 
-function createDefaultRenderErrorView(view: ViewRenderer): View {
+function createDefaultRenderErrorView(viewRenderer: ViewRenderer): View {
     return {
         name: 'config-error',
         options: STUB_VIEW_OPTIONS,
@@ -299,7 +290,7 @@ function createDefaultRenderErrorView(view: ViewRenderer): View {
 
                     // render view stack
                     const stackTraceEl = detailsEl.appendChild(createElement('div', `${blockClassName}__stack-trace`));
-                    const stackTrace = view.getViewStackTrace(el.parentNode as HTMLElement, true);
+                    const stackTrace = viewRenderer.getViewStackTrace(el.parentNode as HTMLElement, true);
 
                     if (stackTrace) {
                         for (const entry of stackTrace) {
@@ -321,7 +312,7 @@ function createDefaultRenderErrorView(view: ViewRenderer): View {
                     }
 
                     // render view config
-                    view.render(detailsEl, 'struct{ expanded: true }', config.config);
+                    viewRenderer.render(detailsEl, 'struct{ expanded: true }', config.config);
 
                     // render last query if any
                     if (lastQuery) {
@@ -330,7 +321,7 @@ function createDefaultRenderErrorView(view: ViewRenderer): View {
                             createElement('span', 'query-field', [lastQueryField])
                         ]));
 
-                        view.render(queryEl, {
+                        viewRenderer.render(queryEl, {
                             view: 'source',
                             source: lastQuery,
                             ranges: range ? [{ range, className: 'error' }] : []
@@ -339,16 +330,16 @@ function createDefaultRenderErrorView(view: ViewRenderer): View {
                 };
 
                 tagEl.classList.add('has-details');
-                attachTooltip(view.host, tagEl, {
+                attachTooltip(viewRenderer, tagEl, {
                     ignoreTrigger: () => el.classList.contains('expanded'),
                     hideOnTriggerClick: true,
                     contentPadding: false,
                     content: renderDetails
                 } satisfies TooltipConfig);
 
-                if (view.host.dialog) {
+                if (viewRenderer.host.dialog) {
                     tagEl.addEventListener('click', () => {
-                        view.host.dialog.show({
+                        viewRenderer.host.dialog.show({
                             titleText: 'Error details',
                             fullViewport: true,
                             contentPadding: false,
@@ -400,11 +391,11 @@ function condition(
     return false;
 }
 
-function computeClassName(host: ViewModel, className: any, data: any, context: any): string[] | null {
+function computeClassName(viewRenderer: ViewRenderer, className: any, data: any, context: any): string[] | null {
     let classNames = className;
 
     if (typeof classNames === 'string' && classNames.startsWith('=')) {
-        classNames = host.queryFn(classNames.slice(1));
+        classNames = viewRenderer.host.queryFn(classNames.slice(1));
     }
 
     if (typeof classNames === 'function') {
@@ -428,8 +419,10 @@ function computeClassName(host: ViewModel, className: any, data: any, context: a
     return null;
 }
 
-function applyComputedClassName(host: ViewModel, el: HTMLElement, className: any, data: any, context: any) {
-    const classNames = className ? computeClassName(host, className, data, context) : null;
+function applyComputedClassName(viewRenderer: ViewRenderer, el: HTMLElement, className: any, data: any, context: any) {
+    const classNames = className
+        ? computeClassName(viewRenderer, className, data, context)
+        : null;
 
     if (classNames !== null) {
         el.classList.add(...classNames);
@@ -474,10 +467,10 @@ async function renderDom(
             el.classList.add(`view-${renderer.name}`);
         }
 
-        applyComputedClassName(viewRenderer.host, el, config.className, data, context);
+        applyComputedClassName(viewRenderer, el, config.className, data, context);
 
         if (config.tooltip) {
-            attachTooltip(viewRenderer.host, el, config.tooltip, data, context);
+            attachTooltip(viewRenderer, el, config.tooltip, data, context);
         }
     } else {
         for (const child of el.childNodes) {
@@ -530,7 +523,7 @@ function createRenderContext(viewRenderer: ViewRenderer, name: string) {
         renderMoreButton: viewRenderer.renderMoreButton.bind(viewRenderer),
         tooltip(el: HTMLElement, config: RenderProps, data?: any, context?: any) {
             if (el && el.nodeType === 1) {
-                attachTooltip(viewRenderer.host, el, config, data, context);
+                return attachTooltip(viewRenderer, el, config, data, context);
             } else {
                 viewRenderer.host.logger.warn('A tooltip can be attached to a HTML element only');
             }
@@ -538,12 +531,16 @@ function createRenderContext(viewRenderer: ViewRenderer, name: string) {
     };
 }
 
-function attachTooltip(host: ViewModel, el: HTMLElement, config: TooltipConfig | RawViewConfig, data?: any, context?: any) {
-    el.classList.add('discovery-view-has-tooltip');
-    tooltipEls.set(el, { config, data, context });
+function attachTooltip(viewRenderer: ViewRenderer, el: HTMLElement, config: TooltipConfig | RawViewConfig, data?: any, context?: any) {
+    if (viewRenderer.Popup === null) {
+        return false;
+    }
 
-    if (host.view.tooltip === null) {
-        host.view.tooltip = createTooltip(host);
+    el.classList.add('discovery-view-has-tooltip');
+    viewRenderer.tooltipEls.set(el, { config, data, context });
+
+    if (viewRenderer.tooltip === null) {
+        viewRenderer.tooltip = createTooltip(viewRenderer);
     }
 }
 function isPopupConfig(value: any): value is TooltipConfig {
@@ -558,21 +555,21 @@ function isPopupConfig(value: any): value is TooltipConfig {
 function ensureNumber(value: unknown, fallback: number): number {
     return Number.isFinite(value) ? Number(value) : fallback;
 }
-function createTooltip(host: ViewModel) {
+function createTooltip(viewRenderer: ViewRenderer) {
     let classNames: string[] | null = null;
-    const popup = new host.view.Popup({
+    const popup = new viewRenderer.Popup({
         className: 'discovery-buildin-view-tooltip',
         hoverTriggers: '.discovery-view-has-tooltip',
         position: 'pointer',
         showDelay(triggerEl: HTMLElement) {
-            const { config } = tooltipEls.get(triggerEl) || {};
+            const { config } = viewRenderer.tooltipEls.get(triggerEl) || {};
 
             return isPopupConfig(config)
                 ? config.showDelay ?? true
                 : true;
         },
         render(el: HTMLElement, triggerEl: HTMLElement) {
-            const { config, data, context } = tooltipEls.get(triggerEl) || {};
+            const { config, data, context } = viewRenderer.tooltipEls.get(triggerEl) || {};
             let position: TooltipConfig['position'] = 'pointer';
             let positionMode: TooltipConfig['positionMode'] = 'natural';
             let pointerOffsetX: TooltipConfig['pointerOffsetX'] = 3;
@@ -588,7 +585,7 @@ function createTooltip(host: ViewModel) {
             }
 
             if (isPopupConfig(config)) {
-                classNames = computeClassName(host, config.className, data, context);
+                classNames = computeClassName(viewRenderer, config.className, data, context);
 
                 if (classNames !== null) {
                     el.classList.add(...classNames);
@@ -614,11 +611,11 @@ function createTooltip(host: ViewModel) {
             popup.contentPadding = contentPadding;
 
             if (content) {
-                return host.view.render(el, content, data, context);
+                return viewRenderer.render(el, content, data, context);
             }
 
-            return host.view.render(el, {
-                view: host.view.defaultRenderErrorRenderer.render,
+            return viewRenderer.render(el, {
+                view: viewRenderer.defaultRenderErrorRenderer.render,
                 reason: 'Element marked as having a tooltip but related data is not found'
             });
         }
@@ -749,6 +746,7 @@ async function render(
 type PopupShowArgs = [triggerEl: HTMLElement, render?: PopupRender, showImmediately?: boolean];
 export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup instead
     el: HTMLElement;
+    visible: boolean;
     position: TooltipConfig['position'];
     positionMode: TooltipConfig['positionMode'];
     pointerOffsetX: TooltipConfig['pointerOffsetX'];
@@ -765,13 +763,19 @@ export class ViewPopup { // FIXME: that a stub for a Popup, use view/Popup inste
     show(...args: PopupShowArgs): Promise<void>;
     async show() {}
     hide() {}
+    destroy() {}
 }
 
 export class ViewRenderer extends Dictionary<View> {
     host: ViewModel;
     defaultRenderErrorRenderer: View;
     viewEls: WeakMap<Node, ViewInfo>;
+    rootViewEls: WeakMap<HTMLElement, RootViewInfo>;
     fragmentEls: WeakMap<Node, ViewInfo[]>;
+    tooltipEls: WeakMap<HTMLElement, TooltipInfo>;
+    configTransitions: WeakMap<object, any>;
+    propsTransitions: WeakMap<object, PropsTransition>;
+
     tooltip: ReturnType<typeof createTooltip> | null;
     Popup = ViewPopup;
     #metadataCache: ViewMetadata[] | null = null;
@@ -781,8 +785,7 @@ export class ViewRenderer extends Dictionary<View> {
 
         this.host = host;
         this.defaultRenderErrorRenderer = createDefaultRenderErrorView(this);
-        this.viewEls = new WeakMap();
-        this.fragmentEls = new WeakMap();
+        this.resetViewRenderInfo();
         this.tooltip = null;
         this.#metadataCache = null;
 
@@ -815,6 +818,11 @@ export class ViewRenderer extends Dictionary<View> {
         } satisfies View));
     }
 
+    #regConfigTransition<T extends object>(res: T, from: any): T {
+        this.configTransitions.set(res, from);
+        return res;
+    }
+
     normalizeConfig(config: RawViewConfig | RenderFunction): SingleViewConfig | SingleViewConfig[] | null {
         if (!config) {
             return null;
@@ -844,29 +852,29 @@ export class ViewRenderer extends Dictionary<View> {
             if (prefix) {
                 if (op === '{') {
                     try {
-                        return regConfigTransition(
+                        return this.#regConfigTransition(
                             queryToConfig(prefix, op + query),
                             config
                         );
                     } catch (error) {
-                        return regConfigTransition(
+                        return this.#regConfigTransition(
                             this.badConfig(config, error),
                             config
                         );
                     }
                 }
 
-                return regConfigTransition({
+                return this.#regConfigTransition({
                     view: prefix,
                     data: query
                 }, config);
             }
 
-            return regConfigTransition({
+            return this.#regConfigTransition({
                 view: config
             }, config);
         } else if (typeof config === 'function') {
-            return regConfigTransition({
+            return this.#regConfigTransition({
                 view: config
             }, config);
         }
@@ -906,8 +914,8 @@ export class ViewRenderer extends Dictionary<View> {
         // mix
         if (config && extension) {
             return Array.isArray(config)
-                ? config.map(item => regConfigTransition({ ...item, ...extension }, [item, extension]))
-                : regConfigTransition({ ...config, ...extension }, [config, extension]);
+                ? config.map(item => this.#regConfigTransition({ ...item, ...extension }, [item, extension]))
+                : this.#regConfigTransition({ ...config, ...extension }, [config, extension]);
         }
 
         return config || extension;
@@ -934,7 +942,7 @@ export class ViewRenderer extends Dictionary<View> {
             const normProps = fn(data, { props, context });
 
             if (normProps !== null && typeof normProps === 'object' && normProps !== props) {
-                propsTransitions.set(normProps, { props, fn });
+                this.propsTransitions.set(normProps, { props, fn });
                 props = normProps;
             }
         }
@@ -1137,7 +1145,7 @@ export class ViewRenderer extends Dictionary<View> {
     }
 
     attachTooltip(el: HTMLElement, config: TooltipConfig | RawViewConfig, data?: any, context?: any) {
-        attachTooltip(this.host, el, config, data, context);
+        return attachTooltip(this, el, config, data, context);
     }
 
     adoptFragment(fragment: DocumentFragment, probe: Node) {
@@ -1151,7 +1159,7 @@ export class ViewRenderer extends Dictionary<View> {
     }
 
     setViewRoot(node: HTMLElement, name: string, props: Record<string, any>) {
-        rootViewEls.set(node, {
+        this.rootViewEls.set(node, {
             name,
             ...props
         });
@@ -1178,7 +1186,7 @@ export class ViewRenderer extends Dictionary<View> {
 
         while (cursor !== null && cursor !== root) {
             const viewInfo = this.viewEls.get(cursor);
-            const rootInfo = includeRoots ? rootViewEls.get(cursor as any) : undefined;
+            const rootInfo = includeRoots ? this.rootViewEls.get(cursor as any) : undefined;
 
             if (viewInfo !== undefined) {
                 stack.push(viewInfo);
@@ -1199,7 +1207,7 @@ export class ViewRenderer extends Dictionary<View> {
     }
 
     getViewConfigTransitionTree(value: any): ConfigTransitionTreeNode {
-        let deps = configTransitions.get(value) || [];
+        let deps = this.configTransitions.get(value) || [];
 
         if (!Array.isArray(deps)) {
             deps = [deps];
@@ -1212,7 +1220,7 @@ export class ViewRenderer extends Dictionary<View> {
     }
 
     getViewPropsTransition(value: any): null | PropsTransition & { query: string | null } {
-        const transition = propsTransitions.get(value) || null;
+        const transition = this.propsTransitions.get(value) || null;
 
         return transition && {
             props: transition.props,
@@ -1279,5 +1287,15 @@ export class ViewRenderer extends Dictionary<View> {
         }
 
         return this.#metadataCache = result;
+    }
+
+    resetViewRenderInfo() {
+        // re-create maps since WeakMap keys are not enumerable and cannot be cleared
+        this.viewEls = new WeakMap();
+        this.rootViewEls = new WeakMap();
+        this.fragmentEls = new WeakMap();
+        this.tooltipEls = new WeakMap();
+        this.configTransitions = new WeakMap();
+        this.propsTransitions = new WeakMap();
     }
 }

@@ -4,6 +4,7 @@
     margin: 1px;
     border: 1px solid rgba(212, 0, 0, 0.4);
     border-radius: 4px;
+    pointer-events: all;
 }
 
 .discovery-buildin-view-render-error__summary {
