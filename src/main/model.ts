@@ -164,7 +164,7 @@ export class Model<
     data: any;
     #context: any;
     prepare: PrepareFunction;
-    #legacyPrepare: boolean;
+    #createPrepareApi: typeof createExtensionApi | typeof createLegacyExtensionApi;
     #lastSetData: symbol | undefined;
 
     textView: TextViewRenderer;
@@ -216,16 +216,16 @@ export class Model<
         this.data = undefined;
         this.#context = context;
         this.prepare = data => data;
-        this.#legacyPrepare = true;
 
         this.textView = new TextViewRenderer(this);
 
         this.apply(extensions);
 
         if (typeof setup === 'function') {
-            this.#legacyPrepare = false;
+            this.#createPrepareApi = createExtensionApi;
             setupModel(this, setup);
         } else {
+            this.#createPrepareApi = createLegacyExtensionApi;
             setupModel(this, () => {});
         }
 
@@ -268,7 +268,7 @@ export class Model<
     //
 
     get legacyPrepare() {
-        return this.#legacyPrepare;
+        return this.#createPrepareApi === createLegacyExtensionApi;
     }
     setPrepare(fn: PrepareFunction) {
         if (typeof fn !== 'function') {
@@ -317,33 +317,44 @@ export class Model<
     setData(data: unknown, options?: SetDataOptions) {
         options = options || {};
 
+        // create dataset and reset data
+        const dataset = {
+            ...options.dataset,
+            data: undefined
+        };
+
+        this.data = undefined;
+        this.datasets = [];
+
         // mark as last setData promise
+        const startTime = Date.now();
         const setDataMarker = Symbol();
+
         this.#lastSetData = setDataMarker;
 
-        const startTime = Date.now();
+        // prepare helpers
+        const prepareApi = this.#createPrepareApi(this, options);
         const checkIsNotPrevented = () => {
             // prevent race conditions, perform only if this promise is last one
             if (this.#lastSetData !== setDataMarker) {
-                throw new Error('Prevented by another setData()');
+                throw new Error('Prevented by another setData() call');
             }
         };
 
-        const prepareApi = this.#legacyPrepare
-            ? createLegacyExtensionApi(this, options)
-            : createExtensionApi(this, options);
+        // main part
         const setDataPromise = Promise.resolve()
             .then(() => {
                 checkIsNotPrevented();
-
                 prepareApi.before?.(this);
+
                 return this.prepare.call(null, data, prepareApi.contextApi) || data;
             })
-            .then((data) => {
+            .then((preparedData) => {
                 checkIsNotPrevented();
 
-                this.datasets = [{ ...options.dataset, data }];
-                this.data = data;
+                this.data = preparedData;
+                this.datasets = [dataset];
+                dataset.data = preparedData;
 
                 prepareApi.after?.(this);
 
