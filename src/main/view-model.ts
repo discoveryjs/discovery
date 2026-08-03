@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import type { ModelEvents, ModelOptions, PageAnchor, PageParams, PageRef, PageHashState, PageHashStateWithAnchor, SetDataOptions } from './model.js';
+import type { ModelEvents, ModelOptions, PageAnchor, PageParams, PageRef, PageHashState, PageHashStateWithAnchor } from './model.js';
 import type { Dataset } from '../core/utils/load-data.js';
 import type { InjectStyle } from '../core/utils/inject-styles.js';
 import type { PageOptionName, PageOptions } from '../core/page.js';
@@ -208,8 +208,21 @@ export class ViewModel<
     }
 
     initRenderTriggers() {
-        this.on('context', () => this.scheduleRender());
-        this.on('unloadData', () => this.scheduleRender());
+        // Calling resetViewRenderInfo() allows to avoid keeping references to previous data state
+        // on DOM nodes, and related data can be garbage collected
+        this.on('data', () => {
+            this.view.resetViewRenderInfo();
+            this.scheduleRender();
+        });
+        this.on('context', () => {
+            this.view.resetViewRenderInfo();
+            this.scheduleRender();
+        });
+        this.on('unloadData', () => {
+            this.view.resetViewRenderInfo();
+            this.scheduleRender();
+        });
+
         this.on('pageStateChange', () => this.scheduleRender('nav', 'page'));
         this.on('pageAnchorChange', () => this.applyPageAnchor());
 
@@ -230,13 +243,6 @@ export class ViewModel<
     //
     // Data
     //
-
-    async setData(data: unknown, options?: SetDataOptions) {
-        await super.setData(data, options);
-
-        // run after data is prepared and set
-        this.scheduleRender();
-    }
 
     async setDataProgress(data: unknown, context: unknown, options?: SetDataProgressOptions) {
         const {
@@ -379,12 +385,12 @@ export class ViewModel<
     // Render common
     //
 
-    scheduleRender(...subjects: RenderSubject[]) {
+    scheduleRender(...subjects: readonly RenderSubject[]) {
         let allSubjects = false;
 
         if (subjects.length === 0) {
             allSubjects = true;
-            subjects = [...renderSubjects];
+            subjects = renderSubjects;
         }
 
         for (const subject of subjects) {

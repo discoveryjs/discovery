@@ -317,20 +317,21 @@ export class Model<
     setData(data: unknown, options?: SetDataOptions) {
         options = options || {};
 
+        // mark as last setData promise
+        const startTime = Date.now();
+        const setDataMarker = Symbol();
+
+        this.#lastSetData = setDataMarker;
+
         // create dataset and reset data
         const dataset = {
             ...options.dataset,
             data: undefined
         };
 
-        this.data = undefined;
+        // this.unloadData(this.#lastSetData);
+        this.data = undefined; // ensure that data is reset before prepare() is called
         this.datasets = [];
-
-        // mark as last setData promise
-        const startTime = Date.now();
-        const setDataMarker = Symbol();
-
-        this.#lastSetData = setDataMarker;
 
         // prepare helpers
         const prepareApi = this.#createPrepareApi(this, options);
@@ -395,8 +396,9 @@ export class Model<
             return;
         }
 
-        this.datasets = [];
         this.data = undefined;
+        this.datasets = [];
+        this.objectMarkers.reset();
 
         this.emit('unloadData');
     }
