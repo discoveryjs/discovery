@@ -201,4 +201,5 @@ Tooltip options:
 - \`hideOnTriggerClick\` – Hide the tooltip when click a trigger element.
 - \`showDelay\` — Delay before showing the tooltip. Options are \`true\` (300ms, default), \`false\` (0ms), a number, or a function that returns a boolean or numeric value.
 - \`content\` — View configuration for tooltip content.
+- \`contentPadding\` — Padding for the tooltip content, which can be a string (e.g., \`"5px 10px"\`), or a number (e.g., \`10\`, treated as pixels), or a boolean (\`true\` for default padding, \`false\` for no padding). Default is \`true\`.
 `;
