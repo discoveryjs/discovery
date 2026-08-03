@@ -125,6 +125,7 @@ function createBurgerMenu(nav: ViewModelNavigation) {
                     if (nav.popup !== popup) {
                         popup.destroy();
                     } else {
+                        popup.hide = originalHide;
                         originalHide();
                     }
                 };
@@ -192,8 +193,10 @@ export class ViewModelNavigation extends NavItemArray {
         // reset popup
         if (!this.popup?.visible) {
             this.popup?.destroy();
+            this.popup = null;
+        } else {
+            this.popup.hide();
         }
-        this.popup = null;
 
         // render nav if container is specified
         if (!el) {

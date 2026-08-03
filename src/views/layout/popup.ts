@@ -582,6 +582,7 @@ export default function(host: ViewModel) {
                 hoverTriggerInstances.splice(popupIndex, 1);
             }
 
+            this.destroy = () => {}; // prevent double destroy
             this.hide();
 
             this.el = null as unknown as HTMLElement;
