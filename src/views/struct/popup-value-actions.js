@@ -1,14 +1,15 @@
-import { stringifyChunked } from '@discoveryjs/json-ext';
 import { escapeHtml, numDelim } from '../../core/utils/html.js';
 import { jsonStringifyInfo } from '../../core/utils/json.js';
 import { copyText } from '../../core/utils/copy-text.js';
+
+const MAX_JSON_COPY_SIZE = 12 * 1024 * 1024; // 512 Mb
 
 function formatSize(size) {
     if (!size) {
         return '';
     }
 
-    return numDelim(size) + ' bytes';
+    return `, ${numDelim(size)} bytes`;
 }
 
 function findRootData(context) {
@@ -19,8 +20,8 @@ function findRootData(context) {
     return context.host[''];
 }
 
-function jsonCopyError(stringifyError, size, maxSize = 1024 * 1024 * 1024) {
-    const copyError = stringifyError || (size > maxSize ? 'Resulting JSON is over 1 Gb' : null);
+function jsonCopyError(size, maxSize = MAX_JSON_COPY_SIZE) {
+    const copyError = size > maxSize ? 'Resulting JSON is over 512 Mb' : null;
 
     return copyError ? 'Can\'t be copied: ' + copyError : false;
 }
@@ -50,25 +51,21 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                 ];
             } else {
                 const path = host.pathToQuery(buildPathForElement(el));
-                let jsonFormattedStringifyError = false;
-                let jsonCompactStringifyError = false;
+                let jsonStringifyError = false;
                 let formattedSize = 0;
                 let compactSize = 0;
-                let jsonlSize = 0;
 
                 try {
                     const { bytes, spaceBytes, circular } = jsonStringifyInfo(data, { space: 4 });
 
                     if (circular.length) {
-                        jsonFormattedStringifyError = 'Converting circular structure to JSON';
-                        jsonCompactStringifyError = 'Converting circular structure to JSON';
+                        jsonStringifyError = 'Converting circular structure to JSON';
                     } else {
                         compactSize = bytes - spaceBytes;
                         formattedSize = bytes + 2;
-                        jsonlSize = bytes + 2 - 2 * Array.isArray(data);
                     }
                 } catch (e) {
-                    jsonCompactStringifyError = jsonFormattedStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
+                    jsonStringifyError = /Maximum call stack size|too much recursion/i.test(e.message)
                         ? 'Too much nested structure'
                         : e.message;
                 }
@@ -96,31 +93,31 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                     }
                 }
 
-                const fomattedCopyError = jsonCopyError(jsonFormattedStringifyError, formattedSize);
-                const compactCopyError = jsonCopyError(jsonCompactStringifyError, compactSize);
-                const jsonlCopyError = jsonCopyError(jsonCompactStringifyError, jsonlSize);
+                const fomattedCopyError = jsonCopyError(formattedSize);
+                const compactCopyError = jsonCopyError(compactSize);
 
                 actions.push({
-                    groupStart: true,
+                    groupStart: !jsonStringifyError,
                     text: 'Copy as JSON',
-                    notes: `(formatted, ${formatSize(formattedSize)})`,
+                    notes: `(formatted${formatSize(formattedSize)})`,
                     error: fomattedCopyError,
-                    disabled: Boolean(fomattedCopyError),
-                    action: () => copyText(JSON.stringify(data, null, 4))
+                    disabled: Boolean(jsonStringifyError || fomattedCopyError),
+                    action: () => copyText(JSON.stringify(data, null, 4)),
+                    postRender(el) {
+                        if (jsonStringifyError) {
+                            const errorEl = document.createElement('div');
+                            errorEl.className = 'error';
+                            errorEl.textContent = `Can't export JSON: ${jsonStringifyError}`;
+                            el.prepend(errorEl);
+                        }
+                    }
                 });
                 actions.push({
                     text: 'Copy as JSON',
-                    notes: `(compact, ${formatSize(compactSize)})`,
+                    notes: `(compact${formatSize(compactSize)})`,
                     error: compactCopyError,
-                    disabled: Boolean(compactCopyError),
+                    disabled: Boolean(jsonStringifyError || compactCopyError),
                     action: () => copyText(JSON.stringify(data))
-                });
-                actions.push({
-                    text: 'Copy as JSONL',
-                    notes: `(compact, ${formatSize(jsonlSize)})`,
-                    error: jsonlCopyError,
-                    disabled: Boolean(jsonlCopyError),
-                    action: () => copyText([...stringifyChunked(data, { mode: 'jsonl' })].join(''))
                 });
 
                 if (host.action.has('getLastExportDataOptions')) {
@@ -138,8 +135,7 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                             }${
                                 lastOptions.compression ? `, ${lastOptions.compression}` : ''
                             })`,
-                            error: jsonCompactStringifyError,
-                            disabled: Boolean(jsonCompactStringifyError),
+                            disabled: Boolean(jsonStringifyError),
                             action: () => lastOptions.action === 'download'
                                 ? host.action.call('downloadDataAsFile', data)
                                 : host.action.call('saveDataAsFile', data)
@@ -150,8 +146,7 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                 actions.push({
                     text: 'Export as ...',
                     when: '#.actions.showExportDataDialog',
-                    error: jsonCompactStringifyError,
-                    disabled: Boolean(jsonCompactStringifyError),
+                    disabled: Boolean(jsonStringifyError),
                     action: () => host.action.call('showExportDataDialog', data)
                 });
             }
@@ -163,7 +158,12 @@ export function createValueActionsPopup(host, elementData, elementContext, build
                     item.action();
                 },
                 itemConfig: {
-                    className: '=groupStart ? "group-start" : null'
+                    className: '=groupStart ? "group-start" : null',
+                    postRender(el, config, data, context) {
+                        if (data.postRender) {
+                            data.postRender(el, config, data, context);
+                        }
+                    }
                 },
                 item: [
                     'html:text',
