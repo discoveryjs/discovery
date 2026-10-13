@@ -78,6 +78,20 @@ function imageAnnotation(value: unknown) {
     }
 }
 
+function stringTagAnnotation(value: unknown) {
+    const type = value
+        ? value[Symbol.toStringTag]
+        : null;
+
+    if (type) {
+        return {
+            place: 'before',
+            style: 'badge',
+            text: type
+        };
+    }
+}
+
 export function getDefaultAnnotations(host: ViewModel) {
     const markerAnnotations = [...host.objectMarkers.values].map(({ name, lookup }) =>
         (value: unknown, context: ValueAnnotationContext) => {
@@ -94,7 +108,11 @@ export function getDefaultAnnotations(host: ViewModel) {
         }
     );
 
-    return preprocessAnnotations([...markerAnnotations, imageAnnotation]);
+    return preprocessAnnotations([
+        ...markerAnnotations,
+        imageAnnotation,
+        stringTagAnnotation
+    ]);
 }
 
 export function prepareAnnotations(
