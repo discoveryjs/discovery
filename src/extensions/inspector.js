@@ -8,14 +8,14 @@ import { dataView } from './inspector/data.js';
 
 // Return the visible bounding rect of a node in viewport coordinates,
 // clipped against every scrollable ancestor.
-function getClippedViewportRect(node) {
+function getClippedViewportRect(rect, node) {
     const el = node.nodeType === 1 ? node : node.parentElement;
 
     if (!el) {
         return null;
     }
 
-    let { top, left, right, bottom } = el.getBoundingClientRect();
+    let { top, left, right, bottom } = rect;
     let parent = el.parentElement;
 
     while (parent) {
@@ -41,27 +41,33 @@ function getClippedViewportRect(node) {
 }
 
 // Walk the view tree and return the deepest view leaf whose node contains targetEl.
-function findLeafForElement(leaves, targetEl) {
-    let result = null;
+function findLeafForElement(leaves, targetEl, x, y) {
+    for (const leaf of leaves) {
+        const child = findLeafForElement(leaf.children, targetEl, x, y);
 
-    const walk = (leafs) => {
-        for (const leaf of leafs) {
-            if (leaf.node && (leaf.view || leaf.viewRoot)) {
-                const container = leaf.node.nodeType === 1 ? leaf.node : leaf.node.parentElement;
+        if (child) {
+            return child;
+        }
 
-                if (container && container.contains(targetEl)) {
-                    result = leaf;
+        if (leaf.node && (leaf.view || leaf.viewRoot)) {
+            if (leaf.node.nodeType === 1 && leaf.node.contains(targetEl)) {
+                return leaf;
+            } else if (leaf.node.nodeType === 3 && targetEl.contains(leaf.node)) {
+                const range = document.createRange();
+
+                range.selectNodeContents(leaf.node);
+
+                for (const rect of range.getClientRects()) {
+                    if (rect.left <= x && rect.right >= x &&
+                        rect.top <= y && rect.bottom >= y) {
+                        return leaf;
+                    }
                 }
             }
-
-            if (leaf.children.length) {
-                walk(leaf.children);
-            }
         }
-    };
+    }
 
-    walk(leaves);
-    return result;
+    return null;
 }
 
 export default (host) => {
@@ -87,6 +93,33 @@ export default (host) => {
         redrawHighlight();
     };
 
+    const collectRectsForLeaf = (leaf) => {
+        const rects = [];
+        const addRect = (rect, node) => {
+            if (rect && rect.width > 0 && rect.height > 0) {
+                const clippedRect = getClippedViewportRect(rect, node);
+                if (clippedRect && clippedRect.width > 0 && clippedRect.height > 0) {
+                    rects.push(clippedRect);
+                }
+            }
+        };
+
+        if (leaf.node) {
+            if (leaf.node.nodeType === 1) {
+                addRect(leaf.node.getBoundingClientRect(), leaf.node);
+            } else if (leaf.node.nodeType === 3) {
+                const range = document.createRange();
+                range.selectNodeContents(leaf.node);
+
+                for (const rect of range.getClientRects()) {
+                    addRect(rect, leaf.node);
+                }
+            }
+        }
+
+        return rects;
+    };
+
     const drawHighlight = (leaf) => {
         ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
@@ -94,15 +127,8 @@ export default (host) => {
             return;
         }
 
-        const rect = getClippedViewportRect(leaf.node);
-
-        if (!rect || rect.width <= 0 || rect.height <= 0) {
-            return;
-        }
-
         const isViewRoot = Boolean(leaf.viewRoot);
         const isDark = host.colorScheme?.value === 'dark';
-        const { top, left, width, height } = rect;
 
         ctx.save();
 
@@ -116,8 +142,12 @@ export default (host) => {
 
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 3]);
-        ctx.fillRect(left, top, width, height);
-        ctx.strokeRect(left + 0.5, top + 0.5, width - 1, height - 1);
+
+        for (const rect of collectRectsForLeaf(leaf)) {
+            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+            ctx.strokeRect(rect.left + 0.5, rect.top + 0.5, rect.width - 1, rect.height - 1);
+        }
+
         ctx.restore();
     };
 
@@ -146,18 +176,19 @@ export default (host) => {
 
     // --- leaf lookup at a viewport point ---
     const findLeafAt = (x, y) => {
-        const domRoot = host.dom.container.getRootNode();
+        const domRoot = host.dom.root;
         // elementsFromPoint returns all elements at the point top-to-bottom, including
         // those occluded by the capture layer, so we can safely filter our own elements out.
-        const target = [...(domRoot.elementsFromPoint(x, y) || [])]
+        const targetEl = [...(domRoot.elementsFromPoint(x, y) || [])]
             .find(el => el !== captureLayerEl && !captureLayerEl.contains(el) && el !== canvasEl);
 
-        if (!target) {
+        if (!targetEl) {
             return null;
         }
 
         const tree = host.view.getViewTree([popup.el]);
-        return findLeafForElement(tree, target);
+
+        return findLeafForElement(tree, targetEl, x, y);
     };
 
     const updateState = () => {
@@ -166,6 +197,7 @@ export default (host) => {
         }
 
         const { x, y } = pointerXY.value;
+
         onHover(findLeafAt(x | 0, y | 0));
     };
 
