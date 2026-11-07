@@ -16,7 +16,7 @@ function getClippedViewportRect(rect, node) {
     }
 
     let { top, left, right, bottom } = rect;
-    let parent = el.parentElement;
+    let parent = node.parentElement;
 
     while (parent) {
         const style = getComputedStyle(parent);
@@ -28,10 +28,15 @@ function getClippedViewportRect(rect, node) {
             const clipRight = clipLeft + parent.clientWidth;
             const clipBottom = clipTop + parent.clientHeight;
 
-            left = Math.max(left, clipLeft);
-            top = Math.max(top, clipTop);
-            right = Math.min(right, clipRight);
-            bottom = Math.min(bottom, clipBottom);
+            if (style.overflowX !== 'visible') {
+                left = Math.max(left, clipLeft);
+                right = Math.min(right, clipRight);
+            }
+
+            if (style.overflowY !== 'visible') {
+                top = Math.max(top, clipTop);
+                bottom = Math.min(bottom, clipBottom);
+            }
         }
 
         parent = parent.parentElement;
@@ -75,6 +80,7 @@ export default (host) => {
     let lastHoverViewTreeLeaf = null;
     let selectedTreeViewLeaf = null;
     let hideTimer = null;
+    let selectFrame = null;
 
     const detailsSidebarLeafExpanded = new Set();
 
@@ -159,9 +165,9 @@ export default (host) => {
     const captureLayerEl = createElement('div', {
         class: 'discovery-view-inspector-overlay',
         onclick: (e) => {
-            if ((e.metaKey || e.ctrlKey) && lastHoverViewTreeLeaf) {
-                const view = lastHoverViewTreeLeaf.view.config.view;
+            const view = lastHoverViewTreeLeaf?.view?.config.view;
 
+            if ((e.metaKey || e.ctrlKey) && typeof view === 'string') {
                 disableInspect();
                 host.setPage('views-showcase', view);
 
@@ -217,8 +223,8 @@ export default (host) => {
             window.addEventListener('resize', resizeCanvas);
             pointerXY.subscribe(updateState);
             host.dom.container.append(canvasEl, captureLayerEl);
-            updateState();
             host.inspectMode.set(true);
+            queueMicrotask(updateState);
         }
     };
 
@@ -240,6 +246,8 @@ export default (host) => {
     };
 
     const selectTreeViewLeaf = (leaf) => {
+        cancelAnimationFrame(selectFrame);
+        clearTimeout(hideTimer);
         selectedTreeViewLeaf = leaf || null;
 
         if (leaf) {
@@ -254,9 +262,9 @@ export default (host) => {
             popup.frozen = true;
 
             // use rAF to make a transition work
-            requestAnimationFrame(() => {
+            selectFrame = requestAnimationFrame(() => {
+                selectFrame = null;
                 drawHighlight(leaf);
-                clearTimeout(hideTimer);
                 popup.show();
                 popup.freeze();
             });
@@ -265,8 +273,6 @@ export default (host) => {
         } else if (inspectByQuick) {
             host.inspectMode.set(false);
         } else {
-            detailsSidebarLeafExpanded.clear();
-            resetViewTreeScrollTopBeforeSelect();
             clearHighlight();
             hide();
             updateState();
@@ -274,6 +280,12 @@ export default (host) => {
     };
 
     const hide = () => {
+        clearTimeout(hideTimer);
+        cancelAnimationFrame(selectFrame);
+        hideTimer = null;
+        selectFrame = null;
+        detailsSidebarLeafExpanded.clear();
+        resetViewTreeScrollTopBeforeSelect();
         clearHighlight();
         lastHoverViewTreeLeaf = null;
         selectedTreeViewLeaf = null;
@@ -285,7 +297,10 @@ export default (host) => {
             return;
         }
 
-        if (leaf !== null && lastHoverViewTreeLeaf !== null && leaf.view === lastHoverViewTreeLeaf.view) {
+        if (leaf !== null && lastHoverViewTreeLeaf !== null &&
+            leaf.node === lastHoverViewTreeLeaf.node &&
+            leaf.view === lastHoverViewTreeLeaf.view &&
+            leaf.viewRoot === lastHoverViewTreeLeaf.viewRoot) {
             return;
         }
 
