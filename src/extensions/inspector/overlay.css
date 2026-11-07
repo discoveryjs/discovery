@@ -1,4 +1,4 @@
-.discovery-root:has(.discovery-view-inspector-overlay) :not(.discovery-inspect-details-popup, .discovery-inspect-details-popup *) {
+.discovery-root.discovery-inspect-mode :not(.discovery-inspect-details-popup, .discovery-inspect-details-popup *) {
     pointer-events: auto !important;
 }
 

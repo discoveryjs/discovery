@@ -210,6 +210,7 @@ export default (host) => {
     const enableInspect = () => {
         if (!inspectorActivated) {
             inspectorActivated = true;
+            host.dom.container.classList.add('discovery-inspect-mode');
             resizeCanvas();
             document.addEventListener('scroll', redrawHighlight, passiveCaptureOptions);
             document.addEventListener('keydown', keyPressedEventListener, true);
@@ -224,6 +225,7 @@ export default (host) => {
     const disableInspect = () => {
         if (inspectorActivated) {
             inspectorActivated = false;
+            host.dom.container.classList.remove('discovery-inspect-mode');
             document.removeEventListener('scroll', redrawHighlight, passiveCaptureOptions);
             document.removeEventListener('keydown', keyPressedEventListener, true);
             window.removeEventListener('resize', resizeCanvas);
